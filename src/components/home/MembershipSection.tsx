@@ -7,7 +7,7 @@ const plans = [
   {
     name: "Monthly",
     frequency: "1x per month",
-    price: 149,
+    price: 135,
     description: "Perfect for maintaining that fresh detail look.",
     features: [
       "Full exterior wash & dry",
@@ -21,13 +21,11 @@ const plans = [
   {
     name: "Bi-Weekly",
     frequency: "2x per month",
-    price: 249,
+    price: 260,
     description: "Ideal for daily drivers and high-use vehicles.",
     features: [
       "Everything in Monthly, plus:",
-      "Clay bar treatment (monthly)",
       "Leather conditioning",
-      "Engine bay wipe down",
       "Priority scheduling",
       "10% off additional services",
     ],
@@ -36,16 +34,14 @@ const plans = [
   {
     name: "Weekly Premium",
     frequency: "4x per month",
-    price: 399,
+    price: 520,
     description: "The ultimate in vehicle care for enthusiasts.",
     features: [
       "Everything in Bi-Weekly, plus:",
       "Paint sealant refresh",
-      "Ceramic coating maintenance",
-      "Odor elimination treatment",
       "VIP priority scheduling",
-      "20% off additional services",
-      "Free add-on per visit",
+      "15% off additional services",
+      "Includes one free add-on per month",
     ],
     popular: false,
   },
