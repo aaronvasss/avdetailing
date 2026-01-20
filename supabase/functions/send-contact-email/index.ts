@@ -32,8 +32,8 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "AV Detailing <onboarding@resend.dev>",
-        to: ["onboarding@resend.dev"], // Replace with actual business email
+        from: "AV Detailing <noreply@avdetailing.net>",
+        to: ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"],
         subject: `New Contact Form Submission from ${name}`,
         html: `
           <!DOCTYPE html>
@@ -100,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "AV Detailing <onboarding@resend.dev>",
+        from: "AV Detailing <noreply@avdetailing.net>",
         to: [email],
         subject: "We received your message!",
         html: customerEmailHtml,
