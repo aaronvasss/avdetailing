@@ -181,12 +181,16 @@ const BookingPage = () => {
           serviceAddress: customerInfo.address,
           serviceCity: customerInfo.city,
           serviceState: "LA",
+          serviceZip: customerInfo.zip,
           vehicleInfo: customerInfo.vehicleInfo,
+          vehicleType: vehicleType,
           totalPrice: totalPrice + addOnsTotal,
           bookingId: booking.id,
           basePrice: totalPrice,
           addOns: selectedAddOnDetails,
           customerPhone: customerInfo.phone,
+          depositAmount: 0,
+          parkingInstructions: customerInfo.notes || undefined,
         });
       } catch (emailError) {
         console.error("Email failed but booking succeeded:", emailError);
