@@ -1,5 +1,6 @@
 import { Caravan } from "lucide-react";
 import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
+import rvDetailingImage from "@/assets/rv-detailing.jpg";
 
 const RVDetailingPage = () => {
   return (
@@ -7,7 +8,7 @@ const RVDetailingPage = () => {
       title="RV Detailing"
       location="Professional RV & Motorhome Detailing in Baton Rouge, Louisiana"
       description="Comprehensive detailing services for motorhomes, travel trailers, and fifth wheels of all sizes. Protect your home on wheels from the elements."
-      heroImage="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=2000&auto=format&fit=crop"
+      heroImage={rvDetailingImage}
       icon={<Caravan className="h-6 w-6 text-primary" />}
       timeEstimate="6-12 hours"
       idealFor={[
