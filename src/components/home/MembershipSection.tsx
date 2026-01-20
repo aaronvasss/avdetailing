@@ -66,12 +66,12 @@ export function MembershipSection() {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {plans.map((plan, index) => (
             <div
               key={plan.name}
               className={cn(
-                "relative rounded-2xl p-8 animate-fade-in-up",
+                "relative rounded-2xl p-8 animate-fade-in-up flex flex-col",
                 plan.popular
                   ? "bg-gradient-to-b from-primary/10 to-card border-2 border-primary"
                   : "bg-background border border-border"
@@ -99,8 +99,8 @@ export function MembershipSection() {
                 <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
               </div>
 
-              {/* Features */}
-              <ul className="space-y-4 mb-8">
+              {/* Features - grows to fill space */}
+              <ul className="space-y-4 mb-8 flex-grow">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -109,20 +109,22 @@ export function MembershipSection() {
                 ))}
               </ul>
 
-              {/* CTA */}
-              <Button
-                asChild
-                className={cn(
-                  "w-full",
-                  plan.popular ? "glow-red" : ""
-                )}
-                variant={plan.popular ? "default" : "outline"}
-              >
-                <Link to="/memberships">
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              {/* CTA - always at bottom */}
+              <div className="mt-auto">
+                <Button
+                  asChild
+                  className={cn(
+                    "w-full",
+                    plan.popular ? "glow-red" : ""
+                  )}
+                  variant={plan.popular ? "default" : "outline"}
+                >
+                  <Link to="/memberships">
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           ))}
         </div>

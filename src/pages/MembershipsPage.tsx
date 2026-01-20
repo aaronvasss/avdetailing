@@ -97,12 +97,12 @@ const MembershipsPage = () => {
       {/* Plans */}
       <section className="section-padding bg-background">
         <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
             {plans.map((plan) => (
               <div
                 key={plan.name}
                 className={cn(
-                  "relative rounded-2xl p-8",
+                  "relative rounded-2xl p-8 flex flex-col",
                   plan.popular
                     ? "bg-gradient-to-b from-primary/10 to-card border-2 border-primary scale-105"
                     : "bg-card border border-border"
@@ -128,7 +128,7 @@ const MembershipsPage = () => {
                   <p className="text-sm text-muted-foreground mt-4">{plan.description}</p>
                 </div>
 
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-4 mb-8 flex-grow">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -137,17 +137,19 @@ const MembershipsPage = () => {
                   ))}
                 </ul>
 
-                <Button
-                  asChild
-                  className={cn("w-full", plan.popular && "glow-red")}
-                  variant={plan.popular ? "default" : "outline"}
-                  size="lg"
-                >
-                  <Link to="/book">
-                    Get Started
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                <div className="mt-auto">
+                  <Button
+                    asChild
+                    className={cn("w-full", plan.popular && "glow-red")}
+                    variant={plan.popular ? "default" : "outline"}
+                    size="lg"
+                  >
+                    <Link to="/book">
+                      Get Started
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
