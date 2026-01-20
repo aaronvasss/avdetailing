@@ -1,5 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
+interface BookingAddOn {
+  name: string;
+  price: number;
+}
+
 interface BookingConfirmationData {
   customerEmail: string;
   customerName: string;
@@ -8,9 +13,14 @@ interface BookingConfirmationData {
   scheduledTime: string;
   serviceAddress: string;
   serviceCity: string;
+  serviceState?: string;
   vehicleInfo: string;
   totalPrice: number;
   bookingId: string;
+  basePrice?: number;
+  addOns?: BookingAddOn[];
+  estimatedDuration?: number;
+  customerPhone?: string;
 }
 
 interface ContactFormData {

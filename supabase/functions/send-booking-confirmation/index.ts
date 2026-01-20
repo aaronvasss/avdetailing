@@ -21,6 +21,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+interface BookingAddOn {
+  name: string;
+  price: number;
+}
+
 interface BookingConfirmationRequest {
   customerEmail: string;
   customerName: string;
@@ -29,9 +34,14 @@ interface BookingConfirmationRequest {
   scheduledTime: string;
   serviceAddress: string;
   serviceCity: string;
+  serviceState?: string;
   vehicleInfo: string;
   totalPrice: number;
   bookingId: string;
+  basePrice?: number;
+  addOns?: BookingAddOn[];
+  estimatedDuration?: number;
+  customerPhone?: string;
 }
 
 // Get client identifier for rate limiting
@@ -155,9 +165,14 @@ const handler = async (req: Request): Promise<Response> => {
       scheduledTime,
       serviceAddress,
       serviceCity,
+      serviceState = "LA",
       vehicleInfo,
       totalPrice,
       bookingId,
+      basePrice,
+      addOns = [],
+      estimatedDuration,
+      customerPhone,
     }: BookingConfirmationRequest = rawData;
 
     // HTML encode all user inputs to prevent XSS in emails
@@ -166,6 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
     const safeScheduledTime = htmlEncode(scheduledTime.trim());
     const safeServiceAddress = htmlEncode(serviceAddress.trim());
     const safeServiceCity = htmlEncode(serviceCity.trim());
+    const safeServiceState = htmlEncode(serviceState.trim());
     const safeVehicleInfo = vehicleInfo ? htmlEncode(vehicleInfo.trim()) : "Not specified";
     const safeBookingId = htmlEncode(bookingId);
 
@@ -175,6 +191,63 @@ const handler = async (req: Request): Promise<Response> => {
       month: 'long',
       day: 'numeric'
     });
+
+    const shortDate = new Date(scheduledDate).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+
+    // Generate Google Calendar link
+    const startDate = new Date(scheduledDate);
+    const [hours, minutes] = scheduledTime.match(/(\d+):(\d+)/)?.slice(1) || ["9", "00"];
+    const isPM = scheduledTime.toLowerCase().includes('pm');
+    let hour = parseInt(hours);
+    if (isPM && hour !== 12) hour += 12;
+    if (!isPM && hour === 12) hour = 0;
+    startDate.setHours(hour, parseInt(minutes), 0, 0);
+    
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + (estimatedDuration ? Math.ceil(estimatedDuration / 60) : 3));
+    
+    const formatCalendarDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('AV Detailing - ' + serviceName)}&dates=${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}&details=${encodeURIComponent('Mobile detailing service at your location. Booking ID: ' + bookingId)}&location=${encodeURIComponent(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}`;
+
+    // Build add-ons HTML if present
+    const addOnsHtml = addOns.length > 0 ? `
+      <tr>
+        <td style="padding: 12px 0; border-bottom: 1px solid #262626;">
+          <span style="color: #737373; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Add-Ons</span>
+          <div style="margin-top: 8px;">
+            ${addOns.map(addon => `
+              <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                <span style="color: #d4d4d4; font-size: 14px;">+ ${htmlEncode(addon.name)}</span>
+                <span style="color: #a3a3a3; font-size: 14px;">$${addon.price.toFixed(2)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </td>
+      </tr>
+    ` : '';
+
+    // Build pricing breakdown
+    const pricingHtml = basePrice ? `
+      <div style="background-color: #0a0a0a; border-radius: 8px; padding: 16px; margin-top: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="color: #a3a3a3; font-size: 14px;">Base Service</span>
+          <span style="color: #d4d4d4; font-size: 14px;">$${basePrice.toFixed(2)}</span>
+        </div>
+        ${addOns.map(addon => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="color: #a3a3a3; font-size: 14px;">+ ${htmlEncode(addon.name)}</span>
+            <span style="color: #d4d4d4; font-size: 14px;">$${addon.price.toFixed(2)}</span>
+          </div>
+        `).join('')}
+        <div style="border-top: 1px solid #262626; padding-top: 12px; margin-top: 8px; display: flex; justify-content: space-between;">
+          <span style="color: #ffffff; font-size: 16px; font-weight: 600;">Total</span>
+          <span style="color: #ef4444; font-size: 18px; font-weight: 700;">$${totalPrice.toFixed(2)}</span>
+        </div>
+      </div>
+    ` : '';
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -188,7 +261,7 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="max-width: 600px; margin: 0 auto; padding: 48px 24px;">
           
           <!-- Header with Logo -->
-          <div style="text-align: center; margin-bottom: 48px;">
+          <div style="text-align: center; margin-bottom: 40px;">
             <div style="display: inline-block; padding: 16px 32px; border: 2px solid #ef4444; border-radius: 4px;">
               <h1 style="color: #ffffff; font-size: 32px; margin: 0; font-weight: 800; letter-spacing: 2px;">
                 <span style="color: #ffffff;">AV</span><span style="color: #ef4444;"> DETAILING</span>
@@ -199,111 +272,210 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
           </div>
           
+          <!-- Quick Date Card -->
+          <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
+            <p style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px 0;">
+              Your Appointment
+            </p>
+            <p style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0;">
+              ${shortDate} at ${safeScheduledTime}
+            </p>
+          </div>
+          
           <!-- Main Card -->
           <div style="background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%); border-radius: 16px; overflow: hidden; border: 1px solid #262626; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
             
             <!-- Success Banner -->
-            <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); padding: 24px; text-align: center;">
-              <div style="display: inline-block; background-color: rgba(255,255,255,0.2); border-radius: 50%; width: 48px; height: 48px; line-height: 48px; margin-bottom: 12px;">
-                <span style="font-size: 24px;">✓</span>
-              </div>
-              <h2 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700;">
-                Booking Confirmed!
-              </h2>
+            <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); padding: 20px; text-align: center;">
+              <span style="display: inline-block; background-color: rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; line-height: 40px; font-size: 20px; margin-right: 12px; vertical-align: middle;">✓</span>
+              <span style="color: #ffffff; font-size: 20px; font-weight: 700; vertical-align: middle;">Booking Confirmed!</span>
             </div>
             
             <!-- Greeting -->
-            <div style="padding: 32px 32px 24px 32px; text-align: center; border-bottom: 1px solid #262626;">
-              <h3 style="color: #ffffff; font-size: 20px; margin: 0 0 8px 0; font-weight: 600;">
-                Thank you, ${safeCustomerName}!
+            <div style="padding: 28px 32px; text-align: center; border-bottom: 1px solid #262626;">
+              <h3 style="color: #ffffff; font-size: 18px; margin: 0 0 8px 0; font-weight: 600;">
+                Thank you, ${safeCustomerName}! 🎉
               </h3>
-              <p style="color: #a3a3a3; margin: 0; font-size: 15px; line-height: 1.5;">
-                Your premium mobile detailing service is confirmed. We're excited to make your vehicle shine!
+              <p style="color: #a3a3a3; margin: 0; font-size: 14px; line-height: 1.5;">
+                We're excited to bring our premium mobile detailing to you. Here's everything you need to know.
               </p>
             </div>
             
             <!-- Appointment Details -->
-            <div style="padding: 32px;">
+            <div style="padding: 28px 32px;">
               <h4 style="color: #ef4444; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0; font-weight: 600;">
-                📅 Appointment Details
+                📋 Service Details
               </h4>
               
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #262626;">
-                    <span style="color: #737373; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Service</span>
-                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 4px 0 0 0;">${safeServiceName}</p>
+                  <td style="padding: 14px 16px; background-color: #0a0a0a; border-radius: 8px 8px 0 0;">
+                    <span style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Service Package</span>
+                    <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 6px 0 0 0;">${safeServiceName}</p>
+                    ${estimatedDuration ? `<p style="color: #a3a3a3; font-size: 12px; margin: 4px 0 0 0;">Estimated time: ${Math.floor(estimatedDuration / 60)}h ${estimatedDuration % 60 > 0 ? (estimatedDuration % 60) + 'm' : ''}</p>` : ''}
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #262626;">
-                    <span style="color: #737373; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Date & Time</span>
-                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 4px 0 0 0;">
-                      ${formattedDate}<br>
-                      <span style="color: #ef4444;">${safeScheduledTime}</span>
+                  <td style="padding: 14px 16px; background-color: rgba(10,10,10,0.5);">
+                    <span style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Date & Time</span>
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 6px 0 0 0;">
+                      ${formattedDate}
+                    </p>
+                    <p style="color: #ef4444; font-size: 18px; font-weight: 700; margin: 4px 0 0 0;">
+                      ${safeScheduledTime}
                     </p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #262626;">
-                    <span style="color: #737373; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Service Location</span>
-                    <p style="color: #ffffff; font-size: 16px; margin: 4px 0 0 0;">
+                  <td style="padding: 14px 16px; background-color: #0a0a0a;">
+                    <span style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">📍 Service Location</span>
+                    <p style="color: #ffffff; font-size: 15px; margin: 6px 0 0 0;">
                       ${safeServiceAddress}<br>
-                      ${safeServiceCity}, LA
+                      ${safeServiceCity}, ${safeServiceState}
                     </p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #262626;">
-                    <span style="color: #737373; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Vehicle</span>
-                    <p style="color: #ffffff; font-size: 16px; margin: 4px 0 0 0;">${safeVehicleInfo}</p>
+                  <td style="padding: 14px 16px; background-color: rgba(10,10,10,0.5); border-radius: 0 0 8px 8px;">
+                    <span style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">🚗 Vehicle</span>
+                    <p style="color: #ffffff; font-size: 15px; margin: 6px 0 0 0;">${safeVehicleInfo}</p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Pricing Summary -->
+              <div style="margin-top: 24px; padding: 20px; background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.05) 100%); border-radius: 12px; border: 1px solid rgba(239,68,68,0.2);">
+                <h4 style="color: #ef4444; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px 0; font-weight: 600;">
+                  💰 Investment Summary
+                </h4>
+                ${basePrice ? `
+                  <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: table; width: 100%;">
+                      <span style="display: table-cell; color: #d4d4d4; font-size: 14px;">${safeServiceName}</span>
+                      <span style="display: table-cell; text-align: right; color: #ffffff; font-size: 14px;">$${basePrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                ` : ''}
+                ${addOns.map(addon => `
+                  <div style="margin-bottom: 8px;">
+                    <div style="display: table; width: 100%;">
+                      <span style="display: table-cell; color: #a3a3a3; font-size: 13px;">+ ${htmlEncode(addon.name)}</span>
+                      <span style="display: table-cell; text-align: right; color: #d4d4d4; font-size: 13px;">$${addon.price.toFixed(2)}</span>
+                    </div>
+                  </div>
+                `).join('')}
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(239,68,68,0.3);">
+                  <div style="display: table; width: 100%;">
+                    <span style="display: table-cell; color: #ffffff; font-size: 16px; font-weight: 600;">Total Due</span>
+                    <span style="display: table-cell; text-align: right; color: #ef4444; font-size: 28px; font-weight: 800;">$${totalPrice.toFixed(2)}</span>
+                  </div>
+                  <p style="color: #737373; font-size: 11px; margin: 8px 0 0 0; text-align: right;">
+                    Payment collected upon completion
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Add to Calendar -->
+              <div style="margin-top: 20px; text-align: center;">
+                <a href="${calendarUrl}" target="_blank" style="display: inline-block; background-color: #262626; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; border: 1px solid #404040;">
+                  📅 Add to Google Calendar
+                </a>
+              </div>
+            </div>
+            
+            <!-- What to Expect Timeline -->
+            <div style="padding: 28px 32px; background-color: #0a0a0a;">
+              <h4 style="color: #ef4444; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0; font-weight: 600;">
+                🚗 What Happens Next
+              </h4>
+              <div style="position: relative; padding-left: 24px; border-left: 2px solid #262626;">
+                <div style="margin-bottom: 20px;">
+                  <div style="position: absolute; left: -7px; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%;"></div>
+                  <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">Day Before</p>
+                  <p style="color: #a3a3a3; font-size: 13px; margin: 4px 0 0 0;">We'll send you a reminder text</p>
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <div style="position: absolute; left: -7px; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%;"></div>
+                  <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">On Your Way</p>
+                  <p style="color: #a3a3a3; font-size: 13px; margin: 4px 0 0 0;">Text notification when we're headed your way</p>
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <div style="position: absolute; left: -7px; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%;"></div>
+                  <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">Service Time</p>
+                  <p style="color: #a3a3a3; font-size: 13px; margin: 4px 0 0 0;">Sit back and relax while we work our magic</p>
+                </div>
+                <div>
+                  <div style="position: absolute; left: -7px; width: 12px; height: 12px; background-color: #22c55e; border-radius: 50%;"></div>
+                  <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">All Done!</p>
+                  <p style="color: #a3a3a3; font-size: 13px; margin: 4px 0 0 0;">Final walkthrough & payment</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Preparation Checklist -->
+            <div style="padding: 28px 32px; border-top: 1px solid #262626;">
+              <h4 style="color: #ef4444; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px 0; font-weight: 600;">
+                ✅ Quick Prep Checklist
+              </h4>
+              <table style="width: 100%;">
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                    <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #404040; border-radius: 4px;"></span>
+                  </td>
+                  <td style="padding: 8px 0; padding-left: 12px;">
+                    <span style="color: #ffffff; font-size: 14px;">Remove personal items from vehicle</span>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 16px 0 0 0;">
-                    <span style="color: #737373; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Total Investment</span>
-                    <p style="color: #ef4444; font-size: 28px; font-weight: 700; margin: 4px 0 0 0;">$${totalPrice.toFixed(2)}</p>
+                  <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                    <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #404040; border-radius: 4px;"></span>
+                  </td>
+                  <td style="padding: 8px 0; padding-left: 12px;">
+                    <span style="color: #ffffff; font-size: 14px;">Ensure access to outdoor water spigot</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                    <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #404040; border-radius: 4px;"></span>
+                  </td>
+                  <td style="padding: 8px 0; padding-left: 12px;">
+                    <span style="color: #ffffff; font-size: 14px;">Clear parking area for equipment</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                    <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #404040; border-radius: 4px;"></span>
+                  </td>
+                  <td style="padding: 8px 0; padding-left: 12px;">
+                    <span style="color: #ffffff; font-size: 14px;">Power outlet within 50ft (if possible)</span>
                   </td>
                 </tr>
               </table>
             </div>
             
-            <!-- What to Expect -->
-            <div style="background-color: #0a0a0a; padding: 32px; margin: 0 16px 16px 16px; border-radius: 12px;">
-              <h4 style="color: #ef4444; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px 0; font-weight: 600;">
-                🚗 What to Expect
-              </h4>
-              <ul style="color: #d4d4d4; font-size: 14px; margin: 0; padding-left: 20px; line-height: 1.8;">
-                <li>Our technician will arrive at your location on time with all equipment</li>
-                <li>Service typically takes 2-4 hours depending on package</li>
-                <li>We'll send you a text when we're on our way</li>
-                <li>Payment is collected upon service completion</li>
-              </ul>
-            </div>
-            
-            <!-- Preparation Tips -->
-            <div style="background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.05) 100%); padding: 24px 32px; margin: 0 16px 16px 16px; border-radius: 12px; border: 1px solid rgba(239,68,68,0.2);">
-              <h4 style="color: #ef4444; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px 0; font-weight: 600;">
-                📋 Before We Arrive
-              </h4>
-              <ul style="color: #d4d4d4; font-size: 14px; margin: 0; padding-left: 20px; line-height: 1.8;">
-                <li><strong style="color: #ffffff;">Clear the vehicle</strong> – Remove personal items and valuables</li>
-                <li><strong style="color: #ffffff;">Water access</strong> – Ensure we can connect to an outdoor spigot</li>
-                <li><strong style="color: #ffffff;">Power outlet</strong> – Within 50ft of the vehicle if possible</li>
-                <li><strong style="color: #ffffff;">Parking space</strong> – Keep the area clear for our equipment setup</li>
-              </ul>
-            </div>
-            
             <!-- CTA Section -->
-            <div style="padding: 24px 32px; text-align: center; border-top: 1px solid #262626;">
-              <p style="color: #a3a3a3; font-size: 14px; margin: 0 0 16px 0;">
-                Need to reschedule or have questions?
+            <div style="padding: 28px 32px; text-align: center; background: linear-gradient(180deg, #171717 0%, #1a1a1a 100%); border-top: 1px solid #262626;">
+              <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">
+                Need to make changes?
               </p>
-              <a href="tel:+12252268979" style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px;">
-                📞 Call (225) 226-8979
+              <p style="color: #a3a3a3; font-size: 13px; margin: 0 0 20px 0;">
+                Call or text us anytime
+              </p>
+              <a href="tel:+12252268979" style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(239,68,68,0.3);">
+                📞 (225) 226-8979
               </a>
-              <p style="color: #525252; font-size: 12px; margin: 16px 0 0 0;">
-                or text us anytime
+            </div>
+            
+            <!-- Social Proof -->
+            <div style="padding: 24px 32px; background-color: #0a0a0a; border-top: 1px solid #262626; text-align: center;">
+              <p style="color: #737373; font-size: 12px; margin: 0 0 8px 0;">
+                Join hundreds of satisfied customers
+              </p>
+              <p style="color: #fbbf24; font-size: 18px; margin: 0; letter-spacing: 2px;">
+                ★★★★★
+              </p>
+              <p style="color: #a3a3a3; font-size: 11px; margin: 8px 0 0 0;">
+                5.0 average rating on Google
               </p>
             </div>
           </div>
@@ -316,9 +488,12 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="color: #404040; font-size: 12px; margin: 0;">
               AV Detailing • Baton Rouge & Surrounding Areas
             </p>
-            <div style="margin-top: 20px;">
-              <a href="https://avdetailing.net" style="color: #ef4444; text-decoration: none; font-size: 12px;">www.avdetailing.net</a>
+            <div style="margin-top: 16px;">
+              <a href="https://avdetailing.net" style="color: #ef4444; text-decoration: none; font-size: 12px; font-weight: 500;">www.avdetailing.net</a>
             </div>
+            <p style="color: #404040; font-size: 11px; margin: 16px 0 0 0;">
+              © ${new Date().getFullYear()} AV Detailing. All rights reserved.
+            </p>
           </div>
           
         </div>
