@@ -114,30 +114,8 @@ export function ServicePageTemplate({
         </div>
       </section>
 
-      {/* Ideal For Section */}
+      {/* Packages - Appears First */}
       <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
-              Ideal For
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {idealFor.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-4 bg-card rounded-lg border border-border"
-                >
-                  <Check className="h-5 w-5 text-primary shrink-0" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Packages */}
-      <section className="section-padding bg-card">
         <div className="container-custom">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center">
             Choose Your Package
@@ -147,15 +125,15 @@ export function ServicePageTemplate({
             include our satisfaction guarantee.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {packages.map((pkg, index) => (
               <div
                 key={pkg.name}
                 className={cn(
-                  "relative rounded-xl p-6",
+                  "relative rounded-xl p-6 flex flex-col",
                   pkg.popular
-                    ? "bg-gradient-to-b from-primary/10 to-background border-2 border-primary"
-                    : "bg-background border border-border"
+                    ? "bg-gradient-to-b from-primary/10 to-card border-2 border-primary"
+                    : "bg-card border border-border"
                 )}
               >
                 {pkg.popular && (
@@ -170,7 +148,7 @@ export function ServicePageTemplate({
                 <p className="text-sm text-muted-foreground mb-6">
                   {pkg.description}
                 </p>
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-3 mb-6 flex-grow">
                   {pkg.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -178,15 +156,39 @@ export function ServicePageTemplate({
                     </li>
                   ))}
                 </ul>
-                <Button
-                  asChild
-                  className={cn("w-full", pkg.popular && "glow-red")}
-                  variant={pkg.popular ? "default" : "outline"}
-                >
-                  <Link to="/book">Book This Package</Link>
-                </Button>
+                <div className="mt-auto">
+                  <Button
+                    asChild
+                    className={cn("w-full", pkg.popular && "glow-red")}
+                    variant={pkg.popular ? "default" : "outline"}
+                  >
+                    <Link to="/book">Book This Package</Link>
+                  </Button>
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Ideal For Section - Appears Second */}
+      <section className="section-padding bg-card">
+        <div className="container-custom">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
+              Ideal For
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {idealFor.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-4 bg-background rounded-lg border border-border"
+                >
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

@@ -21,7 +21,7 @@ const CarDetailingPage = () => {
       ]}
       packages={[
         {
-          name: "Essential Wash",
+          name: "Basic Package",
           price: "$79+",
           description: "Perfect for regular maintenance",
           features: [
@@ -33,32 +33,26 @@ const CarDetailingPage = () => {
           ],
         },
         {
-          name: "Full Detail",
+          name: "Silver Package",
           price: "$199+",
           description: "Complete interior & exterior detail",
           features: [
-            "Everything in Essential, plus:",
-            "Clay bar treatment",
-            "Machine polish",
-            "Carnauba wax protection",
+            "Everything in Basic, plus:",
             "Full interior deep clean",
-            "Leather conditioning",
             "Dashboard & trim dressing",
           ],
           popular: true,
         },
         {
-          name: "Signature Detail",
+          name: "Gold Package",
           price: "$349+",
           description: "The ultimate in car care",
           features: [
-            "Everything in Full Detail, plus:",
-            "Paint correction (1-step)",
-            "6-month sealant protection",
+            "Everything in Silver, plus:",
+            "2-month sealant protection",
             "Engine bay detail",
-            "Headlight restoration",
             "Odor elimination",
-            "Fabric/carpet shampooing",
+            "Seat shampooing (fabric or leather)",
           ],
         },
       ]}
