@@ -76,42 +76,71 @@ export function Header() {
                     <Link
                       to={item.href}
                       className={cn(
-                        "flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md",
+                        "flex items-center px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md group/trigger",
                         isActive(item.href)
                           ? "text-primary"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                     >
                       {item.name}
-                      <ChevronDown className="ml-1 h-4 w-4" />
+                      <ChevronDown 
+                        className={cn(
+                          "ml-1 h-4 w-4 transition-transform duration-300",
+                          servicesOpen && "rotate-180"
+                        )} 
+                      />
                     </Link>
-                    {/* Dropdown */}
+                    {/* Premium Dropdown */}
                     <div
                       className={cn(
-                        "absolute top-full left-0 mt-1 w-56 py-2 bg-card border border-border rounded-lg shadow-lg transition-all duration-200",
+                        "absolute top-full left-0 mt-2 w-64 py-3 bg-card/95 backdrop-blur-lg border border-border/50 rounded-xl shadow-2xl shadow-black/20 transition-all duration-300 ease-out origin-top",
                         servicesOpen
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
+                          ? "opacity-100 visible scale-100 translate-y-0"
+                          : "opacity-0 invisible scale-95 -translate-y-2"
                       )}
                     >
-                      {item.children.map((child) => (
+                      {/* Decorative top accent */}
+                      <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                      
+                      {item.children.map((child, index) => (
                         <Link
                           key={child.name}
                           to={child.href}
-                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                          className="group/item flex items-center gap-3 mx-2 px-4 py-3 text-sm text-muted-foreground rounded-lg transition-all duration-200 hover:text-foreground hover:bg-primary/10 hover:pl-6"
+                          style={{
+                            transitionDelay: servicesOpen ? `${index * 50}ms` : '0ms',
+                            opacity: servicesOpen ? 1 : 0,
+                            transform: servicesOpen ? 'translateX(0)' : 'translateX(-8px)'
+                          }}
                         >
-                          {child.name}
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover/item:bg-primary group-hover/item:scale-125 transition-all duration-200" />
+                          <span className="flex-1">{child.name}</span>
+                          <span className="opacity-0 group-hover/item:opacity-100 translate-x-[-4px] group-hover/item:translate-x-0 transition-all duration-200 text-primary">
+                            →
+                          </span>
                         </Link>
                       ))}
+                      
+                      {/* View all services link */}
+                      <div className="mx-2 mt-2 pt-2 border-t border-border/50">
+                        <Link
+                          to="/services"
+                          className="flex items-center justify-between px-4 py-2 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                        >
+                          View All Services
+                          <span className="text-sm">→</span>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ) : (
                   <Link
                     to={item.href}
                     className={cn(
-                      "px-4 py-2 text-sm font-medium transition-colors rounded-md",
+                      "relative px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md",
+                      "after:absolute after:bottom-1 after:left-4 after:right-4 after:h-px after:bg-primary after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100",
                       isActive(item.href)
-                        ? "text-primary"
+                        ? "text-primary after:scale-x-100"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
