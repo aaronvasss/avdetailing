@@ -15,7 +15,7 @@ import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { sendContactEmail } from "@/lib/email";
 import { contactFormSchema } from "@/lib/validations";
-import { checkRateLimit } from "@/lib/security";
+import { checkRateLimit, clearRateLimit } from "@/lib/security";
 
 const services = [
   "Car Detailing",
@@ -44,9 +44,13 @@ const ContactPage = () => {
     e.preventDefault();
     setErrors({});
     
-    // Client-side rate limiting (3 submissions per 5 minutes)
-    if (!checkRateLimit('contact-form', 3, 300000)) {
-      toast.error("Too many submissions. Please wait a few minutes.");
+    // Client-side rate limiting (3 submissions per 5 minutes, 10 min block)
+    const rateCheck = checkRateLimit('contact-form', 3, 300000, 600000);
+    if (!rateCheck.allowed) {
+      const waitTime = rateCheck.blockedUntil 
+        ? Math.ceil((rateCheck.blockedUntil.getTime() - Date.now()) / 60000)
+        : 5;
+      toast.error(`Too many attempts. Please wait ${waitTime} minute${waitTime !== 1 ? 's' : ''}.`);
       return;
     }
     
@@ -75,6 +79,9 @@ const ContactPage = () => {
         message: formData.message,
       });
 
+      // Clear rate limit on successful submission
+      clearRateLimit('contact-form');
+      
       toast.success("Message sent! We'll get back to you within 24 hours.");
       setFormData({
         firstName: "",

@@ -44,30 +44,122 @@ export function getSafeRedirectUrl(url: string, allowedPaths: string[] = []): st
 }
 
 /**
- * Rate limit helper for client-side actions
+ * Rate limit helper for client-side actions with localStorage persistence
  * Returns true if action should be allowed, false if rate limited
  */
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+interface RateLimitEntry {
+  timestamps: number[];
+  blocked_until?: number;
+}
+
+const RATE_LIMIT_STORAGE_KEY = 'av_rate_limits';
+
+function getRateLimitStorage(): Record<string, RateLimitEntry> {
+  try {
+    const stored = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+}
+
+function setRateLimitStorage(data: Record<string, RateLimitEntry>): void {
+  try {
+    localStorage.setItem(RATE_LIMIT_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // localStorage might be full or disabled
+  }
+}
 
 export function checkRateLimit(
   key: string, 
   maxAttempts: number = 5, 
-  windowMs: number = 60000
-): boolean {
+  windowMs: number = 60000,
+  blockDurationMs: number = 300000 // 5 minute block after exceeding limit
+): { allowed: boolean; remainingAttempts: number; blockedUntil?: Date } {
   const now = Date.now();
-  const existing = rateLimitMap.get(key);
+  const storage = getRateLimitStorage();
+  let entry = storage[key] || { timestamps: [] };
   
-  if (!existing || now > existing.resetTime) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
-    return true;
+  // Check if currently blocked
+  if (entry.blocked_until && now < entry.blocked_until) {
+    return { 
+      allowed: false, 
+      remainingAttempts: 0, 
+      blockedUntil: new Date(entry.blocked_until) 
+    };
   }
   
-  if (existing.count >= maxAttempts) {
-    return false;
+  // Clear block if expired
+  if (entry.blocked_until && now >= entry.blocked_until) {
+    entry.blocked_until = undefined;
+    entry.timestamps = [];
   }
   
-  existing.count++;
-  return true;
+  // Filter timestamps within the window
+  entry.timestamps = entry.timestamps.filter(ts => now - ts < windowMs);
+  
+  // Check if at limit
+  if (entry.timestamps.length >= maxAttempts) {
+    // Block the user
+    entry.blocked_until = now + blockDurationMs;
+    storage[key] = entry;
+    setRateLimitStorage(storage);
+    return { 
+      allowed: false, 
+      remainingAttempts: 0, 
+      blockedUntil: new Date(entry.blocked_until) 
+    };
+  }
+  
+  // Add current timestamp
+  entry.timestamps.push(now);
+  storage[key] = entry;
+  setRateLimitStorage(storage);
+  
+  return { 
+    allowed: true, 
+    remainingAttempts: maxAttempts - entry.timestamps.length 
+  };
+}
+
+/**
+ * Get remaining time until rate limit resets
+ */
+export function getRateLimitStatus(key: string): { 
+  isBlocked: boolean; 
+  blockedUntil?: Date;
+  attemptsInWindow: number;
+} {
+  const now = Date.now();
+  const storage = getRateLimitStorage();
+  const entry = storage[key];
+  
+  if (!entry) {
+    return { isBlocked: false, attemptsInWindow: 0 };
+  }
+  
+  if (entry.blocked_until && now < entry.blocked_until) {
+    return { 
+      isBlocked: true, 
+      blockedUntil: new Date(entry.blocked_until),
+      attemptsInWindow: entry.timestamps.length 
+    };
+  }
+  
+  return { 
+    isBlocked: false, 
+    attemptsInWindow: entry.timestamps.length 
+  };
+}
+
+/**
+ * Clear rate limit for a specific key (e.g., after successful action)
+ */
+export function clearRateLimit(key: string): void {
+  const storage = getRateLimitStorage();
+  delete storage[key];
+  setRateLimitStorage(storage);
 }
 
 /**

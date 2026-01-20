@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { authFormSchema } from "@/lib/validations";
-import { checkRateLimit } from "@/lib/security";
+import { checkRateLimit, clearRateLimit } from "@/lib/security";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
@@ -38,9 +38,13 @@ export default function AuthPage() {
     e.preventDefault();
     setErrors({});
     
-    // Client-side rate limiting (5 attempts per 15 minutes)
-    if (!checkRateLimit('auth-form', 5, 900000)) {
-      toast.error("Too many login attempts. Please wait before trying again.");
+    // Client-side rate limiting (5 attempts per 15 minutes, 30 min block)
+    const rateCheck = checkRateLimit('auth-form', 5, 900000, 1800000);
+    if (!rateCheck.allowed) {
+      const waitTime = rateCheck.blockedUntil 
+        ? Math.ceil((rateCheck.blockedUntil.getTime() - Date.now()) / 60000)
+        : 15;
+      toast.error(`Too many login attempts. Please wait ${waitTime} minute${waitTime !== 1 ? 's' : ''}.`);
       return;
     }
     
@@ -71,6 +75,7 @@ export default function AuthPage() {
           password: formData.password,
         });
         if (error) throw error;
+        clearRateLimit('auth-form');
         toast.success("Welcome back!");
         navigate("/account");
       } else {
@@ -86,6 +91,7 @@ export default function AuthPage() {
           },
         });
         if (error) throw error;
+        clearRateLimit('auth-form');
         toast.success("Account created! You can now log in.");
         navigate("/account");
       }

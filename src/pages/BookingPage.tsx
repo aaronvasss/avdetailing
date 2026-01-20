@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmation } from "@/lib/email";
 import { bookingCustomerSchema } from "@/lib/validations";
-import { checkRateLimit } from "@/lib/security";
+import { checkRateLimit, clearRateLimit } from "@/lib/security";
 
 const vehicleTypes = [
   { id: "car", label: "Car/SUV/Truck", icon: Car },
@@ -88,9 +88,13 @@ const BookingPage = () => {
     e.preventDefault();
     setFormErrors({});
     
-    // Client-side rate limiting (5 bookings per hour)
-    if (!checkRateLimit('booking-form', 5, 3600000)) {
-      toast.error("Too many booking attempts. Please wait before trying again.");
+    // Client-side rate limiting (5 bookings per hour, 2 hour block)
+    const rateCheck = checkRateLimit('booking-form', 5, 3600000, 7200000);
+    if (!rateCheck.allowed) {
+      const waitTime = rateCheck.blockedUntil 
+        ? Math.ceil((rateCheck.blockedUntil.getTime() - Date.now()) / 60000)
+        : 60;
+      toast.error(`Too many booking attempts. Please wait ${waitTime} minute${waitTime !== 1 ? 's' : ''} or call us.`);
       return;
     }
     
@@ -178,6 +182,7 @@ const BookingPage = () => {
         console.error("Email failed but booking succeeded:", emailError);
       }
 
+      clearRateLimit('booking-form');
       toast.success("Booking confirmed! Check your email for details.");
       setStep(5);
     } catch (error: any) {

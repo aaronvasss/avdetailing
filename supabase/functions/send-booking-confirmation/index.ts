@@ -5,8 +5,15 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Business email recipients - stored here for security
+// Business email recipients
 const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+// In-memory rate limit store
+const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,6 +32,32 @@ interface BookingConfirmationRequest {
   vehicleInfo: string;
   totalPrice: number;
   bookingId: string;
+}
+
+// Get client identifier for rate limiting
+function getClientId(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  const realIp = req.headers.get("x-real-ip");
+  const cfIp = req.headers.get("cf-connecting-ip");
+  return cfIp || realIp || forwarded?.split(",")[0]?.trim() || "unknown";
+}
+
+// Check rate limit
+function checkRateLimit(clientId: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const entry = rateLimitStore.get(clientId);
+  
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitStore.set(clientId, { count: 1, windowStart: now });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  }
+  
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  entry.count++;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count };
 }
 
 // HTML encode to prevent XSS in emails
@@ -84,6 +117,25 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Server-side rate limiting
+    const clientId = getClientId(req);
+    const rateCheck = checkRateLimit(clientId);
+    
+    if (!rateCheck.allowed) {
+      console.log(`Rate limited: ${clientId}`);
+      return new Response(
+        JSON.stringify({ success: false, error: "Too many requests. Please try again later." }),
+        { 
+          status: 429, 
+          headers: { 
+            "Content-Type": "application/json",
+            "Retry-After": "3600",
+            ...corsHeaders 
+          } 
+        }
+      );
+    }
+
     // Parse and validate input
     const rawData = await req.json();
     const validation = validateInput(rawData);
