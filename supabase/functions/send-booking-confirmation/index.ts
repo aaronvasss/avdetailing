@@ -152,6 +152,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "AV Detailing <onboarding@resend.dev>",
         to: [customerEmail],
+        cc: ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"],
         subject: `Booking Confirmed - ${serviceName} on ${formattedDate}`,
         html: emailHtml,
       }),
