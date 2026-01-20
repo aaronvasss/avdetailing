@@ -4,18 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import carDetailBefore from "@/assets/gallery/car-detail-before.jpg";
+import carDetailAfter from "@/assets/gallery/car-detail-after.jpg";
+import boatDetailBefore from "@/assets/gallery/boat-detail-before.jpg";
+import boatDetailAfter from "@/assets/gallery/boat-detail-after.jpg";
+import paintCorrectionBefore from "@/assets/gallery/paint-correction-before.jpg";
+import paintCorrectionAfter from "@/assets/gallery/paint-correction-after.jpg";
 
 const categories = ["All", "Cars", "Boats", "RVs", "Aircraft"];
 
 const galleryItems = [
-  { id: 1, category: "Cars", before: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600", after: "https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=600", title: "BMW M4 Full Detail", service: "Signature Detail" },
-  { id: 2, category: "Cars", before: "https://images.unsplash.com/photo-1489824904134-891ab64532f1?q=80&w=600", after: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600", title: "Porsche 911 Paint Correction", service: "2-Step Correction" },
-  { id: 3, category: "Boats", before: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600", after: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=600", title: "32ft Yacht Marine Detail", service: "Full Marine Detail" },
-  { id: 4, category: "Cars", before: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=600", after: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?q=80&w=600", title: "Corvette Ceramic Coating", service: "Ceramic Pro" },
-  { id: 5, category: "RVs", before: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=600", after: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=600", title: "Class A Motorhome Restoration", service: "RV Restoration" },
-  { id: 6, category: "Aircraft", before: "https://images.unsplash.com/photo-1540962351504-03099e0a754b?q=80&w=600", after: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=600", title: "Cessna 172 Detail", service: "Complete Detail" },
-  { id: 7, category: "Cars", before: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=600", after: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=600", title: "Mustang Full Restoration", service: "3-Step Correction" },
-  { id: 8, category: "Boats", before: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=600", after: "https://images.unsplash.com/photo-1559511260-66a654ae982a?q=80&w=600", title: "Fishing Boat Detail", service: "Hull Wash + Wax" },
+  { id: 1, category: "Cars", before: carDetailBefore, after: carDetailAfter, title: "BMW 5 Series Full Detail", service: "Signature Detail" },
+  { id: 2, category: "Cars", before: paintCorrectionBefore, after: paintCorrectionAfter, title: "Porsche 911 Paint Correction", service: "2-Step Correction" },
+  { id: 3, category: "Boats", before: boatDetailBefore, after: boatDetailAfter, title: "Yacht Marine Restoration", service: "Full Marine Detail" },
 ];
 
 const GalleryPage = () => {

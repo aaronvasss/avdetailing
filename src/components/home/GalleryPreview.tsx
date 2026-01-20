@@ -1,26 +1,32 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import carDetailBefore from "@/assets/gallery/car-detail-before.jpg";
+import carDetailAfter from "@/assets/gallery/car-detail-after.jpg";
+import boatDetailBefore from "@/assets/gallery/boat-detail-before.jpg";
+import boatDetailAfter from "@/assets/gallery/boat-detail-after.jpg";
+import paintCorrectionBefore from "@/assets/gallery/paint-correction-before.jpg";
+import paintCorrectionAfter from "@/assets/gallery/paint-correction-after.jpg";
 
 const beforeAfterImages = [
   {
     id: 1,
     category: "Car",
-    before: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop",
-    after: "https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=800&auto=format&fit=crop",
-    title: "Full Detail - BMW M4",
+    before: carDetailBefore,
+    after: carDetailAfter,
+    title: "Full Detail - BMW 5 Series",
   },
   {
     id: 2,
     category: "Boat",
-    before: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop",
-    after: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=800&auto=format&fit=crop",
-    title: "Marine Detail - 32ft Yacht",
+    before: boatDetailBefore,
+    after: boatDetailAfter,
+    title: "Marine Detail - Yacht Restoration",
   },
   {
     id: 3,
     category: "Car",
-    before: "https://images.unsplash.com/photo-1489824904134-891ab64532f1?q=80&w=800&auto=format&fit=crop",
-    after: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop",
+    before: paintCorrectionBefore,
+    after: paintCorrectionAfter,
     title: "Paint Correction - Porsche 911",
   },
 ];
