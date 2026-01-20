@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { authFormSchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/security";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
@@ -36,6 +37,12 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    
+    // Client-side rate limiting (5 attempts per 15 minutes)
+    if (!checkRateLimit('auth-form', 5, 900000)) {
+      toast.error("Too many login attempts. Please wait before trying again.");
+      return;
+    }
     
     // Validate with Zod
     const dataToValidate = isLogin 
