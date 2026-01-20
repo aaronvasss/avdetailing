@@ -264,11 +264,13 @@ const BookingPage = () => {
     e.preventDefault();
     setFormErrors({});
     
-    const rateCheck = checkRateLimit('booking-form', 5, 3600000, 7200000);
+    // Relaxed rate limit: 20 attempts per 10 minutes, 5-minute block
+    // This prevents abuse while allowing normal user behavior (edits, back/forward, retries)
+    const rateCheck = checkRateLimit('booking-form', 20, 600000, 300000);
     if (!rateCheck.allowed) {
       const waitTime = rateCheck.blockedUntil 
         ? Math.ceil((rateCheck.blockedUntil.getTime() - Date.now()) / 60000)
-        : 60;
+        : 5;
       toast.error(`Too many booking attempts. Please wait ${waitTime} minute${waitTime !== 1 ? 's' : ''} or call us.`);
       return;
     }
