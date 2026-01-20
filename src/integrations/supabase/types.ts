@@ -497,6 +497,62 @@ export type Database = {
           },
         ]
       }
+      service_packages: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_estimate: string | null
+          id: string
+          is_active: boolean | null
+          is_popular: boolean | null
+          name: string
+          price: number
+          service_id: string | null
+          slug: string
+          sort_order: number | null
+          updated_at: string | null
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_estimate?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name: string
+          price: number
+          service_id?: string | null
+          slug: string
+          sort_order?: number | null
+          updated_at?: string | null
+          vehicle_type: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_estimate?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name?: string
+          price?: number
+          service_id?: string | null
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
+          vehicle_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_packages_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           base_price: number
