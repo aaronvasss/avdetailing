@@ -7,7 +7,7 @@ const PaintCorrectionPage = () => {
       title="Paint Correction"
       location="Expert Paint Correction & Buffing in Baton Rouge, Louisiana"
       description="Remove swirl marks, scratches, oxidation, and water spots to restore your vehicle's paint to like-new clarity and depth. Professional multi-stage correction."
-      heroImage="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2000&auto=format&fit=crop"
+      heroImage="https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?q=80&w=2000&auto=format&fit=crop"
       icon={<Sparkles className="h-6 w-6 text-primary" />}
       timeEstimate="4-12 hours"
       idealFor={[

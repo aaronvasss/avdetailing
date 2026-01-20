@@ -7,7 +7,7 @@ const CarDetailingPage = () => {
       title="Car Detailing"
       location="Premium Auto Detailing in Baton Rouge, Louisiana"
       description="Complete interior and exterior detailing services for sedans, SUVs, trucks, and sports cars. We bring showroom-quality results directly to your location."
-      heroImage="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?q=80&w=2000&auto=format&fit=crop"
+      heroImage="https://images.unsplash.com/photo-1601362840469-51e4d8d58785?q=80&w=2000&auto=format&fit=crop"
       icon={<Car className="h-6 w-6 text-primary" />}
       timeEstimate="2-6 hours"
       idealFor={[

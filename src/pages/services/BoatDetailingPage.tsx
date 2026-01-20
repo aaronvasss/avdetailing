@@ -7,7 +7,7 @@ const BoatDetailingPage = () => {
       title="Boat Detailing"
       location="Professional Boat & Marine Detailing in Baton Rouge, Louisiana"
       description="Marine-grade detailing services for boats and watercraft of all sizes. Protect your investment from salt, sun, and water damage with our specialized marine care."
-      heroImage="https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?q=80&w=2000&auto=format&fit=crop"
+      heroImage="https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2000&auto=format&fit=crop"
       icon={<Ship className="h-6 w-6 text-primary" />}
       timeEstimate="4-10 hours"
       idealFor={[
