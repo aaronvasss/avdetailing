@@ -9,8 +9,8 @@ const services = [
     title: "Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks.",
     href: "/services/car-detailing",
-    // Professional car wash with foam and detailing in progress
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop",
+    // Car covered in foam during wash - detailing in progress
+    image: "https://images.unsplash.com/photo-1552930294-e8839c45e71c?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Droplets,
@@ -25,8 +25,8 @@ const services = [
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
-    // Professional polishing car paint with machine buffer
-    image: "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?q=80&w=800&auto=format&fit=crop",
+    // Polisher pad on car paint surface - paint correction work
+    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Ship,
