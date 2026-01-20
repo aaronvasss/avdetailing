@@ -1,19 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,27 +14,92 @@ import { sendBookingConfirmation } from "@/lib/email";
 import { bookingCustomerSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
 
-const vehicleTypes = [
-  { id: "car", label: "Car/SUV/Truck", icon: Car },
-  { id: "boat", label: "Boat", icon: Ship },
+// Step 1: Service Types
+const serviceTypes = [
+  { id: "car", label: "Car Detailing", icon: Car },
+  { id: "boat", label: "Boat Detailing", icon: Ship },
   { id: "rv", label: "RV/Motorhome", icon: Caravan },
   { id: "aircraft", label: "Aircraft", icon: Plane },
 ];
 
-const carServices = [
-  { id: "essential", name: "Essential Wash", price: "$79+", time: "1-2 hours" },
-  { id: "full", name: "Full Detail", price: "$199+", time: "3-5 hours" },
-  { id: "signature", name: "Signature Detail", price: "$349+", time: "5-6 hours" },
-  { id: "ceramic", name: "Ceramic Coating", price: "$499+", time: "1-2 days" },
-  { id: "correction", name: "Paint Correction", price: "$249+", time: "4-8 hours" },
+// Step 2: Vehicle sub-types for Car Detailing
+const carVehicleTypes = [
+  { id: "sedan", label: "Car (Sedan / Coupe)", description: "Standard-size vehicles" },
+  { id: "suv-5", label: "SUV (5 seats)", description: "Mid-size SUVs and crossovers" },
+  { id: "suv-8", label: "SUV (8 seats / 3-row)", description: "Large SUVs and full-size vehicles" },
+  { id: "truck", label: "Truck", description: "Pickup trucks of all sizes" },
 ];
 
-const addOns = [
-  { id: "pet", name: "Pet Hair Removal", price: "$35" },
-  { id: "headlight", name: "Headlight Restoration", price: "$65" },
-  { id: "engine", name: "Engine Bay Detail", price: "$55" },
-  { id: "odor", name: "Odor Elimination", price: "$45" },
+// Step 3: Packages (renamed from services)
+const packages = [
+  { 
+    id: "basic", 
+    name: "Basic Package", 
+    basePrice: 79,
+    prices: { sedan: 79, "suv-5": 99, "suv-8": 119, truck: 109 },
+    time: "1-2 hours",
+    description: "Essential exterior wash and interior wipe-down"
+  },
+  { 
+    id: "silver", 
+    name: "Silver Package", 
+    basePrice: 199,
+    prices: { sedan: 199, "suv-5": 249, "suv-8": 299, truck: 279 },
+    time: "3-5 hours",
+    description: "Full interior & exterior detail"
+  },
+  { 
+    id: "gold", 
+    name: "Gold Package", 
+    basePrice: 349,
+    prices: { sedan: 349, "suv-5": 429, "suv-8": 499, truck: 469 },
+    time: "5-6 hours",
+    description: "Comprehensive detail with 2-month sealant & seat shampooing"
+  },
 ];
+
+// Step 4: Add-ons
+const addOns = [
+  { id: "pet", name: "Pet Hair Removal", price: 35, description: "Deep extraction of pet hair from all surfaces" },
+  { id: "headlight", name: "Headlight Restoration", price: 65, description: "Restore clarity to foggy headlights" },
+  { id: "engine", name: "Engine Bay Cleaning", price: 55, description: "Detailed cleaning of engine compartment" },
+  { id: "odor", name: "Odor Treatment", price: 45, description: "Eliminate stubborn odors with ozone treatment" },
+  { id: "interior-extra", name: "Extra Interior Attention", price: 40, description: "Additional deep cleaning for heavily soiled interiors" },
+];
+
+// Smart recommendations based on vehicle type and package
+const getRecommendations = (vehicleType: string, selectedPackage: string) => {
+  const recommendations: { addonId: string; reason: string }[] = [];
+  
+  // Large SUV recommendations
+  if (vehicleType === "suv-8") {
+    recommendations.push({ addonId: "pet", reason: "Popular for family vehicles" });
+    recommendations.push({ addonId: "interior-extra", reason: "Recommended for 3-row vehicles" });
+  }
+  
+  // 5-seat SUV
+  if (vehicleType === "suv-5") {
+    recommendations.push({ addonId: "pet", reason: "Popular add-on for SUV owners" });
+  }
+  
+  // Truck recommendations
+  if (vehicleType === "truck") {
+    recommendations.push({ addonId: "engine", reason: "Keep your truck running clean" });
+    recommendations.push({ addonId: "interior-extra", reason: "For work trucks and heavy use" });
+  }
+  
+  // Basic package upsells
+  if (selectedPackage === "basic") {
+    recommendations.push({ addonId: "odor", reason: "Freshen up your ride" });
+  }
+  
+  // Silver package upsells
+  if (selectedPackage === "silver") {
+    recommendations.push({ addonId: "headlight", reason: "Complete the look" });
+  }
+  
+  return recommendations.slice(0, 3); // Max 3 recommendations
+};
 
 const timeSlots = [
   "8:00 AM",
@@ -57,8 +115,9 @@ const timeSlots = [
 
 const BookingPage = () => {
   const [step, setStep] = useState(1);
-  const [vehicleType, setVehicleType] = useState<string>("");
-  const [selectedService, setSelectedService] = useState<string>("");
+  const [serviceType, setServiceType] = useState<string>("");
+  const [vehicleSubType, setVehicleSubType] = useState<string>("");
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -78,17 +137,38 @@ const BookingPage = () => {
     notes: "",
   });
 
+  const recommendations = useMemo(() => 
+    getRecommendations(vehicleSubType, selectedPackage), 
+    [vehicleSubType, selectedPackage]
+  );
+
   const toggleAddOn = (id: string) => {
     setSelectedAddOns((prev) =>
       prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
     );
   };
 
+  const getPackagePrice = (pkg: typeof packages[0]) => {
+    if (vehicleSubType && pkg.prices[vehicleSubType as keyof typeof pkg.prices]) {
+      return pkg.prices[vehicleSubType as keyof typeof pkg.prices];
+    }
+    return pkg.basePrice;
+  };
+
+  const calculateTotal = () => {
+    const pkg = packages.find(p => p.id === selectedPackage);
+    const packagePrice = pkg ? getPackagePrice(pkg) : 0;
+    const addOnsTotal = selectedAddOns.reduce((sum, id) => {
+      const addon = addOns.find(a => a.id === id);
+      return sum + (addon?.price || 0);
+    }, 0);
+    return packagePrice + addOnsTotal;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
     
-    // Client-side rate limiting (5 bookings per hour, 2 hour block)
     const rateCheck = checkRateLimit('booking-form', 5, 3600000, 7200000);
     if (!rateCheck.allowed) {
       const waitTime = rateCheck.blockedUntil 
@@ -98,7 +178,6 @@ const BookingPage = () => {
       return;
     }
     
-    // Validate with Zod
     const result = bookingCustomerSchema.safeParse(customerInfo);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -115,25 +194,24 @@ const BookingPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Get current user if logged in
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Get service from database
       const { data: services } = await supabase
         .from("services")
         .select("id, name, base_price")
         .limit(10);
       
-      // Find matching service or use first one
       const service = services?.[0];
-      const serviceName = carServices.find((s) => s.id === selectedService)?.name || "Detailing Service";
-      const totalPrice = parseFloat(carServices.find((s) => s.id === selectedService)?.price.replace("$", "").replace("+", "") || "0");
+      const pkg = packages.find((p) => p.id === selectedPackage);
+      const serviceName = pkg?.name || "Detailing Service";
+      const totalPrice = getPackagePrice(pkg!);
       const addOnsTotal = selectedAddOns.reduce((sum, id) => {
         const addon = addOns.find(a => a.id === id);
-        return sum + parseFloat(addon?.price.replace("$", "") || "0");
+        return sum + (addon?.price || 0);
       }, 0);
 
-      // Create booking
+      const vehicleTypeLabel = carVehicleTypes.find(v => v.id === vehicleSubType)?.label || serviceType;
+
       const { data: booking, error: bookingError } = await supabase
         .from("bookings")
         .insert({
@@ -144,7 +222,7 @@ const BookingPage = () => {
           guest_name: user ? null : `${customerInfo.firstName} ${customerInfo.lastName}`,
           guest_email: user ? null : customerInfo.email,
           guest_phone: user ? null : customerInfo.phone,
-          vehicle_type: vehicleType,
+          vehicle_type: vehicleTypeLabel,
           vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
           vehicle_model: customerInfo.vehicleInfo.split(" ").slice(2).join(" ") || null,
           service_address: customerInfo.address,
@@ -164,12 +242,10 @@ const BookingPage = () => {
 
       setBookingId(booking.id);
 
-      // Send confirmation email with enhanced data
       try {
-        // Get selected add-ons with their details
         const selectedAddOnDetails = selectedAddOns.map(id => {
           const addon = addOns.find(a => a.id === id);
-          return addon ? { name: addon.name, price: parseFloat(addon.price.replace('$', '')) } : null;
+          return addon ? { name: addon.name, price: addon.price } : null;
         }).filter(Boolean) as { name: string; price: number }[];
 
         await sendBookingConfirmation({
@@ -183,7 +259,7 @@ const BookingPage = () => {
           serviceState: "LA",
           serviceZip: customerInfo.zip,
           vehicleInfo: customerInfo.vehicleInfo,
-          vehicleType: vehicleType,
+          vehicleType: vehicleTypeLabel,
           totalPrice: totalPrice + addOnsTotal,
           bookingId: booking.id,
           basePrice: totalPrice,
@@ -198,7 +274,7 @@ const BookingPage = () => {
 
       clearRateLimit('booking-form');
       toast.success("Booking confirmed! Check your email for details.");
-      setStep(5);
+      setStep(6);
     } catch (error: any) {
       console.error("Booking error:", error);
       toast.error("Failed to create booking. Please try again or call us.");
@@ -207,26 +283,43 @@ const BookingPage = () => {
     }
   };
 
+  const getProgressLabels = () => {
+    if (serviceType === "car") {
+      return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Details"];
+    }
+    return ["Service", "Package", "Add-ons", "Schedule", "Details"];
+  };
+
+  const getTotalSteps = () => {
+    return serviceType === "car" ? 6 : 5;
+  };
+
   const renderStep = () => {
     switch (step) {
+      // Step 1: Select Service Type
       case 1:
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">What are we detailing?</h2>
-              <p className="text-muted-foreground">Select your vehicle type</p>
+              <h2 className="text-2xl font-bold mb-2">What service do you need?</h2>
+              <p className="text-muted-foreground">Select the type of detailing service</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {vehicleTypes.map((type) => (
+              {serviceTypes.map((type) => (
                 <button
                   key={type.id}
                   onClick={() => {
-                    setVehicleType(type.id);
-                    setStep(2);
+                    setServiceType(type.id);
+                    if (type.id === "car") {
+                      setStep(2); // Go to vehicle sub-type selection
+                    } else {
+                      setVehicleSubType(""); // Clear vehicle sub-type for non-car
+                      setStep(3); // Skip to package selection
+                    }
                   }}
                   className={cn(
                     "p-6 rounded-xl border-2 transition-all text-center hover:border-primary",
-                    vehicleType === type.id ? "border-primary bg-primary/5" : "border-border"
+                    serviceType === type.id ? "border-primary bg-primary/5" : "border-border"
                   )}
                 >
                   <type.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
@@ -237,70 +330,99 @@ const BookingPage = () => {
           </div>
         );
 
+      // Step 2: Select Vehicle Sub-Type (Car Detailing only)
       case 2:
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Choose Your Service</h2>
-              <p className="text-muted-foreground">Select the package that fits your needs</p>
+              <h2 className="text-2xl font-bold mb-2">Select Your Vehicle Type</h2>
+              <p className="text-muted-foreground">Choose the type that best matches your vehicle</p>
             </div>
-            <div className="space-y-4">
-              {carServices.map((service) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {carVehicleTypes.map((type) => (
                 <button
-                  key={service.id}
+                  key={type.id}
                   onClick={() => {
-                    setSelectedService(service.id);
+                    setVehicleSubType(type.id);
+                    setStep(3);
                   }}
                   className={cn(
-                    "w-full p-4 rounded-xl border-2 transition-all text-left flex items-center justify-between",
-                    selectedService === service.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    "p-6 rounded-xl border-2 transition-all text-left hover:border-primary",
+                    vehicleSubType === type.id ? "border-primary bg-primary/5" : "border-border"
                   )}
                 >
                   <div className="flex items-center gap-4">
-                    {selectedService === service.id && (
-                      <Check className="h-5 w-5 text-primary" />
-                    )}
+                    <Car className="h-10 w-10 text-primary flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold">{service.name}</h3>
-                      <p className="text-sm text-muted-foreground">{service.time}</p>
+                      <h3 className="font-semibold text-lg">{type.label}</h3>
+                      <p className="text-sm text-muted-foreground">{type.description}</p>
                     </div>
                   </div>
-                  <span className="text-xl font-bold text-primary">{service.price}</span>
                 </button>
               ))}
             </div>
+            <Button variant="outline" onClick={() => setStep(1)}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          </div>
+        );
 
-            {/* Add-ons */}
-            <div>
-              <h3 className="font-semibold mb-4">Optional Add-Ons</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {addOns.map((addon) => (
+      // Step 3: Select Package
+      case 3:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">Choose Your Package</h2>
+              <p className="text-muted-foreground">Select the detail level that fits your needs</p>
+            </div>
+            <div className="space-y-4">
+              {packages.map((pkg) => {
+                const price = getPackagePrice(pkg);
+                const isPopular = pkg.id === "silver";
+                return (
                   <button
-                    key={addon.id}
-                    onClick={() => toggleAddOn(addon.id)}
+                    key={pkg.id}
+                    onClick={() => setSelectedPackage(pkg.id)}
                     className={cn(
-                      "p-3 rounded-lg border transition-all text-left flex items-center justify-between",
-                      selectedAddOns.includes(addon.id)
-                        ? "border-primary bg-primary/5"
+                      "w-full p-5 rounded-xl border-2 transition-all text-left relative",
+                      selectedPackage === pkg.id 
+                        ? "border-primary bg-primary/5" 
                         : "border-border hover:border-primary/50"
                     )}
                   >
-                    <span className="text-sm">{addon.name}</span>
-                    <span className="text-sm font-medium text-primary">{addon.price}</span>
+                    {isPopular && (
+                      <span className="absolute -top-3 left-4 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+                        Most Popular
+                      </span>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {selectedPackage === pkg.id && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                        <div>
+                          <h3 className="font-semibold text-lg">{pkg.name}</h3>
+                          <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{pkg.time}</p>
+                        </div>
+                      </div>
+                      <span className="text-2xl font-bold text-primary">${price}</span>
+                    </div>
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setStep(1)}>
+              <Button variant="outline" onClick={() => setStep(serviceType === "car" ? 2 : 1)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(3)}
-                disabled={!selectedService}
+                onClick={() => setStep(4)}
+                disabled={!selectedPackage}
               >
                 Continue
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -309,7 +431,126 @@ const BookingPage = () => {
           </div>
         );
 
-      case 3:
+      // Step 4: Add-ons & Recommendations
+      case 4:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">Optional Add-Ons</h2>
+              <p className="text-muted-foreground">Enhance your detail with these extras</p>
+            </div>
+
+            {/* Smart Recommendations */}
+            {recommendations.length > 0 && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Recommended for Your Vehicle
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {recommendations.map(({ addonId, reason }) => {
+                    const addon = addOns.find(a => a.id === addonId);
+                    if (!addon) return null;
+                    const isSelected = selectedAddOns.includes(addon.id);
+                    return (
+                      <button
+                        key={addon.id}
+                        onClick={() => toggleAddOn(addon.id)}
+                        className={cn(
+                          "w-full p-3 rounded-lg border transition-all text-left flex items-center justify-between",
+                          isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-primary/30 hover:border-primary bg-background/50"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          {isSelected ? (
+                            <Check className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Star className="h-4 w-4 text-primary/60" />
+                          )}
+                          <div>
+                            <span className="font-medium">{addon.name}</span>
+                            <p className="text-xs text-muted-foreground">{reason}</p>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-primary">${addon.price}</span>
+                      </button>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* All Add-ons */}
+            <div>
+              <h3 className="font-semibold mb-4">All Add-Ons</h3>
+              <div className="space-y-3">
+                {addOns.map((addon) => {
+                  const isSelected = selectedAddOns.includes(addon.id);
+                  const isRecommended = recommendations.some(r => r.addonId === addon.id);
+                  return (
+                    <button
+                      key={addon.id}
+                      onClick={() => toggleAddOn(addon.id)}
+                      className={cn(
+                        "w-full p-4 rounded-lg border transition-all text-left flex items-center justify-between",
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isSelected && <Check className="h-4 w-4 text-primary" />}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{addon.name}</span>
+                            {isRecommended && (
+                              <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full">
+                                Recommended
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{addon.description}</p>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-primary">${addon.price}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Running Total */}
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Current Total</span>
+                  <span className="text-2xl font-bold text-primary">${calculateTotal()}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={() => setStep(3)}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <Button 
+                className="flex-1 glow-red" 
+                onClick={() => setStep(5)}
+              >
+                Continue
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        );
+
+      // Step 5: Schedule
+      case 5:
         return (
           <div className="space-y-8">
             <div className="text-center">
@@ -351,13 +592,13 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setStep(2)}>
+              <Button variant="outline" onClick={() => setStep(4)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(4)}
+                onClick={() => setStep(6)}
                 disabled={!selectedDate || !selectedTime}
               >
                 Continue
@@ -367,7 +608,13 @@ const BookingPage = () => {
           </div>
         );
 
-      case 4:
+      // Step 6: Customer Details & Checkout
+      case 6:
+        // Check if this is confirmation step (after submission)
+        if (bookingId) {
+          return renderConfirmation();
+        }
+        
         return (
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="text-center">
@@ -431,7 +678,21 @@ const BookingPage = () => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Service</span>
                   <span className="font-medium">
-                    {carServices.find((s) => s.id === selectedService)?.name}
+                    {serviceTypes.find((s) => s.id === serviceType)?.label}
+                  </span>
+                </div>
+                {vehicleSubType && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Vehicle Type</span>
+                    <span className="font-medium">
+                      {carVehicleTypes.find((v) => v.id === vehicleSubType)?.label}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Package</span>
+                  <span className="font-medium">
+                    {packages.find((p) => p.id === selectedPackage)?.name}
                   </span>
                 </div>
                 {selectedAddOns.length > 0 && (
@@ -453,11 +714,15 @@ const BookingPage = () => {
                   <span className="text-muted-foreground">Time</span>
                   <span className="font-medium">{selectedTime}</span>
                 </div>
+                <div className="border-t pt-4 flex justify-between">
+                  <span className="font-semibold">Total</span>
+                  <span className="text-xl font-bold text-primary">${calculateTotal()}</span>
+                </div>
               </CardContent>
             </Card>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(3)}>
+              <Button type="button" variant="outline" onClick={() => setStep(5)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -469,119 +734,126 @@ const BookingPage = () => {
           </form>
         );
 
-      case 5:
-        return (
-          <div className="text-center py-8">
-            {/* Success Animation */}
-            <div className="relative mb-8">
-              <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
-                <div className="w-16 h-16 bg-primary/40 rounded-full flex items-center justify-center">
-                  <Check className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-primary/30 animate-ping" />
-            </div>
-            
-            <h2 className="text-3xl font-bold mb-2">You're All Set! 🎉</h2>
-            <p className="text-xl text-primary font-semibold mb-4">
-              Booking Confirmed
-            </p>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              A confirmation email has been sent to your inbox with all the details. 
-              We'll text you when we're on our way!
-            </p>
-            
-            {/* Appointment Summary Card */}
-            <div className="space-y-4 max-w-md mx-auto">
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="pt-6">
-                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
-                    Appointment Summary
-                  </h3>
-                  <div className="space-y-4 text-left">
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                      <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase">Date</p>
-                        <p className="font-medium">
-                          {selectedDate?.toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            month: 'long', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                      <Clock className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase">Time</p>
-                        <p className="font-medium">{selectedTime}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase">Location</p>
-                        <p className="font-medium">Mobile service at your address</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* What's Next Card */}
-              <Card className="border-muted">
-                <CardContent className="pt-6">
-                  <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">
-                    What's Next?
-                  </h3>
-                  <ul className="text-sm text-muted-foreground space-y-2 text-left">
-                    <li className="flex items-center gap-2">
-                      <span className="text-primary">✓</span>
-                      Check your email for confirmation details
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-primary">✓</span>
-                      We'll text you on the day of service
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-primary">✓</span>
-                      Clear your vehicle of personal items
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-primary">✓</span>
-                      Ensure water & power access nearby
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <Button asChild variant="outline" className="flex-1">
-                  <a href="/account">View My Bookings</a>
-                </Button>
-                <Button asChild className="flex-1 glow-red">
-                  <a href="/">Return Home</a>
-                </Button>
-              </div>
-              
-              {/* Contact Info */}
-              <p className="text-sm text-muted-foreground pt-4">
-                Questions? Call us at{" "}
-                <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
-                  (225) 226-8979
-                </a>
-              </p>
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
+  };
+
+  const renderConfirmation = () => (
+    <div className="text-center py-8">
+      {/* Success Animation */}
+      <div className="relative mb-8">
+        <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
+          <div className="w-16 h-16 bg-primary/40 rounded-full flex items-center justify-center">
+            <Check className="h-8 w-8 text-primary" />
+          </div>
+        </div>
+        <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-primary/30 animate-ping" />
+      </div>
+      
+      <h2 className="text-3xl font-bold mb-2">You're All Set! 🎉</h2>
+      <p className="text-xl text-primary font-semibold mb-4">
+        Booking Confirmed
+      </p>
+      <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+        A confirmation email has been sent to your inbox with all the details. 
+        We'll text you when we're on our way!
+      </p>
+      
+      {/* Appointment Summary Card */}
+      <div className="space-y-4 max-w-md mx-auto">
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
+              Appointment Summary
+            </h3>
+            <div className="space-y-4 text-left">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Date</p>
+                  <p className="font-medium">
+                    {selectedDate?.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                <Clock className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Time</p>
+                  <p className="font-medium">{selectedTime}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase">Location</p>
+                  <p className="font-medium">Mobile service at your address</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* What's Next Card */}
+        <Card className="border-muted">
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">
+              What's Next?
+            </h3>
+            <ul className="text-sm text-muted-foreground space-y-2 text-left">
+              <li className="flex items-center gap-2">
+                <span className="text-primary">✓</span>
+                Check your email for confirmation details
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-primary">✓</span>
+                We'll text you on the day of service
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-primary">✓</span>
+                Clear your vehicle of personal items
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-primary">✓</span>
+                Ensure water & power access nearby
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+        
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button asChild variant="outline" className="flex-1">
+            <a href="/account">View My Bookings</a>
+          </Button>
+          <Button asChild className="flex-1 glow-red">
+            <a href="/">Return Home</a>
+          </Button>
+        </div>
+        
+        {/* Contact Info */}
+        <p className="text-sm text-muted-foreground pt-4">
+          Questions? Call us at{" "}
+          <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
+            (225) 226-8979
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+
+  const currentStepForProgress = () => {
+    // For non-car services, we skip step 2, so adjust the progress
+    if (serviceType !== "car" && step >= 3) {
+      return step - 1;
+    }
+    return step;
   };
 
   return (
@@ -590,15 +862,19 @@ const BookingPage = () => {
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
             {/* Progress Bar */}
-            {step < 5 && (
+            {!bookingId && step <= getTotalSteps() && (
               <div className="mb-12">
                 <div className="flex justify-between mb-2">
-                  {["Vehicle", "Service", "Schedule", "Details"].map((label, index) => (
+                  {getProgressLabels().map((label, index) => (
                     <span
                       key={label}
                       className={cn(
                         "text-xs font-medium",
-                        step > index + 1 ? "text-primary" : step === index + 1 ? "text-foreground" : "text-muted-foreground"
+                        currentStepForProgress() > index + 1 
+                          ? "text-primary" 
+                          : currentStepForProgress() === index + 1 
+                            ? "text-foreground" 
+                            : "text-muted-foreground"
                       )}
                     >
                       {label}
@@ -608,7 +884,7 @@ const BookingPage = () => {
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${((step - 1) / 4) * 100}%` }}
+                    style={{ width: `${((currentStepForProgress() - 1) / (getProgressLabels().length - 1)) * 100}%` }}
                   />
                 </div>
               </div>
