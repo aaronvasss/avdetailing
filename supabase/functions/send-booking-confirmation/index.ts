@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+// Business email recipients - stored here for security
+const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,12 +27,74 @@ interface BookingConfirmationRequest {
   bookingId: string;
 }
 
+// HTML encode to prevent XSS in emails
+function htmlEncode(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+// Validate email format
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+// Validate booking confirmation input
+function validateInput(data: BookingConfirmationRequest): { valid: boolean; error?: string } {
+  if (!data.customerEmail || !isValidEmail(data.customerEmail)) {
+    return { valid: false, error: "Invalid customer email" };
+  }
+  if (!data.customerName || data.customerName.length > 100) {
+    return { valid: false, error: "Invalid customer name" };
+  }
+  if (!data.serviceName || data.serviceName.length > 200) {
+    return { valid: false, error: "Invalid service name" };
+  }
+  if (!data.scheduledDate) {
+    return { valid: false, error: "Invalid scheduled date" };
+  }
+  if (!data.scheduledTime || data.scheduledTime.length > 20) {
+    return { valid: false, error: "Invalid scheduled time" };
+  }
+  if (!data.serviceAddress || data.serviceAddress.length > 300) {
+    return { valid: false, error: "Invalid service address" };
+  }
+  if (!data.serviceCity || data.serviceCity.length > 100) {
+    return { valid: false, error: "Invalid service city" };
+  }
+  if (data.vehicleInfo && data.vehicleInfo.length > 200) {
+    return { valid: false, error: "Invalid vehicle info" };
+  }
+  if (typeof data.totalPrice !== "number" || data.totalPrice < 0 || data.totalPrice > 100000) {
+    return { valid: false, error: "Invalid total price" };
+  }
+  if (!data.bookingId || data.bookingId.length > 50) {
+    return { valid: false, error: "Invalid booking ID" };
+  }
+  return { valid: true };
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Parse and validate input
+    const rawData = await req.json();
+    const validation = validateInput(rawData);
+    
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({ success: false, error: validation.error }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const {
       customerEmail,
       customerName,
@@ -38,7 +106,16 @@ const handler = async (req: Request): Promise<Response> => {
       vehicleInfo,
       totalPrice,
       bookingId,
-    }: BookingConfirmationRequest = await req.json();
+    }: BookingConfirmationRequest = rawData;
+
+    // HTML encode all user inputs to prevent XSS in emails
+    const safeCustomerName = htmlEncode(customerName.trim());
+    const safeServiceName = htmlEncode(serviceName.trim());
+    const safeScheduledTime = htmlEncode(scheduledTime.trim());
+    const safeServiceAddress = htmlEncode(serviceAddress.trim());
+    const safeServiceCity = htmlEncode(serviceCity.trim());
+    const safeVehicleInfo = vehicleInfo ? htmlEncode(vehicleInfo.trim()) : "Not specified";
+    const safeBookingId = htmlEncode(bookingId);
 
     const formattedDate = new Date(scheduledDate).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -71,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <h2 style="color: #ffffff; font-size: 24px; text-align: center; margin: 0 0 8px 0;">
-              Thank you, ${customerName}!
+              Thank you, ${safeCustomerName}!
             </h2>
             <p style="color: #a3a3a3; text-align: center; margin: 0 0 32px 0;">
               Your mobile detail has been scheduled.
@@ -84,22 +161,22 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div style="margin-bottom: 16px;">
                 <p style="color: #a3a3a3; font-size: 12px; margin: 0 0 4px 0;">SERVICE</p>
-                <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0;">${serviceName}</p>
+                <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0;">${safeServiceName}</p>
               </div>
               
               <div style="margin-bottom: 16px;">
                 <p style="color: #a3a3a3; font-size: 12px; margin: 0 0 4px 0;">DATE & TIME</p>
-                <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0;">${formattedDate} at ${scheduledTime}</p>
+                <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0;">${formattedDate} at ${safeScheduledTime}</p>
               </div>
               
               <div style="margin-bottom: 16px;">
                 <p style="color: #a3a3a3; font-size: 12px; margin: 0 0 4px 0;">LOCATION</p>
-                <p style="color: #ffffff; font-size: 16px; margin: 0;">${serviceAddress}<br>${serviceCity}, LA</p>
+                <p style="color: #ffffff; font-size: 16px; margin: 0;">${safeServiceAddress}<br>${safeServiceCity}, LA</p>
               </div>
               
               <div style="margin-bottom: 16px;">
                 <p style="color: #a3a3a3; font-size: 12px; margin: 0 0 4px 0;">VEHICLE</p>
-                <p style="color: #ffffff; font-size: 16px; margin: 0;">${vehicleInfo}</p>
+                <p style="color: #ffffff; font-size: 16px; margin: 0;">${safeVehicleInfo}</p>
               </div>
               
               <div style="border-top: 1px solid #262626; padding-top: 16px; margin-top: 16px;">
@@ -132,7 +209,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="text-align: center; margin-top: 32px;">
             <p style="color: #525252; font-size: 12px; margin: 0;">
-              Booking ID: ${bookingId}
+              Booking ID: ${safeBookingId}
             </p>
             <p style="color: #525252; font-size: 12px; margin: 8px 0 0 0;">
               AV Detailing • Baton Rouge, LA • Premium Mobile Detailing
@@ -151,9 +228,9 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "AV Detailing <noreply@avdetailing.net>",
-        to: [customerEmail],
-        cc: ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"],
-        subject: `Booking Confirmed - ${serviceName} on ${formattedDate}`,
+        to: [customerEmail.trim()],
+        cc: BUSINESS_EMAILS,
+        subject: `Booking Confirmed - ${safeServiceName} on ${formattedDate}`,
         html: emailHtml,
       }),
     });
