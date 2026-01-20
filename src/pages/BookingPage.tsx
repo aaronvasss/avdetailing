@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmation } from "@/lib/email";
 import { bookingCustomerSchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/security";
 
 const vehicleTypes = [
   { id: "car", label: "Car/SUV/Truck", icon: Car },
@@ -86,6 +87,12 @@ const BookingPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
+    
+    // Client-side rate limiting (5 bookings per hour)
+    if (!checkRateLimit('booking-form', 5, 3600000)) {
+      toast.error("Too many booking attempts. Please wait before trying again.");
+      return;
+    }
     
     // Validate with Zod
     const result = bookingCustomerSchema.safeParse(customerInfo);

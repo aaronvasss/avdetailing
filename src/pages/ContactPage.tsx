@@ -15,6 +15,7 @@ import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { sendContactEmail } from "@/lib/email";
 import { contactFormSchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/security";
 
 const services = [
   "Car Detailing",
@@ -42,6 +43,12 @@ const ContactPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
+    
+    // Client-side rate limiting (3 submissions per 5 minutes)
+    if (!checkRateLimit('contact-form', 3, 300000)) {
+      toast.error("Too many submissions. Please wait a few minutes.");
+      return;
+    }
     
     // Validate with Zod
     const result = contactFormSchema.safeParse(formData);
