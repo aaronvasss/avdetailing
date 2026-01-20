@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmation } from "@/lib/email";
 import { bookingCustomerSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
+import { useQuery } from "@tanstack/react-query";
 
 // Step 1: Service Types
 const serviceTypes = [
@@ -30,8 +31,8 @@ const carVehicleTypes = [
   { id: "truck", label: "Truck", description: "Pickup trucks of all sizes" },
 ];
 
-// Step 3: Packages (renamed from services)
-const packages = [
+// Fallback packages in case database fetch fails
+const fallbackPackages = [
   { 
     id: "basic", 
     name: "Basic Package", 
@@ -58,14 +59,24 @@ const packages = [
   },
 ];
 
-// Step 4: Add-ons
-const addOns = [
-  { id: "pet", name: "Pet Hair Removal", price: 35, description: "Deep extraction of pet hair from all surfaces" },
-  { id: "headlight", name: "Headlight Restoration", price: 65, description: "Restore clarity to foggy headlights" },
-  { id: "engine", name: "Engine Bay Cleaning", price: 55, description: "Detailed cleaning of engine compartment" },
-  { id: "odor", name: "Odor Treatment", price: 45, description: "Eliminate stubborn odors with ozone treatment" },
-  { id: "interior-extra", name: "Extra Interior Attention", price: 40, description: "Additional deep cleaning for heavily soiled interiors" },
-];
+interface ServicePackage {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  duration_estimate: string | null;
+  vehicle_type: string;
+  price: number;
+  sort_order: number | null;
+  is_popular: boolean | null;
+}
+
+interface ServiceAddOn {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+}
 
 // Smart recommendations based on vehicle type and package
 const getRecommendations = (vehicleType: string, selectedPackage: string) => {
@@ -137,6 +148,90 @@ const BookingPage = () => {
     notes: "",
   });
 
+  // Fetch packages from database
+  const { data: dbPackages, isLoading: packagesLoading } = useQuery({
+    queryKey: ['service-packages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+      
+      if (error) throw error;
+      return data as ServicePackage[];
+    },
+  });
+
+  // Fetch add-ons from database
+  const { data: dbAddOns, isLoading: addOnsLoading } = useQuery({
+    queryKey: ['service-add-ons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_add_ons')
+        .select('id, name, description, price')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      return data as ServiceAddOn[];
+    },
+  });
+
+  // Transform database packages into the format needed by the UI
+  const packages = useMemo(() => {
+    if (!dbPackages || dbPackages.length === 0) return fallbackPackages;
+
+    // Group packages by slug
+    const packageMap = new Map<string, {
+      id: string;
+      name: string;
+      description: string;
+      time: string;
+      basePrice: number;
+      prices: Record<string, number>;
+      is_popular: boolean;
+      sort_order: number;
+    }>();
+
+    dbPackages.forEach(pkg => {
+      if (!packageMap.has(pkg.slug)) {
+        packageMap.set(pkg.slug, {
+          id: pkg.slug,
+          name: pkg.name,
+          description: pkg.description || '',
+          time: pkg.duration_estimate || '',
+          basePrice: Number(pkg.price),
+          prices: {},
+          is_popular: pkg.is_popular || false,
+          sort_order: pkg.sort_order || 0,
+        });
+      }
+      const existing = packageMap.get(pkg.slug)!;
+      existing.prices[pkg.vehicle_type] = Number(pkg.price);
+    });
+
+    return Array.from(packageMap.values()).sort((a, b) => a.sort_order - b.sort_order);
+  }, [dbPackages]);
+
+  // Use database add-ons or fallback
+  const addOns = useMemo(() => {
+    if (!dbAddOns || dbAddOns.length === 0) {
+      return [
+        { id: "pet", name: "Pet Hair Removal", price: 35, description: "Deep extraction of pet hair from all surfaces" },
+        { id: "headlight", name: "Headlight Restoration", price: 65, description: "Restore clarity to foggy headlights" },
+        { id: "engine", name: "Engine Bay Cleaning", price: 55, description: "Detailed cleaning of engine compartment" },
+        { id: "odor", name: "Odor Treatment", price: 45, description: "Eliminate stubborn odors with ozone treatment" },
+        { id: "interior-extra", name: "Extra Interior Attention", price: 40, description: "Additional deep cleaning for heavily soiled interiors" },
+      ];
+    }
+    return dbAddOns.map(addon => ({
+      id: addon.id,
+      name: addon.name,
+      price: Number(addon.price),
+      description: addon.description || '',
+    }));
+  }, [dbAddOns]);
+
   const recommendations = useMemo(() => 
     getRecommendations(vehicleSubType, selectedPackage), 
     [vehicleSubType, selectedPackage]
@@ -148,9 +243,9 @@ const BookingPage = () => {
     );
   };
 
-  const getPackagePrice = (pkg: typeof packages[0]) => {
-    if (vehicleSubType && pkg.prices[vehicleSubType as keyof typeof pkg.prices]) {
-      return pkg.prices[vehicleSubType as keyof typeof pkg.prices];
+  const getPackagePrice = (pkg: { basePrice: number; prices: Record<string, number> }) => {
+    if (vehicleSubType && pkg.prices[vehicleSubType]) {
+      return pkg.prices[vehicleSubType];
     }
     return pkg.basePrice;
   };
