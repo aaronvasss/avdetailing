@@ -20,10 +20,8 @@ const navigation = [
     ],
   },
   { name: "Memberships", href: "/memberships" },
-  { name: "Gallery", href: "/gallery" },
   { name: "Reviews", href: "/reviews" },
   { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
 ];
 
 export function Header() {

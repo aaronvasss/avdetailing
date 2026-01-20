@@ -185,6 +185,25 @@ const AboutPage = () => {
               <Link to="/reviews">Read Reviews</Link>
             </Button>
           </div>
+          
+          {/* Secondary Links */}
+          <div className="mt-12 pt-8 border-t border-border">
+            <p className="text-sm text-muted-foreground mb-4">Learn more about us</p>
+            <div className="flex justify-center gap-6">
+              <Link 
+                to="/gallery" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                View Our Work
+              </Link>
+              <Link 
+                to="/contact" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Get in Touch
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </Layout>

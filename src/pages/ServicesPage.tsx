@@ -122,6 +122,25 @@ const ServicesPage = () => {
               <a href="tel:+12255551234">Call (225) 555-1234</a>
             </Button>
           </div>
+          
+          {/* Secondary Links */}
+          <div className="mt-12 pt-8 border-t border-border">
+            <p className="text-sm text-muted-foreground mb-4">Explore more</p>
+            <div className="flex justify-center gap-6">
+              <Link 
+                to="/gallery" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                View Our Gallery
+              </Link>
+              <Link 
+                to="/contact" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Contact Us
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </Layout>
