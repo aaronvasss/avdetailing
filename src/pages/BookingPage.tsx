@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmation } from "@/lib/email";
+import { bookingCustomerSchema } from "@/lib/validations";
 
 const vehicleTypes = [
   { id: "car", label: "Car/SUV/Truck", icon: Car },
@@ -62,6 +63,7 @@ const BookingPage = () => {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const [customerInfo, setCustomerInfo] = useState({
     firstName: "",
@@ -83,6 +85,22 @@ const BookingPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors({});
+    
+    // Validate with Zod
+    const result = bookingCustomerSchema.safeParse(customerInfo);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setFormErrors(fieldErrors);
+      toast.error("Please fix the form errors");
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -334,39 +352,47 @@ const BookingPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" required value={customerInfo.firstName} onChange={(e) => setCustomerInfo({...customerInfo, firstName: e.target.value})} />
+                <Input id="firstName" required maxLength={50} value={customerInfo.firstName} onChange={(e) => setCustomerInfo({...customerInfo, firstName: e.target.value})} className={formErrors.firstName ? "border-destructive" : ""} />
+                {formErrors.firstName && <p className="text-sm text-destructive">{formErrors.firstName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" required value={customerInfo.lastName} onChange={(e) => setCustomerInfo({...customerInfo, lastName: e.target.value})} />
+                <Input id="lastName" required maxLength={50} value={customerInfo.lastName} onChange={(e) => setCustomerInfo({...customerInfo, lastName: e.target.value})} className={formErrors.lastName ? "border-destructive" : ""} />
+                {formErrors.lastName && <p className="text-sm text-destructive">{formErrors.lastName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={customerInfo.email} onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})} />
+                <Input id="email" type="email" required maxLength={255} value={customerInfo.email} onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})} className={formErrors.email ? "border-destructive" : ""} />
+                {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" type="tel" required value={customerInfo.phone} onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
+                <Input id="phone" type="tel" required maxLength={20} value={customerInfo.phone} onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} className={formErrors.phone ? "border-destructive" : ""} />
+                {formErrors.phone && <p className="text-sm text-destructive">{formErrors.phone}</p>}
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Service Address</Label>
-                <Input id="address" placeholder="Street address" required value={customerInfo.address} onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})} />
+                <Input id="address" placeholder="Street address" required maxLength={200} value={customerInfo.address} onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})} className={formErrors.address ? "border-destructive" : ""} />
+                {formErrors.address && <p className="text-sm text-destructive">{formErrors.address}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
-                <Input id="city" required value={customerInfo.city} onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})} />
+                <Input id="city" required maxLength={100} value={customerInfo.city} onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})} className={formErrors.city ? "border-destructive" : ""} />
+                {formErrors.city && <p className="text-sm text-destructive">{formErrors.city}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="zip">ZIP Code</Label>
-                <Input id="zip" required value={customerInfo.zip} onChange={(e) => setCustomerInfo({...customerInfo, zip: e.target.value})} />
+                <Input id="zip" required maxLength={10} value={customerInfo.zip} onChange={(e) => setCustomerInfo({...customerInfo, zip: e.target.value})} className={formErrors.zip ? "border-destructive" : ""} />
+                {formErrors.zip && <p className="text-sm text-destructive">{formErrors.zip}</p>}
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="vehicleInfo">Vehicle Details</Label>
-                <Input id="vehicleInfo" placeholder="Year, Make, Model (e.g., 2020 Toyota Camry)" required value={customerInfo.vehicleInfo} onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} />
+                <Input id="vehicleInfo" placeholder="Year, Make, Model (e.g., 2020 Toyota Camry)" required maxLength={200} value={customerInfo.vehicleInfo} onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} className={formErrors.vehicleInfo ? "border-destructive" : ""} />
+                {formErrors.vehicleInfo && <p className="text-sm text-destructive">{formErrors.vehicleInfo}</p>}
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
-                <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." value={customerInfo.notes} onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} />
+                <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." maxLength={1000} value={customerInfo.notes} onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} />
               </div>
             </div>
 

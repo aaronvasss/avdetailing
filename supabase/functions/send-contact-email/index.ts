@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+// Business email recipients - stored here for security
+const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,16 +22,70 @@ interface ContactEmailRequest {
   message: string;
 }
 
+// HTML encode to prevent XSS in emails
+function htmlEncode(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+// Validate email format
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+// Validate input lengths and formats
+function validateInput(data: ContactEmailRequest): { valid: boolean; error?: string } {
+  if (!data.name || data.name.trim().length < 1 || data.name.length > 100) {
+    return { valid: false, error: "Invalid name" };
+  }
+  if (!data.email || !isValidEmail(data.email)) {
+    return { valid: false, error: "Invalid email address" };
+  }
+  if (data.phone && data.phone.length > 20) {
+    return { valid: false, error: "Invalid phone number" };
+  }
+  if (data.service && data.service.length > 100) {
+    return { valid: false, error: "Invalid service selection" };
+  }
+  if (!data.message || data.message.trim().length < 10 || data.message.length > 2000) {
+    return { valid: false, error: "Message must be between 10 and 2000 characters" };
+  }
+  return { valid: true };
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { name, email, phone, service, message }: ContactEmailRequest = await req.json();
+    // Parse and validate input
+    const rawData = await req.json();
+    const validation = validateInput(rawData);
+    
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({ success: false, error: validation.error }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { name, email, phone, service, message }: ContactEmailRequest = rawData;
+
+    // HTML encode all user inputs to prevent XSS in emails
+    const safeName = htmlEncode(name.trim());
+    const safeEmail = htmlEncode(email.trim());
+    const safePhone = phone ? htmlEncode(phone.trim()) : null;
+    const safeService = service ? htmlEncode(service.trim()) : null;
+    const safeMessage = htmlEncode(message.trim());
 
     // Send notification to business
-    await fetch("https://api.resend.com/emails", {
+    const businessEmailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,24 +93,29 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "AV Detailing <noreply@avdetailing.net>",
-        to: ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"],
-        subject: `New Contact Form Submission from ${name}`,
+        to: BUSINESS_EMAILS,
+        subject: `New Contact Form Submission from ${safeName}`,
         html: `
           <!DOCTYPE html>
           <html>
           <body style="font-family: sans-serif; padding: 20px;">
             <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ''}
-            ${service ? `<p><strong>Service Interest:</strong> ${service}</p>` : ''}
+            <p><strong>Name:</strong> ${safeName}</p>
+            <p><strong>Email:</strong> ${safeEmail}</p>
+            ${safePhone ? `<p><strong>Phone:</strong> ${safePhone}</p>` : ''}
+            ${safeService ? `<p><strong>Service Interest:</strong> ${safeService}</p>` : ''}
             <p><strong>Message:</strong></p>
-            <p>${message}</p>
+            <p>${safeMessage.replace(/\n/g, '<br>')}</p>
           </body>
           </html>
         `,
       }),
     });
+
+    if (!businessEmailRes.ok) {
+      const errorData = await businessEmailRes.json();
+      console.error("Failed to send business notification:", errorData);
+    }
 
     // Send confirmation to customer
     const customerEmailHtml = `
@@ -70,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="background-color: #171717; border-radius: 12px; padding: 32px; border: 1px solid #262626;">
             <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 16px 0;">
-              Thanks for reaching out, ${name}!
+              Thanks for reaching out, ${safeName}!
             </h2>
             <p style="color: #a3a3a3; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
               We've received your message and will get back to you within 24 hours. If you need immediate assistance, feel free to call us.
@@ -101,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "AV Detailing <noreply@avdetailing.net>",
-        to: [email],
+        to: [email.trim()], // Use original email for delivery
         subject: "We received your message!",
         html: customerEmailHtml,
       }),

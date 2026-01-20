@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
+import { authFormSchema } from "@/lib/validations";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
     email: "",
@@ -33,12 +35,32 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Validate with Zod
+    const dataToValidate = isLogin 
+      ? { email: formData.email, password: formData.password }
+      : formData;
+    
+    const result = authFormSchema.safeParse(dataToValidate);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error("Please fix the form errors");
+      return;
+    }
+    
     setLoading(true);
 
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
         });
         if (error) throw error;
@@ -46,13 +68,13 @@ export default function AuthPage() {
         navigate("/account");
       } else {
         const { error } = await supabase.auth.signUp({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
           options: {
             emailRedirectTo: window.location.origin,
             data: {
-              full_name: formData.fullName,
-              phone: formData.phone,
+              full_name: formData.fullName.trim(),
+              phone: formData.phone.trim(),
             },
           },
         });
@@ -132,14 +154,16 @@ export default function AuthPage() {
                   id="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="pl-10"
+                  className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
                   required
+                  maxLength={255}
                 />
               </div>
+              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -150,13 +174,14 @@ export default function AuthPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-10 pr-10"
+                  className={`pl-10 pr-10 ${errors.password ? "border-destructive" : ""}`}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
                   required
                   minLength={6}
+                  maxLength={100}
                 />
                 <button
                   type="button"
@@ -170,6 +195,7 @@ export default function AuthPage() {
                   )}
                 </button>
               </div>
+              {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
             </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>

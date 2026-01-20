@@ -14,6 +14,7 @@ import {
 import { Phone, Mail, MapPin, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { sendContactEmail } from "@/lib/email";
+import { contactFormSchema } from "@/lib/validations";
 
 const services = [
   "Car Detailing",
@@ -28,6 +29,7 @@ const services = [
 
 const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -39,6 +41,22 @@ const ContactPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Validate with Zod
+    const result = contactFormSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error("Please fix the form errors");
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -191,9 +209,12 @@ const ContactPage = () => {
                       id="firstName" 
                       placeholder="John" 
                       required 
+                      maxLength={50}
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      className={errors.firstName ? "border-destructive" : ""}
                     />
+                    {errors.firstName && <p className="text-sm text-destructive">{errors.firstName}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
@@ -201,9 +222,12 @@ const ContactPage = () => {
                       id="lastName" 
                       placeholder="Doe" 
                       required 
+                      maxLength={50}
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      className={errors.lastName ? "border-destructive" : ""}
                     />
+                    {errors.lastName && <p className="text-sm text-destructive">{errors.lastName}</p>}
                   </div>
                 </div>
 
@@ -214,9 +238,12 @@ const ContactPage = () => {
                     type="email" 
                     placeholder="john@example.com" 
                     required 
+                    maxLength={255}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className={errors.email ? "border-destructive" : ""}
                   />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -226,9 +253,12 @@ const ContactPage = () => {
                     type="tel" 
                     placeholder="(225) 555-1234" 
                     required 
+                    maxLength={20}
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className={errors.phone ? "border-destructive" : ""}
                   />
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -257,9 +287,12 @@ const ContactPage = () => {
                     placeholder="Tell us about your vehicle and what you're looking for..."
                     rows={4}
                     required
+                    maxLength={2000}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    className={errors.message ? "border-destructive" : ""}
                   />
+                  {errors.message && <p className="text-sm text-destructive">{errors.message}</p>}
                 </div>
 
                 <Button type="submit" className="w-full glow-red" disabled={isSubmitting}>
