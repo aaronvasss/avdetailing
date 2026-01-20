@@ -12,9 +12,6 @@ const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg
 const RATE_LIMIT_WINDOW_MS = 300000; // 5 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
 
-// In-memory rate limit store (resets on function cold start)
-const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -31,30 +28,44 @@ interface ContactEmailRequest {
 
 // Get client identifier for rate limiting
 function getClientId(req: Request): string {
-  // Use forwarded IP or fall back to a hash of headers
   const forwarded = req.headers.get("x-forwarded-for");
   const realIp = req.headers.get("x-real-ip");
   const cfIp = req.headers.get("cf-connecting-ip");
-  
   return cfIp || realIp || forwarded?.split(",")[0]?.trim() || "unknown";
 }
 
-// Check rate limit
-function checkRateLimit(clientId: string): { allowed: boolean; remaining: number } {
+// Persistent rate limiting using Deno KV
+async function checkRateLimit(clientId: string): Promise<{ allowed: boolean; remaining: number }> {
+  const kv = await Deno.openKv();
   const now = Date.now();
-  const entry = rateLimitStore.get(clientId);
+  const key = ["rate_limit", "contact", clientId];
   
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitStore.set(clientId, { count: 1, windowStart: now });
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  try {
+    const entry = await kv.get<{ count: number; windowStart: number }>(key);
+    
+    if (!entry.value || now - entry.value.windowStart > RATE_LIMIT_WINDOW_MS) {
+      // New window - set count to 1 with expiration
+      await kv.set(key, { count: 1, windowStart: now }, { 
+        expireIn: RATE_LIMIT_WINDOW_MS 
+      });
+      return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+    }
+    
+    if (entry.value.count >= MAX_REQUESTS_PER_WINDOW) {
+      return { allowed: false, remaining: 0 };
+    }
+    
+    // Increment count
+    const newCount = entry.value.count + 1;
+    await kv.set(key, { count: newCount, windowStart: entry.value.windowStart }, { 
+      expireIn: RATE_LIMIT_WINDOW_MS - (now - entry.value.windowStart) 
+    });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - newCount };
+  } catch (error) {
+    // Fallback: allow request if KV fails (fail open for availability)
+    console.error("Rate limit KV error:", error);
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW };
   }
-  
-  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
-    return { allowed: false, remaining: 0 };
-  }
-  
-  entry.count++;
-  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count };
 }
 
 // HTML encode to prevent XSS in emails
@@ -101,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Server-side rate limiting
     const clientId = getClientId(req);
-    const rateCheck = checkRateLimit(clientId);
+    const rateCheck = await checkRateLimit(clientId);
     
     if (!rateCheck.allowed) {
       console.log(`Rate limited: ${clientId}`);
