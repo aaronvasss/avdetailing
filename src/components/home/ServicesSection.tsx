@@ -9,8 +9,8 @@ const services = [
     title: "Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks.",
     href: "/services/car-detailing",
-    // Black car with foam wash - realistic car detailing in progress
-    image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?q=80&w=800&auto=format&fit=crop",
+    // Professional car wash with foam and detailing in progress
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Droplets,
@@ -33,8 +33,8 @@ const services = [
     title: "Boat Detailing",
     description: "Marine-grade detailing to protect your vessel from the elements.",
     href: "/services/boat-detailing",
-    // White yacht/boat on water - clean exterior visible
-    image: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=800&auto=format&fit=crop",
+    // Speedboat on water - clean hull and deck visible
+    image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Caravan,
