@@ -13,7 +13,7 @@ const beforeAfterImages = [
     category: "Car",
     before: carDetailBefore,
     after: carDetailAfter,
-    title: "Full Detail - BMW 5 Series",
+    title: "Full Detail - Range Rover Biography",
   },
   {
     id: 2,
