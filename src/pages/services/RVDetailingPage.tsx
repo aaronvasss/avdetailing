@@ -7,7 +7,7 @@ const RVDetailingPage = () => {
       title="RV Detailing"
       location="Professional RV & Motorhome Detailing in Baton Rouge, Louisiana"
       description="Comprehensive detailing services for motorhomes, travel trailers, and fifth wheels of all sizes. Protect your home on wheels from the elements."
-      heroImage="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=2000&auto=format&fit=crop"
+      heroImage="https://images.unsplash.com/photo-1543796076-c57e87ae5f12?q=80&w=2000&auto=format&fit=crop"
       icon={<Caravan className="h-6 w-6 text-primary" />}
       timeEstimate="6-12 hours"
       idealFor={[

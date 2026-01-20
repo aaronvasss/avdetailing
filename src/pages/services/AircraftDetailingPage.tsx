@@ -7,7 +7,7 @@ const AircraftDetailingPage = () => {
       title="Aircraft Detailing"
       location="Professional Aircraft Detailing in Baton Rouge, Louisiana"
       description="Precision detailing for private aircraft using aviation-approved products. Protect your investment and maintain your aircraft's appearance with our specialized services."
-      heroImage="https://images.unsplash.com/photo-1540962351504-03099e0a754b?q=80&w=2000&auto=format&fit=crop"
+      heroImage="https://images.unsplash.com/photo-1474302770737-173ee21bab63?q=80&w=2000&auto=format&fit=crop"
       icon={<Plane className="h-6 w-6 text-primary" />}
       timeEstimate="4-12 hours"
       idealFor={[
