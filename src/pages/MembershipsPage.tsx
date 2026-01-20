@@ -8,7 +8,7 @@ const plans = [
   {
     name: "Monthly Maintenance",
     frequency: "1 visit per month",
-    price: 149,
+    price: 135,
     savings: "Save $30/month vs. one-time",
     description: "Perfect for maintaining that fresh detail look with minimal commitment.",
     features: [
@@ -24,14 +24,12 @@ const plans = [
   {
     name: "Bi-Weekly Maintenance",
     frequency: "2 visits per month",
-    price: 249,
+    price: 260,
     savings: "Save $109/month vs. one-time",
     description: "Ideal for daily drivers and high-use vehicles that need regular care.",
     features: [
       "Everything in Monthly, plus:",
-      "Clay bar treatment (once monthly)",
       "Leather conditioning",
-      "Engine bay wipe down (monthly)",
       "Door jamb cleaning",
       "Priority scheduling",
       "10% off all add-ons",
@@ -41,17 +39,15 @@ const plans = [
   {
     name: "Weekly Premium",
     frequency: "4 visits per month",
-    price: 399,
+    price: 520,
     savings: "Save $217/month vs. one-time",
     description: "The ultimate in vehicle care for enthusiasts and luxury owners.",
     features: [
       "Everything in Bi-Weekly, plus:",
       "Paint sealant refresh (monthly)",
-      "Ceramic coating maintenance",
-      "Odor elimination treatment",
       "VIP priority scheduling",
-      "20% off all add-ons",
-      "1 free add-on per visit",
+      "15% off all add-ons",
+      "Includes one free add-on per month",
       "Dedicated detailing specialist",
     ],
     popular: false,
