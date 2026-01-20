@@ -196,12 +196,19 @@ const BookingPage = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { data: services } = await supabase
+      // Get the correct service based on the selected service type
+      const serviceSlugMap: Record<string, string> = {
+        car: "full-detail",
+        boat: "boat-detail",
+        rv: "rv-detail",
+        aircraft: "aircraft-detail"
+      };
+      
+      const { data: service } = await supabase
         .from("services")
         .select("id, name, base_price")
-        .limit(10);
-      
-      const service = services?.[0];
+        .eq("slug", serviceSlugMap[serviceType] || "full-detail")
+        .single();
       const pkg = packages.find((p) => p.id === selectedPackage);
       const serviceName = pkg?.name || "Detailing Service";
       const totalPrice = getPackagePrice(pkg!);
