@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Car, Droplets, Sparkles, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import rvDetailingImage from "@/assets/rv-detailing.jpg";
 
 const services = [
   {
@@ -24,24 +25,24 @@ const services = [
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
-    // Machine polisher on car hood - paint correction in action
-    image: "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?q=80&w=800&auto=format&fit=crop",
+    // Professional polishing car paint with machine buffer
+    image: "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Ship,
     title: "Boat Detailing",
     description: "Marine-grade detailing to protect your vessel from the elements.",
     href: "/services/boat-detailing",
-    // Luxury yacht above water at dock - boat exterior visible
-    image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=800&auto=format&fit=crop",
+    // White yacht/boat on water - clean exterior visible
+    image: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Caravan,
     title: "RV Detailing",
     description: "Comprehensive detailing for motorhomes and travel trailers of all sizes.",
     href: "/services/rv-detailing",
-    // White motorhome/RV exterior - clean and polished
-    image: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=800&auto=format&fit=crop",
+    // User's custom RV photo - Tiffin motorhome
+    image: rvDetailingImage,
   },
   {
     icon: Plane,
