@@ -15,7 +15,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { sendBookingConfirmation } from "@/lib/email";
 
 const vehicleTypes = [
   { id: "car", label: "Car/SUV/Truck", icon: Car },
@@ -52,7 +54,6 @@ const timeSlots = [
 ];
 
 const BookingPage = () => {
-  const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [vehicleType, setVehicleType] = useState<string>("");
   const [selectedService, setSelectedService] = useState<string>("");
@@ -60,6 +61,19 @@ const BookingPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingId, setBookingId] = useState<string>("");
+  
+  const [customerInfo, setCustomerInfo] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    zip: "",
+    vehicleInfo: "",
+    notes: "",
+  });
 
   const toggleAddOn = (id: string) => {
     setSelectedAddOns((prev) =>
@@ -70,15 +84,83 @@ const BookingPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Booking Request Submitted!",
-      description: "We'll confirm your appointment within 2 hours.",
-    });
-    
-    setIsSubmitting(false);
-    setStep(5); // Success step
+
+    try {
+      // Get current user if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get service from database
+      const { data: services } = await supabase
+        .from("services")
+        .select("id, name, base_price")
+        .limit(10);
+      
+      // Find matching service or use first one
+      const service = services?.[0];
+      const serviceName = carServices.find((s) => s.id === selectedService)?.name || "Detailing Service";
+      const totalPrice = parseFloat(carServices.find((s) => s.id === selectedService)?.price.replace("$", "").replace("+", "") || "0");
+      const addOnsTotal = selectedAddOns.reduce((sum, id) => {
+        const addon = addOns.find(a => a.id === id);
+        return sum + parseFloat(addon?.price.replace("$", "") || "0");
+      }, 0);
+
+      // Create booking
+      const { data: booking, error: bookingError } = await supabase
+        .from("bookings")
+        .insert({
+          user_id: user?.id || null,
+          service_id: service?.id,
+          scheduled_date: selectedDate?.toISOString().split("T")[0],
+          scheduled_time: selectedTime,
+          guest_name: user ? null : `${customerInfo.firstName} ${customerInfo.lastName}`,
+          guest_email: user ? null : customerInfo.email,
+          guest_phone: user ? null : customerInfo.phone,
+          vehicle_type: vehicleType,
+          vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
+          vehicle_model: customerInfo.vehicleInfo.split(" ").slice(2).join(" ") || null,
+          service_address: customerInfo.address,
+          service_city: customerInfo.city,
+          service_zip: customerInfo.zip,
+          address_notes: customerInfo.notes || null,
+          subtotal: totalPrice,
+          add_ons_total: addOnsTotal,
+          total_price: totalPrice + addOnsTotal,
+          status: "pending",
+          payment_status: "unpaid",
+        })
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      setBookingId(booking.id);
+
+      // Send confirmation email
+      try {
+        await sendBookingConfirmation({
+          customerEmail: user?.email || customerInfo.email,
+          customerName: customerInfo.firstName,
+          serviceName: serviceName,
+          scheduledDate: selectedDate?.toISOString() || "",
+          scheduledTime: selectedTime,
+          serviceAddress: customerInfo.address,
+          serviceCity: customerInfo.city,
+          vehicleInfo: customerInfo.vehicleInfo,
+          totalPrice: totalPrice + addOnsTotal,
+          bookingId: booking.id,
+        });
+      } catch (emailError) {
+        console.error("Email failed but booking succeeded:", emailError);
+      }
+
+      toast.success("Booking confirmed! Check your email for details.");
+      setStep(5);
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      toast.error("Failed to create booking. Please try again or call us.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -252,39 +334,39 @@ const BookingPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" required />
+                <Input id="firstName" required value={customerInfo.firstName} onChange={(e) => setCustomerInfo({...customerInfo, firstName: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" required />
+                <Input id="lastName" required value={customerInfo.lastName} onChange={(e) => setCustomerInfo({...customerInfo, lastName: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required />
+                <Input id="email" type="email" required value={customerInfo.email} onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" type="tel" required />
+                <Input id="phone" type="tel" required value={customerInfo.phone} onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Service Address</Label>
-                <Input id="address" placeholder="Street address" required />
+                <Input id="address" placeholder="Street address" required value={customerInfo.address} onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
-                <Input id="city" required />
+                <Input id="city" required value={customerInfo.city} onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="zip">ZIP Code</Label>
-                <Input id="zip" required />
+                <Input id="zip" required value={customerInfo.zip} onChange={(e) => setCustomerInfo({...customerInfo, zip: e.target.value})} />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="vehicleInfo">Vehicle Details</Label>
-                <Input id="vehicleInfo" placeholder="Year, Make, Model (e.g., 2020 Toyota Camry)" required />
+                <Input id="vehicleInfo" placeholder="Year, Make, Model (e.g., 2020 Toyota Camry)" required value={customerInfo.vehicleInfo} onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
-                <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." />
+                <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." value={customerInfo.notes} onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} />
               </div>
             </div>
 
