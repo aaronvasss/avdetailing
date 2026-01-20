@@ -14,13 +14,20 @@ interface BookingConfirmationData {
   serviceAddress: string;
   serviceCity: string;
   serviceState?: string;
+  serviceZip?: string;
   vehicleInfo: string;
+  vehicleType?: string;
+  vehicleSize?: string;
   totalPrice: number;
   bookingId: string;
   basePrice?: number;
   addOns?: BookingAddOn[];
   estimatedDuration?: number;
   customerPhone?: string;
+  depositAmount?: number;
+  paymentMethod?: string;
+  gateCode?: string;
+  parkingInstructions?: string;
 }
 
 interface ContactFormData {
