@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, ChevronDown } from "lucide-react";
+import { Menu, X, Phone, ChevronDown, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -28,7 +29,22 @@ const navigation = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return location.pathname === "/";
@@ -117,6 +133,18 @@ export function Header() {
               <Phone className="h-4 w-4 mr-2" />
               (225) 555-1234
             </a>
+            {user ? (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/account">
+                  <User className="h-4 w-4 mr-2" />
+                  Account
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/auth">Sign In</Link>
+              </Button>
+            )}
             <Button asChild className="glow-red">
               <Link to="/book">Book Now</Link>
             </Button>
@@ -198,6 +226,20 @@ export function Header() {
                 <Phone className="h-4 w-4 mr-2" />
                 (225) 555-1234
               </a>
+              {user ? (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
+                    <User className="h-4 w-4 mr-2" />
+                    My Account
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                    Sign In / Sign Up
+                  </Link>
+                </Button>
+              )}
               <Button asChild className="w-full glow-red">
                 <Link to="/book" onClick={() => setMobileMenuOpen(false)}>
                   Book Now
