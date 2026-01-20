@@ -1,5 +1,6 @@
 import { Car } from "lucide-react";
 import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
+import carDetailingImage from "@/assets/car-detailing-service.jpg";
 
 const CarDetailingPage = () => {
   return (
@@ -7,7 +8,7 @@ const CarDetailingPage = () => {
       title="Car Detailing"
       location="Premium Auto Detailing in Baton Rouge, Louisiana"
       description="Complete interior and exterior detailing services for sedans, SUVs, trucks, and sports cars. We bring showroom-quality results directly to your location."
-      heroImage="https://images.unsplash.com/photo-1552930294-e8839c45e71c?q=80&w=2000&auto=format&fit=crop"
+      heroImage={carDetailingImage}
       icon={<Car className="h-6 w-6 text-primary" />}
       timeEstimate="2-6 hours"
       idealFor={[

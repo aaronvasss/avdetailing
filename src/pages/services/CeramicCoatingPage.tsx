@@ -1,5 +1,6 @@
 import { Droplets } from "lucide-react";
 import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
+import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
 
 const CeramicCoatingPage = () => {
   return (
@@ -7,7 +8,7 @@ const CeramicCoatingPage = () => {
       title="Ceramic Coating"
       location="Professional Ceramic Coating in Baton Rouge, Louisiana"
       description="Long-lasting paint protection with professional-grade ceramic coating. Shield your vehicle from UV rays, chemicals, and environmental contaminants for years."
-      heroImage="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2000&auto=format&fit=crop"
+      heroImage={ceramicCoatingImage}
       icon={<Droplets className="h-6 w-6 text-primary" />}
       timeEstimate="1-2 days"
       idealFor={[

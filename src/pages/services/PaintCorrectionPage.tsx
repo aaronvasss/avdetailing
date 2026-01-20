@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
 import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
+import paintCorrectionImage from "@/assets/paint-correction-service.jpg";
 
 const PaintCorrectionPage = () => {
   return (
@@ -7,7 +8,7 @@ const PaintCorrectionPage = () => {
       title="Paint Correction"
       location="Expert Paint Correction & Buffing in Baton Rouge, Louisiana"
       description="Remove swirl marks, scratches, oxidation, and water spots to restore your vehicle's paint to like-new clarity and depth. Professional multi-stage correction."
-      heroImage="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000&auto=format&fit=crop"
+      heroImage={paintCorrectionImage}
       icon={<Sparkles className="h-6 w-6 text-primary" />}
       timeEstimate="4-12 hours"
       idealFor={[
