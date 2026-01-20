@@ -56,38 +56,36 @@ function getClientId(req: Request): string {
   return cfIp || realIp || forwarded?.split(",")[0]?.trim() || "unknown";
 }
 
-// Persistent rate limiting using Deno KV
-async function checkRateLimit(clientId: string): Promise<{ allowed: boolean; remaining: number }> {
-  const kv = await Deno.openKv();
+// In-memory rate limiting (resets on cold start, but provides protection during active usage)
+const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
+
+function checkRateLimit(clientId: string): { allowed: boolean; remaining: number } {
   const now = Date.now();
-  const key = ["rate_limit", "booking", clientId];
+  const entry = rateLimitMap.get(clientId);
   
-  try {
-    const entry = await kv.get<{ count: number; windowStart: number }>(key);
-    
-    if (!entry.value || now - entry.value.windowStart > RATE_LIMIT_WINDOW_MS) {
-      // New window - set count to 1 with expiration
-      await kv.set(key, { count: 1, windowStart: now }, { 
-        expireIn: RATE_LIMIT_WINDOW_MS 
-      });
-      return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  // Clean up old entries periodically
+  if (rateLimitMap.size > 1000) {
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (now - value.windowStart > RATE_LIMIT_WINDOW_MS) {
+        rateLimitMap.delete(key);
+      }
     }
-    
-    if (entry.value.count >= MAX_REQUESTS_PER_WINDOW) {
-      return { allowed: false, remaining: 0 };
-    }
-    
-    // Increment count
-    const newCount = entry.value.count + 1;
-    await kv.set(key, { count: newCount, windowStart: entry.value.windowStart }, { 
-      expireIn: RATE_LIMIT_WINDOW_MS - (now - entry.value.windowStart) 
-    });
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - newCount };
-  } catch (error) {
-    // Fallback: allow request if KV fails (fail open for availability)
-    console.error("Rate limit KV error:", error);
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW };
   }
+  
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    // New window
+    rateLimitMap.set(clientId, { count: 1, windowStart: now });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  }
+  
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  // Increment count
+  entry.count += 1;
+  rateLimitMap.set(clientId, entry);
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count };
 }
 
 // HTML encode to prevent XSS in emails
@@ -163,7 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Server-side rate limiting
     const clientId = getClientId(req);
-    const rateCheck = await checkRateLimit(clientId);
+    const rateCheck = checkRateLimit(clientId);
     
     if (!rateCheck.allowed) {
       console.log(`Rate limited: ${clientId}`);
