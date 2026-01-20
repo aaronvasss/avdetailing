@@ -8,41 +8,47 @@ const services = [
     title: "Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks.",
     href: "/services/car-detailing",
-    image: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?q=80&w=800&auto=format&fit=crop",
+    // Black car with foam wash - realistic car detailing in progress
+    image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Droplets,
     title: "Ceramic Coating",
     description: "Long-lasting paint protection with professional-grade ceramic coating.",
     href: "/services/ceramic-coating",
-    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=800&auto=format&fit=crop",
+    // High-gloss finish on car paint showing ceramic coating result
+    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Sparkles,
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
-    image: "https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?q=80&w=800&auto=format&fit=crop",
+    // Machine polisher on car hood - paint correction in action
+    image: "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Ship,
     title: "Boat Detailing",
     description: "Marine-grade detailing to protect your vessel from the elements.",
     href: "/services/boat-detailing",
-    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop",
+    // Luxury yacht above water at dock - boat exterior visible
+    image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Caravan,
     title: "RV Detailing",
     description: "Comprehensive detailing for motorhomes and travel trailers of all sizes.",
     href: "/services/rv-detailing",
-    image: "https://images.unsplash.com/photo-1543796076-c57e87ae5f12?q=80&w=800&auto=format&fit=crop",
+    // White motorhome/RV exterior - clean and polished
+    image: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=800&auto=format&fit=crop",
   },
   {
     icon: Plane,
     title: "Aircraft Detailing",
     description: "Precision detailing for private aircraft with aviation-approved products.",
     href: "/services/aircraft-detailing",
+    // Private jet on ground - aircraft detailing context
     image: "https://images.unsplash.com/photo-1474302770737-173ee21bab63?q=80&w=800&auto=format&fit=crop",
   },
 ];
