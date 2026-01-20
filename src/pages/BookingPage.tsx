@@ -164,8 +164,14 @@ const BookingPage = () => {
 
       setBookingId(booking.id);
 
-      // Send confirmation email
+      // Send confirmation email with enhanced data
       try {
+        // Get selected add-ons with their details
+        const selectedAddOnDetails = selectedAddOns.map(id => {
+          const addon = addOns.find(a => a.id === id);
+          return addon ? { name: addon.name, price: parseFloat(addon.price.replace('$', '')) } : null;
+        }).filter(Boolean) as { name: string; price: number }[];
+
         await sendBookingConfirmation({
           customerEmail: user?.email || customerInfo.email,
           customerName: customerInfo.firstName,
@@ -174,9 +180,13 @@ const BookingPage = () => {
           scheduledTime: selectedTime,
           serviceAddress: customerInfo.address,
           serviceCity: customerInfo.city,
+          serviceState: "LA",
           vehicleInfo: customerInfo.vehicleInfo,
           totalPrice: totalPrice + addOnsTotal,
           bookingId: booking.id,
+          basePrice: totalPrice,
+          addOns: selectedAddOnDetails,
+          customerPhone: customerInfo.phone,
         });
       } catch (emailError) {
         console.error("Email failed but booking succeeded:", emailError);
