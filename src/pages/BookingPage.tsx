@@ -457,35 +457,110 @@ const BookingPage = () => {
 
       case 5:
         return (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-primary" />
+          <div className="text-center py-8">
+            {/* Success Animation */}
+            <div className="relative mb-8">
+              <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                <div className="w-16 h-16 bg-primary/40 rounded-full flex items-center justify-center">
+                  <Check className="h-8 w-8 text-primary" />
+                </div>
+              </div>
+              <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-primary/30 animate-ping" />
             </div>
-            <h2 className="text-3xl font-bold mb-4">Booking Submitted!</h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              We've received your booking request. You'll receive a confirmation email 
-              within 2 hours with your appointment details.
+            
+            <h2 className="text-3xl font-bold mb-2">You're All Set! 🎉</h2>
+            <p className="text-xl text-primary font-semibold mb-4">
+              Booking Confirmed
             </p>
-            <div className="space-y-4 max-w-sm mx-auto">
-              <Card>
-                <CardContent className="pt-6 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <CalendarIcon className="h-5 w-5 text-primary" />
-                    <span>{selectedDate?.toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <span>{selectedTime}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-primary" />
-                    <span>Mobile service at your location</span>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              A confirmation email has been sent to your inbox with all the details. 
+              We'll text you when we're on our way!
+            </p>
+            
+            {/* Appointment Summary Card */}
+            <div className="space-y-4 max-w-md mx-auto">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="pt-6">
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
+                    Appointment Summary
+                  </h3>
+                  <div className="space-y-4 text-left">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                      <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase">Date</p>
+                        <p className="font-medium">
+                          {selectedDate?.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            month: 'long', 
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                      <Clock className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase">Time</p>
+                        <p className="font-medium">{selectedTime}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase">Location</p>
+                        <p className="font-medium">Mobile service at your address</p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-              <Button asChild variant="outline" className="w-full">
-                <a href="/">Return to Home</a>
-              </Button>
+              
+              {/* What's Next Card */}
+              <Card className="border-muted">
+                <CardContent className="pt-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">
+                    What's Next?
+                  </h3>
+                  <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                    <li className="flex items-center gap-2">
+                      <span className="text-primary">✓</span>
+                      Check your email for confirmation details
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-primary">✓</span>
+                      We'll text you on the day of service
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-primary">✓</span>
+                      Clear your vehicle of personal items
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-primary">✓</span>
+                      Ensure water & power access nearby
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button asChild variant="outline" className="flex-1">
+                  <a href="/account">View My Bookings</a>
+                </Button>
+                <Button asChild className="flex-1 glow-red">
+                  <a href="/">Return Home</a>
+                </Button>
+              </div>
+              
+              {/* Contact Info */}
+              <p className="text-sm text-muted-foreground pt-4">
+                Questions? Call us at{" "}
+                <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
+                  (225) 226-8979
+                </a>
+              </p>
             </div>
           </div>
         );
