@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { Car, Droplets, Sparkles, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import rvDetailingImage from "@/assets/rv-detailing.jpg";
+import carDetailingImage from "@/assets/car-detailing-service.jpg";
+import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
+import paintCorrectionImage from "@/assets/paint-correction-service.jpg";
 
 const services = [
   {
@@ -9,24 +12,21 @@ const services = [
     title: "Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks.",
     href: "/services/car-detailing",
-    // Car covered in foam during wash - detailing in progress
-    image: "https://images.unsplash.com/photo-1552930294-e8839c45e71c?q=80&w=800&auto=format&fit=crop",
+    image: carDetailingImage,
   },
   {
     icon: Droplets,
     title: "Ceramic Coating",
     description: "Long-lasting paint protection with professional-grade ceramic coating.",
     href: "/services/ceramic-coating",
-    // High-gloss finish on car paint showing ceramic coating result
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop",
+    image: ceramicCoatingImage,
   },
   {
     icon: Sparkles,
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
-    // Polisher pad on car paint surface - paint correction work
-    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=800&auto=format&fit=crop",
+    image: paintCorrectionImage,
   },
   {
     icon: Ship,
