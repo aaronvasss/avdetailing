@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Palette } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,12 +19,15 @@ import { useQuery } from "@tanstack/react-query";
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
   { id: "car", label: "Car Detailing", icon: Car },
-  { id: "ceramic", label: "Ceramic Coating", icon: Droplets },
-  { id: "paint", label: "Paint Correction", icon: Palette },
+  { id: "ceramic", label: "Ceramic Coating", icon: Droplets, quoteOnly: true },
+  { id: "paint", label: "Paint Correction", icon: Disc3 },
   { id: "boat", label: "Boat Detailing", icon: Ship },
   { id: "rv", label: "RV/Motorhome", icon: Caravan },
-  { id: "aircraft", label: "Aircraft", icon: Plane },
+  { id: "aircraft", label: "Aircraft", icon: Plane, quoteOnly: true },
 ];
+
+// Services that are quote-only (no package selection)
+const quoteOnlyServices = ["ceramic", "aircraft"];
 
 // Vehicle sub-types for Car, Ceramic, and Paint Correction
 const carVehicleTypes = [
@@ -520,6 +523,10 @@ const BookingPage = () => {
   };
 
   const getProgressLabels = () => {
+    // Quote-only services have a different flow
+    if (quoteOnlyServices.includes(serviceType)) {
+      return ["Service", "Quote Request"];
+    }
     // Services that need vehicle sub-type selection
     if (servicesWithVehicleSelection.includes(serviceType)) {
       return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Details"];
@@ -528,8 +535,11 @@ const BookingPage = () => {
   };
 
   const getTotalSteps = () => {
+    if (quoteOnlyServices.includes(serviceType)) return 2;
     return servicesWithVehicleSelection.includes(serviceType) ? 6 : 5;
   };
+
+  const isQuoteOnlyService = () => quoteOnlyServices.includes(serviceType);
 
   const renderStep = () => {
     switch (step) {
@@ -548,7 +558,10 @@ const BookingPage = () => {
                   onClick={() => {
                     setServiceType(type.id);
                     setSelectedPackage(""); // Reset package selection when changing service
-                    if (servicesWithVehicleSelection.includes(type.id)) {
+                    // Quote-only services go to quote request step
+                    if (quoteOnlyServices.includes(type.id)) {
+                      setStep(2); // Go to quote request
+                    } else if (servicesWithVehicleSelection.includes(type.id)) {
                       setStep(2); // Go to vehicle sub-type selection for car-based services
                     } else {
                       setVehicleSubType(""); // Clear vehicle sub-type for other services
@@ -568,8 +581,182 @@ const BookingPage = () => {
           </div>
         );
 
-      // Step 2: Select Vehicle Sub-Type (for car-based services)
+      // Step 2: Vehicle Sub-Type OR Quote Request (depends on service)
       case 2:
+        // Quote-only services (Ceramic Coating, Aircraft) show quote request form
+        if (isQuoteOnlyService()) {
+          const quoteServiceLabel = serviceTypes.find(s => s.id === serviceType)?.label || "Service";
+          const QuoteIcon = serviceTypes.find(s => s.id === serviceType)?.icon || MessageSquareQuote;
+          return (
+            <div className="space-y-8">
+              <div className="text-center">
+                <QuoteIcon className="h-16 w-16 mx-auto mb-4 text-primary" />
+                <h2 className="text-2xl font-bold mb-2">Request a {quoteServiceLabel} Quote</h2>
+                <p className="text-muted-foreground">
+                  {serviceType === "ceramic" 
+                    ? "Ceramic coating pricing depends on vehicle size, condition, and protection level. We'll provide a custom quote."
+                    : "Aircraft detailing requires an on-site assessment. We'll contact you to schedule a consultation."
+                  }
+                </p>
+              </div>
+
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <MessageSquareQuote className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold">What's Included in Your Quote</h3>
+                      <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                        {serviceType === "ceramic" ? (
+                          <>
+                            <li>• Vehicle inspection & condition assessment</li>
+                            <li>• Recommended ceramic coating tier (Lite, Pro, or Elite)</li>
+                            <li>• Paint correction requirements if needed</li>
+                            <li>• Complete pricing with no hidden fees</li>
+                          </>
+                        ) : (
+                          <>
+                            <li>• Aircraft size and type assessment</li>
+                            <li>• Exterior and interior cleaning scope</li>
+                            <li>• Specialized aviation-safe products</li>
+                            <li>• On-site service at your hangar</li>
+                          </>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Your Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="quoteFirstName">First Name</Label>
+                      <Input 
+                        id="quoteFirstName" 
+                        required 
+                        value={customerInfo.firstName} 
+                        onChange={(e) => setCustomerInfo({...customerInfo, firstName: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quoteLastName">Last Name</Label>
+                      <Input 
+                        id="quoteLastName" 
+                        required 
+                        value={customerInfo.lastName} 
+                        onChange={(e) => setCustomerInfo({...customerInfo, lastName: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quoteEmail">Email</Label>
+                      <Input 
+                        id="quoteEmail" 
+                        type="email" 
+                        required 
+                        value={customerInfo.email} 
+                        onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quotePhone">Phone</Label>
+                      <Input 
+                        id="quotePhone" 
+                        type="tel" 
+                        required 
+                        value={customerInfo.phone} 
+                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quoteVehicle">
+                      {serviceType === "ceramic" ? "Vehicle Details (Year, Make, Model)" : "Aircraft Details (Type, Size)"}
+                    </Label>
+                    <Input 
+                      id="quoteVehicle" 
+                      placeholder={serviceType === "ceramic" ? "e.g., 2024 BMW X5" : "e.g., Cessna 172, Single-Engine"}
+                      value={customerInfo.vehicleInfo} 
+                      onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quoteNotes">Additional Details (Optional)</Label>
+                    <Textarea 
+                      id="quoteNotes" 
+                      placeholder={serviceType === "ceramic" 
+                        ? "Current vehicle condition, any specific concerns, preferred protection level..."
+                        : "Hangar location, scheduling preferences, specific cleaning requirements..."
+                      }
+                      value={customerInfo.notes} 
+                      onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-4">
+                <Button variant="outline" onClick={() => setStep(1)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button 
+                  className="flex-1 glow-red" 
+                  onClick={async () => {
+                    // Validate basic fields
+                    if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email || !customerInfo.phone) {
+                      toast.error("Please fill in all required fields");
+                      return;
+                    }
+                    
+                    setIsSubmitting(true);
+                    try {
+                      // Send quote request email/notification
+                      const { error } = await supabase.functions.invoke('send-contact-email', {
+                        body: {
+                          name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+                          email: customerInfo.email,
+                          phone: customerInfo.phone,
+                          message: `QUOTE REQUEST: ${serviceTypes.find(s => s.id === serviceType)?.label}\n\nVehicle/Aircraft: ${customerInfo.vehicleInfo || 'Not specified'}\n\nAdditional Details: ${customerInfo.notes || 'None'}`,
+                          subject: `Quote Request: ${serviceTypes.find(s => s.id === serviceType)?.label}`,
+                        },
+                      });
+                      
+                      if (error) throw error;
+                      
+                      toast.success("Quote request submitted! We'll contact you within 24 hours.");
+                      setBookingId("quote-" + Date.now()); // Set a pseudo-ID to show confirmation
+                    } catch (error) {
+                      console.error('Quote request error:', error);
+                      toast.error("Failed to submit quote request. Please try again or call us directly.");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting || !customerInfo.firstName || !customerInfo.lastName || !customerInfo.email || !customerInfo.phone}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquareQuote className="mr-2 h-4 w-4" />
+                      Request Free Quote
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          );
+        }
+
+        // Regular vehicle sub-type selection for car-based services
         const ServiceIcon = serviceTypes.find(s => s.id === serviceType)?.icon || Car;
         const serviceLabel = serviceTypes.find(s => s.id === serviceType)?.label || "Detailing";
         return (
@@ -993,116 +1180,197 @@ const BookingPage = () => {
     }
   };
 
-  const renderConfirmation = () => (
-    <div className="text-center py-8">
-      {/* Success Animation */}
-      <div className="relative mb-8">
-        <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
-          <div className="w-16 h-16 bg-primary/40 rounded-full flex items-center justify-center">
-            <Check className="h-8 w-8 text-primary" />
-          </div>
-        </div>
-        <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-primary/30 animate-ping" />
-      </div>
-      
-      <h2 className="text-3xl font-bold mb-2">You're All Set! 🎉</h2>
-      <p className="text-xl text-primary font-semibold mb-4">
-        Booking Confirmed
-      </p>
-      <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-        A confirmation email has been sent to your inbox with all the details. 
-        We'll text you when we're on our way!
-      </p>
-      
-      {/* Appointment Summary Card */}
-      <div className="space-y-4 max-w-md mx-auto">
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-6">
-            <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
-              Appointment Summary
-            </h3>
-            <div className="space-y-4 text-left">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase">Date</p>
-                  <p className="font-medium">
-                    {selectedDate?.toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      month: 'long', 
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                <Clock className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase">Time</p>
-                  <p className="font-medium">{selectedTime}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase">Location</p>
-                  <p className="font-medium">Mobile service at your address</p>
-                </div>
+  const renderConfirmation = () => {
+    // Check if this is a quote request confirmation
+    const isQuoteConfirmation = bookingId.startsWith('quote-');
+    
+    if (isQuoteConfirmation) {
+      return (
+        <div className="text-center py-8">
+          {/* Success Animation */}
+          <div className="relative mb-8">
+            <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
+              <div className="w-16 h-16 bg-primary/40 rounded-full flex items-center justify-center">
+                <MessageSquareQuote className="h-8 w-8 text-primary" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        {/* What's Next Card */}
-        <Card className="border-muted">
-          <CardContent className="pt-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">
-              What's Next?
-            </h3>
-            <ul className="text-sm text-muted-foreground space-y-2 text-left">
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Check your email for confirmation details
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                We'll text you on the day of service
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Clear your vehicle of personal items
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Ensure water & power access nearby
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-        
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button asChild variant="outline" className="flex-1">
-            <a href="/account">View My Bookings</a>
-          </Button>
-          <Button asChild className="flex-1 glow-red">
-            <a href="/">Return Home</a>
-          </Button>
+            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-primary/30 animate-ping" />
+          </div>
+          
+          <h2 className="text-3xl font-bold mb-2">Quote Request Received! 📋</h2>
+          <p className="text-xl text-primary font-semibold mb-4">
+            We'll Be In Touch Soon
+          </p>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            Our team will review your {serviceTypes.find(s => s.id === serviceType)?.label} request and contact you within 24 hours with a personalized quote.
+          </p>
+          
+          {/* What's Next Card */}
+          <div className="space-y-4 max-w-md mx-auto">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="pt-6">
+                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
+                  What Happens Next?
+                </h3>
+                <ul className="text-sm text-muted-foreground space-y-3 text-left">
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">1.</span>
+                    <span>Our team reviews your request and vehicle details</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">2.</span>
+                    <span>We'll call or text you to discuss your needs and answer questions</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">3.</span>
+                    <span>You'll receive a detailed quote with pricing options</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">4.</span>
+                    <span>Once approved, we'll schedule your appointment</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button asChild variant="outline" className="flex-1">
+                <a href="/contact">Contact Us</a>
+              </Button>
+              <Button asChild className="flex-1 glow-red">
+                <a href="/">Return Home</a>
+              </Button>
+            </div>
+            
+            {/* Contact Info */}
+            <p className="text-sm text-muted-foreground pt-4">
+              Need faster service? Call us directly at{" "}
+              <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
+                (225) 226-8979
+              </a>
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Regular booking confirmation
+    return (
+      <div className="text-center py-8">
+        {/* Success Animation */}
+        <div className="relative mb-8">
+          <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
+            <div className="w-16 h-16 bg-primary/40 rounded-full flex items-center justify-center">
+              <Check className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+          <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-primary/30 animate-ping" />
         </div>
         
-        {/* Contact Info */}
-        <p className="text-sm text-muted-foreground pt-4">
-          Questions? Call us at{" "}
-          <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
-            (225) 226-8979
-          </a>
+        <h2 className="text-3xl font-bold mb-2">You're All Set! 🎉</h2>
+        <p className="text-xl text-primary font-semibold mb-4">
+          Booking Confirmed
         </p>
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          A confirmation email has been sent to your inbox with all the details. 
+          We'll text you when we're on our way!
+        </p>
+        
+        {/* Appointment Summary Card */}
+        <div className="space-y-4 max-w-md mx-auto">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
+                Appointment Summary
+              </h3>
+              <div className="space-y-4 text-left">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                  <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase">Date</p>
+                    <p className="font-medium">
+                      {selectedDate?.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        month: 'long', 
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                  <Clock className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase">Time</p>
+                    <p className="font-medium">{selectedTime}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase">Location</p>
+                    <p className="font-medium">Mobile service at your address</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* What's Next Card */}
+          <Card className="border-muted">
+            <CardContent className="pt-6">
+              <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">
+                What's Next?
+              </h3>
+              <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">✓</span>
+                  Check your email for confirmation details
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">✓</span>
+                  We'll text you on the day of service
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">✓</span>
+                  Clear your vehicle of personal items
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">✓</span>
+                  Ensure water & power access nearby
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <Button asChild variant="outline" className="flex-1">
+              <a href="/account">View My Bookings</a>
+            </Button>
+            <Button asChild className="flex-1 glow-red">
+              <a href="/">Return Home</a>
+            </Button>
+          </div>
+          
+          {/* Contact Info */}
+          <p className="text-sm text-muted-foreground pt-4">
+            Questions? Call us at{" "}
+            <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
+              (225) 226-8979
+            </a>
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const currentStepForProgress = () => {
+    // Quote-only services have their own flow
+    if (quoteOnlyServices.includes(serviceType)) {
+      return step;
+    }
     // For services without vehicle selection, we skip step 2, so adjust the progress
     if (!servicesWithVehicleSelection.includes(serviceType) && step >= 3) {
       return step - 1;
