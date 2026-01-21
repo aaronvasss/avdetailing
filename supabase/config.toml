@@ -1,1 +1,13 @@
 project_id = "prcrvuzncffsblsxblim"
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.send-booking-sms]
+verify_jwt = false
+
+[functions.twilio-webhook]
+verify_jwt = false
+
+[functions.send-reminder-sms]
+verify_jwt = false

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmation } from "@/lib/email";
+import { sendBookingSms } from "@/lib/sms";
 import { bookingCustomerSchema } from "@/lib/validations";
 import { clearRateLimit } from "@/lib/security";
 import { useQuery } from "@tanstack/react-query";
@@ -367,6 +368,24 @@ const BookingPage = () => {
         });
       } catch (emailError) {
         console.error("Email failed but booking succeeded:", emailError);
+      }
+
+      // Send SMS confirmation (non-blocking)
+      try {
+        await sendBookingSms({
+          customerPhone: customerInfo.phone,
+          customerName: customerInfo.firstName,
+          serviceName: serviceName,
+          scheduledDate: selectedDate?.toISOString() || "",
+          scheduledTime: selectedTime,
+          serviceAddress: customerInfo.address,
+          serviceCity: customerInfo.city,
+          totalPrice: totalPrice + addOnsTotal,
+          bookingId: booking.id,
+          notifyBusiness: true,
+        });
+      } catch (smsError) {
+        console.error("SMS failed but booking succeeded:", smsError);
       }
 
       clearRateLimit('booking-form');
