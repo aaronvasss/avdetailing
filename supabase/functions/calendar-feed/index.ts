@@ -131,9 +131,13 @@ Deno.serve(async (req) => {
         .filter(Boolean)
         .join(" ");
 
-      const title = `AV Detailing - ${booking.services?.name || "Detailing Service"}`;
+      const services = booking.services as { name: string } | { name: string }[] | null;
+      const serviceName = Array.isArray(services) 
+        ? services[0]?.name 
+        : services?.name;
+      const title = `AV Detailing - ${serviceName || "Detailing Service"}`;
       const description = [
-        `Service: ${booking.services?.name || "Detailing Service"}`,
+        `Service: ${serviceName || "Detailing Service"}`,
         vehicle ? `Vehicle: ${vehicle}` : null,
         `Location: ${location || "TBD"}`,
         `Status: ${booking.status}`,

@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Save, Calendar, Mail, Bell, Smartphone, ExternalLink, Info } from "lucide-react";
+import { Save, Calendar, Mail, Bell, Smartphone, Info, Copy, RefreshCw, Link2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +26,9 @@ export function ProfileTab({ userId }: ProfileTabProps) {
     full_name: "",
     phone: "",
     email: "",
+    calendar_token: "",
   });
+  const [generatingToken, setGeneratingToken] = useState(false);
 
   // Notification preferences (stored in localStorage for now)
   const [notifications, setNotifications] = useState({
@@ -52,9 +54,47 @@ export function ProfileTab({ userId }: ProfileTabProps) {
         full_name: data.full_name || "",
         phone: data.phone || "",
         email: data.email || "",
+        calendar_token: (data as any).calendar_token || "",
       });
     }
     setLoading(false);
+  };
+
+  const generateCalendarToken = async () => {
+    setGeneratingToken(true);
+    try {
+      // Generate a new token
+      const newToken = crypto.randomUUID() + crypto.randomUUID();
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update({ calendar_token: newToken } as any)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      setProfile({ ...profile, calendar_token: newToken });
+      toast.success("New calendar subscription URL generated");
+    } catch (error) {
+      console.error("Error generating token:", error);
+      toast.error("Failed to generate new URL");
+    } finally {
+      setGeneratingToken(false);
+    }
+  };
+
+  const getCalendarSubscriptionUrl = () => {
+    if (!profile.calendar_token) return "";
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${baseUrl}/functions/v1/calendar-feed?user_id=${userId}&token=${profile.calendar_token}`;
+  };
+
+  const copySubscriptionUrl = () => {
+    const url = getCalendarSubscriptionUrl();
+    if (url) {
+      navigator.clipboard.writeText(url);
+      toast.success("Calendar URL copied to clipboard");
+    }
   };
 
   const loadNotificationPreferences = () => {
@@ -296,44 +336,109 @@ export function ProfileTab({ userId }: ProfileTabProps) {
             </Tooltip>
           </div>
 
-          {/* Apple Calendar / ICS */}
+          {/* ICS Subscription Feed */}
+          <div className="p-4 rounded-lg border border-border/50 bg-muted/30 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary">
+                  <Link2 className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">Calendar Subscription</p>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      Live Sync
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Subscribe once, appointments sync automatically
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {profile.calendar_token ? (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={getCalendarSubscriptionUrl()}
+                    className="bg-background text-xs font-mono"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={copySubscriptionUrl}
+                    title="Copy URL"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Paste this URL in Apple Calendar → File → New Calendar Subscription
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={generateCalendarToken}
+                    disabled={generatingToken}
+                    className="text-xs"
+                  >
+                    <RefreshCw className={`h-3 w-3 mr-1 ${generatingToken ? "animate-spin" : ""}`} />
+                    Regenerate
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                onClick={generateCalendarToken}
+                disabled={generatingToken}
+                variant="outline"
+                className="w-full"
+              >
+                {generatingToken ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="h-4 w-4 mr-2" />
+                    Generate Subscription URL
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+
+          {/* Apple Calendar / ICS Manual */}
           <div className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-muted/30">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-red-600">
-                <Calendar className="h-5 w-5 text-white" />
+              <div className="p-2 rounded-lg bg-muted">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Apple Calendar / iCal</p>
+                <p className="font-medium">Manual Download</p>
                 <p className="text-sm text-muted-foreground">
-                  Use "Add to Calendar" on each appointment
+                  Download .ics files from the Appointments tab
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500">
-                Available
-              </Badge>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Info className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>
-                    Download .ics files for individual appointments from the
-                    Appointments tab. Works with Apple Calendar, Outlook, and
-                    other calendar apps.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Info className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>
+                  Download individual .ics files from each appointment card.
+                  Works with Apple Calendar, Outlook, and other calendar apps.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Info className="h-3 w-3" />
-            Calendar files (.ics) can be imported into most calendar applications
-          </p>
         </CardContent>
       </Card>
 
