@@ -6,6 +6,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminCalendarView } from "@/components/admin/AdminCalendarView";
 import { AdminBookingsTab } from "@/components/admin/AdminBookingsTab";
+import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
 import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
@@ -134,6 +135,8 @@ export default function AdminPage() {
         return <AdminCalendarView isAdmin={isAdmin} />;
       case "bookings":
         return <AdminBookingsTab isAdmin={isAdmin} />;
+      case "analytics":
+        return isAdmin ? <AdminAnalyticsTab isAdmin={isAdmin} /> : null;
       case "messages":
         return <AdminMessagesTab />;
       case "reminders":
@@ -150,6 +153,7 @@ export default function AdminPage() {
       case "overview": return "Dashboard Overview";
       case "calendar": return "Calendar View";
       case "bookings": return "Manage Bookings";
+      case "analytics": return "Revenue Analytics";
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
       case "sms-debug": return "SMS Debug Tools";
@@ -171,6 +175,7 @@ export default function AdminPage() {
             {currentTab === "overview" && "Quick overview of today's schedule and key metrics"}
             {currentTab === "calendar" && "Visual calendar with week and day views"}
             {currentTab === "bookings" && "View and manage all customer bookings"}
+            {currentTab === "analytics" && "Revenue trends, service popularity, and performance metrics"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
             {currentTab === "sms-debug" && "Test and debug SMS functionality"}
