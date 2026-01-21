@@ -1,19 +1,47 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout } from "@/components/layout/Layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useRoleCheck } from "@/hooks/useRoleCheck";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminBookingsTab } from "@/components/admin/AdminBookingsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
 import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
-import { Calendar, MessageSquare, Bell, Loader2, ShieldAlert, TestTube } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { Calendar, Clock, MapPin, Phone, Mail } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface BookingDetails {
+  id: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  status: string;
+  payment_status: string;
+  total_price: number;
+  vehicle_type: string;
+  service_address: string;
+  service_city: string;
+  guest_name: string | null;
+  guest_phone: string | null;
+  guest_email?: string | null;
+  user_id: string | null;
+  services: { name: string } | null;
+  profiles: { full_name: string; phone: string; email?: string } | null;
+}
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const { isAdmin, isLoading, user } = useAdminCheck();
+  const { isAdmin, isStaff, isLoading, user, role } = useRoleCheck();
+  const [currentTab, setCurrentTab] = useState("overview");
+  const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(null);
+  const [replyPhone, setReplyPhone] = useState<string | null>(null);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [sendingSms, setSendingSms] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -21,88 +49,255 @@ export default function AdminPage() {
     }
   }, [isLoading, user, navigate]);
 
+  const getCustomerName = (booking: BookingDetails) => {
+    return booking.profiles?.full_name || booking.guest_name || "Unknown";
+  };
+
+  const getCustomerPhone = (booking: BookingDetails) => {
+    return booking.profiles?.phone || booking.guest_phone || null;
+  };
+
+  const getCustomerEmail = (booking: BookingDetails) => {
+    return booking.profiles?.email || booking.guest_email || null;
+  };
+
+  const handleViewBooking = (booking: any) => {
+    setSelectedBooking(booking);
+  };
+
+  const handleTextCustomer = (phone: string) => {
+    setReplyPhone(phone);
+  };
+
+  const sendSms = async () => {
+    if (!replyPhone || !replyMessage.trim()) return;
+    setSendingSms(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-sms", {
+        body: { to: replyPhone, message: replyMessage },
+      });
+      if (error) throw error;
+      toast.success("SMS sent successfully!");
+      setReplyMessage("");
+      setReplyPhone(null);
+    } catch (err) {
+      console.error("Error sending SMS:", err);
+      toast.error("Failed to send SMS");
+    } finally {
+      setSendingSms(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </Layout>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   if (!user) {
-    return null; // Will redirect
+    return null;
   }
 
-  if (!isAdmin) {
+  if (!isStaff) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="py-12 text-center">
-              <ShieldAlert className="h-16 w-16 mx-auto text-destructive mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-              <p className="text-muted-foreground mb-6">
-                You don't have permission to access the admin dashboard.
-              </p>
-              <Button onClick={() => navigate("/account")}>
-                Go to My Account
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="py-12 text-center">
+            <ShieldAlert className="h-16 w-16 mx-auto text-destructive mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
+            <p className="text-muted-foreground mb-6">
+              You don't have permission to access the admin dashboard.
+            </p>
+            <Button onClick={() => navigate("/account")}>
+              Go to My Account
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
+  const renderTab = () => {
+    switch (currentTab) {
+      case "overview":
+        return (
+          <AdminOverviewTab 
+            isAdmin={isAdmin} 
+            onViewBooking={handleViewBooking}
+            onTextCustomer={handleTextCustomer}
+          />
+        );
+      case "bookings":
+        return <AdminBookingsTab />;
+      case "messages":
+        return <AdminMessagesTab />;
+      case "reminders":
+        return <AdminRemindersTab />;
+      case "sms-debug":
+        return isAdmin ? <AdminSmsDebugTab /> : null;
+      default:
+        return null;
+    }
+  };
+
+  const getTabTitle = () => {
+    switch (currentTab) {
+      case "overview": return "Dashboard Overview";
+      case "bookings": return "Manage Bookings";
+      case "messages": return "Customer Messages";
+      case "reminders": return "Appointment Reminders";
+      case "sms-debug": return "SMS Debug Tools";
+      default: return "Admin Dashboard";
+    }
+  };
+
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage bookings, view customer messages, send reminders, and debug SMS.
+    <>
+      <AdminLayout 
+        currentTab={currentTab} 
+        onTabChange={setCurrentTab}
+        isAdmin={isAdmin}
+        userName={user?.email}
+      >
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">{getTabTitle()}</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {currentTab === "overview" && "Quick overview of today's schedule and key metrics"}
+            {currentTab === "bookings" && "View and manage all customer bookings"}
+            {currentTab === "messages" && "View and respond to customer SMS messages"}
+            {currentTab === "reminders" && "Send appointment reminders to customers"}
+            {currentTab === "sms-debug" && "Test and debug SMS functionality"}
           </p>
         </div>
+        {renderTab()}
+      </AdminLayout>
 
-        <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/50">
-            <TabsTrigger value="bookings" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>Bookings</span>
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              <span>Messages</span>
-            </TabsTrigger>
-            <TabsTrigger value="reminders" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span>Reminders</span>
-            </TabsTrigger>
-            <TabsTrigger value="sms-debug" className="flex items-center gap-2">
-              <TestTube className="h-4 w-4" />
-              <span>SMS Debug</span>
-            </TabsTrigger>
-          </TabsList>
+      {/* Booking Details Dialog */}
+      <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>{format(new Date(selectedBooking.scheduled_date), "EEEE, MMMM d, yyyy")}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span>{selectedBooking.scheduled_time}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <a 
+                    href={`https://maps.google.com/?q=${encodeURIComponent(`${selectedBooking.service_address}, ${selectedBooking.service_city}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {selectedBooking.service_address}, {selectedBooking.service_city}
+                  </a>
+                </div>
+                {getCustomerPhone(selectedBooking) && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <a href={`tel:${getCustomerPhone(selectedBooking)}`} className="text-primary hover:underline">
+                      {getCustomerPhone(selectedBooking)}
+                    </a>
+                  </div>
+                )}
+                {getCustomerEmail(selectedBooking) && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <a href={`mailto:${getCustomerEmail(selectedBooking)}`} className="text-primary hover:underline">
+                      {getCustomerEmail(selectedBooking)}
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>Customer</span>
+                  <span className="font-medium">{getCustomerName(selectedBooking)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Service</span>
+                  <span className="font-medium">{selectedBooking.services?.name || "Detailing"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Vehicle</span>
+                  <span>{selectedBooking.vehicle_type}</span>
+                </div>
+                {isAdmin && (
+                  <div className="flex justify-between">
+                    <span>Total</span>
+                    <span className="font-bold">${selectedBooking.total_price?.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+              <div className="border-t pt-4 flex gap-2">
+                {getCustomerPhone(selectedBooking) && (
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      setReplyPhone(getCustomerPhone(selectedBooking)!);
+                      setSelectedBooking(null);
+                    }}
+                  >
+                    Text Customer
+                  </Button>
+                )}
+                <Button 
+                  variant="default" 
+                  className="flex-1"
+                  onClick={() => setSelectedBooking(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-          <TabsContent value="bookings">
-            <AdminBookingsTab />
-          </TabsContent>
-
-          <TabsContent value="messages">
-            <AdminMessagesTab />
-          </TabsContent>
-
-          <TabsContent value="reminders">
-            <AdminRemindersTab />
-          </TabsContent>
-
-          <TabsContent value="sms-debug">
-            <AdminSmsDebugTab />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </Layout>
+      {/* SMS Reply Dialog */}
+      <Dialog open={!!replyPhone} onOpenChange={() => setReplyPhone(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send SMS to {replyPhone}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <textarea
+              value={replyMessage}
+              onChange={(e) => setReplyMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="w-full min-h-[120px] p-3 rounded-md border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setReplyPhone(null)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1"
+                onClick={sendSms}
+                disabled={!replyMessage.trim() || sendingSms}
+              >
+                {sendingSms ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Send
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
