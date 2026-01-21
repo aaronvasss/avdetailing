@@ -598,6 +598,50 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_messages: {
+        Row: {
+          body: string
+          booking_id: string | null
+          created_at: string
+          direction: string
+          from_number: string
+          id: string
+          message_sid: string | null
+          status: string | null
+          to_number: string
+        }
+        Insert: {
+          body: string
+          booking_id?: string | null
+          created_at?: string
+          direction: string
+          from_number: string
+          id?: string
+          message_sid?: string | null
+          status?: string | null
+          to_number: string
+        }
+        Update: {
+          body?: string
+          booking_id?: string | null
+          created_at?: string
+          direction?: string
+          from_number?: string
+          id?: string
+          message_sid?: string | null
+          status?: string | null
+          to_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_slots: {
         Row: {
           created_at: string
