@@ -19,6 +19,7 @@ interface Booking {
   payment_status: string;
   total_price: number;
   vehicle_type: string;
+  vehicle_size: string | null;
   service_address: string;
   service_city: string;
   guest_name: string | null;
@@ -54,6 +55,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
         payment_status,
         total_price,
         vehicle_type,
+        vehicle_size,
         service_address,
         service_city,
         guest_name,
