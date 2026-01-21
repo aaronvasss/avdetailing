@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Car, Droplets, Sparkles, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
+import { Car, Droplets, Disc3, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 
 const services = [
   {
@@ -19,7 +19,7 @@ const services = [
     startingPrice: "$499",
   },
   {
-    icon: Sparkles,
+    icon: Disc3,
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth.",
     href: "/services/paint-correction",
