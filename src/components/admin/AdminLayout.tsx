@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
   Calendar,
+  CalendarDays,
   MessageSquare,
   Bell,
   TestTube,
@@ -39,6 +40,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: "overview", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+  { id: "calendar", label: "Calendar", icon: <CalendarDays className="h-4 w-4" /> },
   { id: "bookings", label: "Bookings", icon: <Calendar className="h-4 w-4" /> },
   { id: "messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
   { id: "reminders", label: "Reminders", icon: <Bell className="h-4 w-4" /> },
