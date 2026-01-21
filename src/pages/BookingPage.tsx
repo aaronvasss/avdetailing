@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2 } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,21 +16,59 @@ import { bookingCustomerSchema } from "@/lib/validations";
 import { clearRateLimit } from "@/lib/security";
 import { useQuery } from "@tanstack/react-query";
 
-// Step 1: Service Types
+// Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
   { id: "car", label: "Car Detailing", icon: Car },
+  { id: "ceramic", label: "Ceramic Coating", icon: Droplets },
+  { id: "paint", label: "Paint Correction", icon: Palette },
   { id: "boat", label: "Boat Detailing", icon: Ship },
   { id: "rv", label: "RV/Motorhome", icon: Caravan },
   { id: "aircraft", label: "Aircraft", icon: Plane },
 ];
 
-// Step 2: Vehicle sub-types for Car Detailing
+// Vehicle sub-types for Car, Ceramic, and Paint Correction
 const carVehicleTypes = [
   { id: "sedan", label: "Car (Sedan / Coupe)", description: "Standard-size vehicles" },
   { id: "suv-5", label: "SUV (5 seats)", description: "Mid-size SUVs and crossovers" },
   { id: "suv-8", label: "SUV (8 seats / 3-row)", description: "Large SUVs and full-size vehicles" },
   { id: "truck", label: "Truck", description: "Pickup trucks of all sizes" },
 ];
+
+// Services that need vehicle sub-type selection (car-based services)
+const servicesWithVehicleSelection = ["car", "ceramic", "paint"];
+
+// Map service types to their service slugs in the database
+const serviceSlugMap: Record<string, string> = {
+  car: "full-detail",
+  ceramic: "ceramic-coating",
+  paint: "paint-correction",
+  boat: "boat-detail",
+  rv: "rv-detail",
+  aircraft: "aircraft-detail",
+};
+
+// Map service types to their package vehicle_type filter
+const getVehicleTypeFilter = (serviceType: string, vehicleSubType: string): string[] => {
+  if (serviceType === "boat") return ["boat"];
+  if (serviceType === "rv") return ["rv"];
+  if (serviceType === "aircraft") return ["aircraft"];
+  // For car-based services, use the specific vehicle sub-type or default to car types
+  if (vehicleSubType) return [vehicleSubType];
+  return ["sedan", "suv-5", "suv-8", "truck", "car", "suv"];
+};
+
+// Get the service ID for the selected service type
+const getServiceIdForType = (serviceType: string): string | null => {
+  const serviceIdMap: Record<string, string> = {
+    car: "3763f8d6-9045-45d5-99cd-cb878bdceeb8",        // Full Detail
+    ceramic: "5017f8e7-3046-4dc4-8254-3bf04c962818",    // Ceramic Coating
+    paint: "806e631d-f058-4cd7-9318-582c60b10a32",      // Paint Correction
+    boat: "c15abb75-415f-499e-a681-7ce59e2faaa5",       // Boat Detailing
+    rv: "895a1ea3-4309-4a75-9406-555cf568b370",         // RV Detailing
+    aircraft: "71c8e20e-4bdf-42b8-ba46-d7565121c9d9",   // Aircraft Detailing
+  };
+  return serviceIdMap[serviceType] || null;
+};
 
 // Fallback packages in case database fetch fails
 const fallbackPackages = [
@@ -40,7 +78,8 @@ const fallbackPackages = [
     basePrice: 79,
     prices: { sedan: 79, "suv-5": 99, "suv-8": 119, truck: 109 },
     time: "1-2 hours",
-    description: "Essential exterior wash and interior wipe-down"
+    description: "Essential exterior wash and interior wipe-down",
+    service_id: null,
   },
   { 
     id: "silver", 
@@ -48,7 +87,8 @@ const fallbackPackages = [
     basePrice: 199,
     prices: { sedan: 199, "suv-5": 249, "suv-8": 299, truck: 279 },
     time: "3-5 hours",
-    description: "Full interior & exterior detail"
+    description: "Full interior & exterior detail",
+    service_id: null,
   },
   { 
     id: "gold", 
@@ -56,7 +96,8 @@ const fallbackPackages = [
     basePrice: 349,
     prices: { sedan: 349, "suv-5": 429, "suv-8": 499, truck: 469 },
     time: "5-6 hours",
-    description: "Comprehensive detail with 2-month sealant & seat shampooing"
+    description: "Comprehensive detail with 2-month sealant & seat shampooing",
+    service_id: null,
   },
 ];
 
@@ -70,6 +111,7 @@ interface ServicePackage {
   price: number;
   sort_order: number | null;
   is_popular: boolean | null;
+  service_id: string | null;
 }
 
 interface ServiceAddOn {
@@ -201,9 +243,27 @@ const BookingPage = () => {
     },
   });
 
-  // Transform database packages into the format needed by the UI
+  // Transform database packages into the format needed by the UI - filtered by service type
   const packages = useMemo(() => {
     if (!dbPackages || dbPackages.length === 0) return fallbackPackages;
+
+    // Get the service ID for the current service type
+    const currentServiceId = getServiceIdForType(serviceType);
+    
+    // Filter packages by service ID
+    const filteredPackages = dbPackages.filter(pkg => {
+      if (!currentServiceId) return false;
+      return pkg.service_id === currentServiceId;
+    });
+
+    if (filteredPackages.length === 0) {
+      // Fallback for car detailing if no packages found
+      if (serviceType === "car") return fallbackPackages;
+      return [];
+    }
+
+    // Get the vehicle types to show based on service and selection
+    const vehicleTypeFilters = getVehicleTypeFilter(serviceType, vehicleSubType);
 
     // Group packages by slug
     const packageMap = new Map<string, {
@@ -215,9 +275,13 @@ const BookingPage = () => {
       prices: Record<string, number>;
       is_popular: boolean;
       sort_order: number;
+      service_id: string | null;
     }>();
 
-    dbPackages.forEach(pkg => {
+    filteredPackages.forEach(pkg => {
+      // Only include packages for relevant vehicle types
+      if (!vehicleTypeFilters.includes(pkg.vehicle_type)) return;
+      
       if (!packageMap.has(pkg.slug)) {
         packageMap.set(pkg.slug, {
           id: pkg.slug,
@@ -228,6 +292,7 @@ const BookingPage = () => {
           prices: {},
           is_popular: pkg.is_popular || false,
           sort_order: pkg.sort_order || 0,
+          service_id: pkg.service_id,
         });
       }
       const existing = packageMap.get(pkg.slug)!;
@@ -235,7 +300,7 @@ const BookingPage = () => {
     });
 
     return Array.from(packageMap.values()).sort((a, b) => a.sort_order - b.sort_order);
-  }, [dbPackages]);
+  }, [dbPackages, serviceType, vehicleSubType]);
 
   // Use database add-ons or fallback
   const addOns = useMemo(() => {
@@ -326,17 +391,12 @@ const BookingPage = () => {
       }
       
       // Get the correct service based on the selected service type
-      const serviceSlugMap: Record<string, string> = {
-        car: "full-detail",
-        boat: "boat-detail",
-        rv: "rv-detail",
-        aircraft: "aircraft-detail"
-      };
+      const serviceSlug = serviceSlugMap[serviceType] || "full-detail";
       
       const { data: service, error: serviceError } = await supabase
         .from("services")
         .select("id, name, base_price")
-        .eq("slug", serviceSlugMap[serviceType] || "full-detail")
+        .eq("slug", serviceSlug)
         .single();
 
       if (serviceError || !service?.id) {
@@ -460,14 +520,15 @@ const BookingPage = () => {
   };
 
   const getProgressLabels = () => {
-    if (serviceType === "car") {
+    // Services that need vehicle sub-type selection
+    if (servicesWithVehicleSelection.includes(serviceType)) {
       return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Details"];
     }
     return ["Service", "Package", "Add-ons", "Schedule", "Details"];
   };
 
   const getTotalSteps = () => {
-    return serviceType === "car" ? 6 : 5;
+    return servicesWithVehicleSelection.includes(serviceType) ? 6 : 5;
   };
 
   const renderStep = () => {
@@ -486,10 +547,11 @@ const BookingPage = () => {
                   key={type.id}
                   onClick={() => {
                     setServiceType(type.id);
-                    if (type.id === "car") {
-                      setStep(2); // Go to vehicle sub-type selection
+                    setSelectedPackage(""); // Reset package selection when changing service
+                    if (servicesWithVehicleSelection.includes(type.id)) {
+                      setStep(2); // Go to vehicle sub-type selection for car-based services
                     } else {
-                      setVehicleSubType(""); // Clear vehicle sub-type for non-car
+                      setVehicleSubType(""); // Clear vehicle sub-type for other services
                       setStep(3); // Skip to package selection
                     }
                   }}
@@ -506,13 +568,17 @@ const BookingPage = () => {
           </div>
         );
 
-      // Step 2: Select Vehicle Sub-Type (Car Detailing only)
+      // Step 2: Select Vehicle Sub-Type (for car-based services)
       case 2:
+        const ServiceIcon = serviceTypes.find(s => s.id === serviceType)?.icon || Car;
+        const serviceLabel = serviceTypes.find(s => s.id === serviceType)?.label || "Detailing";
         return (
           <div className="space-y-8">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-2">Select Your Vehicle Type</h2>
-              <p className="text-muted-foreground">Choose the type that best matches your vehicle</p>
+              <p className="text-muted-foreground">
+                Choose the type that best matches your vehicle for {serviceLabel}
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {carVehicleTypes.map((type) => (
@@ -520,6 +586,7 @@ const BookingPage = () => {
                   key={type.id}
                   onClick={() => {
                     setVehicleSubType(type.id);
+                    setSelectedPackage(""); // Reset package when vehicle changes
                     setStep(3);
                   }}
                   className={cn(
@@ -528,7 +595,7 @@ const BookingPage = () => {
                   )}
                 >
                   <div className="flex items-center gap-4">
-                    <Car className="h-10 w-10 text-primary flex-shrink-0" />
+                    <ServiceIcon className="h-10 w-10 text-primary flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold text-lg">{type.label}</h3>
                       <p className="text-sm text-muted-foreground">{type.description}</p>
@@ -546,59 +613,70 @@ const BookingPage = () => {
 
       // Step 3: Select Package
       case 3:
+        const currentServiceLabel = serviceTypes.find(s => s.id === serviceType)?.label || "Detailing";
         return (
           <div className="space-y-8">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-2">Choose Your Package</h2>
-              <p className="text-muted-foreground">Select the detail level that fits your needs</p>
+              <p className="text-muted-foreground">
+                Select the {currentServiceLabel.toLowerCase()} package that fits your needs
+              </p>
             </div>
-            <div className="space-y-4">
-              {packages.map((pkg) => {
-                const price = getPackagePrice(pkg);
-                const isPopular = pkg.id === "silver";
-                return (
-                  <button
-                    key={pkg.id}
-                    onClick={() => setSelectedPackage(pkg.id)}
-                    className={cn(
-                      "w-full p-5 rounded-xl border-2 transition-all text-left relative",
-                      selectedPackage === pkg.id 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    {isPopular && (
-                      <span className="absolute -top-3 left-4 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
-                        Most Popular
-                      </span>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        {selectedPackage === pkg.id && (
-                          <Check className="h-5 w-5 text-primary" />
-                        )}
-                        <div>
-                          <h3 className="font-semibold text-lg">{pkg.name}</h3>
-                          <p className="text-sm text-muted-foreground">{pkg.description}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{pkg.time}</p>
+            {packages.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  Loading packages for {currentServiceLabel}...
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {packages.map((pkg) => {
+                  const price = getPackagePrice(pkg);
+                  const isPopular = pkg.is_popular;
+                  return (
+                    <button
+                      key={pkg.id}
+                      onClick={() => setSelectedPackage(pkg.id)}
+                      className={cn(
+                        "w-full p-5 rounded-xl border-2 transition-all text-left relative",
+                        selectedPackage === pkg.id 
+                          ? "border-primary bg-primary/5" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      {isPopular && (
+                        <span className="absolute -top-3 left-4 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+                          Most Popular
+                        </span>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          {selectedPackage === pkg.id && (
+                            <Check className="h-5 w-5 text-primary" />
+                          )}
+                          <div>
+                            <h3 className="font-semibold text-lg">{pkg.name}</h3>
+                            <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{pkg.time}</p>
+                          </div>
                         </div>
+                        <span className="text-2xl font-bold text-primary">${price}</span>
                       </div>
-                      <span className="text-2xl font-bold text-primary">${price}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setStep(serviceType === "car" ? 2 : 1)}>
+              <Button variant="outline" onClick={() => setStep(servicesWithVehicleSelection.includes(serviceType) ? 2 : 1)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <Button 
                 className="flex-1 glow-red" 
                 onClick={() => setStep(4)}
-                disabled={!selectedPackage}
+                disabled={!selectedPackage || packages.length === 0}
               >
                 Continue
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -1025,8 +1103,8 @@ const BookingPage = () => {
   );
 
   const currentStepForProgress = () => {
-    // For non-car services, we skip step 2, so adjust the progress
-    if (serviceType !== "car" && step >= 3) {
+    // For services without vehicle selection, we skip step 2, so adjust the progress
+    if (!servicesWithVehicleSelection.includes(serviceType) && step >= 3) {
       return step - 1;
     }
     return step;
