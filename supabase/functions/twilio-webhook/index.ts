@@ -69,6 +69,8 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
   try {
     // Parse form data from Twilio webhook
     const formData = await req.formData();
@@ -78,11 +80,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Incoming SMS from ${from}: ${body}`);
 
+    // Store incoming message in database
+    await supabase.from("sms_messages").insert({
+      from_number: from,
+      to_number: TWILIO_PHONE_NUMBER,
+      body: body,
+      message_sid: messageSid,
+      direction: "inbound",
+      status: "received",
+    });
+
     // Handle special commands
     const lowerBody = body.toLowerCase().trim();
     
     if (lowerBody === "stop" || lowerBody === "unsubscribe") {
-      // Twilio handles STOP automatically, but we can log it
       console.log(`User ${from} requested to unsubscribe`);
       return new Response(
         '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
@@ -99,7 +110,17 @@ const handler = async (req: Request): Promise<Response> => {
 
 Reply STOP to unsubscribe.`;
 
-      await sendTwilioSms(from, helpMessage);
+      const result = await sendTwilioSms(from, helpMessage);
+      
+      // Store outbound message
+      await supabase.from("sms_messages").insert({
+        from_number: TWILIO_PHONE_NUMBER,
+        to_number: from,
+        body: helpMessage,
+        message_sid: result.sid || null,
+        direction: "outbound",
+        status: result.success ? "sent" : "failed",
+      });
       
       return new Response(
         '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
@@ -108,22 +129,23 @@ Reply STOP to unsubscribe.`;
     }
 
     // Forward all other messages to business owner
-    const forwardMessage = `📱 SMS from ${from}:
-
-"${body}"
-
-Reply to this customer at: ${from}`;
-
+    const forwardMessage = `📱 SMS from ${from}:\n\n"${body}"\n\nReply to this customer at: ${from}`;
     await sendTwilioSms(BUSINESS_PHONE, forwardMessage);
 
     // Auto-reply to customer
-    const autoReply = `Thanks for texting AV Detailing! We received your message and will respond shortly.
+    const autoReply = `Thanks for texting AV Detailing! We received your message and will respond shortly.\n\n📞 For urgent matters, call (337) 344-6968.`;
+    const autoResult = await sendTwilioSms(from, autoReply);
 
-📞 For urgent matters, call (337) 344-6968.`;
+    // Store auto-reply
+    await supabase.from("sms_messages").insert({
+      from_number: TWILIO_PHONE_NUMBER,
+      to_number: from,
+      body: autoReply,
+      message_sid: autoResult.sid || null,
+      direction: "outbound",
+      status: autoResult.success ? "sent" : "failed",
+    });
 
-    await sendTwilioSms(from, autoReply);
-
-    // Return TwiML response (empty is fine, we handled it manually)
     return new Response(
       '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
       { headers: { ...corsHeaders, "Content-Type": "text/xml" } }

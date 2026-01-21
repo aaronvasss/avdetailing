@@ -7,7 +7,8 @@ import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { AdminBookingsTab } from "@/components/admin/AdminBookingsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
-import { Calendar, MessageSquare, Bell, Loader2, ShieldAlert } from "lucide-react";
+import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
+import { Calendar, MessageSquare, Bell, Loader2, ShieldAlert, TestTube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AdminPage() {
@@ -61,7 +62,7 @@ export default function AdminPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">
-            Manage bookings, view customer messages, and send reminders.
+            Manage bookings, view customer messages, send reminders, and debug SMS.
           </p>
         </div>
 
@@ -79,6 +80,10 @@ export default function AdminPage() {
               <Bell className="h-4 w-4" />
               <span>Reminders</span>
             </TabsTrigger>
+            <TabsTrigger value="sms-debug" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              <span>SMS Debug</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="bookings">
@@ -91,6 +96,10 @@ export default function AdminPage() {
 
           <TabsContent value="reminders">
             <AdminRemindersTab />
+          </TabsContent>
+
+          <TabsContent value="sms-debug">
+            <AdminSmsDebugTab />
           </TabsContent>
         </Tabs>
       </div>
