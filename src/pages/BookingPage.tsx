@@ -125,6 +125,29 @@ const timeSlots = [
   "4:00 PM",
 ];
 
+const toDbTime = (input: string): string | null => {
+  const trimmed = String(input || "").trim();
+  const m12 = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (m12) {
+    let hours = Number(m12[1]);
+    const minutes = Number(m12[2]);
+    const ampm = m12[3].toUpperCase();
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
+  }
+
+  const m24 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (m24) {
+    const hours = Number(m24[1]);
+    const minutes = Number(m24[2]);
+    const seconds = m24[3] ? Number(m24[3]) : 0;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return null;
+};
+
 const BookingPage = () => {
   const [step, setStep] = useState(1);
   const [serviceType, setServiceType] = useState<string>("");
@@ -286,6 +309,21 @@ const BookingPage = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+
+      if (!selectedDate) {
+        toast.error("Please select a date");
+        return;
+      }
+      if (!selectedTime) {
+        toast.error("Please select a time");
+        return;
+      }
+      const scheduledDateStr = selectedDate.toISOString().split("T")[0];
+      const scheduledTimeDb = toDbTime(selectedTime);
+      if (!scheduledTimeDb) {
+        toast.error(`Invalid time: ${selectedTime}`);
+        return;
+      }
       
       // Get the correct service based on the selected service type
       const serviceSlugMap: Record<string, string> = {
@@ -295,11 +333,16 @@ const BookingPage = () => {
         aircraft: "aircraft-detail"
       };
       
-      const { data: service } = await supabase
+      const { data: service, error: serviceError } = await supabase
         .from("services")
         .select("id, name, base_price")
         .eq("slug", serviceSlugMap[serviceType] || "full-detail")
         .single();
+
+      if (serviceError || !service?.id) {
+        console.error("Service lookup failed:", serviceError);
+        throw new Error(serviceError?.message || "Unable to load service for booking");
+      }
       const pkg = packages.find((p) => p.id === selectedPackage);
       const serviceName = pkg?.name || "Detailing Service";
       const totalPrice = getPackagePrice(pkg!);
@@ -310,35 +353,49 @@ const BookingPage = () => {
 
       const vehicleTypeLabel = carVehicleTypes.find(v => v.id === vehicleSubType)?.label || serviceType;
 
-      const { data: booking, error: bookingError } = await supabase
-        .from("bookings")
-        .insert({
-          user_id: user?.id || null,
-          service_id: service?.id,
-          scheduled_date: selectedDate?.toISOString().split("T")[0],
-          scheduled_time: selectedTime,
-          guest_name: user ? null : `${customerInfo.firstName} ${customerInfo.lastName}`,
-          guest_email: user ? null : customerInfo.email,
-          guest_phone: user ? null : customerInfo.phone,
-          vehicle_type: vehicleTypeLabel,
-          vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
-          vehicle_model: customerInfo.vehicleInfo.split(" ").slice(2).join(" ") || null,
-          service_address: customerInfo.address,
-          service_city: customerInfo.city,
-          service_zip: customerInfo.zip,
-          address_notes: customerInfo.notes || null,
-          subtotal: totalPrice,
-          add_ons_total: addOnsTotal,
-          total_price: totalPrice + addOnsTotal,
-          status: "pending",
-          payment_status: "unpaid",
-        })
-        .select()
-        .single();
+      const createPayload = {
+        service_id: service.id,
+        scheduled_date: scheduledDateStr,
+        scheduled_time: selectedTime, // backend normalizes (also accepts HH:MM:SS)
 
-      if (bookingError) throw bookingError;
+        // guest info only (backend will null these for logged-in users)
+        guest_name: user ? null : `${customerInfo.firstName} ${customerInfo.lastName}`,
+        guest_email: user ? null : customerInfo.email,
+        guest_phone: user ? null : customerInfo.phone,
 
-      setBookingId(booking.id);
+        vehicle_type: vehicleTypeLabel,
+        vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
+        vehicle_model: customerInfo.vehicleInfo.split(" ").slice(2).join(" ") || null,
+        service_address: customerInfo.address,
+        service_city: customerInfo.city,
+        service_zip: customerInfo.zip,
+        address_notes: customerInfo.notes || null,
+        subtotal: totalPrice,
+        add_ons_total: addOnsTotal,
+        total_price: totalPrice + addOnsTotal,
+        status: "pending",
+        payment_status: "unpaid",
+      };
+
+      // Use backend function to guarantee insert succeeds for guests (and return a booking ID)
+      console.log("create-booking payload:", createPayload);
+      const { data: createResp, error: createErr } = await supabase.functions.invoke(
+        "create-booking",
+        { body: createPayload },
+      );
+
+      if (createErr) {
+        console.error("create-booking error:", createErr);
+        throw createErr;
+      }
+
+      const createdId = createResp?.booking?.id as string | undefined;
+      if (!createdId) {
+        console.error("create-booking unexpected response:", createResp);
+        throw new Error("Booking created but no ID returned");
+      }
+
+      setBookingId(createdId);
 
       try {
         const selectedAddOnDetails = selectedAddOns.map(id => {
@@ -359,7 +416,7 @@ const BookingPage = () => {
           vehicleInfo: customerInfo.vehicleInfo,
           vehicleType: vehicleTypeLabel,
           totalPrice: totalPrice + addOnsTotal,
-          bookingId: booking.id,
+          bookingId: createdId,
           basePrice: totalPrice,
           addOns: selectedAddOnDetails,
           customerPhone: customerInfo.phone,
@@ -381,7 +438,7 @@ const BookingPage = () => {
           serviceAddress: customerInfo.address,
           serviceCity: customerInfo.city,
           totalPrice: totalPrice + addOnsTotal,
-          bookingId: booking.id,
+          bookingId: createdId,
           notifyBusiness: true,
         });
       } catch (smsError) {
@@ -393,7 +450,10 @@ const BookingPage = () => {
       setStep(6);
     } catch (error: any) {
       console.error("Booking error:", error);
-      toast.error("Failed to create booking. Please try again or call us.");
+      const code = error?.code || error?.status || error?.name;
+      const msg = error?.message || String(error);
+      const details = error?.details ? ` | ${error.details}` : "";
+      toast.error(`Booking failed${code ? ` (${code})` : ""}: ${msg}${details}`);
     } finally {
       setIsSubmitting(false);
     }
