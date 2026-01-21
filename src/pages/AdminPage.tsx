@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
+import { AdminCalendarView } from "@/components/admin/AdminCalendarView";
 import { AdminBookingsTab } from "@/components/admin/AdminBookingsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
@@ -129,8 +130,10 @@ export default function AdminPage() {
             onTextCustomer={handleTextCustomer}
           />
         );
+      case "calendar":
+        return <AdminCalendarView isAdmin={isAdmin} />;
       case "bookings":
-        return <AdminBookingsTab />;
+        return <AdminBookingsTab isAdmin={isAdmin} />;
       case "messages":
         return <AdminMessagesTab />;
       case "reminders":
@@ -145,6 +148,7 @@ export default function AdminPage() {
   const getTabTitle = () => {
     switch (currentTab) {
       case "overview": return "Dashboard Overview";
+      case "calendar": return "Calendar View";
       case "bookings": return "Manage Bookings";
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
@@ -165,6 +169,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-bold">{getTabTitle()}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {currentTab === "overview" && "Quick overview of today's schedule and key metrics"}
+            {currentTab === "calendar" && "Visual calendar with week and day views"}
             {currentTab === "bookings" && "View and manage all customer bookings"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
