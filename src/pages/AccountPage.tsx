@@ -9,7 +9,7 @@ import {
   User,
   Car,
   MapPin,
-  Calendar,
+  CalendarDays,
   CreditCard,
   LogOut,
   Plus,
@@ -18,13 +18,14 @@ import {
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
-import { BookingsTab } from "@/components/account/BookingsTab";
+import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
 
 export default function AccountPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [profileName, setProfileName] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,6 +35,18 @@ export default function AccountPage() {
         return;
       }
       setUser(session.user);
+      
+      // Fetch profile name
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      
+      if (profile?.full_name) {
+        setProfileName(profile.full_name);
+      }
+      
       setLoading(false);
     };
 
@@ -62,78 +75,114 @@ export default function AccountPage() {
     return (
       <Layout>
         <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="animate-pulse text-muted-foreground">Loading...</div>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-muted-foreground">Loading your account...</p>
+          </div>
         </div>
       </Layout>
     );
   }
 
+  const firstName = profileName?.split(" ")[0] || user?.email?.split("@")[0] || "there";
+
   return (
     <Layout>
       <div className="section-padding">
-        <div className="container-custom">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">My Account</h1>
-              <p className="text-muted-foreground">{user?.email}</p>
+        <div className="container-custom max-w-6xl">
+          {/* Premium Header */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border/50 p-6 sm:p-8 mb-8">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
             </div>
-            <div className="flex gap-3">
-              <Button asChild>
-                <a href="/book">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Book Service
-                </a>
-              </Button>
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
+
+            <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <p className="text-sm font-medium text-primary mb-1">
+                  Welcome back
+                </p>
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  {firstName}
+                </h1>
+                <p className="text-muted-foreground text-sm mt-1">
+                  {user?.email}
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button asChild size="lg" className="shadow-lg shadow-primary/20">
+                  <a href="/book">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Book Service
+                  </a>
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <Tabs defaultValue="bookings" className="space-y-6">
-            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-muted/50">
-              <TabsTrigger value="bookings" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span className="hidden sm:inline">Bookings</span>
-              </TabsTrigger>
-              <TabsTrigger value="memberships" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Memberships</span>
-              </TabsTrigger>
-              <TabsTrigger value="vehicles" className="flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                <span className="hidden sm:inline">Vehicles</span>
-              </TabsTrigger>
-              <TabsTrigger value="addresses" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="hidden sm:inline">Addresses</span>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Profile</span>
-              </TabsTrigger>
-            </TabsList>
+          {/* Navigation Tabs */}
+          <Tabs defaultValue="appointments" className="space-y-6">
+            <div className="overflow-x-auto -mx-4 px-4 pb-2">
+              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 bg-card border border-border/50 p-1 h-auto">
+                <TabsTrigger
+                  value="appointments"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  <span>Appointments</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="memberships"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>Memberships</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="vehicles"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Car className="h-4 w-4" />
+                  <span>Vehicles</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="addresses"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <MapPin className="h-4 w-4" />
+                  <span>Addresses</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="settings"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <TabsContent value="bookings">
-              <BookingsTab userId={user?.id} />
+            <TabsContent value="appointments" className="mt-6">
+              <AppointmentsTab userId={user?.id} />
             </TabsContent>
 
-            <TabsContent value="memberships">
+            <TabsContent value="memberships" className="mt-6">
               <MembershipsTab userId={user?.id} />
             </TabsContent>
 
-            <TabsContent value="vehicles">
+            <TabsContent value="vehicles" className="mt-6">
               <VehiclesTab userId={user?.id} />
             </TabsContent>
 
-            <TabsContent value="addresses">
+            <TabsContent value="addresses" className="mt-6">
               <AddressesTab userId={user?.id} />
             </TabsContent>
 
-            <TabsContent value="profile">
+            <TabsContent value="settings" className="mt-6">
               <ProfileTab userId={user?.id} />
             </TabsContent>
           </Tabs>
