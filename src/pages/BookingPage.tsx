@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmation } from "@/lib/email";
 import { bookingCustomerSchema } from "@/lib/validations";
-import { checkRateLimit, clearRateLimit } from "@/lib/security";
+import { clearRateLimit } from "@/lib/security";
 import { useQuery } from "@tanstack/react-query";
 
 // Step 1: Service Types
@@ -263,17 +263,10 @@ const BookingPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
-    
-    // Relaxed rate limit: 20 attempts per 10 minutes, 5-minute block
-    // This prevents abuse while allowing normal user behavior (edits, back/forward, retries)
-    const rateCheck = checkRateLimit('booking-form', 20, 600000, 300000);
-    if (!rateCheck.allowed) {
-      const waitTime = rateCheck.blockedUntil 
-        ? Math.ceil((rateCheck.blockedUntil.getTime() - Date.now()) / 60000)
-        : 5;
-      toast.error(`Too many booking attempts. Please wait ${waitTime} minute${waitTime !== 1 ? 's' : ''} or call us.`);
-      return;
-    }
+
+    // NOTE: Client-side booking rate limiting removed to avoid false positives
+    // (users navigating back/forward, editing details, refreshing, retrying, etc.).
+    // Abuse protection should be handled server-side.
     
     const result = bookingCustomerSchema.safeParse(customerInfo);
     if (!result.success) {
