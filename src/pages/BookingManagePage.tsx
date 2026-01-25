@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock, MapPin, Car, DollarSign, Check, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, Car, DollarSign, Check, Loader2, AlertCircle } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,6 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { 
+  generateTimeSlots, 
+  DEFAULT_DURATION,
+  getWorkingHoursDisplay,
+  formatDuration
+} from "@/lib/scheduling";
 
 interface BookingDetails {
   id: string;
@@ -29,12 +35,10 @@ interface BookingDetails {
   customerEmail: string;
   customerPhone: string;
   addOns: Array<{ name: string; price: number }>;
+  durationMinutes?: number;
 }
 
-const timeSlots = [
-  "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
-  "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"
-];
+// Time slots are now generated dynamically based on service duration and availability
 
 export default function BookingManagePage() {
   const [searchParams] = useSearchParams();
@@ -48,6 +52,48 @@ export default function BookingManagePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [success, setSuccess] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Get service duration from booking
+  const serviceDuration = booking?.durationMinutes || DEFAULT_DURATION;
+
+  // Fetch available time slots when date changes
+  useEffect(() => {
+    if (selectedDate && booking) {
+      fetchAvailableSlots(selectedDate);
+    }
+  }, [selectedDate, booking]);
+
+  const fetchAvailableSlots = async (date: Date) => {
+    setLoadingSlots(true);
+    const dateStr = format(date, "yyyy-MM-dd");
+    
+    try {
+      // Fetch existing bookings for this date (excluding current booking)
+      const { data: existingBookings } = await supabase
+        .from("bookings")
+        .select("id, scheduled_time, duration_minutes")
+        .eq("scheduled_date", dateStr)
+        .neq("id", booking?.id || "")
+        .in("status", ["pending", "confirmed", "in_progress"]);
+
+      // Generate available time slots based on service duration and existing bookings
+      const slots = generateTimeSlots(
+        serviceDuration,
+        existingBookings || []
+      );
+      
+      setAvailableSlots(slots);
+      setSelectedTime(""); // Reset time selection when date changes
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      // Generate slots without conflict checking as fallback
+      setAvailableSlots(generateTimeSlots(serviceDuration, []));
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
 
   useEffect(() => {
     if (!token) {
@@ -259,19 +305,46 @@ export default function BookingManagePage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">New Time</label>
-                  <Select value={selectedTime} onValueChange={setSelectedTime}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium mb-2 block flex items-center justify-between">
+                    <span>New Time</span>
+                    <span className="text-xs text-muted-foreground">
+                      Hours: {getWorkingHoursDisplay()}
+                    </span>
+                  </label>
+                  {loadingSlots ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : !selectedDate ? (
+                    <p className="text-sm text-muted-foreground py-2">
+                      Please select a date first
+                    </p>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
+                      <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        No available times for this date. This service requires {formatDuration(serviceDuration)}.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Select value={selectedTime} onValueChange={setSelectedTime}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableSlots.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Duration: {formatDuration(serviceDuration)} + 30min buffer
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <Button

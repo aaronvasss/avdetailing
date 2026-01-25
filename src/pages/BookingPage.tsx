@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,14 @@ import { clearRateLimit } from "@/lib/security";
 import { useQuery } from "@tanstack/react-query";
 import { generateICS } from "@/lib/calendar";
 import { format, addMinutes, parse } from "date-fns";
+import { 
+  generateTimeSlots, 
+  getPackageDuration, 
+  PACKAGE_DURATIONS, 
+  DEFAULT_DURATION,
+  getWorkingHoursDisplay,
+  formatDuration
+} from "@/lib/scheduling";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -170,17 +178,8 @@ const getRecommendations = (vehicleType: string, selectedPackage: string) => {
   return recommendations.slice(0, 3); // Max 3 recommendations
 };
 
-const timeSlots = [
-  "8:00 AM",
-  "9:00 AM",
-  "10:00 AM",
-  "11:00 AM",
-  "12:00 PM",
-  "1:00 PM",
-  "2:00 PM",
-  "3:00 PM",
-  "4:00 PM",
-];
+// Time slots are now generated dynamically based on service duration and availability
+// See generateTimeSlots() in src/lib/scheduling.ts
 
 const toDbTime = (input: string): string | null => {
   const trimmed = String(input || "").trim();
@@ -336,6 +335,52 @@ const BookingPage = () => {
     }));
   }, [dbAddOns]);
 
+  // State for dynamic time slots
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Get the selected package duration for time slot generation
+  const selectedPackageDuration = useMemo(() => {
+    if (!selectedPackage) return DEFAULT_DURATION;
+    return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
+  }, [selectedPackage]);
+
+  // Fetch available time slots when date changes
+  useEffect(() => {
+    if (selectedDate && selectedPackage) {
+      fetchAvailableSlots(selectedDate);
+    }
+  }, [selectedDate, selectedPackage]);
+
+  const fetchAvailableSlots = async (date: Date) => {
+    setLoadingSlots(true);
+    const dateStr = format(date, "yyyy-MM-dd");
+    
+    try {
+      // Fetch existing bookings for this date
+      const { data: existingBookings } = await supabase
+        .from("bookings")
+        .select("id, scheduled_time, duration_minutes")
+        .eq("scheduled_date", dateStr)
+        .in("status", ["pending", "confirmed", "in_progress"]);
+
+      // Generate available time slots based on service duration and existing bookings
+      const slots = generateTimeSlots(
+        selectedPackageDuration,
+        existingBookings || []
+      );
+      
+      setAvailableSlots(slots);
+      setSelectedTime(""); // Reset time selection when date changes
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      // Generate slots without conflict checking as fallback
+      setAvailableSlots(generateTimeSlots(selectedPackageDuration, []));
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
   const recommendations = useMemo(() => 
     getRecommendations(vehicleSubType, selectedPackage), 
     [vehicleSubType, selectedPackage]
@@ -432,6 +477,7 @@ const BookingPage = () => {
         service_id: service.id,
         scheduled_date: scheduledDateStr,
         scheduled_time: selectedTime, // backend normalizes (also accepts HH:MM:SS)
+        duration_minutes: selectedPackageDuration, // Include service duration for scheduling
 
         // guest info only (backend will null these for logged-in users)
         guest_name: user ? null : `${customerInfo.firstName} ${customerInfo.lastName}`,
@@ -1027,23 +1073,55 @@ const BookingPage = () => {
               </div>
 
               <div>
-                <Label className="mb-4 block">Select Time</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {timeSlots.map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={cn(
-                        "p-3 rounded-lg border transition-all text-sm",
-                        selectedTime === time
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
+                <Label className="mb-4 block flex items-center justify-between">
+                  <span>Select Time</span>
+                  <span className="text-xs text-muted-foreground font-normal">
+                    Hours: {getWorkingHoursDisplay()}
+                  </span>
+                </Label>
+                {loadingSlots ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : !selectedDate ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    Please select a date first
+                  </p>
+                ) : availableSlots.length === 0 ? (
+                  <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        No available times for this date.
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This service requires {formatDuration(selectedPackageDuration)}. Try a different date.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                      {availableSlots.map((time) => (
+                        <button
+                          key={time}
+                          onClick={() => setSelectedTime(time)}
+                          className={cn(
+                            "p-3 rounded-lg border transition-all text-sm",
+                            selectedTime === time
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Duration: {formatDuration(selectedPackageDuration)} + 30min buffer between appointments
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

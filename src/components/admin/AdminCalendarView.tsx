@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { WORKING_HOURS, BUFFER_MINUTES, formatDuration } from "@/lib/scheduling";
 
 interface Booking {
   id: string;
@@ -179,16 +180,23 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   const timeSlots = useMemo(() => {
     const slots = [];
-    for (let hour = 7; hour <= 19; hour++) {
+    // Use working hours from scheduling config (6:30 AM to 7:30 PM)
+    const startHour = WORKING_HOURS.START_HOUR;
+    const endHour = WORKING_HOURS.END_HOUR;
+    for (let hour = startHour; hour <= endHour; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      if (hour < endHour) {
+        slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      }
     }
     return slots;
   }, []);
 
   const getBookingPosition = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
-    const startHour = 7;
-    return ((hours - startHour) * 60 + minutes) / 60;
+    const startHour = WORKING_HOURS.START_HOUR;
+    const startMinute = WORKING_HOURS.START_MINUTE;
+    return ((hours - startHour) * 60 + minutes - startMinute) / 60;
   };
 
   const navigatePrev = () => {
