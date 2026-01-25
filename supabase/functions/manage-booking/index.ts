@@ -185,6 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
             customerEmail: booking.guest_email,
             customerPhone: booking.guest_phone,
             addOns: booking.booking_add_ons || [],
+            durationMinutes: booking.duration_minutes,
           },
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

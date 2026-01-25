@@ -15,6 +15,7 @@ interface CreateBookingRequest {
   service_id: string;
   scheduled_date: string; // YYYY-MM-DD
   scheduled_time: string; // accepts "8:00 AM" or "08:00"/"08:00:00"
+  duration_minutes?: number | null;
 
   guest_name?: string | null;
   guest_email?: string | null;
@@ -111,6 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
       service_id: body.service_id,
       scheduled_date: body.scheduled_date,
       scheduled_time,
+      duration_minutes: body.duration_minutes ?? null,
 
       guest_name: userId ? null : body.guest_name ?? null,
       guest_email: userId ? null : body.guest_email ?? null,
