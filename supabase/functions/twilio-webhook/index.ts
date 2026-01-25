@@ -8,7 +8,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Business phone for forwarding messages
-const BUSINESS_PHONE = "+13373446968";
+const BUSINESS_PHONE = "+12255216264";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (lowerBody === "help") {
       const helpMessage = `AV Detailing Help:
       
-📞 Call: (337) 344-6968
+📞 Call: (225) 521-6264
 📧 Email: aaronvasquez100@gmail.com
 🌐 Book: avdetailing.lovable.app
 
@@ -133,7 +133,7 @@ Reply STOP to unsubscribe.`;
     await sendTwilioSms(BUSINESS_PHONE, forwardMessage);
 
     // Auto-reply to customer
-    const autoReply = `Thanks for texting AV Detailing! We received your message and will respond shortly.\n\n📞 For urgent matters, call (337) 344-6968.`;
+    const autoReply = `Thanks for texting AV Detailing! We received your message and will respond shortly.\n\n📞 For urgent matters, call (225) 521-6264.`;
     const autoResult = await sendTwilioSms(from, autoReply);
 
     // Store auto-reply

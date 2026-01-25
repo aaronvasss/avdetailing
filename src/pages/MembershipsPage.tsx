@@ -220,7 +220,7 @@ const MembershipsPage = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="tel:+12255551234">
+              <a href="tel:+12255216264">
                 <Phone className="mr-2 h-5 w-5" />
                 Call to Discuss
               </a>

@@ -58,8 +58,8 @@ export function TestimonialsSection() {
                 <Star key={i} className="h-6 w-6 fill-primary text-primary" />
               ))}
             </div>
-            <span className="text-lg font-medium">4.9 out of 5</span>
-            <span className="text-muted-foreground">• 200+ Reviews</span>
+            <span className="text-lg font-medium">5.0 out of 5</span>
+            <span className="text-muted-foreground">• 85 Reviews</span>
           </div>
         </div>
 

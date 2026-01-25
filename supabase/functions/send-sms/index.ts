@@ -5,7 +5,7 @@ const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 
 // Business phone for notifications
-const BUSINESS_PHONE = "+13373446968"; // Update with actual business number
+const BUSINESS_PHONE = "+12255216264";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

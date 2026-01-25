@@ -134,8 +134,8 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Phone</h3>
-                    <a href="tel:+12255551234" className="text-muted-foreground hover:text-primary transition-colors">
-                      (225) 555-1234
+                    <a href="tel:+12255216264" className="text-muted-foreground hover:text-primary transition-colors">
+                      (225) 521-6264
                     </a>
                     <p className="text-sm text-muted-foreground mt-1">
                       Call or text anytime
@@ -194,13 +194,13 @@ const ContactPage = () => {
                 <h3 className="font-semibold mb-4">Quick Actions</h3>
                 <div className="space-y-3">
                   <Button asChild className="w-full glow-red">
-                    <a href="tel:+12255551234">
+                    <a href="tel:+12255216264">
                       <Phone className="mr-2 h-4 w-4" />
                       Call Now
                     </a>
                   </Button>
                   <Button asChild variant="outline" className="w-full">
-                    <a href="sms:+12255551234">
+                    <a href="sms:+12255216264">
                       Text Us
                     </a>
                   </Button>

@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
         `Location: ${location || "TBD"}`,
         `Status: ${booking.status}`,
         "",
-        "Questions? Call (225) 555-1234",
+        "Questions? Call (225) 521-6264",
         "https://avdetailing.lovable.app",
       ]
         .filter((line) => line !== null)
