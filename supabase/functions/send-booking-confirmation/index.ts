@@ -255,7 +255,7 @@ const handler = async (req: Request): Promise<Response> => {
     const isQuoteBased = isQuoteBasedService(vehicleType);
     const hasCeramic = includesCeramic(serviceName, addOns);
 
-    // Generate Google Calendar link
+    // Generate calendar dates
     const startDate = new Date(scheduledDate);
     const [hours, minutes] = scheduledTime.match(/(\d+):(\d+)/)?.slice(1) || ["9", "00"];
     const isPM = scheduledTime.toLowerCase().includes('pm');
@@ -268,7 +268,52 @@ const handler = async (req: Request): Promise<Response> => {
     endDate.setHours(endDate.getHours() + (estimatedDuration ? Math.ceil(estimatedDuration / 60) : 3));
     
     const formatCalendarDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('AV Detailing - ' + serviceName)}&dates=${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}&details=${encodeURIComponent('Mobile detailing service at your location. Booking ID: ' + bookingId)}&location=${encodeURIComponent(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}`;
+    
+    // Google Calendar URL
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('AV Detailing - ' + serviceName)}&dates=${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}&details=${encodeURIComponent('Mobile detailing service at your location.\n\nQuestions? Call (225) 521-6264\nBooking ID: ' + bookingId)}&location=${encodeURIComponent(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}`;
+    
+    // Generate ICS file content for Apple Calendar / Outlook
+    const formatICSDate = (date: Date) => {
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    };
+    
+    const escapeICS = (text: string) => text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//AV Detailing//Booking System//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${safeBookingId}@avdetailing.com`,
+      `DTSTAMP:${formatICSDate(new Date())}`,
+      `DTSTART:${formatICSDate(startDate)}`,
+      `DTEND:${formatICSDate(endDate)}`,
+      `SUMMARY:${escapeICS('AV Detailing - ' + serviceName)}`,
+      `DESCRIPTION:${escapeICS(`Service: ${serviceName}\\nLocation: ${serviceAddress}, ${serviceCity}, ${serviceState}\\n\\nQuestions? Call (225) 521-6264`)}`,
+      `LOCATION:${escapeICS(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}`,
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'TRIGGER:-P1D',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:AV Detailing appointment tomorrow',
+      'END:VALARM',
+      'BEGIN:VALARM',
+      'TRIGGER:-PT2H',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:AV Detailing appointment in 2 hours',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\\r\\n');
+    
+    // Create data URI for ICS download
+    const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent.replace(/\\\\r\\\\n/g, '\r\n'))}`;
+    
+    // Outlook Web URL
+    const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent('AV Detailing - ' + serviceName)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}&body=${encodeURIComponent('Mobile detailing service at your location.\n\nQuestions? Call (225) 521-6264')}`;
 
     // Get vehicle type display name
     const vehicleTypeNames: Record<string, string> = {
@@ -557,9 +602,27 @@ const handler = async (req: Request): Promise<Response> => {
                 <a href="sms:+12255216264" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
                   💬 Text Us
                 </a>
-                <a href="${calendarUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
-                  📅 Add to Calendar
-                </a>
+              </div>
+              
+              <!-- Calendar Options -->
+              <div style="margin-top: 20px; padding: 16px; background-color: #0a0a0a; border-radius: 8px;">
+                <p style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px 0; text-align: center;">
+                  📅 Add to Your Calendar
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                  <a href="${icsDataUri}" download="av-detailing-appointment.ics" style="display: inline-flex; align-items: center; gap: 6px; background-color: #333333; color: #ffffff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;">
+                    📱 Apple Calendar
+                  </a>
+                  <a href="${calendarUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background-color: #4285f4; color: #ffffff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;">
+                    📆 Google Calendar
+                  </a>
+                  <a href="${outlookUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background-color: #0078d4; color: #ffffff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;">
+                    📧 Outlook
+                  </a>
+                </div>
+                <p style="color: #525252; font-size: 10px; margin: 10px 0 0 0; text-align: center;">
+                  iPhone/iPad users: Tap "Apple Calendar" to download
+                </p>
               </div>
             </div>
             

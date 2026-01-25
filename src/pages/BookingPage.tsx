@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,8 @@ import { sendBookingSms } from "@/lib/sms";
 import { bookingCustomerSchema } from "@/lib/validations";
 import { clearRateLimit } from "@/lib/security";
 import { useQuery } from "@tanstack/react-query";
+import { generateICS } from "@/lib/calendar";
+import { format, addMinutes, parse } from "date-fns";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -1356,6 +1358,93 @@ const BookingPage = () => {
               </ul>
             </CardContent>
           </Card>
+          
+          {/* Add to Calendar Card */}
+          {(() => {
+            const calServiceName = packages.find(p => p.id === selectedPackage)?.name || "Detailing Service";
+            return (
+              <Card className="border-muted">
+                <CardContent className="pt-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">
+                    Add to Your Calendar
+                  </h3>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        const startDate = selectedDate ? new Date(selectedDate) : new Date();
+                        if (selectedTime) {
+                          const match = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+                          if (match) {
+                            let hours = parseInt(match[1]);
+                            const mins = parseInt(match[2]);
+                            const ampm = match[3]?.toUpperCase();
+                            if (ampm === "PM" && hours < 12) hours += 12;
+                            if (ampm === "AM" && hours === 12) hours = 0;
+                            startDate.setHours(hours, mins, 0, 0);
+                          }
+                        }
+                        const endDate = addMinutes(startDate, 180);
+                        const location = `${customerInfo.address}, ${customerInfo.city}, LA ${customerInfo.zip}`;
+                        
+                        const event = {
+                          id: bookingId || `booking-${Date.now()}`,
+                          title: `AV Detailing - ${calServiceName}`,
+                          description: `Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\nLocation: ${location}\n\nQuestions? Call (225) 521-6264\nhttps://avdetailing.lovable.app`,
+                          location,
+                          startDate,
+                          endDate,
+                        };
+                        
+                        const icsContent = generateICS(event);
+                        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = `av-detailing-${format(startDate, "yyyy-MM-dd")}.ics`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        toast.success("Calendar file downloaded!");
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Apple / Outlook (.ics)
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        const startDate = selectedDate ? new Date(selectedDate) : new Date();
+                        if (selectedTime) {
+                          const match = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+                          if (match) {
+                            let hours = parseInt(match[1]);
+                            const mins = parseInt(match[2]);
+                            const ampm = match[3]?.toUpperCase();
+                            if (ampm === "PM" && hours < 12) hours += 12;
+                            if (ampm === "AM" && hours === 12) hours = 0;
+                            startDate.setHours(hours, mins, 0, 0);
+                          }
+                        }
+                        const endDate = addMinutes(startDate, 180);
+                        const location = `${customerInfo.address}, ${customerInfo.city}, LA ${customerInfo.zip}`;
+                        
+                        const formatGoogleDate = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+                        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`AV Detailing - ${calServiceName}`)}&dates=${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}&details=${encodeURIComponent(`Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\n\nQuestions? Call (225) 521-6264`)}&location=${encodeURIComponent(location)}`;
+                        window.open(googleUrl, "_blank");
+                      }}
+                    >
+                      <CalendarPlus className="h-4 w-4 mr-2" />
+                      Google Calendar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
           
           {/* Action Buttons */}
           <div className="flex gap-3">
