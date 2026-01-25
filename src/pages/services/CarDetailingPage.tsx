@@ -21,6 +21,17 @@ const CarDetailingPage = () => {
       ]}
       packages={[
         {
+          name: "Exterior Only",
+          price: "$75+",
+          description: "Quick exterior refresh",
+          features: [
+            "Hand wash & dry",
+            "Wheels & tires cleaned",
+            "Tire shine",
+            "Exterior windows",
+          ],
+        },
+        {
           name: "Basic Package",
           price: "$120+",
           description: "Perfect for regular maintenance",
