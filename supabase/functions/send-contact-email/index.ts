@@ -197,11 +197,14 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="background-color: #171717; border-radius: 12px; padding: 32px; border: 1px solid #262626;">
-            <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 16px 0;">
-              Thanks for reaching out, ${safeName}!
+            <h2 style="color: #ffffff; font-size: 24px; margin: 0 0 8px 0; text-align: center;">
+              AV Detailing 🚗
             </h2>
+            <p style="color: #22c55e; font-size: 16px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">
+              We received your message
+            </p>
             <p style="color: #a3a3a3; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-              We've received your message and will get back to you within 24 hours. If you need immediate assistance, feel free to call us.
+              Hi ${safeName.split(' ')[0]}, thanks for reaching out! We've received your message and will get back to you within 24 hours. If you need immediate assistance, feel free to call us.
             </p>
             
             <div style="text-align: center; padding: 20px 0; border-top: 1px solid #262626;">
