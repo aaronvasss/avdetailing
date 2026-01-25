@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Car, Droplets, Sparkles, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
+import { Car, Droplets, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import rvDetailingImage from "@/assets/rv-detailing.jpg";
 import carDetailingImage from "@/assets/car-detailing-service.jpg";
 import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
 import paintCorrectionImage from "@/assets/paint-correction-service.jpg";
+import polisherIcon from "@/assets/icons/polisher-icon.png";
 
 const services = [
   {
@@ -22,7 +23,8 @@ const services = [
     image: ceramicCoatingImage,
   },
   {
-    icon: Sparkles,
+    icon: null,
+    customIcon: polisherIcon,
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
@@ -99,7 +101,16 @@ export function ServicesSection() {
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-primary/10 rounded-lg">
-                    <service.icon className="h-5 w-5 text-primary" />
+                    {service.customIcon ? (
+                      <img 
+                        src={service.customIcon} 
+                        alt="" 
+                        className="h-5 w-5" 
+                        style={{ filter: 'invert(28%) sepia(95%) saturate(5524%) hue-rotate(354deg) brightness(95%) contrast(128%)' }} 
+                      />
+                    ) : (
+                      service.icon && <service.icon className="h-5 w-5 text-primary" />
+                    )}
                   </div>
                   <h3 className="text-xl font-semibold">{service.title}</h3>
                 </div>
