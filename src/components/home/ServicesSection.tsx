@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Car, Droplets, Disc3, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
+import { Car, Droplets, Sparkles, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import rvDetailingImage from "@/assets/rv-detailing.jpg";
 import carDetailingImage from "@/assets/car-detailing-service.jpg";
@@ -22,7 +22,7 @@ const services = [
     image: ceramicCoatingImage,
   },
   {
-    icon: Disc3,
+    icon: Sparkles,
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
