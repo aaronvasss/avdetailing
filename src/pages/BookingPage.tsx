@@ -78,8 +78,8 @@ const fallbackPackages = [
   { 
     id: "basic", 
     name: "Basic Package", 
-    basePrice: 79,
-    prices: { sedan: 79, "suv-5": 99, "suv-8": 119, truck: 109 },
+    basePrice: 120,
+    prices: { sedan: 120, "suv-5": 140, "suv-8": 160, truck: 150 },
     time: "1-2 hours",
     description: "Essential exterior wash and interior wipe-down",
     service_id: null,
@@ -87,8 +87,8 @@ const fallbackPackages = [
   { 
     id: "silver", 
     name: "Silver Package", 
-    basePrice: 199,
-    prices: { sedan: 199, "suv-5": 249, "suv-8": 299, truck: 279 },
+    basePrice: 190,
+    prices: { sedan: 190, "suv-5": 240, "suv-8": 290, truck: 270 },
     time: "3-5 hours",
     description: "Full interior & exterior detail",
     service_id: null,
@@ -96,8 +96,8 @@ const fallbackPackages = [
   { 
     id: "gold", 
     name: "Gold Package", 
-    basePrice: 349,
-    prices: { sedan: 349, "suv-5": 429, "suv-8": 499, truck: 469 },
+    basePrice: 295,
+    prices: { sedan: 295, "suv-5": 375, "suv-8": 445, truck: 415 },
     time: "5-6 hours",
     description: "Comprehensive detail with 2-month sealant & seat shampooing",
     service_id: null,
@@ -1246,8 +1246,8 @@ const BookingPage = () => {
             {/* Contact Info */}
             <p className="text-sm text-muted-foreground pt-4">
               Need faster service? Call us directly at{" "}
-              <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
-                (225) 226-8979
+              <a href="tel:+12255216264" className="text-primary font-semibold hover:underline">
+                (225) 521-6264
               </a>
             </p>
           </div>
@@ -1357,8 +1357,8 @@ const BookingPage = () => {
           {/* Contact Info */}
           <p className="text-sm text-muted-foreground pt-4">
             Questions? Call us at{" "}
-            <a href="tel:+12252268979" className="text-primary font-semibold hover:underline">
-              (225) 226-8979
+            <a href="tel:+12255216264" className="text-primary font-semibold hover:underline">
+              (225) 521-6264
             </a>
           </p>
         </div>

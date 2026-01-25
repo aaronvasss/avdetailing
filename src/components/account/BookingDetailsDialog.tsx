@@ -254,7 +254,7 @@ export function BookingDetailsDialog({
           {/* Contact */}
           <div className="flex gap-4">
             <Button variant="outline" size="sm" className="flex-1" asChild>
-              <a href="tel:+12252268979">
+              <a href="tel:+12255216264">
                 <Phone className="h-4 w-4 mr-2" />
                 Call Us
               </a>

@@ -205,8 +205,8 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             
             <div style="text-align: center; padding: 20px 0; border-top: 1px solid #262626;">
-              <a href="tel:+12255551234" style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">
-                Call (225) 555-1234
+              <a href="tel:+12255216264" style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">
+                Call (225) 521-6264
               </a>
             </div>
           </div>

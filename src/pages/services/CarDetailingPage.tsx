@@ -22,7 +22,7 @@ const CarDetailingPage = () => {
       packages={[
         {
           name: "Basic Package",
-          price: "$79+",
+          price: "$120+",
           description: "Perfect for regular maintenance",
           features: [
             "Hand wash & dry",
@@ -34,7 +34,7 @@ const CarDetailingPage = () => {
         },
         {
           name: "Silver Package",
-          price: "$199+",
+          price: "$190+",
           description: "Complete interior & exterior detail",
           features: [
             "Everything in Basic, plus:",
@@ -45,7 +45,7 @@ const CarDetailingPage = () => {
         },
         {
           name: "Gold Package",
-          price: "$349+",
+          price: "$295+",
           description: "The ultimate in car care",
           features: [
             "Everything in Silver, plus:",

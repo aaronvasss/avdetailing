@@ -154,11 +154,11 @@ export function Header() {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center space-x-4">
             <a
-              href="tel:+12255551234"
+              href="tel:+12255216264"
               className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <Phone className="h-4 w-4 mr-2" />
-              (225) 555-1234
+              (225) 521-6264
             </a>
             {user ? (
               <Button asChild variant="outline" size="sm">
@@ -247,11 +247,11 @@ export function Header() {
             ))}
             <div className="pt-4 space-y-3 px-3">
               <a
-                href="tel:+12255551234"
+                href="tel:+12255216264"
                 className="flex items-center text-sm text-muted-foreground"
               >
                 <Phone className="h-4 w-4 mr-2" />
-                (225) 555-1234
+                (225) 521-6264
               </a>
               {user ? (
                 <Button asChild variant="outline" className="w-full">

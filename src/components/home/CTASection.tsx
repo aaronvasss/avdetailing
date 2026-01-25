@@ -35,9 +35,9 @@ export function CTASection() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg h-14 px-10">
-              <a href="tel:+12255551234">
+              <a href="tel:+12255216264">
                 <Phone className="mr-2 h-5 w-5" />
-                Call (225) 555-1234
+                Call (225) 521-6264
               </a>
             </Button>
           </div>

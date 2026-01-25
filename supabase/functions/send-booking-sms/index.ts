@@ -5,7 +5,7 @@ const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 
 // Business phone for notifications
-const BUSINESS_PHONES = ["+13373446968"]; // Add more numbers if needed
+const BUSINESS_PHONES = ["+12255216264"]; // Add more numbers if needed
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -127,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
 🚗 ${body.serviceName}
 💰 $${body.totalPrice.toFixed(2)}
 
-We'll text you 24hrs before. Reply HELP for support or call (337) 344-6968.
+We'll text you 24hrs before. Reply HELP for support or call (225) 521-6264.
 
 -AV Detailing Team`;
 

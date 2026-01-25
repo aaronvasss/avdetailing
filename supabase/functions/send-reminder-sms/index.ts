@@ -147,7 +147,7 @@ Your AV Detailing appointment is TOMORROW:
 ✅ Clear the area around the vehicle
 ✅ Remove personal items
 
-Questions? Reply or call (337) 344-6968.
+Questions? Reply or call (225) 521-6264.
 
 See you soon!
 -AV Detailing`;
@@ -215,7 +215,7 @@ Your AV Detailing appointment is TOMORROW:
 ✅ Clear the area around the vehicle
 ✅ Remove personal items
 
-Questions? Reply or call (337) 344-6968.
+Questions? Reply or call (225) 521-6264.
 
 See you soon!
 -AV Detailing`;

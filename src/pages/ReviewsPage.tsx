@@ -118,7 +118,7 @@ const ReviewsPage = () => {
               <span className="text-3xl font-bold">{averageRating}</span>
             </div>
             <p className="text-lg text-muted-foreground">
-              Based on {reviews.length}+ reviews from real customers
+              Based on 85 reviews from real customers
             </p>
           </div>
         </div>

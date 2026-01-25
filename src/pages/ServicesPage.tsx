@@ -9,7 +9,7 @@ const services = [
     title: "Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks. From quick washes to full restorations.",
     href: "/services/car-detailing",
-    startingPrice: "$79",
+    startingPrice: "$120",
   },
   {
     icon: Droplets,
@@ -119,7 +119,7 @@ const ServicesPage = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="tel:+12255551234">Call (225) 555-1234</a>
+              <a href="tel:+12255216264">Call (225) 521-6264</a>
             </Button>
           </div>
           
