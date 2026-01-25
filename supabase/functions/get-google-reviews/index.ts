@@ -35,10 +35,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Debug: Log what we have (without exposing full keys)
+    const hasApiKey = !!GOOGLE_PLACES_API_KEY && GOOGLE_PLACES_API_KEY.length > 10;
+    const hasPlaceId = !!GOOGLE_PLACE_ID && GOOGLE_PLACE_ID.length > 5;
+    
+    console.log("Config check - API Key present:", hasApiKey, "length:", GOOGLE_PLACES_API_KEY?.length || 0);
+    console.log("Config check - Place ID present:", hasPlaceId, "value:", GOOGLE_PLACE_ID);
+    
     if (!GOOGLE_PLACES_API_KEY || !GOOGLE_PLACE_ID) {
       console.error("Missing Google Places configuration");
       return new Response(
-        JSON.stringify({ error: "Google Places not configured" }),
+        JSON.stringify({ 
+          error: "Google Places not configured",
+          details: { hasApiKey, hasPlaceId }
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -49,10 +59,12 @@ const handler = async (req: Request): Promise<Response> => {
     url.searchParams.set("fields", "name,rating,user_ratings_total,reviews");
     url.searchParams.set("key", GOOGLE_PLACES_API_KEY);
 
+    console.log("Fetching from Google Places API for place:", GOOGLE_PLACE_ID);
+    
     const response = await fetch(url.toString());
     
     if (!response.ok) {
-      console.error("Google Places API error:", response.status);
+      console.error("Google Places API HTTP error:", response.status);
       return new Response(
         JSON.stringify({ error: "Failed to fetch reviews from Google" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -60,11 +72,24 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const data: PlaceDetailsResponse = await response.json();
+    
+    console.log("Google API response status:", data.status);
 
     if (data.status !== "OK") {
-      console.error("Google Places API status:", data.status);
+      console.error("Google Places API status:", data.status, "- Full response:", JSON.stringify(data));
+      
+      // Provide helpful error messages based on status
+      let errorMessage = `Google API error: ${data.status}`;
+      if (data.status === "INVALID_REQUEST") {
+        errorMessage = "Invalid Place ID format. Place IDs should start with 'ChIJ' and be ~27 characters long.";
+      } else if (data.status === "REQUEST_DENIED") {
+        errorMessage = "API key is invalid or Places API is not enabled in Google Cloud Console.";
+      } else if (data.status === "NOT_FOUND") {
+        errorMessage = "Place not found. Please verify your Google Place ID.";
+      }
+      
       return new Response(
-        JSON.stringify({ error: `Google API error: ${data.status}` }),
+        JSON.stringify({ error: errorMessage, status: data.status }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
