@@ -105,6 +105,7 @@ export type Database = {
           guest_phone: string | null
           id: string
           internal_notes: string | null
+          manage_token: string | null
           membership_id: string | null
           payment_status: string | null
           scheduled_date: string
@@ -140,6 +141,7 @@ export type Database = {
           guest_phone?: string | null
           id?: string
           internal_notes?: string | null
+          manage_token?: string | null
           membership_id?: string | null
           payment_status?: string | null
           scheduled_date: string
@@ -175,6 +177,7 @@ export type Database = {
           guest_phone?: string | null
           id?: string
           internal_notes?: string | null
+          manage_token?: string | null
           membership_id?: string | null
           payment_status?: string | null
           scheduled_date?: string
@@ -701,6 +704,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_booking_token: { Args: never; Returns: string }
       generate_calendar_token: { Args: never; Returns: string }
       has_role: {
         Args: {

@@ -463,6 +463,8 @@ const BookingPage = () => {
       }
 
       const createdId = createResp?.booking?.id as string | undefined;
+      const manageToken = createResp?.manageToken as string | undefined;
+      
       if (!createdId) {
         console.error("create-booking unexpected response:", createResp);
         throw new Error("Booking created but no ID returned");
@@ -495,6 +497,7 @@ const BookingPage = () => {
           customerPhone: customerInfo.phone,
           depositAmount: 0,
           parkingInstructions: customerInfo.notes || undefined,
+          manageToken: manageToken,
         });
       } catch (emailError) {
         console.error("Email failed but booking succeeded:", emailError);

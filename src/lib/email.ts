@@ -28,6 +28,7 @@ interface BookingConfirmationData {
   paymentMethod?: string;
   gateCode?: string;
   parkingInstructions?: string;
+  manageToken?: string;
 }
 
 interface ContactFormData {

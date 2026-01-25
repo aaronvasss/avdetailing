@@ -46,6 +46,7 @@ interface BookingConfirmationRequest {
   paymentMethod?: string;
   gateCode?: string;
   parkingInstructions?: string;
+  manageToken?: string;
 }
 
 // Get client identifier for rate limiting
@@ -210,11 +211,15 @@ const handler = async (req: Request): Promise<Response> => {
       customerPhone,
       depositAmount = 0,
       paymentMethod = "card",
-      gateCode,
-      parkingInstructions,
-    }: BookingConfirmationRequest = rawData;
+    gateCode,
+    parkingInstructions,
+    manageToken,
+  }: BookingConfirmationRequest = rawData;
 
-    // HTML encode all user inputs
+  // Build manage URLs
+  const baseUrl = "https://avdetailing.lovable.app";
+  const rescheduleUrl = manageToken ? `${baseUrl}/booking/manage?token=${manageToken}` : null;
+  const cancelUrl = manageToken ? `${baseUrl}/booking/cancel?token=${manageToken}` : null;
     const safeCustomerName = htmlEncode(customerName.trim());
     const safeServiceName = htmlEncode(serviceName.trim());
     const safeScheduledTime = htmlEncode(scheduledTime.trim());
@@ -504,11 +509,14 @@ const handler = async (req: Request): Promise<Response> => {
             
             <!-- Greeting -->
             <div style="padding: 28px 32px; text-align: center; border-bottom: 1px solid #262626;">
-              <h3 style="color: #ffffff; font-size: 18px; margin: 0 0 8px 0; font-weight: 600;">
-                Thank you, ${safeCustomerName}! 🎉
+              <h3 style="color: #ffffff; font-size: 20px; margin: 0 0 8px 0; font-weight: 700;">
+                AV Detailing 🚗
               </h3>
+              <p style="color: #22c55e; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">
+                Booking Confirmed
+              </p>
               <p style="color: #a3a3a3; margin: 0; font-size: 14px; line-height: 1.5;">
-                We're excited to bring our premium mobile detailing to you.
+                Hi ${safeCustomerName.split(' ')[0]}, we're excited to bring our premium mobile detailing to you.
               </p>
             </div>
             
@@ -528,18 +536,19 @@ const handler = async (req: Request): Promise<Response> => {
             <!-- ONE-TAP ACTION BUTTONS -->
             <div style="padding: 24px 32px; background-color: #0f0f0f; border-bottom: 1px solid #262626;">
               <p style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px 0; text-align: center;">
-                Quick Actions
+                Manage Your Booking
               </p>
               <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <a href="mailto:aaronvasquez@avdetailingg.com?subject=Confirm%20Booking%20${safeBookingId}&body=Hi,%20I%20confirm%20my%20booking%20for%20${encodeURIComponent(formattedDate)}%20at%20${encodeURIComponent(scheduledTime)}." style="display: inline-block; background-color: #22c55e; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
-                  ✓ Confirm
-                </a>
-                <a href="mailto:aaronvasquez@avdetailingg.com?subject=Reschedule%20Booking%20${safeBookingId}&body=Hi,%20I%20need%20to%20reschedule%20my%20appointment%20on%20${encodeURIComponent(formattedDate)}." style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                ${rescheduleUrl ? `
+                <a href="${rescheduleUrl}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
                   📅 Reschedule
                 </a>
-                <a href="mailto:aaronvasquez@avdetailingg.com?subject=Cancel%20Booking%20${safeBookingId}&body=Hi,%20I%20need%20to%20cancel%20my%20appointment%20on%20${encodeURIComponent(formattedDate)}." style="display: inline-block; background-color: #525252; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                ` : ''}
+                ${cancelUrl ? `
+                <a href="${cancelUrl}" style="display: inline-block; background-color: #525252; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
                   ✕ Cancel
                 </a>
+                ` : ''}
               </div>
               <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                 <a href="tel:+12255216264" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">

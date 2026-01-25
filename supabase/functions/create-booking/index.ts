@@ -103,6 +103,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Insert using service role (bypass RLS), but NEVER trust client-provided user_id
     const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // Generate a secure manage token for guest access
+    const manageToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
+
     const insertPayload = {
       user_id: userId,
       service_id: body.service_id,
@@ -127,12 +130,13 @@ const handler = async (req: Request): Promise<Response> => {
       total_price: body.total_price ?? null,
       status: body.status ?? "pending",
       payment_status: body.payment_status ?? "unpaid",
+      manage_token: manageToken,
     };
 
     const { data: booking, error } = await serviceClient
       .from("bookings")
       .insert(insertPayload)
-      .select("id")
+      .select("id, manage_token")
       .single();
 
     if (error) {
@@ -151,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    return new Response(JSON.stringify({ booking }), {
+    return new Response(JSON.stringify({ booking, manageToken: booking.manage_token }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
