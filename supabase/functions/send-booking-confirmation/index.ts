@@ -542,10 +542,10 @@ const handler = async (req: Request): Promise<Response> => {
                 </a>
               </div>
               <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <a href="tel:+12252268979" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
+                <a href="tel:+12255216264" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
                   📞 Call Us
                 </a>
-                <a href="sms:+12252268979" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
+                <a href="sms:+12255216264" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
                   💬 Text Us
                 </a>
                 <a href="${calendarUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
