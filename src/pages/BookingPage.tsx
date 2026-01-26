@@ -26,6 +26,7 @@ import {
   formatDuration
 } from "@/lib/scheduling";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
+import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -216,6 +217,8 @@ const BookingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>(null);
+  const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   
   const [customerInfo, setCustomerInfo] = useState({
     firstName: "",
@@ -495,8 +498,10 @@ const BookingPage = () => {
         subtotal: totalPrice,
         add_ons_total: addOnsTotal,
         total_price: totalPrice + addOnsTotal,
-        status: "pending",
-        payment_status: "unpaid",
+        // Set status based on payment method
+        status: paymentMethod === 'online' ? "pending_payment" : "confirmed",
+        payment_status: paymentMethod === 'online' ? "pending" : "unpaid",
+        payment_method: paymentMethod || "in_person",
       };
 
       // Use backend function to guarantee insert succeeds for guests (and return a booking ID)
@@ -521,15 +526,13 @@ const BookingPage = () => {
 
       setBookingId(createdId);
 
-      // Get Stripe price ID for this service/package/vehicle combination
-      const stripePriceId = await getStripePriceIdFromDb(serviceType, selectedPackage, vehicleSubType);
-      
-      if (stripePriceId) {
-        // Redirect to Stripe Checkout for payment
+      // Handle online payment - redirect to Stripe
+      if (paymentMethod === 'online') {
         toast.loading("Redirecting to payment...");
         
         try {
-          const checkoutResult = await createBookingCheckout(createdId, stripePriceId, {
+          // Call create-checkout without price_id - it will look up from database
+          const checkoutResult = await createBookingCheckout(createdId, '', {
             customer_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
             customer_email: user?.email || customerInfo.email,
             service_name: serviceName,
@@ -543,16 +546,23 @@ const BookingPage = () => {
           }
         } catch (checkoutError) {
           console.error("Stripe checkout error:", checkoutError);
-          // Continue with non-payment flow if Stripe fails
           toast.dismiss();
-          toast.warning("Payment processing unavailable. We'll contact you to arrange payment.");
+          toast.error("Online payment unavailable. Please choose 'Pay in Person' or try again later.");
+          setStripeAvailable(false);
+          // Revert the booking status since payment failed
+          await supabase.functions.invoke("manage-booking", {
+            body: { 
+              booking_id: createdId, 
+              action: "update",
+              updates: { status: "cancelled", payment_status: "failed" }
+            }
+          });
+          setBookingId("");
+          return;
         }
-      } else {
-        console.log("No Stripe price found for:", { serviceType, selectedPackage, vehicleSubType });
-        // For services without Stripe prices (boat, RV, etc.), show success without payment
       }
 
-      // Fallback: Send confirmation emails/SMS and show success (for non-Stripe bookings)
+      // Handle in-person payment - send confirmations and show success
       try {
         const selectedAddOnDetails = selectedAddOns.map(id => {
           const addon = addOns.find(a => a.id === id);
@@ -603,8 +613,8 @@ const BookingPage = () => {
       }
 
       clearRateLimit('booking-form');
-      toast.success("Booking request received! We'll contact you to confirm and arrange payment.");
-      setStep(6);
+      toast.success("Booking confirmed! You'll receive a confirmation email shortly.");
+      setStep(7);
     } catch (error: any) {
       console.error("Booking error:", error);
       const code = error?.code || error?.status || error?.name;
@@ -623,14 +633,14 @@ const BookingPage = () => {
     }
     // Services that need vehicle sub-type selection
     if (servicesWithVehicleSelection.includes(serviceType)) {
-      return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Details"];
+      return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Payment", "Details"];
     }
-    return ["Service", "Package", "Add-ons", "Schedule", "Details"];
+    return ["Service", "Package", "Add-ons", "Schedule", "Payment", "Details"];
   };
 
   const getTotalSteps = () => {
     if (quoteOnlyServices.includes(serviceType)) return 2;
-    return servicesWithVehicleSelection.includes(serviceType) ? 6 : 5;
+    return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
   };
 
   const isQuoteOnlyService = () => quoteOnlyServices.includes(serviceType);
@@ -1175,8 +1185,21 @@ const BookingPage = () => {
           </div>
         );
 
-      // Step 6: Customer Details & Checkout
+      // Step 6: Payment Method Selection
       case 6:
+        return (
+          <PaymentMethodStep
+            selectedMethod={paymentMethod}
+            onSelectMethod={setPaymentMethod}
+            onBack={() => setStep(5)}
+            onContinue={() => setStep(7)}
+            totalPrice={calculateTotal()}
+            stripeAvailable={stripeAvailable}
+          />
+        );
+
+      // Step 7: Customer Details & Checkout
+      case 7:
         // Check if this is confirmation step (after submission)
         if (bookingId) {
           return renderConfirmation();
@@ -1281,21 +1304,46 @@ const BookingPage = () => {
                   <span className="text-muted-foreground">Time</span>
                   <span className="font-medium">{selectedTime}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Payment Method</span>
+                  <span className="font-medium">
+                    {paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person'}
+                  </span>
+                </div>
                 <div className="border-t pt-4 flex justify-between">
                   <span className="font-semibold">Total</span>
-                  <span className="text-xl font-bold text-primary">${calculateTotal()}</span>
+                  <span className="text-xl font-bold text-primary">
+                    ${paymentMethod === 'online' 
+                      ? (calculateTotal() + Math.round(calculateTotal() * 0.035 * 100) / 100).toFixed(2)
+                      : calculateTotal().toFixed(2)
+                    }
+                  </span>
                 </div>
+                {paymentMethod === 'online' && (
+                  <p className="text-xs text-muted-foreground">
+                    Includes 3.5% processing fee (${(Math.round(calculateTotal() * 0.035 * 100) / 100).toFixed(2)})
+                  </p>
+                )}
               </CardContent>
             </Card>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(5)}>
+              <Button type="button" variant="outline" onClick={() => setStep(6)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <Button type="submit" className="flex-1 glow-red" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Confirm Booking"}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {paymentMethod === 'online' ? "Redirecting to Payment..." : "Confirming..."}
+                  </>
+                ) : (
+                  <>
+                    {paymentMethod === 'online' ? "Proceed to Payment" : "Confirm Booking"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
           </form>

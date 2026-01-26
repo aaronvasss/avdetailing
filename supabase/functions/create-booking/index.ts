@@ -132,6 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
       total_price: body.total_price ?? null,
       status: body.status ?? "pending",
       payment_status: body.payment_status ?? "unpaid",
+      payment_method: (body as any).payment_method ?? "in_person",
       manage_token: manageToken,
     };
 

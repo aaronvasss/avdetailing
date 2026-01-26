@@ -25,6 +25,7 @@ interface BookingDetails {
 export default function BookingSuccessPage() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const bookingId = searchParams.get("booking_id");
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +33,12 @@ export default function BookingSuccessPage() {
   useEffect(() => {
     if (sessionId) {
       fetchBookingBySession();
+    } else if (bookingId) {
+      fetchBookingById();
     } else {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, bookingId]);
 
   const fetchBookingBySession = async () => {
     try {
@@ -51,9 +54,43 @@ export default function BookingSuccessPage() {
           total_price,
           guest_name,
           guest_email,
+          payment_status,
           services (name)
         `)
         .eq("stripe_checkout_session_id", sessionId)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        setBooking(data);
+      }
+    } catch (err) {
+      console.error("Error fetching booking:", err);
+      setError("Unable to load booking details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBookingById = async () => {
+    try {
+      // Find booking by ID
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          scheduled_date,
+          scheduled_time,
+          service_address,
+          service_city,
+          total_price,
+          guest_name,
+          guest_email,
+          payment_status,
+          services (name)
+        `)
+        .eq("id", bookingId)
         .maybeSingle();
 
       if (error) throw error;
