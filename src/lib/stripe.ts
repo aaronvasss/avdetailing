@@ -14,9 +14,13 @@ export const getStripeServiceType = (serviceType: string): string => {
   const serviceTypeMap: Record<string, string> = {
     'car': 'car-detailing',
     'paint': 'paint-correction',
+    'aircraft': 'aircraft-detailing',
   };
   return serviceTypeMap[serviceType] || serviceType;
 };
+
+// Aircraft deposit price ID (fixed $500 deposit)
+export const AIRCRAFT_DEPOSIT_PRICE_ID = 'price_1StmLIDr7pQ6grsf1V0Mc2cl';
 
 // Get Stripe price ID from database
 export const getStripePriceIdFromDb = async (
