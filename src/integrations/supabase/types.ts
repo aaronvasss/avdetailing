@@ -154,6 +154,7 @@ export type Database = {
           service_state: string | null
           service_zip: string | null
           status: string
+          stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
           subtotal: number | null
           total_price: number | null
@@ -190,6 +191,7 @@ export type Database = {
           service_state?: string | null
           service_zip?: string | null
           status?: string
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number | null
           total_price?: number | null
@@ -226,6 +228,7 @@ export type Database = {
           service_state?: string | null
           service_zip?: string | null
           status?: string
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number | null
           total_price?: number | null
@@ -467,6 +470,72 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_records: {
+        Row: {
+          amount_cents: number
+          booking_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          membership_id: string | null
+          metadata: Json | null
+          payment_type: string
+          status: string | null
+          stripe_checkout_session_id: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          membership_id?: string | null
+          metadata?: Json | null
+          payment_type: string
+          status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          membership_id?: string | null
+          metadata?: Json | null
+          payment_type?: string
+          status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_records_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "customer_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           calendar_token: string | null
@@ -475,6 +544,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          stripe_customer_id: string | null
           updated_at: string
           user_id: string
         }
@@ -485,6 +555,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -495,6 +566,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -685,6 +757,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stripe_prices: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          package_name: string
+          price_cents: number
+          service_type: string
+          stripe_price_id: string
+          stripe_product_id: string
+          updated_at: string | null
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          package_name: string
+          price_cents: number
+          service_type: string
+          stripe_price_id: string
+          stripe_product_id: string
+          updated_at?: string | null
+          vehicle_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          package_name?: string
+          price_cents?: number
+          service_type?: string
+          stripe_price_id?: string
+          stripe_product_id?: string
+          updated_at?: string | null
+          vehicle_type?: string
+        }
+        Relationships: []
       }
       time_slots: {
         Row: {
