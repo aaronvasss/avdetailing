@@ -60,7 +60,7 @@ serve(async (req) => {
 
         if (session.mode === 'payment' && bookingId) {
           // One-time payment for booking
-          const { error } = await supabase
+          const { data: bookingData, error } = await supabase
             .from("bookings")
             .update({
               status: "confirmed",
@@ -68,12 +68,81 @@ serve(async (req) => {
               stripe_payment_intent_id: session.payment_intent as string,
               stripe_checkout_session_id: session.id,
             })
-            .eq("id", bookingId);
+            .eq("id", bookingId)
+            .select(`
+              id,
+              scheduled_date,
+              scheduled_time,
+              service_address,
+              service_city,
+              service_zip,
+              total_price,
+              guest_name,
+              guest_email,
+              guest_phone,
+              vehicle_type,
+              vehicle_make,
+              vehicle_model,
+              services (name)
+            `)
+            .single();
 
           if (error) {
             logStep("Error updating booking", { error });
           } else {
             logStep("Booking confirmed", { bookingId });
+
+            // Send confirmation email via edge function
+            if (bookingData) {
+              try {
+                const customerEmail = bookingData.guest_email || session.customer_email;
+                const customerName = bookingData.guest_name?.split(' ')[0] || 'Customer';
+                
+                // Trigger confirmation email
+                await supabase.functions.invoke('send-booking-confirmation', {
+                  body: {
+                    customerEmail,
+                    customerName,
+                    serviceName: (bookingData.services as any)?.name || 'Detailing Service',
+                    scheduledDate: bookingData.scheduled_date,
+                    scheduledTime: bookingData.scheduled_time,
+                    serviceAddress: bookingData.service_address,
+                    serviceCity: bookingData.service_city,
+                    serviceState: 'LA',
+                    serviceZip: bookingData.service_zip,
+                    vehicleType: bookingData.vehicle_type,
+                    totalPrice: bookingData.total_price,
+                    bookingId: bookingData.id,
+                  },
+                });
+                logStep("Confirmation email triggered");
+              } catch (emailErr) {
+                logStep("Email trigger failed", { error: emailErr });
+              }
+
+              // Trigger SMS notification
+              try {
+                if (bookingData.guest_phone) {
+                  await supabase.functions.invoke('send-booking-sms', {
+                    body: {
+                      customerPhone: bookingData.guest_phone,
+                      customerName: bookingData.guest_name?.split(' ')[0] || 'Customer',
+                      serviceName: (bookingData.services as any)?.name || 'Detailing Service',
+                      scheduledDate: bookingData.scheduled_date,
+                      scheduledTime: bookingData.scheduled_time,
+                      serviceAddress: bookingData.service_address,
+                      serviceCity: bookingData.service_city,
+                      totalPrice: bookingData.total_price,
+                      bookingId: bookingData.id,
+                      notifyBusiness: true,
+                    },
+                  });
+                  logStep("SMS notification triggered");
+                }
+              } catch (smsErr) {
+                logStep("SMS trigger failed", { error: smsErr });
+              }
+            }
           }
 
           // Create payment record

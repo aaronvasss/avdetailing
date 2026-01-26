@@ -1,51 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Stripe price ID mappings for vehicle-based pricing
-export const STRIPE_PRICES = {
-  // Car Detailing
-  'car-detailing': {
-    'exterior-only': {
-      'car-suv5': 'price_1StkZEDr7pQ6grsf1VhiT3AU',
-      'large': 'price_1StkZRDr7pQ6grsfI5bC6WVM',
-    },
-    'basic': {
-      'car-suv5': 'price_1StkZVDr7pQ6grsfHdmp4F4O',
-      'large': 'price_1StkZWDr7pQ6grsfGADOhqQr',
-    },
-    'silver': {
-      'car': 'price_1StkZXDr7pQ6grsfeGniTRU9',
-      'suv5': 'price_1StkZYDr7pQ6grsfe5N9zF0Z',
-      'large': 'price_1StkZZDr7pQ6grsfTaVe5PWF',
-    },
-    'gold': {
-      'car-suv5': 'price_1StkZaDr7pQ6grsfFaNrktoq',
-      'large': 'price_1StkZaDr7pQ6grsf77CtIb2C',
-    },
-  },
-  // Paint Correction
-  'paint-correction': {
-    '1-step': {
-      'car-suv5': 'price_1StkZeDr7pQ6grsfftxc6r5c',
-      'large': 'price_1StkZgDr7pQ6grsfd2vwDbe7',
-    },
-    '2-step': {
-      'car-suv5': 'price_1StkZhDr7pQ6grsfE8zfDhFX',
-      'large': 'price_1StkZhDr7pQ6grsfTouLBojD',
-    },
-    '3-step': {
-      'car-suv5': 'price_1StkZjDr7pQ6grsfCaYR2dQG',
-      'large': 'price_1StkZkDr7pQ6grsfy261dgQF',
-    },
-  },
-  // Memberships
-  'memberships': {
-    'monthly': 'price_1StkZlDr7pQ6grsfOOWsn5r4',
-    'bi-weekly': 'price_1StkZmDr7pQ6grsf6C8Z95AG',
-    'weekly-premium': 'price_1StkZnDr7pQ6grsfhM02js70',
-  },
-};
-
-// Map vehicle sub-types to price categories
+// Map vehicle sub-types to price categories used in stripe_prices table
 export const getVehiclePriceCategory = (vehicleSubType: string): string => {
   const largeVehicles = ['suv-8', 'truck'];
   if (largeVehicles.includes(vehicleSubType)) return 'large';
@@ -54,52 +9,76 @@ export const getVehiclePriceCategory = (vehicleSubType: string): string => {
   return 'car-suv5';
 };
 
-// Get the appropriate Stripe price ID
-export const getStripePriceId = (
+// Map service type from booking flow to service_type in stripe_prices
+export const getStripeServiceType = (serviceType: string): string => {
+  const serviceTypeMap: Record<string, string> = {
+    'car': 'car-detailing',
+    'paint': 'paint-correction',
+  };
+  return serviceTypeMap[serviceType] || serviceType;
+};
+
+// Get Stripe price ID from database
+export const getStripePriceIdFromDb = async (
   serviceType: string,
   packageSlug: string,
   vehicleSubType: string
-): string | null => {
-  const servicePrices = STRIPE_PRICES[serviceType as keyof typeof STRIPE_PRICES];
-  if (!servicePrices) return null;
-
-  const packagePrices = servicePrices[packageSlug as keyof typeof servicePrices];
-  if (!packagePrices) return null;
-
-  // For memberships, return directly
-  if (typeof packagePrices === 'string') return packagePrices;
-
+): Promise<string | null> => {
+  const stripeServiceType = getStripeServiceType(serviceType);
   const vehicleCategory = getVehiclePriceCategory(vehicleSubType);
   
-  // Try exact match first
-  if (packagePrices[vehicleCategory as keyof typeof packagePrices]) {
-    return packagePrices[vehicleCategory as keyof typeof packagePrices] as string;
-  }
-  
-  // Fallback to car-suv5 category
-  if (packagePrices['car-suv5' as keyof typeof packagePrices]) {
-    return packagePrices['car-suv5' as keyof typeof packagePrices] as string;
+  // Query stripe_prices table for matching price
+  const { data: prices, error } = await supabase
+    .from('stripe_prices')
+    .select('stripe_price_id, vehicle_type')
+    .eq('service_type', stripeServiceType)
+    .eq('package_name', packageSlug)
+    .eq('is_active', true);
+
+  if (error || !prices || prices.length === 0) {
+    console.error('No Stripe price found:', { serviceType, packageSlug, vehicleSubType, error });
+    return null;
   }
 
-  return null;
+  // Try exact match first
+  const exactMatch = prices.find(p => p.vehicle_type === vehicleCategory);
+  if (exactMatch) return exactMatch.stripe_price_id;
+
+  // Try car-suv5 fallback
+  const fallback = prices.find(p => p.vehicle_type === 'car-suv5');
+  if (fallback) return fallback.stripe_price_id;
+
+  // Return first available
+  return prices[0]?.stripe_price_id || null;
 };
 
-// Create checkout session for booking
+// Memberships pricing (static for now)
+export const MEMBERSHIP_PRICES = {
+  'monthly': 'price_1StkZlDr7pQ6grsfOOWsn5r4',
+  'bi-weekly': 'price_1StkZmDr7pQ6grsf6C8Z95AG',
+  'weekly-premium': 'price_1StkZnDr7pQ6grsfhM02js70',
+};
+
+// Create checkout session for booking with redirect
 export const createBookingCheckout = async (
   bookingId: string,
   priceId: string,
   metadata?: Record<string, string>
-) => {
+): Promise<{ url: string; session_id: string }> => {
   const { data, error } = await supabase.functions.invoke('create-checkout', {
     body: {
       booking_id: bookingId,
       price_id: priceId,
       mode: 'payment',
+      success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${window.location.origin}/booking/canceled?booking_id=${bookingId}`,
       metadata,
     },
   });
 
   if (error) throw new Error(error.message);
+  if (!data?.url) throw new Error('No checkout URL returned');
+  
   return data;
 };
 
@@ -107,7 +86,7 @@ export const createBookingCheckout = async (
 export const createMembershipCheckout = async (
   membershipPlanId: string,
   priceId: string
-) => {
+): Promise<{ url: string; session_id: string }> => {
   const { data, error } = await supabase.functions.invoke('create-checkout', {
     body: {
       membership_plan_id: membershipPlanId,
@@ -119,6 +98,8 @@ export const createMembershipCheckout = async (
   });
 
   if (error) throw new Error(error.message);
+  if (!data?.url) throw new Error('No checkout URL returned');
+  
   return data;
 };
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Star, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { createMembershipCheckout, STRIPE_PRICES } from "@/lib/stripe";
+import { createMembershipCheckout, MEMBERSHIP_PRICES } from "@/lib/stripe";
 import { toast } from "sonner";
 
 interface MembershipPlan {
@@ -38,7 +38,7 @@ const fallbackPlans = [
       "Air freshener",
     ],
     is_popular: false,
-    stripe_price_id: STRIPE_PRICES.memberships.monthly,
+    stripe_price_id: MEMBERSHIP_PRICES.monthly,
   },
   {
     id: "bi-weekly",
@@ -56,7 +56,7 @@ const fallbackPlans = [
       "10% off all add-ons",
     ],
     is_popular: true,
-    stripe_price_id: STRIPE_PRICES.memberships['bi-weekly'],
+    stripe_price_id: MEMBERSHIP_PRICES['bi-weekly'],
   },
   {
     id: "weekly-premium",
@@ -75,7 +75,7 @@ const fallbackPlans = [
       "Dedicated detailing specialist",
     ],
     is_popular: false,
-    stripe_price_id: STRIPE_PRICES.memberships['weekly-premium'],
+    stripe_price_id: MEMBERSHIP_PRICES['weekly-premium'],
   },
 ];
 
@@ -159,7 +159,7 @@ const MembershipsPage = () => {
       return;
     }
 
-    const priceId = plan.stripe_price_id || STRIPE_PRICES.memberships[plan.slug as keyof typeof STRIPE_PRICES.memberships];
+    const priceId = plan.stripe_price_id || MEMBERSHIP_PRICES[plan.slug as keyof typeof MEMBERSHIP_PRICES];
     if (!priceId) {
       toast.error("Unable to process subscription. Please contact support.");
       return;
