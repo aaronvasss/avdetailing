@@ -6,11 +6,32 @@ const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(key);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  
+  if (record.count >= maxRequests) {
+    return false;
+  }
+  
+  record.count++;
+  return true;
+}
 
 // Format phone number to E.164
 function formatPhoneNumber(phone: string): string {
@@ -86,8 +107,69 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // 1. Extract and verify Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Missing authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. Create Supabase client with user's auth context for auth verification
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // 3. Verify user is authenticated using getClaims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userSupabase.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    const userEmail = claimsData.claims.email;
+
+    // 4. Check admin/staff role in user_roles table
+    const { data: roleData, error: roleError } = await userSupabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "staff"])
+      .maybeSingle();
+
+    if (roleError || !roleData) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden - Admin or staff access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Parse request body
     const body: ReminderRequest = await req.json();
+
+    // 6. Apply rate limiting based on operation type
+    const rateLimitKey = body.sendAll ? `reminder_all_${userId}` : `reminder_${userId}`;
+    const maxRequests = body.sendAll ? 2 : 20; // Stricter limit for mass sends
+    const windowMs = body.sendAll ? 300000 : 60000; // 5 min for sendAll, 1 min for single
+    
+    if (!checkRateLimit(rateLimitKey, maxRequests, windowMs)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded - Please wait before sending more reminders" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 7. Audit log
+    console.log(`Reminder SMS invoked by user ${userId} (${userEmail}), sendAll: ${body.sendAll}, bookingId: ${body.bookingId}`);
+
+    // Use service role client for database operations
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
     const results: any[] = [];
     const now = new Date();
@@ -98,7 +180,6 @@ const handler = async (req: Request): Promise<Response> => {
       tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowDate = tomorrow.toISOString().split("T")[0];
       
-      const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       const todayDate = now.toISOString().split("T")[0];
 
       // Fetch upcoming bookings that need reminders
@@ -175,6 +256,15 @@ We'll text when we're on our way!
         }
       }
     } else if (body.bookingId) {
+      // Validate bookingId format (UUID)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(body.bookingId)) {
+        return new Response(
+          JSON.stringify({ error: "Invalid booking ID format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Send reminder for specific booking
       const { data: booking, error } = await supabase
         .from("bookings")
@@ -234,6 +324,11 @@ We'll text when we're on our way!
         const result = await sendTwilioSms(phone, message);
         results.push({ bookingId: booking.id, ...result });
       }
+    } else {
+      return new Response(
+        JSON.stringify({ error: "Missing required field: bookingId or sendAll" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(

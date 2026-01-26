@@ -1,8 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 // Business phone for notifications
 const BUSINESS_PHONE = "+12255216264";
@@ -16,6 +19,26 @@ interface SendSmsRequest {
   to: string;
   message: string;
   type?: "booking_confirmation" | "reminder" | "custom";
+}
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(key);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  
+  if (record.count >= maxRequests) {
+    return false;
+  }
+  
+  record.count++;
+  return true;
 }
 
 // Format phone number to E.164
@@ -81,6 +104,59 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // 1. Extract and verify Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Missing authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. Create Supabase client with user's auth context
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // 3. Verify user is authenticated using getClaims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    const userEmail = claimsData.claims.email;
+
+    // 4. Check admin/staff role in user_roles table
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "staff"])
+      .maybeSingle();
+
+    if (roleError || !roleData) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden - Admin or staff access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 5. Apply rate limiting (10 SMS per minute per user)
+    const rateLimitKey = `sms_${userId}`;
+    if (!checkRateLimit(rateLimitKey, 10, 60000)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded - Please wait before sending more messages" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 6. Parse and validate request body
     const body: SendSmsRequest = await req.json();
     
     if (!body.to || !body.message) {
@@ -97,6 +173,18 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate message length
+    if (body.message.length > 1600) {
+      return new Response(
+        JSON.stringify({ error: "Message too long (max 1600 characters)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 7. Audit log
+    console.log(`SMS sent by user ${userId} (${userEmail}) to ${formatPhoneNumber(body.to)}`);
+
+    // 8. Send the SMS
     const result = await sendTwilioSms(body.to, body.message);
 
     if (!result.success) {
