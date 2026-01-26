@@ -65,6 +65,7 @@ serve(async (req) => {
             .update({
               status: "confirmed",
               payment_status: "paid",
+              payment_method: "online",
               stripe_payment_intent_id: session.payment_intent as string,
               stripe_checkout_session_id: session.id,
             })
@@ -83,6 +84,7 @@ serve(async (req) => {
               vehicle_type,
               vehicle_make,
               vehicle_model,
+              manage_token,
               services (name)
             `)
             .single();
@@ -113,6 +115,7 @@ serve(async (req) => {
                     vehicleType: bookingData.vehicle_type,
                     totalPrice: bookingData.total_price,
                     bookingId: bookingData.id,
+                    manageToken: bookingData.manage_token,
                   },
                 });
                 logStep("Confirmation email triggered");
@@ -266,6 +269,46 @@ serve(async (req) => {
 
         if (error) {
           logStep("Error marking subscription cancelled", { error });
+        }
+        break;
+      }
+
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const bookingId = session.metadata?.booking_id;
+        logStep("Checkout session expired", { sessionId: session.id, bookingId });
+
+        if (bookingId) {
+          // Keep booking as pending_payment for admin review
+          await supabase
+            .from("bookings")
+            .update({ 
+              payment_status: "expired"
+            })
+            .eq("id", bookingId)
+            .eq("status", "pending_payment");
+          logStep("Booking marked as payment expired", { bookingId });
+        }
+        break;
+      }
+
+      case "payment_intent.payment_failed": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        logStep("Payment failed", { id: paymentIntent.id });
+        
+        // Find booking by payment intent if exists
+        const { data: booking } = await supabase
+          .from("bookings")
+          .select("id")
+          .eq("stripe_payment_intent_id", paymentIntent.id)
+          .maybeSingle();
+
+        if (booking) {
+          await supabase
+            .from("bookings")
+            .update({ payment_status: "failed" })
+            .eq("id", booking.id);
+          logStep("Booking marked as payment failed", { bookingId: booking.id });
         }
         break;
       }

@@ -145,6 +145,7 @@ export type Database = {
           internal_notes: string | null
           manage_token: string | null
           membership_id: string | null
+          payment_method: string | null
           payment_status: string | null
           scheduled_date: string
           scheduled_time: string
@@ -182,6 +183,7 @@ export type Database = {
           internal_notes?: string | null
           manage_token?: string | null
           membership_id?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           scheduled_date: string
           scheduled_time: string
@@ -219,6 +221,7 @@ export type Database = {
           internal_notes?: string | null
           manage_token?: string | null
           membership_id?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           scheduled_date?: string
           scheduled_time?: string

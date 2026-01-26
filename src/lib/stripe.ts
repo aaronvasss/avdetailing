@@ -66,15 +66,15 @@ export const MEMBERSHIP_PRICES = {
 // Create checkout session for booking with redirect
 export const createBookingCheckout = async (
   bookingId: string,
-  priceId: string,
+  priceId?: string,
   metadata?: Record<string, string>
 ): Promise<{ url: string; session_id: string }> => {
   const { data, error } = await supabase.functions.invoke('create-checkout', {
     body: {
       booking_id: bookingId,
-      price_id: priceId,
+      price_id: priceId || undefined, // Backend will look up from database if not provided
       mode: 'payment',
-      success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
       cancel_url: `${window.location.origin}/booking/canceled?booking_id=${bookingId}`,
       metadata,
     },
