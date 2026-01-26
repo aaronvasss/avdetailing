@@ -1,6 +1,6 @@
 import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
 import paintCorrectionImage from "@/assets/paint-correction-service.jpg";
-import polisherIcon from "@/assets/icons/polisher-icon.png";
+import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 
 const PaintCorrectionPage = () => {
   return (
@@ -9,7 +9,7 @@ const PaintCorrectionPage = () => {
       location="Expert Paint Correction & Buffing in Baton Rouge, Louisiana"
       description="Remove swirl marks, scratches, oxidation, and water spots to restore your vehicle's paint to like-new clarity and depth. Professional multi-stage correction."
       heroImage={paintCorrectionImage}
-      icon={<img src={polisherIcon} alt="Paint Correction" className="h-6 w-6 brightness-0 invert" style={{ filter: 'invert(28%) sepia(95%) saturate(5524%) hue-rotate(354deg) brightness(95%) contrast(128%)' }} />}
+      icon={<img src={polisherIcon} alt="Paint Correction" className="h-10 w-10 object-contain" />}
       timeEstimate="4-12 hours"
       idealFor={[
         "Vehicles with swirl marks from improper washing",
@@ -22,7 +22,7 @@ const PaintCorrectionPage = () => {
       packages={[
         {
           name: "1-Step Polish",
-          price: "$249+",
+          price: "$400+",
           description: "Light correction",
           features: [
             "Single-stage machine polish",
@@ -31,11 +31,12 @@ const PaintCorrectionPage = () => {
             "Surface decontamination",
             "Wax or sealant finish",
             "Best for well-maintained paint",
+            "Car/SUV: $400 | Truck/Large: $450",
           ],
         },
         {
           name: "2-Step Correction",
-          price: "$449+",
+          price: "$550+",
           description: "Moderate correction",
           features: [
             "Compound & polish stages",
@@ -45,12 +46,13 @@ const PaintCorrectionPage = () => {
             "Clay bar decontamination",
             "6-month sealant protection",
             "Before/after documentation",
+            "Car/SUV: $550 | Truck/Large: $600",
           ],
           popular: true,
         },
         {
           name: "3-Step Restoration",
-          price: "$699+",
+          price: "$800+",
           description: "Full paint restoration",
           features: [
             "Multi-stage correction process",
@@ -61,6 +63,7 @@ const PaintCorrectionPage = () => {
             "Premium sealant protection",
             "Paint depth readings",
             "Detailed documentation",
+            "Car/SUV: $800 | Truck/Large: $900",
           ],
         },
       ]}

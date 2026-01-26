@@ -5,7 +5,7 @@ import rvDetailingImage from "@/assets/rv-detailing.jpg";
 import carDetailingImage from "@/assets/car-detailing-service.jpg";
 import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
 import paintCorrectionImage from "@/assets/paint-correction-service.jpg";
-import polisherIcon from "@/assets/icons/polisher-icon.png";
+import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 
 const services = [
   {
@@ -105,8 +105,7 @@ export function ServicesSection() {
                       <img 
                         src={service.customIcon} 
                         alt="" 
-                        className="h-5 w-5" 
-                        style={{ filter: 'invert(28%) sepia(95%) saturate(5524%) hue-rotate(354deg) brightness(95%) contrast(128%)' }} 
+                        className="h-6 w-6 object-contain" 
                       />
                     ) : (
                       service.icon && <service.icon className="h-5 w-5 text-primary" />

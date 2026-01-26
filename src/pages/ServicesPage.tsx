@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Car, Droplets, Disc3, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
+import { Car, Droplets, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
+import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 
 const services = [
   {
@@ -19,11 +20,12 @@ const services = [
     startingPrice: "$499",
   },
   {
-    icon: Disc3,
+    icon: null,
+    customIcon: polisherIcon,
     title: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth.",
     href: "/services/paint-correction",
-    startingPrice: "$249",
+    startingPrice: "$400",
   },
   {
     icon: Ship,
@@ -80,7 +82,11 @@ const ServicesPage = () => {
                 className="group flex flex-col md:flex-row md:items-center gap-6 p-6 bg-card rounded-xl border border-border hover:border-primary/50 transition-all duration-300"
               >
                 <div className="p-4 bg-primary/10 rounded-xl shrink-0 w-fit">
-                  <service.icon className="h-8 w-8 text-primary" />
+                  {service.customIcon ? (
+                    <img src={service.customIcon} alt="" className="h-8 w-8 object-contain" />
+                  ) : (
+                    service.icon && <service.icon className="h-8 w-8 text-primary" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
