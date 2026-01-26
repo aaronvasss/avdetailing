@@ -10,13 +10,16 @@ import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
 import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert, Calendar, Clock, MapPin, Phone, Mail, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { Calendar, Clock, MapPin, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PhotoUploader } from "@/components/photos/PhotoUploader";
+import { PhotoGallery } from "@/components/photos/PhotoGallery";
+import { usePhotoUpload } from "@/hooks/usePhotoUpload";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BookingDetails {
   id: string;
@@ -44,6 +47,8 @@ export default function AdminPage() {
   const [replyPhone, setReplyPhone] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
   const [sendingSms, setSendingSms] = useState(false);
+  const [bookingPhotos, setBookingPhotos] = useState<any[]>([]);
+  const { getBookingPhotos, deletePhoto } = usePhotoUpload();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -63,8 +68,26 @@ export default function AdminPage() {
     return booking.profiles?.email || booking.guest_email || null;
   };
 
-  const handleViewBooking = (booking: any) => {
+  const handleViewBooking = async (booking: any) => {
     setSelectedBooking(booking);
+    // Load photos for this booking
+    const photos = await getBookingPhotos(booking.id);
+    setBookingPhotos(photos);
+  };
+
+  const handlePhotosChange = async () => {
+    if (selectedBooking) {
+      const photos = await getBookingPhotos(selectedBooking.id);
+      setBookingPhotos(photos);
+    }
+  };
+
+  const handleDeletePhoto = async (photo: any) => {
+    if (!photo.id) return;
+    const success = await deletePhoto("booking-photos", photo.storage_path, photo.id);
+    if (success) {
+      setBookingPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+    }
   };
 
   const handleTextCustomer = (phone: string) => {
@@ -185,8 +208,8 @@ export default function AdminPage() {
       </AdminLayout>
 
       {/* Booking Details Dialog */}
-      <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-        <DialogContent className="max-w-md">
+      <Dialog open={!!selectedBooking} onOpenChange={() => { setSelectedBooking(null); setBookingPhotos([]); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Booking Details</DialogTitle>
           </DialogHeader>
@@ -249,6 +272,64 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+
+              {/* Photos Section */}
+              {isAdmin && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium flex items-center gap-2 mb-3">
+                    <Camera className="h-4 w-4" />
+                    Photos
+                  </h4>
+                  <Tabs defaultValue="before" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-3">
+                      <TabsTrigger value="before">
+                        Before ({bookingPhotos.filter(p => p.photoType === "before").length})
+                      </TabsTrigger>
+                      <TabsTrigger value="after">
+                        After ({bookingPhotos.filter(p => p.photoType === "after").length})
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="before" className="space-y-3">
+                      <PhotoUploader
+                        bucket="booking-photos"
+                        bookingId={selectedBooking.id}
+                        photoType="before"
+                        onUploadComplete={handlePhotosChange}
+                        maxFiles={10}
+                        compact
+                      />
+                      {bookingPhotos.filter(p => p.photoType === "before").length > 0 && (
+                        <PhotoGallery
+                          photos={bookingPhotos.filter(p => p.photoType === "before")}
+                          onDelete={handleDeletePhoto}
+                          editable
+                          showType={false}
+                          columns={4}
+                        />
+                      )}
+                    </TabsContent>
+                    <TabsContent value="after" className="space-y-3">
+                      <PhotoUploader
+                        bucket="booking-photos"
+                        bookingId={selectedBooking.id}
+                        photoType="after"
+                        onUploadComplete={handlePhotosChange}
+                        maxFiles={10}
+                        compact
+                      />
+                      {bookingPhotos.filter(p => p.photoType === "after").length > 0 && (
+                        <PhotoGallery
+                          photos={bookingPhotos.filter(p => p.photoType === "after")}
+                          onDelete={handleDeletePhoto}
+                          editable
+                          showType={false}
+                          columns={4}
+                        />
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
               <div className="border-t pt-4 flex gap-2">
                 {getCustomerPhone(selectedBooking) && (
                   <Button 

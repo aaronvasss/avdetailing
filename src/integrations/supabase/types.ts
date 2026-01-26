@@ -91,6 +91,44 @@ export type Database = {
           },
         ]
       }
+      booking_photos: {
+        Row: {
+          booking_id: string
+          caption: string | null
+          created_at: string
+          id: string
+          photo_type: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          booking_id: string
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          booking_id?: string
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_photos_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           add_ons_total: number | null
