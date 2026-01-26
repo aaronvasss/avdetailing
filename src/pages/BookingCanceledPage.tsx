@@ -1,10 +1,13 @@
-import { Link } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { XCircle, ArrowLeft, Phone } from "lucide-react";
+import { XCircle, ArrowLeft, Phone, RotateCcw } from "lucide-react";
 
 export default function BookingCanceledPage() {
+  const [searchParams] = useSearchParams();
+  const bookingId = searchParams.get("booking_id");
+
   return (
     <Layout>
       <div className="section-padding">
@@ -26,9 +29,9 @@ export default function BookingCanceledPage() {
                   feel free to reach out to us.
                 </p>
                 <Button variant="outline" asChild>
-                  <a href="tel:+15043001234">
+                  <a href="tel:+12255216264">
                     <Phone className="mr-2 h-4 w-4" />
-                    Call Us
+                    Call (225) 521-6264
                   </a>
                 </Button>
               </div>
@@ -42,10 +45,17 @@ export default function BookingCanceledPage() {
                 </Button>
                 <Button asChild className="flex-1">
                   <Link to="/book">
-                    Try Again
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Start New Booking
                   </Link>
                 </Button>
               </div>
+
+              {bookingId && (
+                <p className="text-center text-xs text-muted-foreground">
+                  Reference: {bookingId.slice(0, 8)}
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

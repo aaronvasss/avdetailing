@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ import {
   getWorkingHoursDisplay,
   formatDuration
 } from "@/lib/scheduling";
+import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -520,6 +521,38 @@ const BookingPage = () => {
 
       setBookingId(createdId);
 
+      // Get Stripe price ID for this service/package/vehicle combination
+      const stripePriceId = await getStripePriceIdFromDb(serviceType, selectedPackage, vehicleSubType);
+      
+      if (stripePriceId) {
+        // Redirect to Stripe Checkout for payment
+        toast.loading("Redirecting to payment...");
+        
+        try {
+          const checkoutResult = await createBookingCheckout(createdId, stripePriceId, {
+            customer_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+            customer_email: user?.email || customerInfo.email,
+            service_name: serviceName,
+            vehicle_type: vehicleTypeLabel,
+          });
+
+          if (checkoutResult?.url) {
+            // Redirect to Stripe Checkout
+            window.location.href = checkoutResult.url;
+            return; // Exit early, user will be redirected
+          }
+        } catch (checkoutError) {
+          console.error("Stripe checkout error:", checkoutError);
+          // Continue with non-payment flow if Stripe fails
+          toast.dismiss();
+          toast.warning("Payment processing unavailable. We'll contact you to arrange payment.");
+        }
+      } else {
+        console.log("No Stripe price found for:", { serviceType, selectedPackage, vehicleSubType });
+        // For services without Stripe prices (boat, RV, etc.), show success without payment
+      }
+
+      // Fallback: Send confirmation emails/SMS and show success (for non-Stripe bookings)
       try {
         const selectedAddOnDetails = selectedAddOns.map(id => {
           const addon = addOns.find(a => a.id === id);
@@ -570,7 +603,7 @@ const BookingPage = () => {
       }
 
       clearRateLimit('booking-form');
-      toast.success("Booking confirmed! Check your email for details.");
+      toast.success("Booking request received! We'll contact you to confirm and arrange payment.");
       setStep(6);
     } catch (error: any) {
       console.error("Booking error:", error);
