@@ -21,6 +21,8 @@ import ServiceAreasPage from "./pages/ServiceAreasPage";
 import BookingPage from "./pages/BookingPage";
 import BookingManagePage from "@/pages/BookingManagePage";
 import BookingCancelPage from "@/pages/BookingCancelPage";
+import BookingSuccessPage from "./pages/BookingSuccessPage";
+import BookingCanceledPage from "./pages/BookingCanceledPage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
@@ -51,6 +53,8 @@ const App = () => (
           <Route path="/book" element={<BookingPage />} />
           <Route path="/booking/manage" element={<BookingManagePage />} />
           <Route path="/booking/cancel" element={<BookingCancelPage />} />
+          <Route path="/booking/success" element={<BookingSuccessPage />} />
+          <Route path="/booking/canceled" element={<BookingCanceledPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/admin" element={<AdminPage />} />

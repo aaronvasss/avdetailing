@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Calendar, Car, ArrowRight } from "lucide-react";
+import { CreditCard, Calendar, Car, ArrowRight, Loader2, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { openCustomerPortal } from "@/lib/stripe";
 
 interface MembershipsTabProps {
   userId: string;
@@ -39,6 +41,7 @@ const statusColors: Record<string, string> = {
 export function MembershipsTab({ userId }: MembershipsTabProps) {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     fetchMemberships();
@@ -62,6 +65,18 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
       setMemberships(data);
     }
     setLoading(false);
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      await openCustomerPortal();
+    } catch (err) {
+      console.error("Error opening customer portal:", err);
+      toast.error("Unable to open subscription management. Please try again.");
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   if (loading) {
@@ -158,11 +173,21 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                   )}
 
                   <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleManageSubscription}
+                      disabled={portalLoading}
+                    >
+                      {portalLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                      )}
                       Manage Subscription
                     </Button>
-                    <Button variant="ghost" size="sm">
-                      Schedule Next Visit
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to="/book">Schedule Next Visit</Link>
                     </Button>
                   </div>
                 </CardContent>
