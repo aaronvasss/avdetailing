@@ -1,11 +1,29 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Check, Star, ArrowRight, Phone } from "lucide-react";
+import { Check, Star, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { createMembershipCheckout, STRIPE_PRICES } from "@/lib/stripe";
+import { toast } from "sonner";
 
-const plans = [
+interface MembershipPlan {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  frequency: string;
+  description: string | null;
+  features: string[] | null;
+  is_popular: boolean | null;
+  stripe_price_id: string | null;
+}
+
+const fallbackPlans = [
   {
+    id: "monthly",
+    slug: "monthly",
     name: "Monthly Maintenance",
     frequency: "1 visit per month",
     price: 135,
@@ -19,9 +37,12 @@ const plans = [
       "Dashboard & console conditioning",
       "Air freshener",
     ],
-    popular: false,
+    is_popular: false,
+    stripe_price_id: STRIPE_PRICES.memberships.monthly,
   },
   {
+    id: "bi-weekly",
+    slug: "bi-weekly",
     name: "Bi-Weekly Maintenance",
     frequency: "2 visits per month",
     price: 260,
@@ -34,9 +55,12 @@ const plans = [
       "Priority scheduling",
       "10% off all add-ons",
     ],
-    popular: true,
+    is_popular: true,
+    stripe_price_id: STRIPE_PRICES.memberships['bi-weekly'],
   },
   {
+    id: "weekly-premium",
+    slug: "weekly-premium",
     name: "Weekly Premium",
     frequency: "4 visits per month",
     price: 520,
@@ -50,9 +74,16 @@ const plans = [
       "Includes one free add-on per month",
       "Dedicated detailing specialist",
     ],
-    popular: false,
+    is_popular: false,
+    stripe_price_id: STRIPE_PRICES.memberships['weekly-premium'],
   },
 ];
+
+const savingsMap: Record<string, string> = {
+  "monthly": "Save $30/month vs. one-time",
+  "bi-weekly": "Save $109/month vs. one-time",
+  "weekly-premium": "Save $217/month vs. one-time",
+};
 
 const faqs = [
   {
@@ -74,6 +105,80 @@ const faqs = [
 ];
 
 const MembershipsPage = () => {
+  const [searchParams] = useSearchParams();
+  const [plans, setPlans] = useState<(MembershipPlan & { savings?: string })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    fetchPlans();
+    checkAuth();
+    
+    // Check for canceled param
+    if (searchParams.get("canceled") === "true") {
+      toast.info("Subscription checkout was canceled");
+    }
+  }, [searchParams]);
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
+
+  const fetchPlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("membership_plans")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order");
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setPlans(data.map(plan => ({
+          ...plan,
+          savings: savingsMap[plan.slug] || "",
+        })));
+      } else {
+        setPlans(fallbackPlans);
+      }
+    } catch (err) {
+      console.error("Error fetching plans:", err);
+      setPlans(fallbackPlans);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubscribe = async (plan: MembershipPlan & { savings?: string }) => {
+    if (!user) {
+      toast.error("Please sign in to subscribe to a membership");
+      window.location.href = "/auth?redirect=/memberships";
+      return;
+    }
+
+    const priceId = plan.stripe_price_id || STRIPE_PRICES.memberships[plan.slug as keyof typeof STRIPE_PRICES.memberships];
+    if (!priceId) {
+      toast.error("Unable to process subscription. Please contact support.");
+      return;
+    }
+
+    setSubscribingPlanId(plan.id);
+    try {
+      const result = await createMembershipCheckout(plan.id, priceId);
+      if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast.error("Unable to start checkout. Please try again.");
+    } finally {
+      setSubscribingPlanId(null);
+    }
+  };
+
   return (
     <Layout>
       {/* Hero */}
@@ -97,62 +202,78 @@ const MembershipsPage = () => {
       {/* Plans */}
       <section className="section-padding bg-background">
         <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={cn(
-                  "relative rounded-2xl p-8 flex flex-col",
-                  plan.popular
-                    ? "bg-gradient-to-b from-primary/10 to-card border-2 border-primary scale-105"
-                    : "bg-card border border-border"
-                )}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <div className="flex items-center gap-1 px-4 py-1 bg-primary text-primary-foreground text-sm font-medium rounded-full">
-                      <Star className="h-4 w-4 fill-current" />
-                      Most Popular
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={cn(
+                    "relative rounded-2xl p-8 flex flex-col",
+                    plan.is_popular
+                      ? "bg-gradient-to-b from-primary/10 to-card border-2 border-primary scale-105"
+                      : "bg-card border border-border"
+                  )}
+                >
+                  {plan.is_popular && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                      <div className="flex items-center gap-1 px-4 py-1 bg-primary text-primary-foreground text-sm font-medium rounded-full">
+                        <Star className="h-4 w-4 fill-current" />
+                        Most Popular
+                      </div>
                     </div>
+                  )}
+
+                  <div className="text-center mb-8">
+                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{plan.frequency}</p>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-5xl font-bold">${plan.price}</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
+                    {plan.savings && (
+                      <p className="text-sm text-primary font-medium mt-2">{plan.savings}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground mt-4">{plan.description}</p>
                   </div>
-                )}
 
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{plan.frequency}</p>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold">${plan.price}</span>
-                    <span className="text-muted-foreground">/month</span>
+                  <ul className="space-y-4 mb-8 flex-grow">
+                    {plan.features?.map((feature) => (
+                      <li key={feature} className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-auto">
+                    <Button
+                      className={cn("w-full", plan.is_popular && "glow-red")}
+                      variant={plan.is_popular ? "default" : "outline"}
+                      size="lg"
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={subscribingPlanId === plan.id}
+                    >
+                      {subscribingPlanId === plan.id ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Subscribe Now
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  <p className="text-sm text-primary font-medium mt-2">{plan.savings}</p>
-                  <p className="text-sm text-muted-foreground mt-4">{plan.description}</p>
                 </div>
-
-                <ul className="space-y-4 mb-8 flex-grow">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-auto">
-                  <Button
-                    asChild
-                    className={cn("w-full", plan.popular && "glow-red")}
-                    variant={plan.popular ? "default" : "outline"}
-                    size="lg"
-                  >
-                    <Link to="/book">
-                      Get Started
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <p className="text-center text-sm text-muted-foreground mt-12">
             All memberships include free cancellation anytime. No long-term contracts. 
@@ -170,7 +291,7 @@ const MembershipsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
             {[
               { step: 1, title: "Choose Your Plan", desc: "Select the frequency that fits your lifestyle" },
-              { step: 2, title: "Set Your Schedule", desc: "Pick your preferred day and time window" },
+              { step: 2, title: "Complete Payment", desc: "Secure checkout through Stripe" },
               { step: 3, title: "We Show Up", desc: "Our team arrives on schedule, every time" },
               { step: 4, title: "Enjoy the Shine", desc: "Your vehicle stays pristine year-round" },
             ].map((item) => (
@@ -213,12 +334,6 @@ const MembershipsPage = () => {
             Start your membership today and enjoy a consistently pristine vehicle without the hassle.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" className="glow-red">
-              <Link to="/book">
-                Choose Your Plan
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
             <Button asChild variant="outline" size="lg">
               <a href="tel:+12255216264">
                 <Phone className="mr-2 h-5 w-5" />
