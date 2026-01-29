@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Phone } from "lucide-react";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 
 export function CTASection() {
+  const { settings } = useBusinessSettings();
+
   return (
     <section className="section-padding bg-gradient-to-br from-primary/10 via-background to-background relative overflow-hidden">
       {/* Background Pattern */}
@@ -35,9 +38,9 @@ export function CTASection() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg h-14 px-10">
-              <a href="tel:+12255216264">
+              <a href={`tel:${settings.publicBusinessPhoneE164}`}>
                 <Phone className="mr-2 h-5 w-5" />
-                Call (225) 521-6264
+                Call {settings.publicBusinessPhone}
               </a>
             </Button>
           </div>
