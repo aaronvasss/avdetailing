@@ -16,6 +16,7 @@ import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
 import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
+import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { Loader2, ShieldAlert, Calendar, Clock, MapPin, Phone, Mail, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -184,6 +185,8 @@ export default function AdminPage() {
         return <AdminRemindersTab />;
       case "sms-debug":
         return isAdmin ? <AdminSmsDebugTab /> : null;
+      case "settings":
+        return isAdmin ? <AdminSettingsTab /> : null;
       default:
         return null;
     }
@@ -204,6 +207,7 @@ export default function AdminPage() {
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
       case "sms-debug": return "SMS Debug Tools";
+      case "settings": return "Business Settings";
       default: return "Admin Dashboard";
     }
   };
@@ -232,6 +236,7 @@ export default function AdminPage() {
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
             {currentTab === "sms-debug" && "Test and debug SMS functionality"}
+            {currentTab === "settings" && "Manage phone numbers, emails, and business configuration"}
           </p>
         </div>
         {renderTab()}
