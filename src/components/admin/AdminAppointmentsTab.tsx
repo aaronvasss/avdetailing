@@ -42,9 +42,12 @@ import {
   Download,
   Loader2,
   ExternalLink,
+  Pencil,
+  RotateCcw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { BookingEditDialog } from "./BookingEditDialog";
 
 interface Booking {
   id: string;
@@ -52,10 +55,16 @@ interface Booking {
   scheduled_time: string;
   status: string;
   payment_status: string;
+  payment_method: string | null;
   total_price: number | null;
+  subtotal: number | null;
+  add_ons_total: number | null;
+  deposit_amount: number | null;
   vehicle_type: string | null;
   vehicle_make: string | null;
   vehicle_model: string | null;
+  vehicle_year: number | null;
+  vehicle_size: string | null;
   service_address: string | null;
   service_city: string | null;
   service_state: string | null;
@@ -65,7 +74,11 @@ interface Booking {
   guest_email: string | null;
   duration_minutes: number | null;
   customer_notes: string | null;
+  internal_notes: string | null;
   user_id: string | null;
+  service_id: string;
+  stripe_payment_intent_id: string | null;
+  stripe_checkout_session_id: string | null;
   services: { name: string; slug: string } | null;
   profile_name?: string | null;
   profile_phone?: string | null;
@@ -98,6 +111,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
     to: undefined,
   });
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [services, setServices] = useState<{ id: string; name: string; slug: string }[]>([]);
 
   useEffect(() => {
@@ -486,6 +500,16 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                     )}
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Edit Booking"
+                            onClick={() => setEditingBooking(booking)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -640,6 +664,18 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
 
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedBooking(null);
+                      setEditingBooking(selectedBooking);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                )}
                 <Button
                   className="flex-1"
                   onClick={() => window.open(generateGoogleCalendarLink(selectedBooking), "_blank")}
@@ -660,6 +696,15 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Booking Edit Dialog */}
+      <BookingEditDialog
+        booking={editingBooking}
+        open={!!editingBooking}
+        onOpenChange={(open) => !open && setEditingBooking(null)}
+        onSave={fetchBookings}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }

@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { WORKING_HOURS, BUFFER_MINUTES, formatDuration } from "@/lib/scheduling";
+import { WORKING_HOURS, BUFFER_MINUTES, formatDuration, PACKAGE_DURATIONS } from "@/lib/scheduling";
 
 interface Booking {
   id: string;
@@ -341,21 +341,33 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                             isToday(day) && "bg-primary/5"
                           )}
                         >
-                          {dayBookings.map((booking) => (
-                            <button
-                              key={booking.id}
-                              onClick={() => setSelectedBooking(booking)}
-                              className={cn(
-                                "w-full text-left p-1.5 rounded text-xs border-l-2 mb-1 hover:opacity-80 transition-opacity truncate",
-                                getServiceColorClass(booking.services?.slug)
-                              )}
-                            >
-                              <div className="font-medium truncate">{getCustomerName(booking)}</div>
-                              <div className="text-muted-foreground truncate">
-                                {booking.scheduled_time.slice(0, 5)} • {booking.services?.name}
+                          {dayBookings.map((booking) => {
+                            // Calculate duration for buffer visualization
+                            const duration = PACKAGE_DURATIONS[booking.services?.slug || ""] || 120;
+                            const bufferHeight = 4; // Fixed small indicator for buffer
+                            
+                            return (
+                              <div key={booking.id} className="mb-1">
+                                <button
+                                  onClick={() => setSelectedBooking(booking)}
+                                  className={cn(
+                                    "w-full text-left p-1.5 rounded text-xs border-l-2 hover:opacity-80 transition-opacity truncate",
+                                    getServiceColorClass(booking.services?.slug)
+                                  )}
+                                >
+                                  <div className="font-medium truncate">{getCustomerName(booking)}</div>
+                                  <div className="text-muted-foreground truncate">
+                                    {booking.scheduled_time.slice(0, 5)} • {booking.services?.name}
+                                  </div>
+                                </button>
+                                {/* Buffer indicator */}
+                                <div 
+                                  className="w-full h-1 bg-amber-400/50 rounded-sm mt-0.5" 
+                                  title={`30 min buffer after appointment`}
+                                />
                               </div>
-                            </button>
-                          ))}
+                            );
+                          })}
                         </div>
                       );
                     })}
@@ -379,34 +391,44 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                       {time}
                     </div>
                     <div className="flex-1 p-2 space-y-2">
-                      {hourBookings.map((booking) => (
-                        <button
-                          key={booking.id}
-                          onClick={() => setSelectedBooking(booking)}
-                          className={cn(
-                            "w-full text-left p-3 rounded-lg border-l-4 hover:opacity-80 transition-opacity",
-                            getServiceColorClass(booking.services?.slug)
-                          )}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="font-medium">{getCustomerName(booking)}</div>
-                            <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
-                              {booking.status}
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {booking.scheduled_time.slice(0, 5)} • {booking.services?.name} • {booking.vehicle_type}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {booking.service_address}, {booking.service_city}
-                          </div>
-                          {isAdmin && (
-                            <div className="text-sm font-medium text-primary mt-1">
-                              ${booking.total_price?.toFixed(0)}
+                      {hourBookings.map((booking) => {
+                        const duration = PACKAGE_DURATIONS[booking.services?.slug || ""] || 120;
+                        return (
+                          <div key={booking.id}>
+                            <button
+                              onClick={() => setSelectedBooking(booking)}
+                              className={cn(
+                                "w-full text-left p-3 rounded-lg border-l-4 hover:opacity-80 transition-opacity",
+                                getServiceColorClass(booking.services?.slug)
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="font-medium">{getCustomerName(booking)}</div>
+                                <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
+                                  {booking.status}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-muted-foreground mt-1">
+                                {booking.scheduled_time.slice(0, 5)} • {booking.services?.name} • {booking.vehicle_type}
+                                <span className="ml-2 text-xs">({formatDuration(duration)})</span>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {booking.service_address}, {booking.service_city}
+                              </div>
+                              {isAdmin && (
+                                <div className="text-sm font-medium text-primary mt-1">
+                                  ${booking.total_price?.toFixed(0)}
+                                </div>
+                              )}
+                            </button>
+                            {/* Buffer time indicator */}
+                            <div className="flex items-center gap-1 mt-1 ml-4">
+                              <div className="h-1.5 w-16 bg-amber-400/60 rounded-full" />
+                              <span className="text-xs text-muted-foreground">+30m buffer</span>
                             </div>
-                          )}
-                        </button>
-                      ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
