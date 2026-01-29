@@ -3,15 +3,41 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+// Default settings
+const DEFAULT_SMS_SENDER = "+12252394617";
+const DEFAULT_PUBLIC_PHONE = "(225) 521-6264";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Fetch business settings from database
+async function getBusinessSettings(supabase: any): Promise<{ smsSenderPhone: string; publicPhone: string }> {
+  try {
+    const { data } = await supabase
+      .from("business_settings")
+      .select("key, value")
+      .in("key", ["sms_sender_phone", "public_business_phone"]);
+
+    const settings = (data || []).reduce((acc: Record<string, string>, item: any) => {
+      acc[item.key] = item.value;
+      return acc;
+    }, {});
+
+    return {
+      smsSenderPhone: settings.sms_sender_phone || DEFAULT_SMS_SENDER,
+      publicPhone: settings.public_business_phone || DEFAULT_PUBLIC_PHONE,
+    };
+  } catch (error) {
+    console.error("Error fetching business settings:", error);
+    return { smsSenderPhone: DEFAULT_SMS_SENDER, publicPhone: DEFAULT_PUBLIC_PHONE };
+  }
+}
 
 // In-memory rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -60,14 +86,14 @@ function formatDate(dateStr: string): string {
 }
 
 // Send SMS via Twilio
-async function sendTwilioSms(to: string, body: string): Promise<{ success: boolean; sid?: string; error?: string }> {
+async function sendTwilioSms(to: string, body: string, fromNumber: string): Promise<{ success: boolean; sid?: string; error?: string }> {
   const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
   
   const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
   
   const formData = new URLSearchParams();
   formData.append("To", formatPhoneNumber(to));
-  formData.append("From", TWILIO_PHONE_NUMBER);
+  formData.append("From", fromNumber);
   formData.append("Body", body);
 
   try {
@@ -171,6 +197,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Use service role client for database operations
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
+    // Fetch business settings
+    const { smsSenderPhone, publicPhone } = await getBusinessSettings(supabase);
+    
     const results: any[] = [];
     const now = new Date();
     
@@ -228,7 +257,7 @@ Your AV Detailing appointment is TOMORROW:
 ✅ Clear the area around the vehicle
 ✅ Remove personal items
 
-Questions? Reply or call (225) 521-6264.
+Questions? Reply or call ${publicPhone}.
 
 See you soon!
 -AV Detailing`;
@@ -246,7 +275,7 @@ We'll text when we're on our way!
         }
 
         if (message) {
-          const result = await sendTwilioSms(phone, message);
+          const result = await sendTwilioSms(phone, message, smsSenderPhone);
           results.push({
             bookingId: booking.id,
             reminderType,
@@ -305,7 +334,7 @@ Your AV Detailing appointment is TOMORROW:
 ✅ Clear the area around the vehicle
 ✅ Remove personal items
 
-Questions? Reply or call (225) 521-6264.
+Questions? Reply or call ${publicPhone}.
 
 See you soon!
 -AV Detailing`;
@@ -321,7 +350,7 @@ We'll text when we're on our way!
       }
 
       if (message) {
-        const result = await sendTwilioSms(phone, message);
+        const result = await sendTwilioSms(phone, message, smsSenderPhone);
         results.push({ bookingId: booking.id, ...result });
       }
     } else {

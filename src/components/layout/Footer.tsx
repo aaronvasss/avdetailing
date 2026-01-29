@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
+import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 
 const services = [
   { name: "Car Detailing", href: "/services/car-detailing" },
@@ -29,6 +30,7 @@ const serviceAreas = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const { settings } = useBusinessSettings();
 
   return (
     <footer className="bg-card border-t border-border">
@@ -122,11 +124,11 @@ export function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="tel:+12255216264"
+                  href={`tel:${settings.publicBusinessPhoneE164}`}
                   className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Phone className="h-4 w-4 mr-3 text-primary" />
-                  (225) 521-6264
+                  {settings.publicBusinessPhone}
                 </a>
               </li>
               <li>

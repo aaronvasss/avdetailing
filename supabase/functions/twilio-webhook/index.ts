@@ -3,17 +3,41 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Business phone for forwarding messages
-const BUSINESS_PHONE = "+12255216264";
+// Default settings (will be overridden by DB)
+const DEFAULT_BUSINESS_PHONE = "+12255216264"; // For forwarding messages
+const DEFAULT_SMS_SENDER = "+12252394617"; // Twilio number
+const DEFAULT_PUBLIC_PHONE = "(225) 521-6264"; // Displayed in messages
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Fetch business settings from database
+async function getBusinessSettings(supabase: any): Promise<{ smsSenderPhone: string; publicPhone: string }> {
+  try {
+    const { data } = await supabase
+      .from("business_settings")
+      .select("key, value")
+      .in("key", ["sms_sender_phone", "public_business_phone"]);
+
+    const settings = (data || []).reduce((acc: Record<string, string>, item: any) => {
+      acc[item.key] = item.value;
+      return acc;
+    }, {});
+
+    return {
+      smsSenderPhone: settings.sms_sender_phone || DEFAULT_SMS_SENDER,
+      publicPhone: settings.public_business_phone || DEFAULT_PUBLIC_PHONE,
+    };
+  } catch (error) {
+    console.error("Error fetching business settings:", error);
+    return { smsSenderPhone: DEFAULT_SMS_SENDER, publicPhone: DEFAULT_PUBLIC_PHONE };
+  }
+}
 
 // Format phone number to E.164
 function formatPhoneNumber(phone: string): string {
@@ -28,14 +52,14 @@ function formatPhoneNumber(phone: string): string {
 }
 
 // Send SMS via Twilio
-async function sendTwilioSms(to: string, body: string): Promise<{ success: boolean; sid?: string; error?: string }> {
+async function sendTwilioSms(to: string, body: string, fromNumber: string): Promise<{ success: boolean; sid?: string; error?: string }> {
   const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
   
   const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
   
   const formData = new URLSearchParams();
   formData.append("To", formatPhoneNumber(to));
-  formData.append("From", TWILIO_PHONE_NUMBER);
+  formData.append("From", fromNumber);
   formData.append("Body", body);
 
   try {
@@ -77,13 +101,17 @@ const handler = async (req: Request): Promise<Response> => {
     const from = formData.get("From")?.toString() || "";
     const body = formData.get("Body")?.toString() || "";
     const messageSid = formData.get("MessageSid")?.toString() || "";
+    const toNumber = formData.get("To")?.toString() || "";
 
     console.log(`Incoming SMS from ${from}: ${body}`);
+
+    // Fetch business settings
+    const { smsSenderPhone, publicPhone } = await getBusinessSettings(supabase);
 
     // Store incoming message in database
     await supabase.from("sms_messages").insert({
       from_number: from,
-      to_number: TWILIO_PHONE_NUMBER,
+      to_number: toNumber || smsSenderPhone,
       body: body,
       message_sid: messageSid,
       direction: "inbound",
@@ -104,17 +132,17 @@ const handler = async (req: Request): Promise<Response> => {
     if (lowerBody === "help") {
       const helpMessage = `AV Detailing Help:
       
-📞 Call: (225) 521-6264
+📞 Call: ${publicPhone}
 📧 Email: aaronvasquez100@gmail.com
 🌐 Book: avdetailing.lovable.app
 
 Reply STOP to unsubscribe.`;
 
-      const result = await sendTwilioSms(from, helpMessage);
+      const result = await sendTwilioSms(from, helpMessage, smsSenderPhone);
       
       // Store outbound message
       await supabase.from("sms_messages").insert({
-        from_number: TWILIO_PHONE_NUMBER,
+        from_number: smsSenderPhone,
         to_number: from,
         body: helpMessage,
         message_sid: result.sid || null,
@@ -130,15 +158,15 @@ Reply STOP to unsubscribe.`;
 
     // Forward all other messages to business owner
     const forwardMessage = `📱 SMS from ${from}:\n\n"${body}"\n\nReply to this customer at: ${from}`;
-    await sendTwilioSms(BUSINESS_PHONE, forwardMessage);
+    await sendTwilioSms(DEFAULT_BUSINESS_PHONE, forwardMessage, smsSenderPhone);
 
     // Auto-reply to customer
-    const autoReply = `Thanks for texting AV Detailing! We received your message and will respond shortly.\n\n📞 For urgent matters, call (225) 521-6264.`;
-    const autoResult = await sendTwilioSms(from, autoReply);
+    const autoReply = `Thanks for texting AV Detailing! We received your message and will respond shortly.\n\n📞 For urgent matters, call ${publicPhone}.`;
+    const autoResult = await sendTwilioSms(from, autoReply, smsSenderPhone);
 
     // Store auto-reply
     await supabase.from("sms_messages").insert({
-      from_number: TWILIO_PHONE_NUMBER,
+      from_number: smsSenderPhone,
       to_number: from,
       body: autoReply,
       message_sid: autoResult.sid || null,

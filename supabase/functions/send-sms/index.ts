@@ -3,12 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Business phone for notifications
-const BUSINESS_PHONE = "+12255216264";
+// Default SMS sender (Twilio number)
+const DEFAULT_SMS_SENDER = "+12252394617";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +19,22 @@ interface SendSmsRequest {
   to: string;
   message: string;
   type?: "booking_confirmation" | "reminder" | "custom";
+}
+
+// Fetch SMS sender phone from database
+async function getSmsSenderPhone(supabase: any): Promise<string> {
+  try {
+    const { data } = await supabase
+      .from("business_settings")
+      .select("value")
+      .eq("key", "sms_sender_phone")
+      .single();
+
+    return data?.value || DEFAULT_SMS_SENDER;
+  } catch (error) {
+    console.error("Error fetching SMS sender phone:", error);
+    return DEFAULT_SMS_SENDER;
+  }
 }
 
 // In-memory rate limiting
@@ -63,14 +79,14 @@ function isValidPhone(phone: string): boolean {
 }
 
 // Send SMS via Twilio
-async function sendTwilioSms(to: string, body: string): Promise<{ success: boolean; sid?: string; error?: string }> {
+async function sendTwilioSms(to: string, body: string, fromNumber: string): Promise<{ success: boolean; sid?: string; error?: string }> {
   const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
   
   const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
   
   const formData = new URLSearchParams();
   formData.append("To", formatPhoneNumber(to));
-  formData.append("From", TWILIO_PHONE_NUMBER);
+  formData.append("From", fromNumber);
   formData.append("Body", body);
 
   try {
@@ -184,8 +200,12 @@ const handler = async (req: Request): Promise<Response> => {
     // 7. Audit log
     console.log(`SMS sent by user ${userId} (${userEmail}) to ${formatPhoneNumber(body.to)}`);
 
+    // Get SMS sender phone from database
+    const serviceSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const smsSenderPhone = await getSmsSenderPhone(serviceSupabase);
+
     // 8. Send the SMS
-    const result = await sendTwilioSms(body.to, body.message);
+    const result = await sendTwilioSms(body.to, body.message, smsSenderPhone);
 
     if (!result.success) {
       return new Response(
