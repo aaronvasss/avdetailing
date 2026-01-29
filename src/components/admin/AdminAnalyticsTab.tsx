@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, parseISO } from "date-fns";
-import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -32,8 +32,15 @@ interface Booking {
   scheduled_date: string;
   total_price: number | null;
   status: string;
+  payment_method: string | null;
   services: { name: string; category: string } | null;
   vehicle_type: string | null;
+}
+
+interface Membership {
+  id: string;
+  status: string;
+  membership_plans: { name: string; price: number } | null;
 }
 
 interface AdminAnalyticsTabProps {
@@ -54,33 +61,46 @@ const COLORS = [
 export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("daily");
 
   useEffect(() => {
-    fetchBookings();
+    fetchData();
   }, []);
 
-  const fetchBookings = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       const sixMonthsAgo = subMonths(new Date(), 6);
       
-      const { data, error } = await supabase
-        .from("bookings")
-        .select(`
-          id,
-          scheduled_date,
-          total_price,
-          status,
-          vehicle_type,
-          services (name, category)
-        `)
-        .gte("scheduled_date", format(sixMonthsAgo, "yyyy-MM-dd"))
-        .in("status", ["completed", "confirmed", "pending"])
-        .order("scheduled_date", { ascending: true });
+      const [bookingsRes, membershipsRes] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select(`
+            id,
+            scheduled_date,
+            total_price,
+            status,
+            payment_method,
+            vehicle_type,
+            services (name, category)
+          `)
+          .gte("scheduled_date", format(sixMonthsAgo, "yyyy-MM-dd"))
+          .order("scheduled_date", { ascending: true }),
+        supabase
+          .from("customer_memberships")
+          .select(`
+            id,
+            status,
+            membership_plans (name, price)
+          `)
+      ]);
 
-      if (error) throw error;
-      setBookings(data || []);
+      if (bookingsRes.error) throw bookingsRes.error;
+      if (membershipsRes.error) throw membershipsRes.error;
+      
+      setBookings(bookingsRes.data || []);
+      setMemberships((membershipsRes.data as any[]) || []);
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -196,10 +216,30 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   };
 
   // Calculate KPIs
+  const allBookings = bookings;
   const completedBookings = bookings.filter(b => b.status === "completed");
+  const noShowBookings = bookings.filter(b => b.status === "no_show");
   const totalRevenue = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
   const totalBookings = completedBookings.length;
   const avgTicketValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+  
+  // Payment method breakdown
+  const onlinePayments = completedBookings.filter(b => b.payment_method === "online");
+  const inPersonPayments = completedBookings.filter(b => b.payment_method !== "online");
+  const onlineRevenue = onlinePayments.reduce((sum, b) => sum + (b.total_price || 0), 0);
+  const inPersonRevenue = inPersonPayments.reduce((sum, b) => sum + (b.total_price || 0), 0);
+  
+  // No-show rate calculation
+  const scheduledAndNoShow = allBookings.filter(b => 
+    b.status === "completed" || b.status === "no_show" || b.status === "cancelled"
+  );
+  const noShowRate = scheduledAndNoShow.length > 0 
+    ? ((noShowBookings.length / scheduledAndNoShow.length) * 100).toFixed(1)
+    : "0";
+  
+  // Membership revenue (MRR)
+  const activeMemberships = memberships.filter(m => m.status === "active");
+  const membershipMRR = activeMemberships.reduce((sum, m) => sum + (m.membership_plans?.price || 0), 0);
   
   // This month stats
   const thisMonthStart = startOfMonth(new Date());
@@ -220,6 +260,12 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const revenueGrowth = lastMonthRevenue > 0 
     ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1)
     : "N/A";
+
+  // Payment method chart data
+  const paymentMethodData = [
+    { name: "Online", value: onlineRevenue, count: onlinePayments.length },
+    { name: "In-Person", value: inPersonRevenue, count: inPersonPayments.length },
+  ];
 
   const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
@@ -256,7 +302,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
+      {/* KPI Cards - Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -286,6 +332,61 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
               ) : (
                 "First month"
               )}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Membership MRR</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${membershipMRR.toLocaleString()}/mo</div>
+            <p className="text-xs text-muted-foreground">
+              {activeMemberships.length} active members
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">No-Show Rate</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{noShowRate}%</div>
+            <p className="text-xs text-muted-foreground">
+              {noShowBookings.length} no-shows
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* KPI Cards - Row 2 */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Online Payments</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${onlineRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {onlinePayments.length} transactions
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">In-Person Payments</CardTitle>
+            <Banknote className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${inPersonRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {inPersonPayments.length} transactions (Cash/Zelle/Venmo/Check)
             </p>
           </CardContent>
         </Card>
