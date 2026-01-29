@@ -10,6 +10,8 @@ import { AdminAppointmentsTab } from "@/components/admin/AdminAppointmentsTab";
 import { AdminClientsTab } from "@/components/admin/AdminClientsTab";
 import { AdminMembershipsTab } from "@/components/admin/AdminMembershipsTab";
 import { AdminQuotesTab } from "@/components/admin/AdminQuotesTab";
+import { AdminNotificationsTab } from "@/components/admin/AdminNotificationsTab";
+import { AdminServicesTab } from "@/components/admin/AdminServicesTab";
 import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
@@ -170,6 +172,10 @@ export default function AdminPage() {
         return isAdmin ? <AdminMembershipsTab /> : null;
       case "quotes":
         return <AdminQuotesTab />;
+      case "notifications":
+        return <AdminNotificationsTab />;
+      case "services":
+        return isAdmin ? <AdminServicesTab /> : null;
       case "analytics":
         return isAdmin ? <AdminAnalyticsTab isAdmin={isAdmin} /> : null;
       case "messages":
@@ -192,6 +198,8 @@ export default function AdminPage() {
       case "clients": return "Client CRM";
       case "memberships": return "Membership Management";
       case "quotes": return "Quote Requests";
+      case "notifications": return "Notifications Center";
+      case "services": return "Service & Pricing Control";
       case "analytics": return "Revenue Analytics";
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
@@ -218,6 +226,8 @@ export default function AdminPage() {
             {currentTab === "clients" && "Full client CRM with contact info, vehicles, booking history, and notes"}
             {currentTab === "memberships" && "Manage subscriptions, pause/cancel memberships, view renewals"}
             {currentTab === "quotes" && "Boat, RV, and Aircraft quote requests with manual pricing"}
+            {currentTab === "notifications" && "Send confirmations, on-the-way alerts, and review requests"}
+            {currentTab === "services" && "Edit service prices, durations, and enable/disable services"}
             {currentTab === "analytics" && "Revenue trends, service popularity, and performance metrics"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
