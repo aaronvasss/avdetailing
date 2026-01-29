@@ -6,6 +6,8 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminCalendarView } from "@/components/admin/AdminCalendarView";
 import { AdminBookingsTab } from "@/components/admin/AdminBookingsTab";
+import { AdminAppointmentsTab } from "@/components/admin/AdminAppointmentsTab";
+import { AdminClientsTab } from "@/components/admin/AdminClientsTab";
 import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
@@ -158,6 +160,10 @@ export default function AdminPage() {
         return <AdminCalendarView isAdmin={isAdmin} />;
       case "bookings":
         return <AdminBookingsTab isAdmin={isAdmin} />;
+      case "appointments":
+        return <AdminAppointmentsTab isAdmin={isAdmin} />;
+      case "clients":
+        return isAdmin ? <AdminClientsTab /> : null;
       case "analytics":
         return isAdmin ? <AdminAnalyticsTab isAdmin={isAdmin} /> : null;
       case "messages":
@@ -176,6 +182,8 @@ export default function AdminPage() {
       case "overview": return "Dashboard Overview";
       case "calendar": return "Calendar View";
       case "bookings": return "Manage Bookings";
+      case "appointments": return "Appointments";
+      case "clients": return "Import Clients";
       case "analytics": return "Revenue Analytics";
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
@@ -198,6 +206,8 @@ export default function AdminPage() {
             {currentTab === "overview" && "Quick overview of today's schedule and key metrics"}
             {currentTab === "calendar" && "Visual calendar with week and day views"}
             {currentTab === "bookings" && "View and manage all customer bookings"}
+            {currentTab === "appointments" && "View all appointments with calendar export options"}
+            {currentTab === "clients" && "Import clients from Wix CSV export"}
             {currentTab === "analytics" && "Revenue trends, service popularity, and performance metrics"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
