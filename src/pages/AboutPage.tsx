@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Shield, Award, Users, Heart, Leaf, ArrowRight } from "lucide-react";
+import aboutHeroImage from "@/assets/about-hero.jpg";
 
 const values = [
   {
@@ -41,14 +42,14 @@ const AboutPage = () => {
                 Baton Rouge's Premier Mobile Detailing Service
               </h1>
               <p className="text-lg text-muted-foreground mb-6">
-                AV Detailing was founded with a simple mission: bring professional, 
-                showroom-quality detailing directly to our customers. No more waiting 
-                rooms, no more drop-offs, no more inconvenience.
+                AV Detailing was founded with a simple mission: to deliver professional, 
+                showroom-quality mobile detailing directly to our customers. No waiting 
+                rooms, no drop-offs, and no inconvenience.
               </p>
               <p className="text-muted-foreground mb-8">
-                Based in Baton Rouge, Louisiana, we serve vehicle owners throughout 
-                the Capital Region who demand the best for their cars, boats, RVs, 
-                and aircraft. Our mobile service means we come to you – whether that's 
+                Based in Baton Rouge, Louisiana, we proudly serve vehicle owners throughout 
+                the Capital Region who expect premium care for their cars, boats, RVs, 
+                and aircraft. Our fully mobile service means we come to you — whether that's 
                 your home, office, marina, or hangar.
               </p>
               <Button asChild className="glow-red">
@@ -60,12 +61,12 @@ const AboutPage = () => {
             </div>
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=80&w=800&auto=format&fit=crop"
+                src={aboutHeroImage}
                 alt="AV Detailing team at work"
                 className="rounded-xl shadow-2xl"
               />
               <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground p-6 rounded-xl">
-                <div className="text-4xl font-bold">5+</div>
+                <div className="text-4xl font-bold">3+</div>
                 <div className="text-sm">Years of Excellence</div>
               </div>
             </div>
