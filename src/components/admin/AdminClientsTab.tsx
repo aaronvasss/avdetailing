@@ -18,11 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FileSpreadsheet, Check, AlertCircle, Users, ArrowRight, Loader2 } from "lucide-react";
+import { Upload, FileSpreadsheet, Check, AlertCircle, Users, ArrowRight, Loader2, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ClientsListView } from "./ClientsListView";
 
 interface CsvRow {
   [key: string]: string;
@@ -85,6 +87,7 @@ interface ImportResult {
 }
 
 export function AdminClientsTab() {
+  const [activeTab, setActiveTab] = useState("list");
   const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing" | "complete">("upload");
   const [csvData, setCsvData] = useState<CsvRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
@@ -323,222 +326,246 @@ export function AdminClientsTab() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Step Indicator */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {["upload", "mapping", "preview", "complete"].map((s, i) => (
-          <div key={s} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              step === s || (step === "importing" && s === "preview")
-                ? "bg-primary text-primary-foreground" 
-                : ["mapping", "preview", "importing", "complete"].indexOf(step) > ["upload", "mapping", "preview", "complete"].indexOf(s)
-                  ? "bg-primary/20 text-primary"
-                  : "bg-muted text-muted-foreground"
-            }`}>
-              {i + 1}
-            </div>
-            {i < 3 && <ArrowRight className="w-4 h-4 mx-2 text-muted-foreground" />}
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsTrigger value="list" className="flex items-center gap-2">
+          <List className="h-4 w-4" />
+          View All
+        </TabsTrigger>
+        <TabsTrigger value="import" className="flex items-center gap-2">
+          <Upload className="h-4 w-4" />
+          Import CSV
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="list">
+        <ClientsListView />
+      </TabsContent>
+
+      <TabsContent value="import">
+        <div className="space-y-6">
+          {/* Step Indicator */}
+          <div className="flex items-center justify-center gap-2 mb-8">
+            {["upload", "mapping", "preview", "complete"].map((s, i) => (
+              <div key={s} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step === s || (step === "importing" && s === "preview")
+                    ? "bg-primary text-primary-foreground" 
+                    : ["mapping", "preview", "importing", "complete"].indexOf(step) > ["upload", "mapping", "preview", "complete"].indexOf(s)
+                      ? "bg-primary/20 text-primary"
+                      : "bg-muted text-muted-foreground"
+                }`}>
+                  {i + 1}
+                </div>
+                {i < 3 && <ArrowRight className="w-4 h-4 mx-2 text-muted-foreground" />}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Upload Step */}
-      {step === "upload" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5" />
-              Import Clients from CSV
-            </CardTitle>
-            <CardDescription>
-              Upload your Wix export CSV file to import clients into your database
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center">
-              <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <Label htmlFor="csv-upload" className="cursor-pointer">
-                <span className="text-lg font-medium text-primary hover:underline">
-                  Click to upload CSV
-                </span>
-                <Input
-                  id="csv-upload"
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </Label>
-              <p className="text-sm text-muted-foreground mt-2">
-                Supports Wix contact exports and standard CSV formats
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          {/* Upload Step */}
+          {step === "upload" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-5 w-5" />
+                  Import Clients from CSV
+                </CardTitle>
+                <CardDescription>
+                  Upload your Wix export CSV file to import clients into your database
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center">
+                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <Label htmlFor="csv-upload" className="cursor-pointer">
+                    <span className="text-lg font-medium text-primary hover:underline">
+                      Click to upload CSV
+                    </span>
+                    <Input
+                      id="csv-upload"
+                      type="file"
+                      accept=".csv"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                    />
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Supports Wix contact exports and standard CSV formats
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Mapping Step */}
-      {step === "mapping" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Map CSV Columns</CardTitle>
-            <CardDescription>
-              Match your CSV columns to client fields. Found {csvData.length} rows in {fileName}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
-              {csvHeaders.map(header => (
-                <div key={header} className="flex items-center gap-4">
-                  <div className="w-1/3 font-mono text-sm bg-muted px-3 py-2 rounded">
-                    {header}
+          {/* Mapping Step */}
+          {step === "mapping" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Map CSV Columns</CardTitle>
+                <CardDescription>
+                  Match your CSV columns to client fields. Found {csvData.length} rows in {fileName}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3">
+                  {csvHeaders.map(header => (
+                    <div key={header} className="flex items-center gap-4">
+                      <div className="w-1/3 font-mono text-sm bg-muted px-3 py-2 rounded">
+                        {header}
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <Select
+                        value={fieldMapping[header] || ""}
+                        onValueChange={(value) => handleMappingChange(header, value)}
+                      >
+                        <SelectTrigger className="w-1/3">
+                          <SelectValue placeholder="Select field..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CLIENT_FIELDS.map(field => (
+                            <SelectItem key={field.value} value={field.value || "skip"}>
+                              {field.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldMapping[header] && (
+                        <Check className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" onClick={resetImport}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => setStep("preview")}>
+                    Preview Import
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Preview Step */}
+          {step === "preview" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Preview Import</CardTitle>
+                <CardDescription>
+                  Review the first 10 rows before importing all {csvData.length} records
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {Object.values(fieldMapping).filter(Boolean).map(field => (
+                          <TableHead key={field} className="capitalize">
+                            {field.replace(/_/g, ' ')}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getMappedPreviewData().map((row, i) => (
+                        <TableRow key={i}>
+                          {Object.values(fieldMapping).filter(Boolean).map(field => (
+                            <TableCell key={field} className="max-w-[200px] truncate">
+                              {row[field] || "—"}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" onClick={() => setStep("mapping")}>
+                    Back to Mapping
+                  </Button>
+                  <Button onClick={handleImport}>
+                    Import {csvData.length} Clients
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Importing Step */}
+          {step === "importing" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Importing Clients...
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Progress value={importProgress} className="h-3" />
+                <p className="text-center text-muted-foreground">
+                  Processing {csvData.length} records... {importProgress}%
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Complete Step */}
+          {step === "complete" && importResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-600">
+                  <Check className="h-5 w-5" />
+                  Import Complete
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-500/10 p-4 rounded-lg text-center">
+                    <div className="text-3xl font-bold text-green-600">{importResult.created}</div>
+                    <div className="text-sm text-muted-foreground">New Clients</div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <Select
-                    value={fieldMapping[header] || ""}
-                    onValueChange={(value) => handleMappingChange(header, value)}
-                  >
-                    <SelectTrigger className="w-1/3">
-                      <SelectValue placeholder="Select field..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CLIENT_FIELDS.map(field => (
-                        <SelectItem key={field.value} value={field.value || "skip"}>
-                          {field.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldMapping[header] && (
-                    <Check className="w-4 h-4 text-green-500" />
-                  )}
+                  <div className="bg-blue-500/10 p-4 rounded-lg text-center">
+                    <div className="text-3xl font-bold text-blue-600">{importResult.updated}</div>
+                    <div className="text-sm text-muted-foreground">Updated</div>
+                  </div>
+                  <div className="bg-yellow-500/10 p-4 rounded-lg text-center">
+                    <div className="text-3xl font-bold text-yellow-600">{importResult.skipped}</div>
+                    <div className="text-sm text-muted-foreground">Skipped</div>
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" onClick={resetImport}>
-                Cancel
-              </Button>
-              <Button onClick={() => setStep("preview")}>
-                Preview Import
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Preview Step */}
-      {step === "preview" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview Import</CardTitle>
-            <CardDescription>
-              Review the first 10 rows before importing all {csvData.length} records
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {Object.values(fieldMapping).filter(Boolean).map(field => (
-                      <TableHead key={field} className="capitalize">
-                        {field.replace(/_/g, ' ')}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {getMappedPreviewData().map((row, i) => (
-                    <TableRow key={i}>
-                      {Object.values(fieldMapping).filter(Boolean).map(field => (
-                        <TableCell key={field} className="max-w-[200px] truncate">
-                          {row[field] || "—"}
-                        </TableCell>
+                {importResult.errors.length > 0 && (
+                  <div className="bg-destructive/10 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 text-destructive font-medium mb-2">
+                      <AlertCircle className="h-4 w-4" />
+                      {importResult.errors.length} Errors
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
+                      {importResult.errors.slice(0, 10).map((err, i) => (
+                        <li key={i}>{err}</li>
                       ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" onClick={() => setStep("mapping")}>
-                Back to Mapping
-              </Button>
-              <Button onClick={handleImport}>
-                Import {csvData.length} Clients
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                      {importResult.errors.length > 10 && (
+                        <li>...and {importResult.errors.length - 10} more</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
 
-      {/* Importing Step */}
-      {step === "importing" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Importing Clients...
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Progress value={importProgress} className="h-3" />
-            <p className="text-center text-muted-foreground">
-              Processing {csvData.length} records... {importProgress}%
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Complete Step */}
-      {step === "complete" && importResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
-              <Check className="h-5 w-5" />
-              Import Complete
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg text-center">
-                <div className="text-3xl font-bold text-green-600">{importResult.created}</div>
-                <div className="text-sm text-muted-foreground">New Clients</div>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg text-center">
-                <div className="text-3xl font-bold text-blue-600">{importResult.updated}</div>
-                <div className="text-sm text-muted-foreground">Updated</div>
-              </div>
-              <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg text-center">
-                <div className="text-3xl font-bold text-yellow-600">{importResult.skipped}</div>
-                <div className="text-sm text-muted-foreground">Skipped</div>
-              </div>
-            </div>
-
-            {importResult.errors.length > 0 && (
-              <div className="bg-destructive/10 p-4 rounded-lg">
-                <div className="flex items-center gap-2 text-destructive font-medium mb-2">
-                  <AlertCircle className="h-4 w-4" />
-                  {importResult.errors.length} Errors
+                <div className="flex gap-3">
+                  <Button onClick={resetImport} variant="outline" className="flex-1">
+                    Import More
+                  </Button>
+                  <Button onClick={() => setActiveTab("list")} className="flex-1">
+                    View Clients
+                  </Button>
                 </div>
-                <ul className="text-sm text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
-                  {importResult.errors.slice(0, 10).map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-                  {importResult.errors.length > 10 && (
-                    <li>...and {importResult.errors.length - 10} more</li>
-                  )}
-                </ul>
-              </div>
-            )}
-
-            <Button onClick={resetImport} className="w-full">
-              Import More Clients
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 }
