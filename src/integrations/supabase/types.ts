@@ -284,12 +284,16 @@ export type Database = {
           email: string | null
           first_name: string | null
           full_name: string | null
+          gate_code: string | null
           id: string
           last_name: string | null
           notes: string | null
+          paint_sensitivity: string | null
           phone: string | null
+          preferences: string | null
           source: string | null
           state: string | null
+          total_lifetime_spend: number | null
           updated_at: string
           zip: string | null
         }
@@ -301,12 +305,16 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           full_name?: string | null
+          gate_code?: string | null
           id?: string
           last_name?: string | null
           notes?: string | null
+          paint_sensitivity?: string | null
           phone?: string | null
+          preferences?: string | null
           source?: string | null
           state?: string | null
+          total_lifetime_spend?: number | null
           updated_at?: string
           zip?: string | null
         }
@@ -318,12 +326,16 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           full_name?: string | null
+          gate_code?: string | null
           id?: string
           last_name?: string | null
           notes?: string | null
+          paint_sensitivity?: string | null
           phone?: string | null
+          preferences?: string | null
           source?: string | null
           state?: string | null
+          total_lifetime_spend?: number | null
           updated_at?: string
           zip?: string | null
         }
@@ -628,6 +640,155 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quote_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          quote_id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          quote_id: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          quote_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_photos_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          booking_id: string | null
+          client_id: string | null
+          created_at: string
+          customer_notes: string | null
+          deposit_amount: number | null
+          deposit_required: boolean | null
+          estimated_hours: number | null
+          expires_at: string | null
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
+          id: string
+          internal_notes: string | null
+          quoted_at: string | null
+          quoted_price: number | null
+          service_address: string | null
+          service_city: string | null
+          service_state: string | null
+          service_type: string
+          service_zip: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string | null
+          vehicle_details: string | null
+          vehicle_length: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_year: number | null
+        }
+        Insert: {
+          booking_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          deposit_amount?: number | null
+          deposit_required?: boolean | null
+          estimated_hours?: number | null
+          expires_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          id?: string
+          internal_notes?: string | null
+          quoted_at?: string | null
+          quoted_price?: number | null
+          service_address?: string | null
+          service_city?: string | null
+          service_state?: string | null
+          service_type: string
+          service_zip?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vehicle_details?: string | null
+          vehicle_length?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: number | null
+        }
+        Update: {
+          booking_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          deposit_amount?: number | null
+          deposit_required?: boolean | null
+          estimated_hours?: number | null
+          expires_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          id?: string
+          internal_notes?: string | null
+          quoted_at?: string | null
+          quoted_price?: number | null
+          service_address?: string | null
+          service_city?: string | null
+          service_state?: string | null
+          service_type?: string
+          service_zip?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vehicle_details?: string | null
+          vehicle_length?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_add_ons: {
         Row: {

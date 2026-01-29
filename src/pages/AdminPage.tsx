@@ -8,6 +8,8 @@ import { AdminCalendarView } from "@/components/admin/AdminCalendarView";
 import { AdminBookingsTab } from "@/components/admin/AdminBookingsTab";
 import { AdminAppointmentsTab } from "@/components/admin/AdminAppointmentsTab";
 import { AdminClientsTab } from "@/components/admin/AdminClientsTab";
+import { AdminMembershipsTab } from "@/components/admin/AdminMembershipsTab";
+import { AdminQuotesTab } from "@/components/admin/AdminQuotesTab";
 import { AdminAnalyticsTab } from "@/components/admin/AdminAnalyticsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
@@ -163,7 +165,11 @@ export default function AdminPage() {
       case "appointments":
         return <AdminAppointmentsTab isAdmin={isAdmin} />;
       case "clients":
-        return isAdmin ? <AdminClientsTab /> : null;
+        return <AdminClientsTab />;
+      case "memberships":
+        return isAdmin ? <AdminMembershipsTab /> : null;
+      case "quotes":
+        return <AdminQuotesTab />;
       case "analytics":
         return isAdmin ? <AdminAnalyticsTab isAdmin={isAdmin} /> : null;
       case "messages":
@@ -183,7 +189,9 @@ export default function AdminPage() {
       case "calendar": return "Calendar View";
       case "bookings": return "Manage Bookings";
       case "appointments": return "Appointments";
-      case "clients": return "Client Management";
+      case "clients": return "Client CRM";
+      case "memberships": return "Membership Management";
+      case "quotes": return "Quote Requests";
       case "analytics": return "Revenue Analytics";
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
@@ -207,7 +215,9 @@ export default function AdminPage() {
             {currentTab === "calendar" && "Visual calendar with week and day views"}
             {currentTab === "bookings" && "View and manage all customer bookings"}
             {currentTab === "appointments" && "View all appointments with calendar export options"}
-            {currentTab === "clients" && "View, add, edit clients and import from Wix CSV"}
+            {currentTab === "clients" && "Full client CRM with contact info, vehicles, booking history, and notes"}
+            {currentTab === "memberships" && "Manage subscriptions, pause/cancel memberships, view renewals"}
+            {currentTab === "quotes" && "Boat, RV, and Aircraft quote requests with manual pricing"}
             {currentTab === "analytics" && "Revenue trends, service popularity, and performance metrics"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}

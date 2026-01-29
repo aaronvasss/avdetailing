@@ -32,11 +32,13 @@ import {
   Loader2,
   Users,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientFormDialog } from "./ClientFormDialog";
+import { ClientDetailView } from "./ClientDetailView";
 import { format } from "date-fns";
 
 interface Client {
@@ -53,6 +55,10 @@ interface Client {
   zip: string | null;
   notes: string | null;
   source: string | null;
+  gate_code: string | null;
+  preferences: string | null;
+  paint_sensitivity: string | null;
+  total_lifetime_spend: number | null;
   created_at: string;
 }
 
@@ -66,6 +72,7 @@ export function ClientsListView() {
   const [totalCount, setTotalCount] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [deleteClient, setDeleteClient] = useState<Client | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -123,6 +130,10 @@ export function ClientsListView() {
     setFormOpen(true);
   };
 
+  const handleView = (client: Client) => {
+    setViewingClient(client);
+  };
+
   const handleAdd = () => {
     setSelectedClient(null);
     setFormOpen(true);
@@ -161,6 +172,17 @@ export function ClientsListView() {
   };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // Show detail view if a client is selected
+  if (viewingClient) {
+    return (
+      <ClientDetailView 
+        client={viewingClient} 
+        onBack={() => setViewingClient(null)}
+        onUpdate={fetchClients}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -270,6 +292,13 @@ export function ClientsListView() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleView(client)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
