@@ -183,7 +183,7 @@ export default function AdminPage() {
       case "calendar": return "Calendar View";
       case "bookings": return "Manage Bookings";
       case "appointments": return "Appointments";
-      case "clients": return "Import Clients";
+      case "clients": return "Client Management";
       case "analytics": return "Revenue Analytics";
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
@@ -207,7 +207,7 @@ export default function AdminPage() {
             {currentTab === "calendar" && "Visual calendar with week and day views"}
             {currentTab === "bookings" && "View and manage all customer bookings"}
             {currentTab === "appointments" && "View all appointments with calendar export options"}
-            {currentTab === "clients" && "Import clients from Wix CSV export"}
+            {currentTab === "clients" && "View, add, edit clients and import from Wix CSV"}
             {currentTab === "analytics" && "Revenue trends, service popularity, and performance metrics"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
