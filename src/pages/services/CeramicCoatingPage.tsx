@@ -10,7 +10,7 @@ const CeramicCoatingPage = () => {
       description="Long-lasting paint protection with professional-grade ceramic coating. Shield your vehicle from UV rays, chemicals, and environmental contaminants for years."
       heroImage={ceramicCoatingImage}
       icon={<Droplets className="h-6 w-6 text-primary" />}
-      timeEstimate="1-2 days"
+      timeEstimate="~8 hours"
       idealFor={[
         "New vehicle owners wanting maximum protection",
         "Luxury and exotic car enthusiasts",
@@ -21,37 +21,37 @@ const CeramicCoatingPage = () => {
       ]}
       packages={[
         {
-          name: "Ceramic Lite",
-          price: "$499+",
-          description: "1-year protection",
+          name: "3-Year Ceramic Coating",
+          price: "$800",
+          description: "3-year protection",
           features: [
             "Single-layer ceramic coating",
             "Surface decontamination",
             "Light polish prep",
             "Wheel face coating",
-            "1-year durability",
+            "3-year durability",
             "Hydrophobic finish",
           ],
         },
         {
-          name: "Ceramic Pro",
-          price: "$899+",
-          description: "3-year protection",
+          name: "6-Year Ceramic Coating",
+          price: "$1,200",
+          description: "6-year protection",
           features: [
             "Dual-layer ceramic coating",
             "Full paint correction (1-step)",
             "Wheel & caliper coating",
             "Glass coating (windshield)",
             "Trim restoration",
-            "3-year durability",
+            "6-year durability",
             "Enhanced gloss & depth",
           ],
           popular: true,
         },
         {
-          name: "Ceramic Elite",
-          price: "$1,499+",
-          description: "5+ year protection",
+          name: "10-Year Ceramic Coating",
+          price: "$1,600",
+          description: "10-year protection",
           features: [
             "Multi-layer ceramic system",
             "Full paint correction (2-step)",
@@ -59,7 +59,7 @@ const CeramicCoatingPage = () => {
             "All glass coating",
             "Leather/interior coating",
             "Plastic & trim coating",
-            "5+ year durability",
+            "10-year durability",
             "Annual maintenance included",
           ],
         },
@@ -70,7 +70,6 @@ const CeramicCoatingPage = () => {
         { name: "Fabric Protection Coating", price: "$149" },
         { name: "Wheel Off & Coat (all surfaces)", price: "$250" },
         { name: "Engine Bay Coating", price: "$150" },
-        { name: "PPF Edge Sealing", price: "$100" },
       ]}
       faqs={[
         {
