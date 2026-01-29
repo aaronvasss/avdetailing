@@ -11,12 +11,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Phone, Mail, Bell, 
-  Loader2, Search, Filter, Eye, RotateCcw, X, CheckCircle2, DollarSign
+  Loader2, Search, Filter, Eye, RotateCcw, X, CheckCircle2, DollarSign, Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
+import { BookingEditDialog } from "./BookingEditDialog";
 
 interface Booking {
   id: string;
@@ -57,6 +58,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   });
   const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -468,6 +470,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        {isAdmin && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setEditingBooking(booking as any)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
                         {booking.status === "confirmed" && (
                           <Button 
                             variant="ghost" 
@@ -600,6 +611,19 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               <div className="border-t pt-4">
                 <div className="text-sm font-medium mb-2">Update Status</div>
                 <div className="flex gap-2 flex-wrap">
+                  {isAdmin && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedBooking(null);
+                        setEditingBooking(selectedBooking as any);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  )}
                   {selectedBooking.status !== "confirmed" && (
                     <Button size="sm" onClick={() => updateBookingStatus(selectedBooking.id, "confirmed")}>
                       Confirm
@@ -621,6 +645,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Booking Edit Dialog */}
+      <BookingEditDialog
+        booking={editingBooking as any}
+        open={!!editingBooking}
+        onOpenChange={(open) => !open && setEditingBooking(null)}
+        onSave={fetchBookings}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }
