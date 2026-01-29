@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Save, Calendar, Mail, Bell, Smartphone, Info, Copy, RefreshCw, Link2 } from "lucide-react";
+import { Save, Calendar, Mail, Bell, Smartphone, Info, Copy, RefreshCw, Link2, Shield } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +23,7 @@ interface ProfileTabProps {
 export function ProfileTab({ userId }: ProfileTabProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
@@ -39,8 +41,20 @@ export function ProfileTab({ userId }: ProfileTabProps) {
 
   useEffect(() => {
     fetchProfile();
+    checkAdminRole();
     loadNotificationPreferences();
   }, [userId]);
+
+  const checkAdminRole = async () => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "staff"])
+      .maybeSingle();
+    
+    setIsAdmin(!!data);
+  };
 
   const fetchProfile = async () => {
     const { data, error } = await supabase
@@ -150,6 +164,29 @@ export function ProfileTab({ userId }: ProfileTabProps) {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      {/* Admin Dashboard Link */}
+      {isAdmin && (
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <Shield className="h-5 w-5" />
+              Admin Access
+            </CardTitle>
+            <CardDescription>
+              You have admin privileges for this account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link to="/admin">
+                <Shield className="mr-2 h-4 w-4" />
+                Open Admin Dashboard
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Profile Information */}
       <Card>
         <CardHeader>
