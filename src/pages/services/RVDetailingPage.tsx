@@ -22,7 +22,7 @@ const RVDetailingPage = () => {
       packages={[
         {
           name: "RV Exterior Wash",
-          price: "Starting at $180",
+          price: "$180+",
           description: "Complete exterior cleaning",
           features: [
             "Full roof wash & rinse",
@@ -38,7 +38,7 @@ const RVDetailingPage = () => {
         },
         {
           name: "RV Wash + Protection",
-          price: "Starting at $280",
+          price: "$280+",
           description: "Wash with added protection",
           features: [
             "Everything in Exterior Wash, plus:",
@@ -51,7 +51,7 @@ const RVDetailingPage = () => {
         },
         {
           name: "RV Oxidation Treatment",
-          price: "Starting at $400",
+          price: "$400+",
           description: "Restore faded fiberglass",
           features: [
             "Everything in Wash + Protection, plus:",
@@ -64,12 +64,12 @@ const RVDetailingPage = () => {
         },
       ]}
       addOns={[
-        { name: "Roof Deep Clean & Seal", price: "Starting at $150" },
-        { name: "Awning Deep Clean", price: "$75" },
-        { name: "Generator Exterior Cleaning", price: "$45" },
-        { name: "Slide-Out Seal Clean & Lube", price: "$65" },
-        { name: "Wheel Polishing (per wheel)", price: "$25" },
-        { name: "Ceramic Spray Sealant Upgrade", price: "$100" },
+        { name: "Roof Deep Clean & Seal", price: "$150+" },
+        { name: "Awning Deep Clean", price: "$75+" },
+        { name: "Generator Exterior Cleaning", price: "$45+" },
+        { name: "Slide-Out Seal Clean & Lube", price: "$65+" },
+        { name: "Wheel Polishing (per wheel)", price: "$25+" },
+        { name: "Ceramic Spray Sealant Upgrade", price: "$100+" },
       ]}
       faqs={[
         {

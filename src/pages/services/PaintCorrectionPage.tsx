@@ -31,12 +31,12 @@ const PaintCorrectionPage = () => {
             "Surface decontamination",
             "Wax or sealant finish",
             "Best for well-maintained paint",
-            "Car/SUV: $400 | Truck/Large: $450",
+            "Same price for all vehicle types",
           ],
         },
         {
           name: "2-Step Correction",
-          price: "$550+",
+          price: "$500+",
           description: "Moderate correction",
           features: [
             "Compound & polish stages",
@@ -46,13 +46,13 @@ const PaintCorrectionPage = () => {
             "Clay bar decontamination",
             "6-month sealant protection",
             "Before/after documentation",
-            "Car/SUV: $550 | Truck/Large: $600",
+            "Same price for all vehicle types",
           ],
           popular: true,
         },
         {
           name: "3-Step Restoration",
-          price: "$800+",
+          price: "$650+",
           description: "Full paint restoration",
           features: [
             "Multi-stage correction process",
@@ -63,7 +63,7 @@ const PaintCorrectionPage = () => {
             "Premium sealant protection",
             "Paint depth readings",
             "Detailed documentation",
-            "Car/SUV: $800 | Truck/Large: $900",
+            "Same price for all vehicle types",
           ],
         },
       ]}

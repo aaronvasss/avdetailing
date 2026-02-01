@@ -76,8 +76,9 @@ const getVehicleTypeFilter = (serviceType: string, vehicleSubType: string): stri
   if (serviceType === "rv") return ["rv"];
   if (serviceType === "aircraft") return ["aircraft"];
   if (serviceType === "ceramic") return ["all"]; // Ceramic uses "all" for universal packages
+  if (serviceType === "paint") return ["all"]; // Paint Correction uses flat pricing (no vehicle differentiation)
   
-  // For car-based services (car, paint), map UI vehicle type to DB vehicle types
+  // For car-based services, map UI vehicle type to DB vehicle types
   if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
     return vehicleSubTypeToDbType[vehicleSubType];
   }
@@ -85,6 +86,9 @@ const getVehicleTypeFilter = (serviceType: string, vehicleSubType: string): stri
   // Fallback: include all possible vehicle types
   return ["sedan", "suv-5", "suv-8", "truck", "car", "suv", "all"];
 };
+
+// Services that show "starting at" pricing (variable based on vehicle size, condition, etc.)
+const startingAtPricingServices = ["paint", "rv"];
 
 // Get the service ID for the selected service type
 const getServiceIdForType = (serviceType: string): string | null => {
@@ -987,7 +991,14 @@ const BookingPage = () => {
                             <p className="text-xs text-muted-foreground mt-1">{pkg.time}</p>
                           </div>
                         </div>
-                        <span className="text-2xl font-bold text-primary">${price}</span>
+                        <div className="text-right">
+                          {startingAtPricingServices.includes(serviceType) && (
+                            <span className="text-xs text-muted-foreground block">Starting at</span>
+                          )}
+                          <span className="text-2xl font-bold text-primary">
+                            ${price}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
+                          </span>
+                        </div>
                       </div>
                     </button>
                   );
