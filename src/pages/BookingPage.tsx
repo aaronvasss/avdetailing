@@ -62,14 +62,28 @@ const serviceSlugMap: Record<string, string> = {
   aircraft: "aircraft-detail",
 };
 
+// Map UI vehicle sub-types to database vehicle_type values
+const vehicleSubTypeToDbType: Record<string, string[]> = {
+  "sedan": ["sedan", "car"],
+  "suv-5": ["suv-5", "suv"],
+  "suv-8": ["suv-8", "suv"],
+  "truck": ["truck"],
+};
+
 // Map service types to their package vehicle_type filter
 const getVehicleTypeFilter = (serviceType: string, vehicleSubType: string): string[] => {
   if (serviceType === "boat") return ["boat"];
   if (serviceType === "rv") return ["rv"];
   if (serviceType === "aircraft") return ["aircraft"];
-  // For car-based services, use the specific vehicle sub-type or default to car types
-  if (vehicleSubType) return [vehicleSubType];
-  return ["sedan", "suv-5", "suv-8", "truck", "car", "suv"];
+  if (serviceType === "ceramic") return ["all"]; // Ceramic uses "all" for universal packages
+  
+  // For car-based services (car, paint), map UI vehicle type to DB vehicle types
+  if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
+    return vehicleSubTypeToDbType[vehicleSubType];
+  }
+  
+  // Fallback: include all possible vehicle types
+  return ["sedan", "suv-5", "suv-8", "truck", "car", "suv", "all"];
 };
 
 // Get the service ID for the selected service type
@@ -397,9 +411,20 @@ const BookingPage = () => {
   };
 
   const getPackagePrice = (pkg: { basePrice: number; prices: Record<string, number> }) => {
+    // Direct match on UI vehicle sub-type
     if (vehicleSubType && pkg.prices[vehicleSubType]) {
       return pkg.prices[vehicleSubType];
     }
+    
+    // Try DB vehicle type mapping (for services like Paint Correction that use "car", "suv", "truck")
+    if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
+      for (const dbType of vehicleSubTypeToDbType[vehicleSubType]) {
+        if (pkg.prices[dbType]) {
+          return pkg.prices[dbType];
+        }
+      }
+    }
+    
     return pkg.basePrice;
   };
 
@@ -913,10 +938,21 @@ const BookingPage = () => {
                 Select the {currentServiceLabel.toLowerCase()} package that fits your needs
               </p>
             </div>
-            {packages.length === 0 ? (
+            {packagesLoading ? (
               <Card className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
                 <p className="text-muted-foreground">
                   Loading packages for {currentServiceLabel}...
+                </p>
+              </Card>
+            ) : packages.length === 0 ? (
+              <Card className="p-8 text-center border-amber-500/30 bg-amber-500/5">
+                <AlertCircle className="h-8 w-8 mx-auto mb-4 text-amber-500" />
+                <p className="text-muted-foreground mb-4">
+                  No packages are currently available for {currentServiceLabel} with your selected vehicle type.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Please contact us for a custom quote or try selecting a different service.
                 </p>
               </Card>
             ) : (
