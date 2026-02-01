@@ -103,6 +103,14 @@ const getServiceIdForType = (serviceType: string): string | null => {
   return serviceIdMap[serviceType] || null;
 };
 
+// Custom short descriptions for booking flow ONLY (not for services pages)
+const bookingFlowDescriptions: Record<string, string> = {
+  "exterior-only": "Hand wash & dry, wheels cleaned, tire shine, exterior windows, spray wax",
+  "basic": "Quick maintenance service: light vacuum + hand wash",
+  "silver": "Full interior detailing + regular exterior wash (does not include shampoo)",
+  "gold": "Full interior detailing + full exterior detail (includes shampoo + paint sealant)",
+};
+
 // Fallback packages in case database fetch fails
 const fallbackPackages = [
   { 
@@ -111,7 +119,7 @@ const fallbackPackages = [
     basePrice: 75,
     prices: { sedan: 75, "suv-5": 75, "suv-8": 85, truck: 85 },
     time: "1 hour",
-    description: "Hand wash & dry, wheels & tires cleaned, tire shine, exterior windows",
+    description: bookingFlowDescriptions["exterior-only"],
     service_id: null,
   },
   { 
@@ -120,7 +128,7 @@ const fallbackPackages = [
     basePrice: 120,
     prices: { sedan: 120, "suv-5": 120, "suv-8": 130, truck: 130 },
     time: "1-2 hours",
-    description: "Essential exterior wash and interior wipe-down",
+    description: bookingFlowDescriptions["basic"],
     service_id: null,
   },
   { 
@@ -129,7 +137,7 @@ const fallbackPackages = [
     basePrice: 190,
     prices: { sedan: 190, "suv-5": 195, "suv-8": 200, truck: 200 },
     time: "3-5 hours",
-    description: "Full interior & exterior detail",
+    description: bookingFlowDescriptions["silver"],
     service_id: null,
     is_popular: true,
   },
@@ -139,7 +147,7 @@ const fallbackPackages = [
     basePrice: 295,
     prices: { sedan: 295, "suv-5": 295, "suv-8": 320, truck: 320 },
     time: "5-6 hours",
-    description: "Comprehensive detail with 2-month sealant & seat shampooing",
+    description: bookingFlowDescriptions["gold"],
     service_id: null,
   },
 ];
@@ -319,10 +327,12 @@ const BookingPage = () => {
       if (!vehicleTypeFilters.includes(pkg.vehicle_type)) return;
       
       if (!packageMap.has(pkg.slug)) {
+        // Use custom booking flow description if available, otherwise use DB description
+        const customDescription = bookingFlowDescriptions[pkg.slug];
         packageMap.set(pkg.slug, {
           id: pkg.slug,
           name: pkg.name,
-          description: pkg.description || '',
+          description: customDescription || pkg.description || '',
           time: pkg.duration_estimate || '',
           basePrice: Number(pkg.price),
           prices: {},
@@ -1691,10 +1701,23 @@ const BookingPage = () => {
       <section className="section-padding bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
-            {/* Progress Bar */}
+            {/* Progress Bar - Mobile-friendly with horizontal scroll */}
             {!bookingId && step <= getTotalSteps() && (
               <div className="mb-12">
-                <div className="flex justify-between mb-2">
+                {/* Mobile: Show active step + progress bar */}
+                <div className="md:hidden mb-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-foreground">
+                      Step {currentStepForProgress()} of {getProgressLabels().length}: {getProgressLabels()[currentStepForProgress() - 1]}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {Math.round(((currentStepForProgress()) / getProgressLabels().length) * 100)}%
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Desktop: Show all step labels */}
+                <div className="hidden md:flex justify-between mb-2">
                   {getProgressLabels().map((label, index) => (
                     <span
                       key={label}
@@ -1711,6 +1734,7 @@ const BookingPage = () => {
                     </span>
                   ))}
                 </div>
+                
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all duration-300"
