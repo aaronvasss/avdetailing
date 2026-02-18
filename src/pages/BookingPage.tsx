@@ -27,6 +27,8 @@ import {
 } from "@/lib/scheduling";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -245,6 +247,7 @@ const BookingPage = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>(null);
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
+  const [smsConsent, setSmsConsent] = useState(false);
   
   const [customerInfo, setCustomerInfo] = useState({
     firstName: "",
@@ -1387,12 +1390,30 @@ const BookingPage = () => {
               </CardContent>
             </Card>
 
+            {/* SMS Consent Checkbox */}
+            <div className="flex items-start space-x-3 p-4 border border-border rounded-lg bg-secondary/30">
+              <Checkbox
+                id="smsConsent"
+                checked={smsConsent}
+                onCheckedChange={(checked) => setSmsConsent(checked === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="smsConsent" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                I agree to receive SMS notifications from AV Detailing regarding my appointment, service updates, and billing.
+                Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe or HELP for assistance.
+                View{" "}
+                <Link to="/privacy-policy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>
+                {" "}and{" "}
+                <Link to="/terms-and-conditions" target="_blank" className="text-primary hover:underline">Terms & Conditions</Link>.
+              </label>
+            </div>
+
             <div className="flex gap-4">
               <Button type="button" variant="outline" onClick={() => setStep(6)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button type="submit" className="flex-1 glow-red" disabled={isSubmitting}>
+              <Button type="submit" className="flex-1 glow-red" disabled={isSubmitting || !smsConsent}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
