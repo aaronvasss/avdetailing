@@ -19,6 +19,17 @@ export function usePhotoUpload() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  const getSignedUrl = async (bucket: string, path: string): Promise<string> => {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(path, 3600); // 1 hour expiry
+    if (error || !data?.signedUrl) {
+      console.error("Error creating signed URL:", error);
+      return "";
+    }
+    return data.signedUrl;
+  };
+
   const uploadPhoto = async (
     file: File,
     options: UploadOptions
@@ -48,10 +59,8 @@ export function usePhotoUpload() {
 
       setProgress(100);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
+      // Get signed URL (buckets are now private)
+      const signedUrl = await getSignedUrl(bucket, data.path);
 
       // If we have a booking ID, also save to booking_photos table
       if (bookingId) {
@@ -74,14 +83,14 @@ export function usePhotoUpload() {
         return {
           id: recordId,
           storage_path: data.path,
-          url: urlData.publicUrl,
+          url: signedUrl,
           photoType,
         };
       }
 
       return {
         storage_path: data.path,
-        url: urlData.publicUrl,
+        url: signedUrl,
         photoType,
       };
     } catch (error: any) {
@@ -151,18 +160,20 @@ export function usePhotoUpload() {
 
       if (error) throw error;
 
-      return (data || []).map((photo: any) => {
-        const { data: urlData } = supabase.storage
-          .from("booking-photos")
-          .getPublicUrl(photo.storage_path);
+      // Use signed URLs since buckets are now private
+      const photos = await Promise.all(
+        (data || []).map(async (photo: any) => {
+          const signedUrl = await getSignedUrl("booking-photos", photo.storage_path);
+          return {
+            id: photo.id,
+            storage_path: photo.storage_path,
+            url: signedUrl,
+            photoType: photo.photo_type,
+          };
+        })
+      );
 
-        return {
-          id: photo.id,
-          storage_path: photo.storage_path,
-          url: urlData.publicUrl,
-          photoType: photo.photo_type,
-        };
-      });
+      return photos;
     } catch (error) {
       console.error("Error fetching photos:", error);
       return [];
@@ -174,6 +185,7 @@ export function usePhotoUpload() {
     uploadMultiple,
     deletePhoto,
     getBookingPhotos,
+    getSignedUrl,
     uploading,
     progress,
   };

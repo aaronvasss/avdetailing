@@ -70,24 +70,45 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const body: CreateBookingRequest = await req.json();
 
-    if (!body.service_id) {
-      return new Response(JSON.stringify({ error: "Missing service_id" }), {
+    // Server-side input validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const timeRegex = /^\d{1,2}:\d{2}(:\d{2})?(\s*[AP]M)?$/i;
+
+    if (!body.service_id || !uuidRegex.test(body.service_id)) {
+      return new Response(JSON.stringify({ error: "Invalid service" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!body.scheduled_date) {
-      return new Response(JSON.stringify({ error: "Missing scheduled_date" }), {
+    if (!body.scheduled_date || !dateRegex.test(body.scheduled_date)) {
+      return new Response(JSON.stringify({ error: "Invalid date" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!body.scheduled_time) {
-      return new Response(JSON.stringify({ error: "Missing scheduled_time" }), {
+    if (!body.scheduled_time || !timeRegex.test(body.scheduled_time)) {
+      return new Response(JSON.stringify({ error: "Invalid time" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Sanitize and validate optional text fields
+    const sanitize = (val: string | null | undefined, maxLen: number): string | null => {
+      if (!val) return null;
+      return String(val).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, maxLen);
+    };
+    const validateEmail = (email: string | null | undefined): string | null => {
+      if (!email) return null;
+      const trimmed = String(email).trim().slice(0, 255);
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : null;
+    };
+    const validatePhone = (phone: string | null | undefined): string | null => {
+      if (!phone) return null;
+      const trimmed = String(phone).trim().slice(0, 20);
+      return /^[\d\s()+-]{10,20}$/.test(trimmed) ? trimmed : null;
+    };
 
     const scheduled_time = toDbTime(body.scheduled_time);
 
@@ -112,24 +133,24 @@ const handler = async (req: Request): Promise<Response> => {
       service_id: body.service_id,
       scheduled_date: body.scheduled_date,
       scheduled_time,
-      duration_minutes: body.duration_minutes ?? null,
+      duration_minutes: body.duration_minutes != null ? Math.min(Math.max(0, Number(body.duration_minutes)), 1440) : null,
 
-      guest_name: userId ? null : body.guest_name ?? null,
-      guest_email: userId ? null : body.guest_email ?? null,
-      guest_phone: userId ? null : body.guest_phone ?? null,
+      guest_name: userId ? null : sanitize(body.guest_name, 100),
+      guest_email: userId ? null : validateEmail(body.guest_email),
+      guest_phone: userId ? null : validatePhone(body.guest_phone),
 
-      vehicle_type: body.vehicle_type ?? null,
-      vehicle_make: body.vehicle_make ?? null,
-      vehicle_model: body.vehicle_model ?? null,
+      vehicle_type: sanitize(body.vehicle_type, 50),
+      vehicle_make: sanitize(body.vehicle_make, 50),
+      vehicle_model: sanitize(body.vehicle_model, 50),
 
-      service_address: body.service_address ?? null,
-      service_city: body.service_city ?? null,
-      service_zip: body.service_zip ?? null,
-      address_notes: body.address_notes ?? null,
+      service_address: sanitize(body.service_address, 200),
+      service_city: sanitize(body.service_city, 100),
+      service_zip: sanitize(body.service_zip, 10),
+      address_notes: sanitize(body.address_notes, 500),
 
-      subtotal: body.subtotal ?? null,
-      add_ons_total: body.add_ons_total ?? 0,
-      total_price: body.total_price ?? null,
+      subtotal: body.subtotal != null ? Math.max(0, Number(body.subtotal)) : null,
+      add_ons_total: body.add_ons_total != null ? Math.max(0, Number(body.add_ons_total)) : 0,
+      total_price: body.total_price != null ? Math.max(0, Number(body.total_price)) : null,
       status: body.status ?? "pending",
       payment_status: body.payment_status ?? "unpaid",
       payment_method: (body as any).payment_method ?? "in_person",
@@ -143,14 +164,10 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (error) {
-      console.error("create-booking insert error:", error);
+      const errorId = crypto.randomUUID();
+      console.error(`create-booking error ${errorId}:`, error);
       return new Response(
-        JSON.stringify({
-          error: error.message,
-          code: (error as any).code,
-          details: (error as any).details,
-          hint: (error as any).hint,
-        }),
+        JSON.stringify({ error: "Failed to create booking. Please try again.", errorId }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -163,9 +180,10 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("create-booking handler error:", err);
+    const errorId = crypto.randomUUID();
+    console.error(`create-booking handler error ${errorId}:`, err);
     return new Response(
-      JSON.stringify({ error: String(err) }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again.", errorId }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

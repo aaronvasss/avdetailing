@@ -281,9 +281,10 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    const errorId = crypto.randomUUID();
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    logStep("ERROR", { errorId, message: errorMessage });
+    return new Response(JSON.stringify({ error: "Checkout failed. Please try again.", errorId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
