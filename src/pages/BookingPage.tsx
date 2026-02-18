@@ -541,6 +541,8 @@ const BookingPage = () => {
         status: paymentMethod === 'online' ? "pending_payment" : "confirmed",
         payment_status: paymentMethod === 'online' ? "pending" : "unpaid",
         payment_method: paymentMethod || "in_person",
+        // Pass add-on IDs so backend creates booking_add_ons records
+        add_on_ids: selectedAddOns.length > 0 ? selectedAddOns : undefined,
       };
 
       // Use backend function to guarantee insert succeeds for guests (and return a booking ID)

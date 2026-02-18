@@ -13,8 +13,8 @@ const corsHeaders = {
 
 interface CreateBookingRequest {
   service_id: string;
-  scheduled_date: string; // YYYY-MM-DD
-  scheduled_time: string; // accepts "8:00 AM" or "08:00"/"08:00:00"
+  scheduled_date: string;
+  scheduled_time: string;
   duration_minutes?: number | null;
 
   guest_name?: string | null;
@@ -35,11 +35,14 @@ interface CreateBookingRequest {
   total_price?: number | null;
   status?: string | null;
   payment_status?: string | null;
+  payment_method?: string | null;
+
+  // Add-on IDs from service_add_ons table
+  add_on_ids?: string[];
 }
 
 function toDbTime(input: string): string {
   const trimmed = String(input || "").trim();
-  // 12h: 8:00 AM
   const m12 = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (m12) {
     let hours = Number(m12[1]);
@@ -50,7 +53,6 @@ function toDbTime(input: string): string {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
   }
 
-  // 24h: 08:00 or 08:00:00
   const m24 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (m24) {
     const hours = Number(m24[1]);
@@ -94,6 +96,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Validate add_on_ids format
+    const addOnIds = (body.add_on_ids || []).filter(id => uuidRegex.test(id));
+
     // Sanitize and validate optional text fields
     const sanitize = (val: string | null | undefined, maxLen: number): string | null => {
       if (!val) return null;
@@ -122,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: userData } = await anonClient.auth.getUser();
     const userId = userData?.user?.id ?? null;
 
-    // Insert using service role (bypass RLS), but NEVER trust client-provided user_id
+    // Insert using service role (bypass RLS)
     const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Generate a secure manage token for guest access
@@ -153,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
       total_price: body.total_price != null ? Math.max(0, Number(body.total_price)) : null,
       status: body.status ?? "pending",
       payment_status: body.payment_status ?? "unpaid",
-      payment_method: (body as any).payment_method ?? "in_person",
+      payment_method: body.payment_method ?? "in_person",
       manage_token: manageToken,
     };
 
@@ -173,6 +178,35 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
+    }
+
+    // Create booking_add_ons records if add-on IDs provided
+    if (addOnIds.length > 0 && booking?.id) {
+      // Look up add-on details from service_add_ons table
+      const { data: addOns } = await serviceClient
+        .from("service_add_ons")
+        .select("id, name, price")
+        .in("id", addOnIds)
+        .eq("is_active", true);
+
+      if (addOns && addOns.length > 0) {
+        const addOnRecords = addOns.map(addon => ({
+          booking_id: booking.id,
+          add_on_id: addon.id,
+          name: addon.name,
+          price: Number(addon.price),
+        }));
+
+        const { error: addOnError } = await serviceClient
+          .from("booking_add_ons")
+          .insert(addOnRecords);
+
+        if (addOnError) {
+          console.error("Error creating booking_add_ons:", addOnError);
+        } else {
+          console.log(`Created ${addOnRecords.length} booking_add_ons for booking ${booking.id}`);
+        }
+      }
     }
 
     return new Response(JSON.stringify({ booking, manageToken: booking.manage_token }), {

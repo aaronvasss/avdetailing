@@ -33,7 +33,6 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 400 });
       }
     } else {
-      // For development, parse without signature verification
       event = JSON.parse(body);
       logStep("Processing without signature verification (dev mode)");
     }
@@ -72,6 +71,7 @@ serve(async (req) => {
             .eq("id", bookingId)
             .select(`
               id,
+              user_id,
               scheduled_date,
               scheduled_time,
               service_address,
@@ -94,42 +94,68 @@ serve(async (req) => {
           } else {
             logStep("Booking confirmed", { bookingId });
 
-            // Send confirmation email via edge function
             if (bookingData) {
+              // Resolve customer contact info: use guest fields, or look up profile for logged-in users
+              let customerEmail = bookingData.guest_email || session.customer_email;
+              let customerName = bookingData.guest_name?.split(' ')[0] || 'Customer';
+              let customerPhone = bookingData.guest_phone;
+
+              if (bookingData.user_id && (!customerEmail || !customerPhone)) {
+                try {
+                  const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("full_name, email, phone")
+                    .eq("user_id", bookingData.user_id)
+                    .single();
+
+                  if (profile) {
+                    if (!customerEmail && profile.email) customerEmail = profile.email;
+                    if (!customerPhone && profile.phone) customerPhone = profile.phone;
+                    if (customerName === 'Customer' && profile.full_name) {
+                      customerName = profile.full_name.split(' ')[0];
+                    }
+                    logStep("Resolved contact from profile", { 
+                      hasEmail: !!customerEmail, hasPhone: !!customerPhone, name: customerName 
+                    });
+                  }
+                } catch (profileErr) {
+                  logStep("Profile lookup failed", { error: profileErr });
+                }
+              }
+
+              // Send confirmation email
               try {
-                const customerEmail = bookingData.guest_email || session.customer_email;
-                const customerName = bookingData.guest_name?.split(' ')[0] || 'Customer';
-                
-                // Trigger confirmation email
-                await supabase.functions.invoke('send-booking-confirmation', {
-                  body: {
-                    customerEmail,
-                    customerName,
-                    serviceName: (bookingData.services as any)?.name || 'Detailing Service',
-                    scheduledDate: bookingData.scheduled_date,
-                    scheduledTime: bookingData.scheduled_time,
-                    serviceAddress: bookingData.service_address,
-                    serviceCity: bookingData.service_city,
-                    serviceState: 'LA',
-                    serviceZip: bookingData.service_zip,
-                    vehicleType: bookingData.vehicle_type,
-                    totalPrice: bookingData.total_price,
-                    bookingId: bookingData.id,
-                    manageToken: bookingData.manage_token,
-                  },
-                });
-                logStep("Confirmation email triggered");
+                if (customerEmail) {
+                  await supabase.functions.invoke('send-booking-confirmation', {
+                    body: {
+                      customerEmail,
+                      customerName,
+                      serviceName: (bookingData.services as any)?.name || 'Detailing Service',
+                      scheduledDate: bookingData.scheduled_date,
+                      scheduledTime: bookingData.scheduled_time,
+                      serviceAddress: bookingData.service_address,
+                      serviceCity: bookingData.service_city,
+                      serviceState: 'LA',
+                      serviceZip: bookingData.service_zip,
+                      vehicleType: bookingData.vehicle_type,
+                      totalPrice: bookingData.total_price,
+                      bookingId: bookingData.id,
+                      manageToken: bookingData.manage_token,
+                    },
+                  });
+                  logStep("Confirmation email triggered");
+                }
               } catch (emailErr) {
                 logStep("Email trigger failed", { error: emailErr });
               }
 
-              // Trigger SMS notification
+              // Send SMS notification
               try {
-                if (bookingData.guest_phone) {
+                if (customerPhone) {
                   await supabase.functions.invoke('send-booking-sms', {
                     body: {
-                      customerPhone: bookingData.guest_phone,
-                      customerName: bookingData.guest_name?.split(' ')[0] || 'Customer',
+                      customerPhone,
+                      customerName,
                       serviceName: (bookingData.services as any)?.name || 'Detailing Service',
                       scheduledDate: bookingData.scheduled_date,
                       scheduledTime: bookingData.scheduled_time,
@@ -141,6 +167,8 @@ serve(async (req) => {
                     },
                   });
                   logStep("SMS notification triggered");
+                } else {
+                  logStep("No phone number available for SMS", { userId: bookingData.user_id });
                 }
               } catch (smsErr) {
                 logStep("SMS trigger failed", { error: smsErr });
@@ -208,7 +236,6 @@ serve(async (req) => {
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Payment intent succeeded", { id: paymentIntent.id });
-        // Additional handling if needed
         break;
       }
 
