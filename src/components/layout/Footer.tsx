@@ -157,11 +157,11 @@ export function Footer() {
               © {currentYear} AV Detailing. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <Link to="/privacy" className="hover:text-primary transition-colors">
+              <Link to="/privacy-policy" className="hover:text-primary transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="hover:text-primary transition-colors">
-                Terms of Service
+              <Link to="/terms-and-conditions" className="hover:text-primary transition-colors">
+                Terms & Conditions
               </Link>
             </div>
           </div>
