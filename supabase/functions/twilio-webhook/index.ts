@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
       
 📞 Call: ${publicPhone}
 📧 Email: aaronvasquez100@gmail.com
-🌐 Book: avdetailing.lovable.app
+🌐 Book: avdetailing.net
 
 Reply STOP to unsubscribe.`;
 
