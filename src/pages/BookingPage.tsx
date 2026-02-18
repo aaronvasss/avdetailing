@@ -571,12 +571,13 @@ const BookingPage = () => {
         
         try {
           // Call create-checkout without price_id - it will look up from database
+          // Pass selected add-on IDs so they appear as separate Stripe line items
           const checkoutResult = await createBookingCheckout(createdId, '', {
             customer_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
             customer_email: user?.email || customerInfo.email,
             service_name: serviceName,
             vehicle_type: vehicleTypeLabel,
-          });
+          }, selectedAddOns.length > 0 ? selectedAddOns : undefined);
 
           if (checkoutResult?.url) {
             // Redirect to Stripe Checkout

@@ -20,6 +20,7 @@ interface CheckoutRequest {
   success_url?: string;
   cancel_url?: string;
   metadata?: Record<string, string>;
+  add_on_ids?: string[];
 }
 
 serve(async (req) => {
@@ -58,9 +59,9 @@ serve(async (req) => {
     }
 
     const body: CheckoutRequest = await req.json();
-    let { booking_id, membership_plan_id, price_id, mode, success_url, cancel_url, metadata } = body;
+    let { booking_id, membership_plan_id, price_id, mode, success_url, cancel_url, metadata, add_on_ids } = body;
 
-    logStep("Request parsed", { price_id, mode, booking_id, membership_plan_id });
+    logStep("Request parsed", { price_id, mode, booking_id, membership_plan_id, add_on_ids });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -204,10 +205,49 @@ serve(async (req) => {
     if (booking_id) sessionMetadata.booking_id = booking_id;
     if (membership_plan_id) sessionMetadata.membership_plan_id = membership_plan_id;
 
+    // Build line items: base service + add-ons
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+      { price: price_id, quantity: 1 }
+    ];
+
+    // Add add-on line items if provided
+    if (add_on_ids && add_on_ids.length > 0) {
+      logStep("Looking up add-on Stripe prices", { add_on_ids });
+      const { data: addOns, error: addOnError } = await serviceClient
+        .from("service_add_ons")
+        .select("id, name, price, stripe_price_id")
+        .in("id", add_on_ids)
+        .eq("is_active", true);
+
+      if (addOnError) {
+        logStep("Add-on lookup error", { error: addOnError });
+      }
+
+      if (addOns && addOns.length > 0) {
+        for (const addon of addOns) {
+          if (addon.stripe_price_id) {
+            lineItems.push({ price: addon.stripe_price_id, quantity: 1 });
+            logStep("Added add-on line item", { name: addon.name, price_id: addon.stripe_price_id });
+          } else {
+            // Create dynamic price for add-on without a Stripe price ID
+            const addonPrice = await stripe.prices.create({
+              currency: 'usd',
+              unit_amount: Math.round(Number(addon.price) * 100),
+              product_data: { name: `Add-on: ${addon.name}` },
+            });
+            lineItems.push({ price: addonPrice.id, quantity: 1 });
+            logStep("Created dynamic add-on price", { name: addon.name, price_id: addonPrice.id });
+          }
+        }
+        // Add add-on names to metadata
+        sessionMetadata.add_ons = addOns.map(a => a.name).join(', ');
+      }
+    }
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_email: customerId ? undefined : userEmail || undefined,
-      line_items: [{ price: price_id, quantity: 1 }],
+      line_items: lineItems,
       mode: mode,
       success_url: success_url || `${origin}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking_id || ''}`,
       cancel_url: cancel_url || `${origin}/booking/canceled?booking_id=${booking_id || ''}`,

@@ -67,7 +67,8 @@ export const MEMBERSHIP_PRICES = {
 export const createBookingCheckout = async (
   bookingId: string,
   priceId?: string,
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
+  addOnIds?: string[]
 ): Promise<{ url: string; session_id: string }> => {
   const { data, error } = await supabase.functions.invoke('create-checkout', {
     body: {
@@ -77,6 +78,7 @@ export const createBookingCheckout = async (
       success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
       cancel_url: `${window.location.origin}/booking/canceled?booking_id=${bookingId}`,
       metadata,
+      add_on_ids: addOnIds,
     },
   });
 
