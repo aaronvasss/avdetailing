@@ -126,6 +126,38 @@ const handler = async (req: Request): Promise<Response> => {
     const body: ManageBookingRequest = await req.json();
     const { token, action, newDate, newTime, reason } = body;
 
+    // Validate action
+    if (!["get", "reschedule", "cancel"].includes(action)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid action" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate token format (should be UUID-like)
+    if (typeof token !== "string" || token.length < 32 || token.length > 100) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate optional fields
+    if (newDate && !/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid date format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (newTime && !/^\d{1,2}:\d{2}(:\d{2})?(\s*[AP]M)?$/i.test(newTime)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid time format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // Truncate reason to prevent abuse
+    const sanitizedReason = reason ? String(reason).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 500) : undefined;
+
     if (!token) {
       return new Response(
         JSON.stringify({ error: "Missing token" }),
@@ -290,7 +322,7 @@ Questions? Call (225) 521-6264`;
         .from("bookings")
         .update({
           status: "cancelled",
-          internal_notes: reason ? `Cancelled by customer: ${reason}` : "Cancelled by customer via manage link",
+          internal_notes: sanitizedReason ? `Cancelled by customer: ${sanitizedReason}` : "Cancelled by customer via manage link",
         })
         .eq("id", booking.id);
 
