@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHmac } from "node:crypto";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
@@ -86,6 +87,24 @@ async function sendTwilioSms(to: string, body: string, fromNumber: string): Prom
   }
 }
 
+// Validate Twilio request signature
+function validateTwilioSignature(url: string, params: Record<string, string>, signature: string): boolean {
+  // Build the data string: URL + sorted params
+  const sortedKeys = Object.keys(params).sort();
+  let data = url;
+  for (const key of sortedKeys) {
+    data += key + params[key];
+  }
+  const computed = createHmac("sha1", TWILIO_AUTH_TOKEN).update(data).digest("base64");
+  // Constant-time comparison
+  if (computed.length !== signature.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < computed.length; i++) {
+    mismatch |= computed.charCodeAt(i) ^ signature.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
 // Handle incoming SMS (webhook from Twilio)
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
@@ -96,12 +115,30 @@ const handler = async (req: Request): Promise<Response> => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
+    // Validate Twilio signature before processing
+    const twilioSignature = req.headers.get("X-Twilio-Signature");
+    if (!twilioSignature) {
+      console.error("Missing Twilio signature header");
+      return new Response("Forbidden", { status: 403, headers: corsHeaders });
+    }
+
     // Parse form data from Twilio webhook
     const formData = await req.formData();
-    const from = formData.get("From")?.toString() || "";
-    const body = formData.get("Body")?.toString() || "";
-    const messageSid = formData.get("MessageSid")?.toString() || "";
-    const toNumber = formData.get("To")?.toString() || "";
+    const params: Record<string, string> = {};
+    for (const [key, value] of formData.entries()) {
+      params[key] = value.toString();
+    }
+
+    const webhookUrl = req.url;
+    if (!validateTwilioSignature(webhookUrl, params, twilioSignature)) {
+      console.error("Invalid Twilio signature");
+      return new Response("Forbidden", { status: 403, headers: corsHeaders });
+    }
+
+    const from = params["From"] || "";
+    const body = params["Body"] || "";
+    const messageSid = params["MessageSid"] || "";
+    const toNumber = params["To"] || "";
 
     console.log(`Incoming SMS from ${from}: ${body}`);
 
