@@ -218,14 +218,14 @@ Deno.serve(async (req) => {
         `Status: ${booking.status}`,
         "",
         "Questions? Call (225) 521-6264",
-        "https://avdetailing.lovable.app",
+        "https://avdetailing.net",
       ]
         .filter((line) => line !== null)
         .join("\\n");
 
       events.push([
         "BEGIN:VEVENT",
-        `UID:${booking.id}@avdetailing.lovable.app`,
+        `UID:${booking.id}@avdetailing.net`,
         `DTSTAMP:${now}`,
         `DTSTART:${formatICSDate(startDate)}`,
         `DTEND:${formatICSDate(endDate)}`,

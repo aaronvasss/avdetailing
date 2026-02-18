@@ -195,7 +195,7 @@ serve(async (req) => {
       }
     }
 
-    const origin = req.headers.get("origin") || "https://avdetailing.lovable.app";
+    const origin = req.headers.get("origin") || "https://avdetailing.net";
 
     // Build session metadata
     const sessionMetadata: Record<string, string> = {

@@ -147,7 +147,7 @@ export function createBookingCalendarEvent(booking: {
     `Location: ${location || "TBD"}`,
     "",
     "Questions? Call (225) 521-6264",
-    "https://avdetailing.lovable.app",
+    "https://avdetailing.net",
   ]
     .filter((line) => line !== null)
     .join("\n");

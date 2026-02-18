@@ -1631,7 +1631,7 @@ const BookingPage = () => {
                         const event = {
                           id: bookingId || `booking-${Date.now()}`,
                           title: `AV Detailing - ${calServiceName}`,
-                          description: `Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\nLocation: ${location}\n\nQuestions? Call (225) 521-6264\nhttps://avdetailing.lovable.app`,
+                          description: `Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\nLocation: ${location}\n\nQuestions? Call (225) 521-6264\nhttps://avdetailing.net`,
                           location,
                           startDate,
                           endDate,

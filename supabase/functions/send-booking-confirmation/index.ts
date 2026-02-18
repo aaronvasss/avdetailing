@@ -217,7 +217,7 @@ const handler = async (req: Request): Promise<Response> => {
   }: BookingConfirmationRequest = rawData;
 
   // Build manage URLs
-  const baseUrl = "https://avdetailing.lovable.app";
+  const baseUrl = "https://avdetailing.net";
   const rescheduleUrl = manageToken ? `${baseUrl}/booking/manage?token=${manageToken}` : null;
   const cancelUrl = manageToken ? `${baseUrl}/booking/cancel?token=${manageToken}` : null;
     const safeCustomerName = htmlEncode(customerName.trim());
