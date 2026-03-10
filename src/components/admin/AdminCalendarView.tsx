@@ -39,7 +39,7 @@ interface AdminCalendarViewProps {
   isAdmin: boolean;
 }
 
-type ViewMode = "week" | "day";
+type ViewMode = "month" | "week" | "day";
 
 const SERVICE_FILTERS = [
   { id: "car-detailing", label: "Car", icon: Car, color: "bg-blue-500" },
