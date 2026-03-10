@@ -193,8 +193,20 @@ export function ServicePageTemplate({
                   )}
                 </div>
               </div>
-            ))}
+          ))}
           </div>
+
+          {depositFlow && (
+            <div className="mt-8 max-w-2xl mx-auto">
+              <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">$100 deposit required to book.</span>{" "}
+                  Final price determined after inspection. The deposit is applied toward your total service cost.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
