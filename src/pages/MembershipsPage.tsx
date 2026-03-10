@@ -92,6 +92,13 @@ const billingLabels: Record<string, string> = {
   "weekly-premium": "/visit",
 };
 
+const frequencyDisplay: Record<string, string> = {
+  "monthly": "1 visit per month",
+  "bi-weekly": "2x per month",
+  "weekly": "4x per month",
+  "weekly-premium": "4x per month",
+};
+
 const faqs = [
   {
     question: "Can I cancel my membership anytime?",
@@ -142,6 +149,7 @@ const MembershipsPage = () => {
       if (data && data.length > 0) {
         setPlans(data.map(plan => ({
           ...plan,
+          frequency: frequencyDisplay[plan.frequency] || frequencyDisplay[plan.slug] || plan.frequency,
           savings: savingsMap[plan.slug] || "",
         })));
       } else {
