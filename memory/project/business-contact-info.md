@@ -11,9 +11,11 @@ The business uses two separate phone numbers:
 - This is the main business line customers should call
 
 ### SMS Sender Phone (Twilio - for texting only)
-- Number: +1 (225) 239-4617 / +12252394617
+- Number: +1 (225) 228-4796 / +12252284796
 - Used in: All SMS notifications via Twilio, "Text Us" button, two-way messaging
 - This is the Twilio number that sends booking confirmations, reminders, etc.
+- A2P Brand: BNc8b3fd6a31d5982cddd26a434ea4384f
+- A2P Campaign: CM3754f93a8ce86860b8a5a388fd0a811e
 
 ## Database Settings
 Both phone numbers are stored in the `business_settings` table:
