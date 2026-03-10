@@ -103,7 +103,34 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
     setLoading(false);
   };
 
-  const updateStatus = async (bookingId: string, newStatus: string) => {
+  const fetchMemberships = async () => {
+    const { count } = await supabase
+      .from("customer_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active");
+    setActiveMemberships(count || 0);
+  };
+
+  const fetchCustomerCount = async () => {
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true });
+    setTotalCustomers(count || 0);
+  };
+
+  const fetchMonthRevenue = async () => {
+    const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
+    const { data } = await supabase
+      .from("bookings")
+      .select("total_price")
+      .gte("scheduled_date", monthStart)
+      .lte("scheduled_date", monthEnd)
+      .neq("status", "cancelled");
+    const total = (data || []).reduce((sum, b) => sum + (b.total_price || 0), 0);
+    setMonthRevenue(total);
+  };
+
     const { error } = await supabase
       .from("bookings")
       .update({ status: newStatus })
