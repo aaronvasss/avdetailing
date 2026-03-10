@@ -78,7 +78,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   useEffect(() => {
     fetchBookings();
-  }, [currentDate]);
+  }, [currentDate, viewMode]);
 
   const fetchBookings = async () => {
     setLoading(true);
