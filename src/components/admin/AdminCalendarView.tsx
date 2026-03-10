@@ -209,7 +209,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   };
 
   const navigatePrev = () => {
-    if (viewMode === "week") {
+    if (viewMode === "month") {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else if (viewMode === "week") {
       setCurrentDate(subWeeks(currentDate, 1));
     } else {
       setCurrentDate(addDays(currentDate, -1));
@@ -217,7 +219,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   };
 
   const navigateNext = () => {
-    if (viewMode === "week") {
+    if (viewMode === "month") {
+      setCurrentDate(addMonths(currentDate, 1));
+    } else if (viewMode === "week") {
       setCurrentDate(addWeeks(currentDate, 1));
     } else {
       setCurrentDate(addDays(currentDate, 1));
@@ -226,6 +230,32 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   const goToToday = () => {
     setCurrentDate(new Date());
+  };
+
+  // Month view helpers
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const monthCalendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const monthCalendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+
+  const monthWeeks = useMemo(() => {
+    const weeks: Date[][] = [];
+    let day = monthCalendarStart;
+    while (day <= monthCalendarEnd) {
+      const week: Date[] = [];
+      for (let i = 0; i < 7; i++) {
+        week.push(day);
+        day = addDays(day, 1);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }, [currentDate]);
+
+  const getHeaderTitle = () => {
+    if (viewMode === "month") return format(currentDate, "MMMM yyyy");
+    if (viewMode === "week") return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    return format(currentDate, "EEEE, MMMM d, yyyy");
   };
 
   if (loading) {
@@ -251,14 +281,18 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             <ChevronRight className="h-4 w-4" />
           </Button>
           <h2 className="text-lg font-semibold ml-2">
-            {viewMode === "week" 
-              ? `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`
-              : format(currentDate, "EEEE, MMMM d, yyyy")
-            }
+            {getHeaderTitle()}
           </h2>
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            variant={viewMode === "month" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setViewMode("month")}
+          >
+            Month
+          </Button>
           <Button 
             variant={viewMode === "week" ? "default" : "outline"} 
             size="sm"
