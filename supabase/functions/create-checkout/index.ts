@@ -177,10 +177,13 @@ serve(async (req) => {
             lineItems.push({ price: addon.stripe_price_id, quantity: 1 });
             logStep("Added add-on line item", { name: addon.name, price_id: addon.stripe_price_id });
           } else {
-            // Create dynamic price for add-on without a Stripe price ID
+            // Create dynamic price for add-on without a Stripe price ID (include 3.5% processing fee)
+            const addonBasePrice = Number(addon.price);
+            const addonFee = Math.round(addonBasePrice * 0.035 * 100) / 100;
+            const addonTotalCents = Math.round((addonBasePrice + addonFee) * 100);
             const addonPrice = await stripe.prices.create({
               currency: 'usd',
-              unit_amount: Math.round(Number(addon.price) * 100),
+              unit_amount: addonTotalCents,
               product_data: { name: `Add-on: ${addon.name}` },
             });
             lineItems.push({ price: addonPrice.id, quantity: 1 });
