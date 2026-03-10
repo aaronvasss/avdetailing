@@ -4,6 +4,7 @@ import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
 const BoatDetailingPage = () => {
   return (
     <ServicePageTemplate
+      depositFlow
       title="Boat Detailing"
       location="Professional Boat & Marine Detailing in Baton Rouge, Louisiana"
       description="Marine-grade detailing services for boats and watercraft of all sizes. Protect your investment from salt, sun, and water damage with our specialized marine care."
