@@ -232,7 +232,9 @@ const MembershipsPage = () => {
                     <p className="text-sm text-muted-foreground mb-4">{plan.frequency}</p>
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-5xl font-bold">${plan.price}</span>
-                      <span className="text-muted-foreground">/month</span>
+                      <span className="text-muted-foreground">
+                        {plan.slug === 'bi-weekly' ? '/visit' : plan.slug === 'weekly-premium' ? '/visit' : '/month'}
+                      </span>
                     </div>
                     {plan.savings && (
                       <p className="text-sm text-primary font-medium mt-2">{plan.savings}</p>
