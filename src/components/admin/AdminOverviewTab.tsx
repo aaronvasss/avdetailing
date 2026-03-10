@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, Clock, MapPin, Phone, DollarSign, 
   Users, AlertCircle, CheckCircle2, XCircle,
-  Loader2, MessageSquare, Eye, ChevronRight
+  Loader2, MessageSquare, Eye, ChevronRight,
+  CreditCard, UserCheck
 } from "lucide-react";
-import { format, isToday, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { format, isToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns";
 import { toast } from "sonner";
 
 interface Booking {
