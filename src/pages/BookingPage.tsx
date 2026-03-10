@@ -1400,22 +1400,25 @@ const BookingPage = () => {
               </CardContent>
             </Card>
 
-            {/* SMS Consent Checkbox */}
+            {/* Terms & SMS Consent Checkbox */}
             <div className="flex items-start space-x-3 p-4 border border-border rounded-lg bg-secondary/30">
               <Checkbox
                 id="smsConsent"
                 checked={smsConsent}
                 onCheckedChange={(checked) => setSmsConsent(checked === true)}
-                className="mt-0.5"
+                className="mt-0.5 border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
-              <label htmlFor="smsConsent" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                I agree to receive SMS notifications from AV Detailing regarding my appointment, service updates, and billing.
-                Message frequency varies. Message & data rates may apply. Reply STOP to unsubscribe or HELP for assistance.
-                View{" "}
-                <Link to="/privacy-policy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>
-                {" "}and{" "}
-                <Link to="/terms-and-conditions" target="_blank" className="text-primary hover:underline">Terms & Conditions</Link>.
-              </label>
+              <div>
+                <label htmlFor="smsConsent" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                  I agree to receive SMS & email reminders from AV Detailing LLC and I have read and accept the{" "}
+                  <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                    Booking Terms & Service Agreement
+                  </a>.
+                </label>
+                {!smsConsent && (
+                  <p className="text-xs text-destructive mt-1 hidden peer-invalid:block" id="consent-error"></p>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-4">

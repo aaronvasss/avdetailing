@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowRight, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,8 @@ const formatPhone = (value: string): string => {
 
 export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSignupModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsError, setShowTermsError] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -259,10 +262,40 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
             </div>
           </div>
 
+          {/* Terms Consent */}
+          <div className="flex items-start space-x-3 p-3 border border-border rounded-lg bg-secondary/30">
+            <Checkbox
+              id="mem-terms"
+              checked={termsAccepted}
+              onCheckedChange={(checked) => {
+                setTermsAccepted(checked === true);
+                if (checked) setShowTermsError(false);
+              }}
+              className="mt-0.5 border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <div>
+              <label htmlFor="mem-terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                I agree to receive SMS & email reminders from AV Detailing LLC and I have read and accept the{" "}
+                <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                  Booking Terms & Service Agreement
+                </a>.
+              </label>
+              {showTermsError && (
+                <p className="text-xs text-destructive mt-1">Please agree to the terms to continue</p>
+              )}
+            </div>
+          </div>
+
           <Button
             className="w-full"
             size="lg"
-            onClick={handleSubmit}
+            onClick={() => {
+              if (!termsAccepted) {
+                setShowTermsError(true);
+                return;
+              }
+              handleSubmit();
+            }}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
