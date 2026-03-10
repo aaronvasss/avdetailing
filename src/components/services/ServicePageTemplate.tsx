@@ -44,7 +44,14 @@ export function ServicePageTemplate({
   addOns,
   faqs,
   icon,
+  depositFlow = false,
 }: ServicePageProps) {
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+
+  const bookAction = depositFlow
+    ? { onClick: () => setDepositModalOpen(true) }
+    : { asChild: true as const };
+
   return (
     <Layout>
       {/* Hero Section */}
