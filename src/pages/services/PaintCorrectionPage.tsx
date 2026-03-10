@@ -5,6 +5,7 @@ import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 const PaintCorrectionPage = () => {
   return (
     <ServicePageTemplate
+      depositFlow
       title="Paint Correction"
       location="Expert Paint Correction & Buffing in Baton Rouge, Louisiana"
       description="Remove swirl marks, scratches, oxidation, and water spots to restore your vehicle's paint to like-new clarity and depth. Professional multi-stage correction."

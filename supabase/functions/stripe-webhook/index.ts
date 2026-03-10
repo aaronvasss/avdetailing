@@ -56,6 +56,121 @@ serve(async (req) => {
         const bookingId = session.metadata?.booking_id;
         const userId = session.metadata?.user_id;
         const membershipPlanId = session.metadata?.membership_plan_id;
+        const flowType = session.metadata?.flow_type;
+        const quoteId = session.metadata?.quote_id;
+
+        // Handle specialty deposit flow (Boat, Aircraft, Ceramic Coating, Paint Correction)
+        if (session.mode === 'payment' && flowType === 'specialty_deposit' && quoteId) {
+          logStep("Processing specialty deposit payment", { quoteId });
+
+          // Update quote status to deposit_paid
+          await supabase
+            .from("quotes")
+            .update({
+              status: 'deposit_paid',
+              stripe_payment_intent_id: session.payment_intent as string,
+              stripe_checkout_session_id: session.id,
+            })
+            .eq("id", quoteId);
+
+          // Create payment record
+          await supabase.from("payment_records").insert({
+            amount_cents: session.amount_total || 10000,
+            payment_type: 'deposit',
+            status: 'paid',
+            stripe_payment_intent_id: session.payment_intent as string,
+            stripe_checkout_session_id: session.id,
+            stripe_customer_id: session.customer as string || null,
+            metadata: {
+              quote_id: quoteId,
+              service_type: session.metadata?.service_type,
+              flow_type: 'specialty_deposit',
+            },
+          });
+
+          // Send confirmation email to customer
+          const customerEmail = session.metadata?.customer_email || session.customer_email;
+          const customerName = session.metadata?.customer_name || 'Customer';
+
+          if (customerEmail) {
+            try {
+              const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+              const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+              await fetch(`${supabaseUrl}/functions/v1/send-contact-email`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${supabaseAnonKey}`,
+                },
+                body: JSON.stringify({
+                  to: customerEmail,
+                  subject: `Deposit Confirmed — ${session.metadata?.service_type}`,
+                  html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                      <h2 style="color: #dc2626;">AV Detailing 🚗</h2>
+                      <p style="color: #22c55e; font-weight: bold;">Deposit Confirmed</p>
+                      <p>Hi ${customerName.split(' ')[0]},</p>
+                      <p>Your $100 deposit for <strong>${session.metadata?.service_type}</strong> has been received!</p>
+                      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Service</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${session.metadata?.service_type}</td></tr>
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Vehicle</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.vehicle_details || 'N/A'}</td></tr>
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Preferred Date</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.preferred_date || 'TBD'}</td></tr>
+                        ${session.metadata?.preferred_time ? `<tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Preferred Time</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.preferred_time}</td></tr>` : ''}
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Deposit Paid</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color: #22c55e;">$100.00</td></tr>
+                      </table>
+                      <p style="color: #666;">The remaining balance will be determined after our on-site inspection. We'll reach out to confirm your appointment details.</p>
+                      <p style="margin-top: 24px;">Questions? Call us at <a href="tel:+12255216264">(225) 521-6264</a></p>
+                    </div>
+                  `,
+                }),
+              });
+              logStep("Customer deposit confirmation email sent", { email: customerEmail });
+            } catch (emailErr) {
+              logStep("Failed to send customer deposit email", { error: emailErr });
+            }
+          }
+
+          // Send internal notification to business
+          try {
+            const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+            const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+            await fetch(`${supabaseUrl}/functions/v1/send-contact-email`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${supabaseAnonKey}`,
+              },
+              body: JSON.stringify({
+                to: "aaronvasquez100@gmail.com",
+                subject: `💰 New $100 Deposit — ${session.metadata?.service_type}`,
+                html: `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>New Specialty Service Deposit</h2>
+                    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Customer</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerName}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Email</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerEmail}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Phone</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.customer_phone || 'Not provided'}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Service</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.service_type}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Vehicle</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.vehicle_details || 'N/A'}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Preferred Date</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.preferred_date || 'TBD'}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Preferred Time</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${session.metadata?.preferred_time || 'Not specified'}</td></tr>
+                      <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Deposit</td><td style="padding: 8px; border-bottom: 1px solid #eee; color: green; font-weight: bold;">$100.00 PAID</td></tr>
+                    </table>
+                    <p>Quote ID: ${quoteId}</p>
+                  </div>
+                `,
+              }),
+            });
+            logStep("Business notification sent for deposit");
+          } catch (bizErr) {
+            logStep("Failed to send business deposit notification", { error: bizErr });
+          }
+
+          logStep("Specialty deposit flow completed", { quoteId });
+          break;
+        }
 
         if (session.mode === 'payment' && bookingId) {
           // One-time payment for booking

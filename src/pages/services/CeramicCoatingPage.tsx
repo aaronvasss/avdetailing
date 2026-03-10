@@ -5,6 +5,7 @@ import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
 const CeramicCoatingPage = () => {
   return (
     <ServicePageTemplate
+      depositFlow
       title="Ceramic Coating"
       location="Professional Ceramic Coating in Baton Rouge, Louisiana"
       description="Long-lasting paint protection with professional-grade ceramic coating. Shield your vehicle from UV rays, chemicals, and environmental contaminants for years."

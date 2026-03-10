@@ -1,8 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, ArrowRight, Phone } from "lucide-react";
+import { Check, Clock, ArrowRight, Phone, Info } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { DepositBookingModal } from "@/components/booking/DepositBookingModal";
 
 interface ServicePageProps {
   title: string;
@@ -28,6 +29,8 @@ interface ServicePageProps {
   addOns: { name: string; price: string }[];
   faqs: { question: string; answer: string }[];
   icon: ReactNode;
+  /** If true, uses the $100 deposit booking flow instead of standard booking */
+  depositFlow?: boolean;
 }
 
 export function ServicePageTemplate({
@@ -41,7 +44,14 @@ export function ServicePageTemplate({
   addOns,
   faqs,
   icon,
+  depositFlow = false,
 }: ServicePageProps) {
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+
+  const bookAction = depositFlow
+    ? { onClick: () => setDepositModalOpen(true) }
+    : { asChild: true as const };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -68,12 +78,19 @@ export function ServicePageTemplate({
             <p className="text-xl text-primary font-medium mb-4">{location}</p>
             <p className="text-lg text-muted-foreground mb-8">{description}</p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="glow-red">
-                <Link to="/book">
-                  Book Now
+              {depositFlow ? (
+                <Button size="lg" className="glow-red" onClick={() => setDepositModalOpen(true)}>
+                  Book Now — $100 Deposit
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+                </Button>
+              ) : (
+                <Button asChild size="lg" className="glow-red">
+                  <Link to="/book">
+                    Book Now
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              )}
               <Button asChild variant="outline" size="lg">
                 <a href="tel:+12255216264">
                   <Phone className="mr-2 h-5 w-5" />
@@ -157,17 +174,39 @@ export function ServicePageTemplate({
                   ))}
                 </ul>
                 <div className="mt-auto">
-                  <Button
-                    asChild
-                    className={cn("w-full", pkg.popular && "glow-red")}
-                    variant={pkg.popular ? "default" : "outline"}
-                  >
-                    <Link to="/book">Book This Package</Link>
-                  </Button>
+                  {depositFlow ? (
+                    <Button
+                      className={cn("w-full", pkg.popular && "glow-red")}
+                      variant={pkg.popular ? "default" : "outline"}
+                      onClick={() => setDepositModalOpen(true)}
+                    >
+                      Book — $100 Deposit
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      className={cn("w-full", pkg.popular && "glow-red")}
+                      variant={pkg.popular ? "default" : "outline"}
+                    >
+                      <Link to="/book">Book This Package</Link>
+                    </Button>
+                  )}
                 </div>
               </div>
-            ))}
+          ))}
           </div>
+
+          {depositFlow && (
+            <div className="mt-8 max-w-2xl mx-auto">
+              <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">$100 deposit required to book.</span>{" "}
+                  Final price determined after inspection. The deposit is applied toward your total service cost.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -253,12 +292,19 @@ export function ServicePageTemplate({
             difference. Same-week availability for most appointments.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" className="glow-red">
-              <Link to="/book">
-                Book Your Detail
+            {depositFlow ? (
+              <Button size="lg" className="glow-red" onClick={() => setDepositModalOpen(true)}>
+                Book Your Detail — $100 Deposit
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="glow-red">
+                <Link to="/book">
+                  Book Your Detail
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="lg">
               <a href="tel:+12255216264">
                 <Phone className="mr-2 h-5 w-5" />
@@ -268,6 +314,14 @@ export function ServicePageTemplate({
           </div>
         </div>
       </section>
+
+      {depositFlow && (
+        <DepositBookingModal
+          open={depositModalOpen}
+          onOpenChange={setDepositModalOpen}
+          serviceTitle={title}
+        />
+      )}
     </Layout>
   );
 }

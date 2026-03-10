@@ -4,6 +4,7 @@ import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
 const AircraftDetailingPage = () => {
   return (
     <ServicePageTemplate
+      depositFlow
       title="Aircraft Detailing"
       location="Professional Aircraft Detailing in Baton Rouge, Louisiana"
       description="Precision detailing for private aircraft using aviation-approved products. Protect your investment and maintain your aircraft's appearance with our specialized services."
