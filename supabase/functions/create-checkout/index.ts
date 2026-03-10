@@ -12,6 +12,28 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Map package slug + vehicle sub-type to exact Stripe product names
+function getStripeProductName(packageSlug: string, vehicleSubType: string, vehicleTypeLabel: string): string {
+  const isLarge = vehicleSubType === 'suv-8' || vehicleSubType === 'truck' ||
+    vehicleTypeLabel?.includes('8 seats') || vehicleTypeLabel?.includes('3-row') ||
+    vehicleTypeLabel?.toLowerCase() === 'truck';
+  const isSuv5 = vehicleSubType === 'suv-5' || vehicleTypeLabel?.includes('5 seats');
+
+  const nameMap: Record<string, { carSuv5: string; suv5?: string; large: string }> = {
+    'exterior-only': { carSuv5: 'Exterior Only - Car/SUV-5', large: 'Exterior Only - Large' },
+    'basic': { carSuv5: 'Basic Detail - Car/SUV-5', large: 'Basic Detail - Large' },
+    'silver': { carSuv5: 'Silver Detail - Car', suv5: 'Silver Detail - SUV-5', large: 'Silver Detail - Large' },
+    'gold': { carSuv5: 'Gold Detail - Car/SUV-5', large: 'Gold Detail - Large' },
+  };
+
+  const mapping = nameMap[packageSlug];
+  if (!mapping) return `${packageSlug} - ${vehicleTypeLabel || 'Vehicle'}`;
+
+  if (isLarge) return mapping.large;
+  if (isSuv5 && mapping.suv5) return mapping.suv5;
+  return mapping.carSuv5;
+}
+
 interface CheckoutRequest {
   booking_id?: string;
   membership_plan_id?: string;
@@ -118,11 +140,20 @@ serve(async (req) => {
 
         logStep("Creating dynamic price for base service", { basePrice, processingFee, amountCents });
 
+        // Use exact Stripe product name mapping from metadata
+        const packageSlug = metadata?.package_slug || '';
+        const vehicleSubType = metadata?.vehicle_sub_type || '';
+        const productName = packageSlug
+          ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
+          : `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`;
+
+        logStep("Stripe product name", { productName, packageSlug, vehicleSubType });
+
         const dynamicPrice = await stripe.prices.create({
           currency: 'usd',
           unit_amount: amountCents,
           product_data: {
-            name: `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`,
+            name: productName,
           },
         });
 
@@ -184,7 +215,7 @@ serve(async (req) => {
             const addonPrice = await stripe.prices.create({
               currency: 'usd',
               unit_amount: addonTotalCents,
-              product_data: { name: `Add-on: ${addon.name}` },
+              product_data: { name: `${addon.name} (Add-on)` },
             });
             lineItems.push({ price: addonPrice.id, quantity: 1 });
             logStep("Created dynamic add-on price", { name: addon.name, price_id: addonPrice.id });

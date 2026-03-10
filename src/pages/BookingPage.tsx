@@ -582,6 +582,8 @@ const BookingPage = () => {
             customer_email: user?.email || customerInfo.email,
             service_name: serviceName,
             vehicle_type: vehicleTypeLabel,
+            package_slug: selectedPackage || '',
+            vehicle_sub_type: vehicleSubType || '',
           }, selectedAddOns.length > 0 ? selectedAddOns : undefined);
 
           if (checkoutResult?.url) {
