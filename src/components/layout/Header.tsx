@@ -64,12 +64,12 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
             {navigation.map((item) => (
-              <div key={item.name} className="relative group">
+              <div key={item.name} className="relative group flex items-center">
                 {item.children ? (
                   <div
-                    className="relative"
+                    className="relative flex items-center"
                     onMouseEnter={() => setServicesOpen(true)}
                     onMouseLeave={() => setServicesOpen(false)}
                   >
@@ -152,10 +152,10 @@ export function Header() {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-4 shrink-0">
             <a
               href={`tel:${settings.publicBusinessPhoneE164}`}
-              className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               <Phone className="h-4 w-4 mr-2" />
               {settings.publicBusinessPhone}
