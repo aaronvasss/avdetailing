@@ -92,6 +92,13 @@ const billingLabels: Record<string, string> = {
   "weekly-premium": "/visit",
 };
 
+const frequencyDisplay: Record<string, string> = {
+  "monthly": "1 visit per month",
+  "bi-weekly": "2x per month",
+  "weekly": "4x per month",
+  "weekly-premium": "4x per month",
+};
+
 const faqs = [
   {
     question: "Can I cancel my membership anytime?",
