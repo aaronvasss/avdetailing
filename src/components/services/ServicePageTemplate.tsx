@@ -1,8 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, ArrowRight, Phone } from "lucide-react";
+import { Check, Clock, ArrowRight, Phone, Info } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { DepositBookingModal } from "@/components/booking/DepositBookingModal";
 
 interface ServicePageProps {
   title: string;
@@ -28,6 +29,8 @@ interface ServicePageProps {
   addOns: { name: string; price: string }[];
   faqs: { question: string; answer: string }[];
   icon: ReactNode;
+  /** If true, uses the $100 deposit booking flow instead of standard booking */
+  depositFlow?: boolean;
 }
 
 export function ServicePageTemplate({
