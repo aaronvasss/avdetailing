@@ -82,8 +82,17 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   const fetchBookings = async () => {
     setLoading(true);
-    const rangeStart = format(subWeeks(weekStart, 1), "yyyy-MM-dd");
-    const rangeEnd = format(addWeeks(weekEnd, 1), "yyyy-MM-dd");
+    let rangeStart: string;
+    let rangeEnd: string;
+    if (viewMode === "month") {
+      const ms = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
+      const me = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
+      rangeStart = format(ms, "yyyy-MM-dd");
+      rangeEnd = format(me, "yyyy-MM-dd");
+    } else {
+      rangeStart = format(subWeeks(weekStart, 1), "yyyy-MM-dd");
+      rangeEnd = format(addWeeks(weekEnd, 1), "yyyy-MM-dd");
+    }
 
     const { data, error } = await supabase
       .from("bookings")
