@@ -284,11 +284,6 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             </CardContent>
           </Card>
         )}
-              </div>
-              <XCircle className="h-8 w-8 text-red-500/50" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Today's Schedule */}
