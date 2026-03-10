@@ -45,6 +45,11 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
   useEffect(() => {
     fetchBookings();
+    if (isAdmin) {
+      fetchMemberships();
+      fetchCustomerCount();
+      fetchMonthRevenue();
+    }
   }, []);
 
   const fetchBookings = async () => {
