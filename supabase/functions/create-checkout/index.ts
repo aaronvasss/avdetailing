@@ -215,7 +215,7 @@ serve(async (req) => {
             const addonPrice = await stripe.prices.create({
               currency: 'usd',
               unit_amount: addonTotalCents,
-              product_data: { name: `Add-on: ${addon.name}` },
+              product_data: { name: `${addon.name} (Add-on)` },
             });
             lineItems.push({ price: addonPrice.id, quantity: 1 });
             logStep("Created dynamic add-on price", { name: addon.name, price_id: addonPrice.id });
