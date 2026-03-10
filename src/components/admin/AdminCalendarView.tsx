@@ -10,8 +10,8 @@ import {
   Loader2, Car, Droplets, Ship, Truck, Plane
 } from "lucide-react";
 import { 
-  format, startOfWeek, endOfWeek, startOfDay, addDays, 
-  isSameDay, addWeeks, subWeeks, isToday 
+  format, startOfWeek, endOfWeek, startOfDay, addDays, startOfMonth, endOfMonth,
+  isSameDay, isSameMonth, addWeeks, subWeeks, addMonths, subMonths, isToday 
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
