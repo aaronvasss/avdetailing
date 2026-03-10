@@ -56,11 +56,11 @@ export const getStripePriceIdFromDb = async (
   return prices[0]?.stripe_price_id || null;
 };
 
-// Memberships pricing (static for now)
-export const MEMBERSHIP_PRICES = {
-  'monthly': 'price_1StkZlDr7pQ6grsfOOWsn5r4',
-  'bi-weekly': 'price_1StkZmDr7pQ6grsf6C8Z95AG',
-  'weekly-premium': 'price_1StkZnDr7pQ6grsfhM02js70',
+// Memberships pricing - matched to existing Stripe subscription products
+export const MEMBERSHIP_PRICES: Record<string, string> = {
+  'monthly': 'price_1T9JXHDr7pQ6grsf5c9r4ToG',       // Monthly Membership - $135/month
+  'bi-weekly': 'price_1StucDDr7pQ6grsfg53qnHOr',      // Bi-Weekly Membership - $130/every 2 weeks
+  'weekly-premium': 'price_1StucEDr7pQ6grsfrIHZe5Zo',  // Weekly Membership - $130/week
 };
 
 // Create checkout session for booking with redirect

@@ -44,8 +44,8 @@ const fallbackPlans = [
     id: "bi-weekly",
     slug: "bi-weekly",
     name: "Bi-Weekly Maintenance",
-    frequency: "2 visits per month",
-    price: 260,
+    frequency: "2x per month",
+    price: 130,
     savings: "Save $109/month vs. one-time",
     description: "Ideal for daily drivers and high-use vehicles that need regular care.",
     features: [
@@ -62,8 +62,8 @@ const fallbackPlans = [
     id: "weekly-premium",
     slug: "weekly-premium",
     name: "Weekly Premium",
-    frequency: "4 visits per month",
-    price: 520,
+    frequency: "4x per month",
+    price: 130,
     savings: "Save $217/month vs. one-time",
     description: "The ultimate in vehicle care for enthusiasts and luxury owners.",
     features: [
@@ -232,7 +232,9 @@ const MembershipsPage = () => {
                     <p className="text-sm text-muted-foreground mb-4">{plan.frequency}</p>
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-5xl font-bold">${plan.price}</span>
-                      <span className="text-muted-foreground">/month</span>
+                      <span className="text-muted-foreground">
+                        {plan.slug === 'bi-weekly' ? '/visit' : plan.slug === 'weekly-premium' ? '/visit' : '/month'}
+                      </span>
                     </div>
                     {plan.savings && (
                       <p className="text-sm text-primary font-medium mt-2">{plan.savings}</p>
