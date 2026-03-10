@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, Clock, MapPin, Phone, DollarSign, 
   Users, AlertCircle, CheckCircle2, XCircle,
-  Loader2, MessageSquare, Eye, ChevronRight
+  Loader2, MessageSquare, Eye, ChevronRight,
+  CreditCard, UserCheck
 } from "lucide-react";
-import { format, isToday, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { format, isToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns";
 import { toast } from "sonner";
 
 interface Booking {
@@ -38,9 +39,17 @@ interface AdminOverviewTabProps {
 export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: AdminOverviewTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeMemberships, setActiveMemberships] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [monthRevenue, setMonthRevenue] = useState(0);
 
   useEffect(() => {
     fetchBookings();
+    if (isAdmin) {
+      fetchMemberships();
+      fetchCustomerCount();
+      fetchMonthRevenue();
+    }
   }, []);
 
   const fetchBookings = async () => {
@@ -92,6 +101,34 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
     setBookings(bookingsWithProfiles);
     setLoading(false);
+  };
+
+  const fetchMemberships = async () => {
+    const { count } = await supabase
+      .from("customer_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active");
+    setActiveMemberships(count || 0);
+  };
+
+  const fetchCustomerCount = async () => {
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true });
+    setTotalCustomers(count || 0);
+  };
+
+  const fetchMonthRevenue = async () => {
+    const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
+    const { data } = await supabase
+      .from("bookings")
+      .select("total_price")
+      .gte("scheduled_date", monthStart)
+      .lte("scheduled_date", monthEnd)
+      .neq("status", "cancelled");
+    const total = (data || []).reduce((sum, b) => sum + (b.total_price || 0), 0);
+    setMonthRevenue(total);
   };
 
   const updateStatus = async (bookingId: string, newStatus: string) => {
@@ -175,9 +212,21 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-3xl font-bold text-primary">{todaysBookings.length}</div>
-                <div className="text-sm text-muted-foreground">Today's Bookings</div>
+                <div className="text-sm text-muted-foreground">Today</div>
               </div>
               <Calendar className="h-8 w-8 text-primary/50" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-3xl font-bold">{thisWeekBookings.length}</div>
+                <div className="text-sm text-muted-foreground">This Week</div>
+              </div>
+              <Clock className="h-8 w-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>
@@ -187,10 +236,24 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold text-green-600">${weekRevenue.toFixed(0)}</div>
-                  <div className="text-sm text-muted-foreground">This Week Revenue</div>
+                  <div className="text-3xl font-bold text-green-600">${monthRevenue.toFixed(0)}</div>
+                  <div className="text-sm text-muted-foreground">Monthly Revenue</div>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-500/50" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isAdmin && (
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-blue-600">{activeMemberships}</div>
+                  <div className="text-sm text-muted-foreground">Active Members</div>
+                </div>
+                <CreditCard className="h-8 w-8 text-blue-500/50" />
               </div>
             </CardContent>
           </Card>
@@ -208,43 +271,19 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-3xl font-bold">{upcomingBookings.length}</div>
-                <div className="text-sm text-muted-foreground">Next 7 Days</div>
-              </div>
-              <Users className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-
         {isAdmin && (
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+          <Card>
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold text-orange-600">{unpaidBookings.length}</div>
-                  <div className="text-sm text-muted-foreground">Unpaid</div>
+                  <div className="text-3xl font-bold">{totalCustomers}</div>
+                  <div className="text-sm text-muted-foreground">Total Customers</div>
                 </div>
-                <DollarSign className="h-8 w-8 text-orange-500/50" />
+                <UserCheck className="h-8 w-8 text-muted-foreground/50" />
               </div>
             </CardContent>
           </Card>
         )}
-
-        <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-3xl font-bold text-red-600">{cancelledBookings.length}</div>
-                <div className="text-sm text-muted-foreground">Cancellations</div>
-              </div>
-              <XCircle className="h-8 w-8 text-red-500/50" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Today's Schedule */}

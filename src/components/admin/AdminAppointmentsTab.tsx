@@ -360,6 +360,31 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
     setDateRange({ from: undefined, to: undefined });
   };
 
+  const exportToCSV = () => {
+    const headers = ["Date", "Time", "Customer", "Phone", "Email", "Service", "Vehicle", "Address", "Status", "Payment", "Amount"];
+    const rows = filteredBookings.map(b => [
+      b.scheduled_date,
+      b.scheduled_time,
+      getCustomerName(b),
+      getCustomerPhone(b) || "",
+      getCustomerEmail(b) || "",
+      b.services?.name || "",
+      [b.vehicle_make, b.vehicle_model, b.vehicle_type].filter(Boolean).join(" "),
+      [b.service_address, b.service_city].filter(Boolean).join(", "),
+      b.status,
+      b.payment_status || "",
+      b.total_price ? `$${b.total_price}` : "",
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `appointments-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -440,6 +465,11 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                 Clear Filters
               </Button>
             )}
+
+            <Button variant="outline" onClick={exportToCSV} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
           </div>
         </CardContent>
       </Card>

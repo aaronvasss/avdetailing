@@ -9,8 +9,8 @@ import {
   Loader2, Car, Droplets, Ship, Truck, Plane
 } from "lucide-react";
 import { 
-  format, startOfWeek, endOfWeek, startOfDay, addDays, 
-  isSameDay, addWeeks, subWeeks, isToday 
+  format, startOfWeek, endOfWeek, startOfDay, addDays, startOfMonth, endOfMonth,
+  isSameDay, isSameMonth, addWeeks, subWeeks, addMonths, subMonths, isToday 
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,7 +38,7 @@ interface AdminCalendarViewProps {
   isAdmin: boolean;
 }
 
-type ViewMode = "week" | "day";
+type ViewMode = "month" | "week" | "day";
 
 const SERVICE_FILTERS = [
   { id: "car-detailing", label: "Car", icon: Car, color: "bg-blue-500" },
@@ -77,12 +77,21 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   useEffect(() => {
     fetchBookings();
-  }, [currentDate]);
+  }, [currentDate, viewMode]);
 
   const fetchBookings = async () => {
     setLoading(true);
-    const rangeStart = format(subWeeks(weekStart, 1), "yyyy-MM-dd");
-    const rangeEnd = format(addWeeks(weekEnd, 1), "yyyy-MM-dd");
+    let rangeStart: string;
+    let rangeEnd: string;
+    if (viewMode === "month") {
+      const ms = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
+      const me = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
+      rangeStart = format(ms, "yyyy-MM-dd");
+      rangeEnd = format(me, "yyyy-MM-dd");
+    } else {
+      rangeStart = format(subWeeks(weekStart, 1), "yyyy-MM-dd");
+      rangeEnd = format(addWeeks(weekEnd, 1), "yyyy-MM-dd");
+    }
 
     const { data, error } = await supabase
       .from("bookings")
@@ -200,7 +209,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   };
 
   const navigatePrev = () => {
-    if (viewMode === "week") {
+    if (viewMode === "month") {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else if (viewMode === "week") {
       setCurrentDate(subWeeks(currentDate, 1));
     } else {
       setCurrentDate(addDays(currentDate, -1));
@@ -208,7 +219,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   };
 
   const navigateNext = () => {
-    if (viewMode === "week") {
+    if (viewMode === "month") {
+      setCurrentDate(addMonths(currentDate, 1));
+    } else if (viewMode === "week") {
       setCurrentDate(addWeeks(currentDate, 1));
     } else {
       setCurrentDate(addDays(currentDate, 1));
@@ -217,6 +230,32 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   const goToToday = () => {
     setCurrentDate(new Date());
+  };
+
+  // Month view helpers
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const monthCalendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const monthCalendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+
+  const monthWeeks = useMemo(() => {
+    const weeks: Date[][] = [];
+    let day = monthCalendarStart;
+    while (day <= monthCalendarEnd) {
+      const week: Date[] = [];
+      for (let i = 0; i < 7; i++) {
+        week.push(day);
+        day = addDays(day, 1);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }, [currentDate]);
+
+  const getHeaderTitle = () => {
+    if (viewMode === "month") return format(currentDate, "MMMM yyyy");
+    if (viewMode === "week") return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    return format(currentDate, "EEEE, MMMM d, yyyy");
   };
 
   if (loading) {
@@ -242,14 +281,18 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             <ChevronRight className="h-4 w-4" />
           </Button>
           <h2 className="text-lg font-semibold ml-2">
-            {viewMode === "week" 
-              ? `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`
-              : format(currentDate, "EEEE, MMMM d, yyyy")
-            }
+            {getHeaderTitle()}
           </h2>
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            variant={viewMode === "month" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setViewMode("month")}
+          >
+            Month
+          </Button>
           <Button 
             variant={viewMode === "week" ? "default" : "outline"} 
             size="sm"
@@ -293,7 +336,64 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       {/* Calendar Grid */}
       <Card>
         <CardContent className="p-0">
-          {viewMode === "week" ? (
+          {viewMode === "month" ? (
+            /* Month View */
+            <div>
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 border-b">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+                  <div key={d} className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              {/* Weeks */}
+              {monthWeeks.map((week, wIdx) => (
+                <div key={wIdx} className="grid grid-cols-7 border-b last:border-b-0">
+                  {week.map((day, dIdx) => {
+                    const dayBookings = getBookingsForDay(day);
+                    const inMonth = isSameMonth(day, currentDate);
+                    return (
+                      <div
+                        key={dIdx}
+                        className={cn(
+                          "min-h-[100px] p-1 border-r last:border-r-0",
+                          !inMonth && "opacity-40 bg-muted/20",
+                          isToday(day) && "bg-primary/5"
+                        )}
+                      >
+                        <div className={cn(
+                          "text-sm font-medium mb-1 text-center",
+                          isToday(day) && "text-primary"
+                        )}>
+                          {format(day, "d")}
+                        </div>
+                        <div className="space-y-0.5">
+                          {dayBookings.slice(0, 3).map(booking => (
+                            <button
+                              key={booking.id}
+                              onClick={() => setSelectedBooking(booking)}
+                              className={cn(
+                                "w-full text-left px-1 py-0.5 rounded text-[10px] leading-tight border-l-2 truncate hover:opacity-80",
+                                getServiceColorClass(booking.services?.slug)
+                              )}
+                            >
+                              {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
+                            </button>
+                          ))}
+                          {dayBookings.length > 3 && (
+                            <div className="text-[10px] text-muted-foreground text-center">
+                              +{dayBookings.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          ) : viewMode === "week" ? (
             <div className="overflow-x-auto">
               {/* Week Header */}
               <div className="grid grid-cols-8 border-b">
