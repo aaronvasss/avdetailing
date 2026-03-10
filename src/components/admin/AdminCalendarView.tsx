@@ -336,7 +336,64 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       {/* Calendar Grid */}
       <Card>
         <CardContent className="p-0">
-          {viewMode === "week" ? (
+          {viewMode === "month" ? (
+            /* Month View */
+            <div>
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 border-b">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+                  <div key={d} className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              {/* Weeks */}
+              {monthWeeks.map((week, wIdx) => (
+                <div key={wIdx} className="grid grid-cols-7 border-b last:border-b-0">
+                  {week.map((day, dIdx) => {
+                    const dayBookings = getBookingsForDay(day);
+                    const inMonth = isSameMonth(day, currentDate);
+                    return (
+                      <div
+                        key={dIdx}
+                        className={cn(
+                          "min-h-[100px] p-1 border-r last:border-r-0",
+                          !inMonth && "opacity-40 bg-muted/20",
+                          isToday(day) && "bg-primary/5"
+                        )}
+                      >
+                        <div className={cn(
+                          "text-sm font-medium mb-1 text-center",
+                          isToday(day) && "text-primary"
+                        )}>
+                          {format(day, "d")}
+                        </div>
+                        <div className="space-y-0.5">
+                          {dayBookings.slice(0, 3).map(booking => (
+                            <button
+                              key={booking.id}
+                              onClick={() => setSelectedBooking(booking)}
+                              className={cn(
+                                "w-full text-left px-1 py-0.5 rounded text-[10px] leading-tight border-l-2 truncate hover:opacity-80",
+                                getServiceColorClass(booking.services?.slug)
+                              )}
+                            >
+                              {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
+                            </button>
+                          ))}
+                          {dayBookings.length > 3 && (
+                            <div className="text-[10px] text-muted-foreground text-center">
+                              +{dayBookings.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          ) : viewMode === "week" ? (
             <div className="overflow-x-auto">
               {/* Week Header */}
               <div className="grid grid-cols-8 border-b">
