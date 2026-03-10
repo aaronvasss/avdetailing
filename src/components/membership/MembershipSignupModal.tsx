@@ -310,6 +310,9 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
               </>
             )}
           </Button>
+
+          <p className="text-xs text-center text-muted-foreground">
+            You'll be redirected to Stripe for secure payment. Your account will be created automatically after payment.
           </p>
         </div>
       </DialogContent>
