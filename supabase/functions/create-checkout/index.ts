@@ -140,11 +140,20 @@ serve(async (req) => {
 
         logStep("Creating dynamic price for base service", { basePrice, processingFee, amountCents });
 
+        // Use exact Stripe product name mapping from metadata
+        const packageSlug = metadata?.package_slug || '';
+        const vehicleSubType = metadata?.vehicle_sub_type || '';
+        const productName = packageSlug
+          ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
+          : `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`;
+
+        logStep("Stripe product name", { productName, packageSlug, vehicleSubType });
+
         const dynamicPrice = await stripe.prices.create({
           currency: 'usd',
           unit_amount: amountCents,
           product_data: {
-            name: `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`,
+            name: productName,
           },
         });
 
