@@ -1293,7 +1293,15 @@ const BookingPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" type="tel" required maxLength={20} value={customerInfo.phone} onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})} className={formErrors.phone ? "border-destructive" : ""} />
+                <Input id="phone" type="tel" required maxLength={16} placeholder="(225) 521-6264" value={customerInfo.phone} onChange={(e) => {
+                  // Strip to digits only
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  let formatted = '';
+                  if (digits.length > 0) formatted = '(' + digits.slice(0, 3);
+                  if (digits.length >= 3) formatted += ') ' + digits.slice(3, 6);
+                  if (digits.length >= 6) formatted += '-' + digits.slice(6, 10);
+                  setCustomerInfo({...customerInfo, phone: formatted});
+                }} className={formErrors.phone ? "border-destructive" : ""} />
                 {formErrors.phone && <p className="text-sm text-destructive">{formErrors.phone}</p>}
               </div>
               <div className="space-y-2 md:col-span-2">

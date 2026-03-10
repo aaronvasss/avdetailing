@@ -65,7 +65,9 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // If booking_id is provided but no price_id, look up from database
+    // If booking_id is provided but no price_id, create dynamic price from booking total
+    // This is more reliable than looking up stripe_prices since the booking already has
+    // the correct total calculated from the selected package + vehicle type
     if (booking_id && !price_id) {
       logStep("Looking up booking details", { booking_id });
       
@@ -76,6 +78,8 @@ serve(async (req) => {
           service_id,
           vehicle_type,
           total_price,
+          subtotal,
+          add_ons_total,
           guest_email,
           services (slug, name)
         `)
@@ -87,9 +91,13 @@ serve(async (req) => {
         throw new Error("Booking not found");
       }
 
+      const serviceName = (booking.services as any)?.name || 'Detailing Service';
+      
       logStep("Booking found", { 
         service: (booking.services as any)?.slug,
         vehicleType: booking.vehicle_type,
+        subtotal: booking.subtotal,
+        addOnsTotal: booking.add_ons_total,
         totalPrice: booking.total_price
       });
 
@@ -98,83 +106,23 @@ serve(async (req) => {
         userEmail = booking.guest_email;
       }
 
-      // Determine service type and vehicle category for stripe_prices lookup
-      const serviceSlug = (booking.services as any)?.slug;
-      const vehicleType = booking.vehicle_type?.toLowerCase() || '';
+      // Use subtotal (base service price without add-ons) for the main line item
+      // Add-ons will be added as separate line items below
+      const basePrice = Number(booking.subtotal || booking.total_price || 0);
       
-      // Map service slug to stripe service type
-      const serviceTypeMap: Record<string, string> = {
-        'full-detail': 'car-detailing',
-        'paint-correction': 'paint-correction',
-        'ceramic-coating': 'ceramic-coating',
-        'boat-detail': 'boat-detailing',
-        'rv-detail': 'rv-detailing',
-        'aircraft-detail': 'aircraft-detailing',
-      };
-      const stripeServiceType = serviceTypeMap[serviceSlug] || serviceSlug;
+      if (basePrice > 0) {
+        // Add 3.5% processing fee to the base service price
+        const processingFee = Math.round(basePrice * 0.035 * 100) / 100;
+        const baseWithFee = basePrice + processingFee;
+        const amountCents = Math.round(baseWithFee * 100);
 
-      // Map vehicle type to price category
-      let vehicleCategory = 'car-suv5';
-      if (vehicleType.includes('suv-8') || vehicleType.includes('truck') || vehicleType.includes('large')) {
-        vehicleCategory = 'large';
-      } else if (vehicleType.includes('suv') && vehicleType.includes('5')) {
-        vehicleCategory = 'suv5';
-      } else if (vehicleType.includes('sedan') || vehicleType.includes('car') || vehicleType.includes('coupe')) {
-        vehicleCategory = 'car';
-      }
-
-      logStep("Mapped types", { stripeServiceType, vehicleCategory });
-
-      // Query stripe_prices table for matching price
-      const { data: prices, error: priceError } = await serviceClient
-        .from("stripe_prices")
-        .select("stripe_price_id, price_cents, package_name, vehicle_type")
-        .eq("service_type", stripeServiceType)
-        .eq("is_active", true);
-
-      if (priceError) {
-        logStep("Price lookup error", { error: priceError });
-      }
-
-      if (prices && prices.length > 0) {
-        // Try exact vehicle match first
-        let matchedPrice = prices.find(p => p.vehicle_type === vehicleCategory);
-        
-        // Fallback to car-suv5
-        if (!matchedPrice) {
-          matchedPrice = prices.find(p => p.vehicle_type === 'car-suv5');
-        }
-        
-        // Just use first available
-        if (!matchedPrice) {
-          matchedPrice = prices[0];
-        }
-
-        if (matchedPrice) {
-          price_id = matchedPrice.stripe_price_id;
-          logStep("Price found from database", { 
-            price_id,
-            package: matchedPrice.package_name,
-            vehicle: matchedPrice.vehicle_type,
-            cents: matchedPrice.price_cents
-          });
-        }
-      }
-
-      // If still no price_id, create a dynamic price based on booking total
-      if (!price_id && booking.total_price) {
-        logStep("Creating dynamic price for booking total", { total: booking.total_price });
-        
-        // Add 3.5% processing fee
-        const processingFee = Math.round(booking.total_price * 0.035 * 100) / 100;
-        const totalWithFee = booking.total_price + processingFee;
-        const amountCents = Math.round(totalWithFee * 100);
+        logStep("Creating dynamic price for base service", { basePrice, processingFee, amountCents });
 
         const dynamicPrice = await stripe.prices.create({
           currency: 'usd',
           unit_amount: amountCents,
           product_data: {
-            name: `${(booking.services as any)?.name || 'Detailing Service'} - ${booking.vehicle_type || 'Vehicle'}`,
+            name: `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`,
           },
         });
 
