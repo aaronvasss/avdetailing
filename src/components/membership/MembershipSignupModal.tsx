@@ -42,6 +42,8 @@ const formatPhone = (value: string): string => {
 
 export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSignupModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsError, setShowTermsError] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
