@@ -21,7 +21,7 @@ The business uses two separate phone numbers:
 Both phone numbers are stored in the `business_settings` table:
 - `public_business_phone` = '(225) 521-6264'
 - `public_business_phone_e164` = '+12255216264'
-- `sms_sender_phone` = '+12252394617'
+- `sms_sender_phone` = '+12252284796'
 
 ## Component Usage
 - `useBusinessSettings` hook fetches these settings for UI components

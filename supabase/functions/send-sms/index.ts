@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Default SMS sender (Twilio number)
-const DEFAULT_SMS_SENDER = "+12252394617";
+const DEFAULT_SMS_SENDER = "+12252284796";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

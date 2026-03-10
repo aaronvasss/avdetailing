@@ -8,7 +8,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 // Default settings
-const DEFAULT_SMS_SENDER = "+12252394617";
+const DEFAULT_SMS_SENDER = "+12252284796";
 const DEFAULT_PUBLIC_PHONE = "(225) 521-6264";
 
 const corsHeaders = {

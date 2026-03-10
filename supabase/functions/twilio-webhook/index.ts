@@ -9,7 +9,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Default settings (will be overridden by DB)
 const DEFAULT_BUSINESS_PHONE = "+12255216264"; // For forwarding messages
-const DEFAULT_SMS_SENDER = "+12252394617"; // Twilio number
+const DEFAULT_SMS_SENDER = "+12252284796"; // Twilio number
 const DEFAULT_PUBLIC_PHONE = "(225) 521-6264"; // Displayed in messages
 
 const corsHeaders = {
