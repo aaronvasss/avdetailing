@@ -465,6 +465,11 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                 Clear Filters
               </Button>
             )}
+
+            <Button variant="outline" onClick={exportToCSV} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
           </div>
         </CardContent>
       </Card>
