@@ -1,0 +1,1 @@
+UPDATE business_settings SET value = '+12252284796', updated_at = now() WHERE key = 'sms_sender_phone';

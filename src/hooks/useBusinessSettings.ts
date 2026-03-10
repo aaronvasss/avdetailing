@@ -10,7 +10,7 @@ interface BusinessSettings {
 const defaultSettings: BusinessSettings = {
   publicBusinessPhone: "(225) 521-6264",
   publicBusinessPhoneE164: "+12255216264",
-  smsSenderPhone: "+12252394617",
+  smsSenderPhone: "+12252284796",
 };
 
 export function useBusinessSettings() {
