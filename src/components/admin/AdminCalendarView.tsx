@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Toggle } from "@/components/ui/toggle";
-import { Toggle } from "@/components/ui/toggle";
 import { 
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, 
   Loader2, Car, Droplets, Ship, Truck, Plane
