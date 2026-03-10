@@ -39,6 +39,9 @@ interface AdminOverviewTabProps {
 export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: AdminOverviewTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeMemberships, setActiveMemberships] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [monthRevenue, setMonthRevenue] = useState(0);
 
   useEffect(() => {
     fetchBookings();
