@@ -56,13 +56,11 @@ export function Header() {
       <nav className="container-custom">
         <div className="flex items-center justify-between h-16 lg:h-20 gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="flex items-center">
-              <span className="text-2xl lg:text-3xl font-bold tracking-tight">
-                <span className="text-foreground">AV</span>
-                <span className="text-primary"> DETAILING</span>
-              </span>
-            </div>
+          <Link to="/" className="flex items-center shrink-0">
+            <span className="text-2xl lg:text-3xl font-bold tracking-tight leading-none">
+              <span className="text-foreground">AV</span>
+              <span className="text-primary"> DETAILING</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
