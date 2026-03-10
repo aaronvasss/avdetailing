@@ -131,6 +131,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
     setMonthRevenue(total);
   };
 
+  const updateStatus = async (bookingId: string, newStatus: string) => {
     const { error } = await supabase
       .from("bookings")
       .update({ status: newStatus })
