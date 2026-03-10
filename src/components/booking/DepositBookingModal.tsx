@@ -256,10 +256,40 @@ export function DepositBookingModal({ open, onOpenChange, serviceTitle }: Deposi
             </div>
           </div>
 
+          {/* Terms Consent */}
+          <div className="flex items-start space-x-3 p-3 border border-border rounded-lg bg-secondary/30">
+            <Checkbox
+              id="dep-terms"
+              checked={termsAccepted}
+              onCheckedChange={(checked) => {
+                setTermsAccepted(checked === true);
+                if (checked) setShowTermsError(false);
+              }}
+              className="mt-0.5 border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <div>
+              <label htmlFor="dep-terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                I agree to receive SMS & email reminders from AV Detailing LLC and I have read and accept the{" "}
+                <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                  Booking Terms & Service Agreement
+                </a>.
+              </label>
+              {showTermsError && (
+                <p className="text-xs text-destructive mt-1">Please agree to the terms to continue</p>
+              )}
+            </div>
+          </div>
+
           <Button
             className="w-full"
             size="lg"
-            onClick={handleSubmit}
+            onClick={() => {
+              if (!termsAccepted) {
+                setShowTermsError(true);
+                return;
+              }
+              handleSubmit();
+            }}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
