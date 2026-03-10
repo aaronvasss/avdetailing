@@ -26,6 +26,8 @@ const formatPhone = (value: string): string => {
 
 export function DepositBookingModal({ open, onOpenChange, serviceTitle }: DepositBookingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsError, setShowTermsError] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
