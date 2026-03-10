@@ -280,12 +280,19 @@ export function ServicePageTemplate({
             difference. Same-week availability for most appointments.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" className="glow-red">
-              <Link to="/book">
-                Book Your Detail
+            {depositFlow ? (
+              <Button size="lg" className="glow-red" onClick={() => setDepositModalOpen(true)}>
+                Book Your Detail — $100 Deposit
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="glow-red">
+                <Link to="/book">
+                  Book Your Detail
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="lg">
               <a href="tel:+12255216264">
                 <Phone className="mr-2 h-5 w-5" />
@@ -295,6 +302,14 @@ export function ServicePageTemplate({
           </div>
         </div>
       </section>
+
+      {depositFlow && (
+        <DepositBookingModal
+          open={depositModalOpen}
+          onOpenChange={setDepositModalOpen}
+          serviceTitle={title}
+        />
+      )}
     </Layout>
   );
 }
