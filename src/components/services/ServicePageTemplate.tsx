@@ -78,12 +78,19 @@ export function ServicePageTemplate({
             <p className="text-xl text-primary font-medium mb-4">{location}</p>
             <p className="text-lg text-muted-foreground mb-8">{description}</p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="glow-red">
-                <Link to="/book">
-                  Book Now
+              {depositFlow ? (
+                <Button size="lg" className="glow-red" onClick={() => setDepositModalOpen(true)}>
+                  Book Now — $100 Deposit
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+                </Button>
+              ) : (
+                <Button asChild size="lg" className="glow-red">
+                  <Link to="/book">
+                    Book Now
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              )}
               <Button asChild variant="outline" size="lg">
                 <a href="tel:+12255216264">
                   <Phone className="mr-2 h-5 w-5" />
