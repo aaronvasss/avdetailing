@@ -563,6 +563,77 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_signups: {
+        Row: {
+          created_at: string
+          created_user_id: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          membership_plan_id: string | null
+          phone: string | null
+          service_address: string | null
+          service_city: string | null
+          service_zip: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          updated_at: string
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: string | null
+          vehicle_year: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_user_id?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          membership_plan_id?: string | null
+          phone?: string | null
+          service_address?: string | null
+          service_city?: string | null
+          service_zip?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string | null
+          vehicle_year?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_user_id?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          membership_plan_id?: string | null
+          phone?: string | null
+          service_address?: string | null
+          service_city?: string | null
+          service_zip?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string | null
+          vehicle_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_signups_membership_plan_id_fkey"
+            columns: ["membership_plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_records: {
         Row: {
           amount_cents: number
