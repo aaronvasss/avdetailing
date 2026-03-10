@@ -192,37 +192,129 @@ serve(async (req) => {
           logStep("Payment record created");
         }
 
-        if (session.mode === 'subscription' && membershipPlanId) {
-          // Subscription for membership
+        if (session.mode === 'subscription') {
+          const signupId = session.metadata?.signup_id;
+          const membershipPlanId = session.metadata?.membership_plan_id;
           const subscriptionId = session.subscription as string;
           const customerId = session.customer as string;
+          const customerEmail = session.customer_email || session.customer_details?.email;
+
+          logStep("Processing subscription", { signupId, membershipPlanId, subscriptionId, customerId, customerEmail });
 
           // Get subscription details
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-          // Update or create membership
-          const { error } = await supabase
-            .from("customer_memberships")
-            .upsert({
-              user_id: userId,
-              membership_plan_id: membershipPlanId,
-              stripe_subscription_id: subscriptionId,
-              stripe_customer_id: customerId,
-              status: subscription.status,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            }, {
-              onConflict: 'user_id,membership_plan_id',
-            });
+          let userId = session.metadata?.user_id || null;
 
-          if (error) {
-            logStep("Error upserting membership", { error });
-          } else {
-            logStep("Membership created/updated", { userId, membershipPlanId });
+          // If this came from a membership signup flow (has signup_id), create user account
+          if (signupId && customerEmail) {
+            // Look up signup info
+            const { data: signupData } = await supabase
+              .from("membership_signups")
+              .select("*")
+              .eq("id", signupId)
+              .single();
+
+            if (signupData) {
+              logStep("Found signup data", { email: signupData.email });
+
+              // Check if user already exists
+              const { data: existingUsers } = await supabase.auth.admin.listUsers();
+              const existingUser = existingUsers?.users?.find(u => u.email === signupData.email);
+
+              if (existingUser) {
+                userId = existingUser.id;
+                logStep("User already exists", { userId });
+              } else {
+                // Create user via invite (sends email with password setup link)
+                const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+                  signupData.email,
+                  {
+                    data: {
+                      full_name: `${signupData.first_name} ${signupData.last_name}`,
+                    },
+                    redirectTo: 'https://avdetailing.net/account?tab=memberships',
+                  }
+                );
+
+                if (inviteError) {
+                  logStep("User invite failed", { error: inviteError });
+                } else {
+                  userId = inviteData.user?.id || null;
+                  logStep("User created via invite", { userId });
+                }
+              }
+
+              // Update profile with additional info
+              if (userId) {
+                await supabase
+                  .from("profiles")
+                  .update({
+                    full_name: `${signupData.first_name} ${signupData.last_name}`,
+                    phone: signupData.phone,
+                    stripe_customer_id: customerId,
+                  })
+                  .eq("user_id", userId);
+
+                // Create customer address if provided
+                if (signupData.service_address) {
+                  await supabase
+                    .from("customer_addresses")
+                    .insert({
+                      user_id: userId,
+                      street_address: signupData.service_address,
+                      city: signupData.service_city || '',
+                      zip_code: signupData.service_zip || '',
+                      is_default: true,
+                    });
+                  logStep("Customer address created");
+                }
+
+                // Create customer vehicle if provided
+                if (signupData.vehicle_type) {
+                  await supabase
+                    .from("customer_vehicles")
+                    .insert({
+                      user_id: userId,
+                      vehicle_type: signupData.vehicle_type,
+                      make: signupData.vehicle_make,
+                      model: signupData.vehicle_model,
+                      year: signupData.vehicle_year,
+                      is_default: true,
+                    });
+                  logStep("Customer vehicle created");
+                }
+              }
+
+              // Update signup record
+              await supabase
+                .from("membership_signups")
+                .update({ status: 'completed', created_user_id: userId })
+                .eq("id", signupId);
+            }
           }
 
-          // Update profile with stripe_customer_id
-          if (userId) {
+          // Create/update membership record
+          if (userId && membershipPlanId) {
+            const { error } = await supabase
+              .from("customer_memberships")
+              .insert({
+                user_id: userId,
+                membership_plan_id: membershipPlanId,
+                stripe_subscription_id: subscriptionId,
+                stripe_customer_id: customerId,
+                status: subscription.status,
+                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              });
+
+            if (error) {
+              logStep("Error creating membership", { error });
+            } else {
+              logStep("Membership created", { userId, membershipPlanId });
+            }
+
+            // Update profile with stripe_customer_id
             await supabase
               .from("profiles")
               .update({ stripe_customer_id: customerId })

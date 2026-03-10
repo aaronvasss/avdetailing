@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Check, Star, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { createMembershipCheckout, MEMBERSHIP_PRICES } from "@/lib/stripe";
+import { MEMBERSHIP_PRICES } from "@/lib/stripe";
 import { toast } from "sonner";
+import { MembershipSignupModal } from "@/components/membership/MembershipSignupModal";
 
 interface MembershipPlan {
   id: string;
@@ -85,6 +86,12 @@ const savingsMap: Record<string, string> = {
   "weekly-premium": "Save $217/month vs. one-time",
 };
 
+const billingLabels: Record<string, string> = {
+  "monthly": "/month",
+  "bi-weekly": "/visit",
+  "weekly-premium": "/visit",
+};
+
 const faqs = [
   {
     question: "Can I cancel my membership anytime?",
@@ -108,23 +115,19 @@ const MembershipsPage = () => {
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<(MembershipPlan & { savings?: string })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<(MembershipPlan & { savings?: string }) | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     fetchPlans();
-    checkAuth();
     
-    // Check for canceled param
     if (searchParams.get("canceled") === "true") {
       toast.info("Subscription checkout was canceled");
     }
+    if (searchParams.get("success") === "true") {
+      toast.success("Membership activated! Check your email to set up your account password.");
+    }
   }, [searchParams]);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
 
   const fetchPlans = async () => {
     try {
@@ -152,31 +155,9 @@ const MembershipsPage = () => {
     }
   };
 
-  const handleSubscribe = async (plan: MembershipPlan & { savings?: string }) => {
-    if (!user) {
-      toast.error("Please sign in to subscribe to a membership");
-      window.location.href = "/auth?redirect=/memberships";
-      return;
-    }
-
-    const priceId = plan.stripe_price_id || MEMBERSHIP_PRICES[plan.slug as keyof typeof MEMBERSHIP_PRICES];
-    if (!priceId) {
-      toast.error("Unable to process subscription. Please contact support.");
-      return;
-    }
-
-    setSubscribingPlanId(plan.id);
-    try {
-      const result = await createMembershipCheckout(plan.id, priceId);
-      if (result?.url) {
-        window.location.href = result.url;
-      }
-    } catch (err) {
-      console.error("Checkout error:", err);
-      toast.error("Unable to start checkout. Please try again.");
-    } finally {
-      setSubscribingPlanId(null);
-    }
+  const handleSubscribe = (plan: MembershipPlan & { savings?: string }) => {
+    setSelectedPlan(plan);
+    setModalOpen(true);
   };
 
   return (
@@ -233,7 +214,7 @@ const MembershipsPage = () => {
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-5xl font-bold">${plan.price}</span>
                       <span className="text-muted-foreground">
-                        {plan.slug === 'bi-weekly' ? '/visit' : plan.slug === 'weekly-premium' ? '/visit' : '/month'}
+                        {billingLabels[plan.slug] || '/month'}
                       </span>
                     </div>
                     {plan.savings && (
@@ -257,19 +238,9 @@ const MembershipsPage = () => {
                       variant={plan.is_popular ? "default" : "outline"}
                       size="lg"
                       onClick={() => handleSubscribe(plan)}
-                      disabled={subscribingPlanId === plan.id}
                     >
-                      {subscribingPlanId === plan.id ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          Subscribe Now
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </>
-                      )}
+                      Subscribe Now
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -293,8 +264,8 @@ const MembershipsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
             {[
               { step: 1, title: "Choose Your Plan", desc: "Select the frequency that fits your lifestyle" },
-              { step: 2, title: "Complete Payment", desc: "Secure checkout through Stripe" },
-              { step: 3, title: "We Show Up", desc: "Our team arrives on schedule, every time" },
+              { step: 2, title: "Enter Your Info", desc: "Tell us about your vehicle and location" },
+              { step: 3, title: "Complete Payment", desc: "Secure checkout through Stripe" },
               { step: 4, title: "Enjoy the Shine", desc: "Your vehicle stays pristine year-round" },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -345,6 +316,13 @@ const MembershipsPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Signup Modal */}
+      <MembershipSignupModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        plan={selectedPlan}
+      />
     </Layout>
   );
 };
