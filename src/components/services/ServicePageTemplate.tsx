@@ -174,13 +174,23 @@ export function ServicePageTemplate({
                   ))}
                 </ul>
                 <div className="mt-auto">
-                  <Button
-                    asChild
-                    className={cn("w-full", pkg.popular && "glow-red")}
-                    variant={pkg.popular ? "default" : "outline"}
-                  >
-                    <Link to="/book">Book This Package</Link>
-                  </Button>
+                  {depositFlow ? (
+                    <Button
+                      className={cn("w-full", pkg.popular && "glow-red")}
+                      variant={pkg.popular ? "default" : "outline"}
+                      onClick={() => setDepositModalOpen(true)}
+                    >
+                      Book — $100 Deposit
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      className={cn("w-full", pkg.popular && "glow-red")}
+                      variant={pkg.popular ? "default" : "outline"}
+                    >
+                      <Link to="/book">Book This Package</Link>
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
