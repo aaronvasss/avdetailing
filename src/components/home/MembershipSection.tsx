@@ -16,6 +16,13 @@ interface MembershipPlan {
   is_popular: boolean | null;
 }
 
+// Monthly cost multipliers by frequency
+const monthlyMultiplier: Record<string, number> = {
+  "monthly": 1,
+  "bi-weekly": 2,
+  "weekly": 4,
+};
+
 // Fallback plans that match the database structure
 const fallbackPlans: MembershipPlan[] = [
   {
@@ -101,11 +108,16 @@ export function MembershipSection() {
 
       if (data && data.length > 0) {
         // Transform database data to match home page display format
-        setPlans(data.map(plan => ({
-          ...plan,
-          name: nameDisplayMap[plan.name] || plan.name,
-          frequency: frequencyDisplayMap[plan.frequency] || plan.frequency,
-        })));
+        // Multiply price by frequency to show total monthly cost
+        setPlans(data.map(plan => {
+          const multiplier = monthlyMultiplier[plan.frequency] || 1;
+          return {
+            ...plan,
+            price: plan.price * multiplier,
+            name: nameDisplayMap[plan.name] || plan.name,
+            frequency: frequencyDisplayMap[plan.frequency] || plan.frequency,
+          };
+        }));
       }
     } catch (err) {
       console.error("Error fetching plans:", err);

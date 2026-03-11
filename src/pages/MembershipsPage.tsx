@@ -46,7 +46,7 @@ const fallbackPlans = [
     slug: "bi-weekly",
     name: "Bi-Weekly Maintenance",
     frequency: "2x per month",
-    price: 130,
+    price: 260,
     savings: "Save $109/month vs. one-time",
     description: "Ideal for daily drivers and high-use vehicles that need regular care.",
     features: [
@@ -64,7 +64,7 @@ const fallbackPlans = [
     slug: "weekly-premium",
     name: "Weekly Premium",
     frequency: "4x per month",
-    price: 130,
+    price: 520,
     savings: "Save $217/month vs. one-time",
     description: "The ultimate in vehicle care for enthusiasts and luxury owners.",
     features: [
@@ -88,8 +88,16 @@ const savingsMap: Record<string, string> = {
 
 const billingLabels: Record<string, string> = {
   "monthly": "/month",
-  "bi-weekly": "/visit",
-  "weekly-premium": "/visit",
+  "bi-weekly": "/month",
+  "weekly-premium": "/month",
+};
+
+// Monthly cost multipliers by frequency slug
+const monthlyMultiplier: Record<string, number> = {
+  "monthly": 1,
+  "bi-weekly": 2,
+  "weekly": 4,
+  "weekly-premium": 4,
 };
 
 const frequencyDisplay: Record<string, string> = {
@@ -147,11 +155,15 @@ const MembershipsPage = () => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setPlans(data.map(plan => ({
-          ...plan,
-          frequency: frequencyDisplay[plan.frequency] || frequencyDisplay[plan.slug] || plan.frequency,
-          savings: savingsMap[plan.slug] || "",
-        })));
+        setPlans(data.map(plan => {
+          const multiplier = monthlyMultiplier[plan.frequency] || monthlyMultiplier[plan.slug] || 1;
+          return {
+            ...plan,
+            price: plan.price * multiplier,
+            frequency: frequencyDisplay[plan.frequency] || frequencyDisplay[plan.slug] || plan.frequency,
+            savings: savingsMap[plan.slug] || "",
+          };
+        }));
       } else {
         setPlans(fallbackPlans);
       }
