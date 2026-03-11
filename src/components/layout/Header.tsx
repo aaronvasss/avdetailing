@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, ChevronDown, User } from "lucide-react";
+import { Menu, X, Phone, ChevronDown, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -31,6 +32,7 @@ export function Header() {
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
   const { settings } = useBusinessSettings();
+  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -163,8 +165,8 @@ export function Header() {
             {user ? (
               <Button asChild variant="outline" size="sm">
                 <Link to="/account">
-                  <User className="h-4 w-4 mr-2" />
-                  Account
+                  {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
+                  {isAdmin ? "Admin" : "Account"}
                 </Link>
               </Button>
             ) : (
@@ -172,9 +174,11 @@ export function Header() {
                 <Link to="/auth">Sign In</Link>
               </Button>
             )}
-            <Button asChild className="glow-red">
-              <Link to="/book">Book Now</Link>
-            </Button>
+            {!isAdmin && (
+              <Button asChild className="glow-red">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -256,8 +260,8 @@ export function Header() {
               {user ? (
                 <Button asChild variant="outline" className="w-full">
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
-                    <User className="h-4 w-4 mr-2" />
-                    My Account
+                    {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
+                    {isAdmin ? "Admin" : "My Account"}
                   </Link>
                 </Button>
               ) : (
@@ -267,11 +271,13 @@ export function Header() {
                   </Link>
                 </Button>
               )}
-              <Button asChild className="w-full glow-red">
-                <Link to="/book" onClick={() => setMobileMenuOpen(false)}>
-                  Book Now
-                </Link>
-              </Button>
+              {!isAdmin && (
+                <Button asChild className="w-full glow-red">
+                  <Link to="/book" onClick={() => setMobileMenuOpen(false)}>
+                    Book Now
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
