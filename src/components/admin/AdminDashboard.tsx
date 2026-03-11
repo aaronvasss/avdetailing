@@ -94,7 +94,7 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
       case "settings":
         return <AdminSettingsTab />;
       default:
-        return <AdminOverviewTab />;
+        return <AdminOverviewTab isAdmin onViewBooking={() => {}} onTextCustomer={() => {}} />;
     }
   };
 

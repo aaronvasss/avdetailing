@@ -31,7 +31,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"list" | "calendar">("list");
+  const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
 
   useEffect(() => {
     fetchBookings();
