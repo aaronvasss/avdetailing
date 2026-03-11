@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
 } from "lucide-react";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
