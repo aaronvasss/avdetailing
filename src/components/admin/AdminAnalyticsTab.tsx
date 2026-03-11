@@ -108,9 +108,16 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     }
   };
 
+  // Only count bookings where payment has actually been collected
+  const isPaidBooking = (b: Booking) => 
+    b.status !== "cancelled" && 
+    (b.payment_method === "online" 
+      ? ["paid", "completed"].includes(b.status) || b.status === "completed"
+      : b.status === "completed");
+
   // Calculate revenue trends based on time range
   const getRevenueTrends = () => {
-    const completedBookings = bookings.filter(b => b.status === "completed");
+    const completedBookings = bookings.filter(isPaidBooking);
     
     if (timeRange === "daily") {
       const last30Days = eachDayOfInterval({
