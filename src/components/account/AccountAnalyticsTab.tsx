@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, DollarSign, TrendingUp, Users, CalendarDays, Star, BarChart3, CreditCard } from "lucide-react";
+import { Loader2, DollarSign, TrendingUp, Users, CalendarDays, Star, BarChart3, CreditCard, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import {
   ChartContainer,
   ChartTooltip,
