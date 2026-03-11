@@ -250,7 +250,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   
   // This month stats
   const thisMonthStart = startOfMonth(new Date());
-  const thisMonthBookings = completedBookings.filter(b => 
+  const thisMonthBookings = paidBookings.filter(b => 
     parseISO(b.scheduled_date) >= thisMonthStart
   );
   const thisMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
@@ -258,7 +258,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   // Last month stats for comparison
   const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
   const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
-  const lastMonthBookings = completedBookings.filter(b => {
+  const lastMonthBookings = paidBookings.filter(b => {
     const date = parseISO(b.scheduled_date);
     return date >= lastMonthStart && date <= lastMonthEnd;
   });

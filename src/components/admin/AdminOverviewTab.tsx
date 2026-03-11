@@ -221,35 +221,51 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[
-          { value: todaysBookings.length, label: "Today", icon: Calendar, iconColor: "text-primary/50", cardClass: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20", valueColor: "text-primary" },
-          { value: thisWeekBookings.length, label: "This Week", icon: Clock, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
-          ...(isAdmin ? [
-            { value: `$${monthRevenue.toFixed(0)}`, label: "Monthly Revenue", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
-            { value: activeMemberships, label: "Active Members", icon: CreditCard, iconColor: "text-blue-500/50", cardClass: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20", valueColor: "text-blue-600" },
-          ] : []),
-          { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },
-          ...(isAdmin ? [
-            { value: totalCustomers, label: "Total Customers", icon: UserCheck, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
-          ] : []),
-        ].map((card, idx) => {
-          const Icon = card.icon;
-          return (
-            <Card key={idx} className={card.cardClass}>
-              <CardContent className="p-4 h-[88px] flex items-center">
-                <div className="flex items-center justify-between w-full">
-                  <div className="min-w-0">
-                    <div className={`text-2xl font-bold leading-tight ${card.valueColor}`}>{card.value}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5 truncate">{card.label}</div>
+      <TooltipProvider>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { value: todaysBookings.length, label: "Today", icon: Calendar, iconColor: "text-primary/50", cardClass: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20", valueColor: "text-primary" },
+            { value: thisWeekBookings.length, label: "This Week", icon: Clock, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
+            ...(isAdmin ? [
+              { value: `$${monthRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Revenue (MTD)", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
+              { value: activeMemberships, label: "Members", icon: CreditCard, iconColor: "text-blue-500/50", cardClass: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20", valueColor: "text-blue-600" },
+            ] : []),
+            { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },
+            ...(isAdmin ? [
+              { value: totalCustomers, label: "Customers", icon: UserCheck, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
+            ] : []),
+          ].map((card, idx) => {
+            const Icon = card.icon;
+            const fullLabels: Record<string, string> = {
+              "Revenue (MTD)": "Monthly Revenue (Month-to-Date, paid only)",
+              "Members": "Active Membership Subscribers",
+              "Customers": "Total Registered Customers",
+            };
+            const tooltip = fullLabels[card.label];
+            const cardEl = (
+              <Card key={idx} className={`${card.cardClass} h-full`}>
+                <CardContent className="p-3 sm:p-4 h-[80px] flex items-center">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="min-w-0">
+                      <div className={`text-xl font-bold leading-tight ${card.valueColor}`}>{card.value}</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{card.label}</div>
+                    </div>
+                    <Icon className={`h-6 w-6 flex-shrink-0 ml-2 ${card.iconColor}`} />
                   </div>
-                  <Icon className={`h-7 w-7 flex-shrink-0 ml-2 ${card.iconColor}`} />
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardContent>
+              </Card>
+            );
+            return tooltip ? (
+              <Tooltip key={idx}>
+                <TooltipTrigger asChild>{cardEl}</TooltipTrigger>
+                <TooltipContent><p>{tooltip}</p></TooltipContent>
+              </Tooltip>
+            ) : (
+              cardEl
+            );
+          })}
+        </div>
+      </TooltipProvider>
 
       {/* Today's Schedule */}
       <Card>
