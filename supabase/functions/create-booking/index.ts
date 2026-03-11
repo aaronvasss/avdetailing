@@ -133,6 +133,37 @@ const handler = async (req: Request): Promise<Response> => {
     // Generate a secure manage token for guest access
     const manageToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
 
+    // Look up service base price from DB
+    const { data: service, error: serviceError } = await serviceClient
+      .from("services")
+      .select("base_price")
+      .eq("id", body.service_id)
+      .single();
+
+    if (serviceError || !service) {
+      return new Response(JSON.stringify({ error: "Invalid service" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Calculate add-on total from DB prices (not client-supplied values)
+    let serverAddOnsTotal = 0;
+    if (addOnIds.length > 0) {
+      const { data: addOnsData } = await serviceClient
+        .from("service_add_ons")
+        .select("id, price")
+        .in("id", addOnIds)
+        .eq("is_active", true);
+      if (addOnsData) {
+        serverAddOnsTotal = addOnsData.reduce((sum, a) => sum + Number(a.price), 0);
+      }
+    }
+
+    // Use client-supplied subtotal only as a hint; store it but checkout will recalculate
+    const serverSubtotal = Number(service.base_price);
+    const serverTotal = serverSubtotal + serverAddOnsTotal;
+
     const insertPayload = {
       user_id: userId,
       service_id: body.service_id,
@@ -153,9 +184,9 @@ const handler = async (req: Request): Promise<Response> => {
       service_zip: sanitize(body.service_zip, 10),
       address_notes: sanitize(body.address_notes, 500),
 
-      subtotal: body.subtotal != null ? Math.max(0, Number(body.subtotal)) : null,
-      add_ons_total: body.add_ons_total != null ? Math.max(0, Number(body.add_ons_total)) : 0,
-      total_price: body.total_price != null ? Math.max(0, Number(body.total_price)) : null,
+      subtotal: body.subtotal != null ? Math.max(0, Number(body.subtotal)) : serverSubtotal,
+      add_ons_total: serverAddOnsTotal,
+      total_price: body.total_price != null ? Math.max(0, Number(body.total_price)) : serverTotal,
       status: body.status ?? "pending",
       payment_status: body.payment_status ?? "unpaid",
       payment_method: body.payment_method ?? "in_person",
