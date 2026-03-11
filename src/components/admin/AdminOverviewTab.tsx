@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -141,6 +142,9 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
       toast.error("Failed to update status");
     } else {
       toast.success(`Booking marked as ${newStatus}`);
+      if (newStatus === "in_progress") {
+        sendInProgressSms(bookingId);
+      }
       fetchBookings();
     }
   };
@@ -206,84 +210,34 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-3xl font-bold text-primary">{todaysBookings.length}</div>
-                <div className="text-sm text-muted-foreground">Today</div>
-              </div>
-              <Calendar className="h-8 w-8 text-primary/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-3xl font-bold">{thisWeekBookings.length}</div>
-                <div className="text-sm text-muted-foreground">This Week</div>
-              </div>
-              <Clock className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {isAdmin && (
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-green-600">${monthRevenue.toFixed(0)}</div>
-                  <div className="text-sm text-muted-foreground">Monthly Revenue</div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { value: todaysBookings.length, label: "Today", icon: Calendar, iconColor: "text-primary/50", cardClass: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20", valueColor: "text-primary" },
+          { value: thisWeekBookings.length, label: "This Week", icon: Clock, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
+          ...(isAdmin ? [
+            { value: `$${monthRevenue.toFixed(0)}`, label: "Monthly Revenue", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
+            { value: activeMemberships, label: "Active Members", icon: CreditCard, iconColor: "text-blue-500/50", cardClass: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20", valueColor: "text-blue-600" },
+          ] : []),
+          { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },
+          ...(isAdmin ? [
+            { value: totalCustomers, label: "Total Customers", icon: UserCheck, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
+          ] : []),
+        ].map((card, idx) => {
+          const Icon = card.icon;
+          return (
+            <Card key={idx} className={card.cardClass}>
+              <CardContent className="p-4 h-[88px] flex items-center">
+                <div className="flex items-center justify-between w-full">
+                  <div className="min-w-0">
+                    <div className={`text-2xl font-bold leading-tight ${card.valueColor}`}>{card.value}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 truncate">{card.label}</div>
+                  </div>
+                  <Icon className={`h-7 w-7 flex-shrink-0 ml-2 ${card.iconColor}`} />
                 </div>
-                <DollarSign className="h-8 w-8 text-green-500/50" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {isAdmin && (
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-blue-600">{activeMemberships}</div>
-                  <div className="text-sm text-muted-foreground">Active Members</div>
-                </div>
-                <CreditCard className="h-8 w-8 text-blue-500/50" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-3xl font-bold text-yellow-600">{pendingBookings.length}</div>
-                <div className="text-sm text-muted-foreground">Pending</div>
-              </div>
-              <AlertCircle className="h-8 w-8 text-yellow-500/50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {isAdmin && (
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold">{totalCustomers}</div>
-                  <div className="text-sm text-muted-foreground">Total Customers</div>
-                </div>
-                <UserCheck className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Today's Schedule */}

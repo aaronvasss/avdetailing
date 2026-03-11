@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS in_progress_sms_sent boolean DEFAULT false;

@@ -27,6 +27,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
 
@@ -96,6 +97,9 @@ export function BookingDetailsDialog({
       toast.error("Failed to update status");
     } else {
       toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+      if (newStatus === "in_progress") {
+        sendInProgressSms(booking.id);
+      }
       onStatusChange?.();
       onOpenChange(false);
     }

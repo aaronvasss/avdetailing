@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,6 +152,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       toast.error("Failed to update status");
     } else {
       toast.success(`Booking ${newStatus}`);
+      if (newStatus === "in_progress") {
+        sendInProgressSms(bookingId);
+      }
       fetchBookings();
       setSelectedBooking(null);
     }

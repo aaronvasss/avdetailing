@@ -142,6 +142,7 @@ export type Database = {
           guest_name: string | null
           guest_phone: string | null
           id: string
+          in_progress_sms_sent: boolean | null
           internal_notes: string | null
           manage_token: string | null
           membership_id: string | null
@@ -180,6 +181,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          in_progress_sms_sent?: boolean | null
           internal_notes?: string | null
           manage_token?: string | null
           membership_id?: string | null
@@ -218,6 +220,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          in_progress_sms_sent?: boolean | null
           internal_notes?: string | null
           manage_token?: string | null
           membership_id?: string | null
