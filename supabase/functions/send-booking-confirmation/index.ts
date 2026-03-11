@@ -668,7 +668,7 @@ const handler = async (req: Request): Promise<Response> => {
                     <span style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">📍 Service Location</span>
                     <p style="color: #ffffff; font-size: 15px; margin: 6px 0 0 0;">
                       ${safeServiceAddress}<br>
-                      ${safeServiceCity}, ${safeServiceState} ${safeServiceZip}
+                      ${[safeServiceCity, safeServiceState, safeServiceZip].filter(s => s && s.length > 1).join(', ')}
                     </p>
                     ${safeGateCode ? `<p style="color: #fbbf24; font-size: 12px; margin: 8px 0 0 0;">🔐 Gate Code: ${safeGateCode}</p>` : ''}
                     ${safeParkingInstructions ? `<p style="color: #a3a3a3; font-size: 12px; margin: 4px 0 0 0;">📌 ${safeParkingInstructions}</p>` : ''}
