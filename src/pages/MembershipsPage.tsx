@@ -46,7 +46,7 @@ const fallbackPlans = [
     slug: "bi-weekly",
     name: "Bi-Weekly Maintenance",
     frequency: "2x per month",
-    price: 130,
+    price: 260,
     savings: "Save $109/month vs. one-time",
     description: "Ideal for daily drivers and high-use vehicles that need regular care.",
     features: [
