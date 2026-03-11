@@ -216,10 +216,10 @@ const handler = async (req: Request): Promise<Response> => {
     manageToken,
   }: BookingConfirmationRequest = rawData;
 
-  // Build manage URLs
+  // Build manage URLs - always link to account page for managing bookings
   const baseUrl = "https://avdetailing.net";
-  const rescheduleUrl = manageToken ? `${baseUrl}/booking/manage?token=${manageToken}` : null;
-  const cancelUrl = manageToken ? `${baseUrl}/booking/cancel?token=${manageToken}` : null;
+  const rescheduleUrl = `${baseUrl}/account`;
+  const cancelUrl = `${baseUrl}/account`;
     const safeCustomerName = htmlEncode(customerName.trim());
     const safeServiceName = htmlEncode(serviceName.trim());
     const safeScheduledTime = htmlEncode(scheduledTime.trim());
