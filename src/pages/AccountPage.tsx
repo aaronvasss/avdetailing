@@ -27,6 +27,7 @@ export default function AccountPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     const checkAuth = async () => {
