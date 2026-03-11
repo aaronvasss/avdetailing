@@ -14,6 +14,7 @@ import {
   LogOut,
   Plus,
   Settings,
+  BarChart3,
 } from "lucide-react";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { ProfileTab } from "@/components/account/ProfileTab";
@@ -21,12 +22,16 @@ import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
+import { AccountAnalyticsTab } from "@/components/account/AccountAnalyticsTab";
+import { AdminBookingModal } from "@/components/account/AdminBookingModal";
 
 export default function AccountPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [adminBookingOpen, setAdminBookingOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
@@ -113,12 +118,19 @@ export default function AccountPage() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <Button asChild size="lg" className="shadow-lg shadow-primary/20">
-                  <a href="/book">
+                {isAdmin ? (
+                  <Button size="lg" className="shadow-lg shadow-primary/20" onClick={() => setAdminBookingOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Book Service
-                  </a>
-                </Button>
+                    New Booking
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" className="shadow-lg shadow-primary/20">
+                    <a href="/book">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Book Service
+                    </a>
+                  </Button>
+                )}
                 <Button variant="outline" size="icon" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -158,6 +170,15 @@ export default function AccountPage() {
                   <MapPin className="h-4 w-4" />
                   <span>Addresses</span>
                 </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger
+                    value="analytics"
+                    className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    <span>Analytics</span>
+                  </TabsTrigger>
+                )}
                 <TabsTrigger
                   value="settings"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -169,7 +190,7 @@ export default function AccountPage() {
             </div>
 
             <TabsContent value="appointments" className="mt-6">
-              <AppointmentsTab userId={user?.id} />
+              <AppointmentsTab key={refreshKey} userId={user?.id} isAdmin={isAdmin} onAdminBook={() => setAdminBookingOpen(true)} />
             </TabsContent>
 
             <TabsContent value="memberships" className="mt-6">
@@ -184,12 +205,27 @@ export default function AccountPage() {
               <AddressesTab userId={user?.id} />
             </TabsContent>
 
+            {isAdmin && (
+              <TabsContent value="analytics" className="mt-6">
+                <AccountAnalyticsTab />
+              </TabsContent>
+            )}
+
             <TabsContent value="settings" className="mt-6">
               <ProfileTab userId={user?.id} />
             </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      {/* Admin Booking Modal */}
+      {isAdmin && (
+        <AdminBookingModal
+          open={adminBookingOpen}
+          onOpenChange={setAdminBookingOpen}
+          onSuccess={() => setRefreshKey(k => k + 1)}
+        />
+      )}
     </Layout>
   );
 }
