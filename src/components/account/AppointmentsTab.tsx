@@ -21,16 +21,17 @@ interface AppointmentsTabProps {
   userId: string;
   isAdmin?: boolean;
   onAdminBook?: () => void;
+  defaultView?: "list" | "calendar";
 }
 
-export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTabProps) {
+export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list" }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"list" | "calendar">("list");
+  const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
 
   useEffect(() => {
     fetchBookings();
