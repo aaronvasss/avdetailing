@@ -64,7 +64,9 @@ export function AccountAnalyticsTab() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [bookingsRes, membershipsRes, clientsRes] = await Promise.all([
+      const thisMonthStart = startOfMonth(new Date());
+      
+      const [bookingsRes, membershipsRes, clientsRes, settingsRes, reviewSmsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("id, scheduled_date, total_price, status, payment_method, created_at, guest_email, guest_name, user_id, services (name, category)")
@@ -75,11 +77,23 @@ export function AccountAnalyticsTab() {
         supabase
           .from("clients")
           .select("id, created_at", { count: "exact" }),
+        supabase
+          .from("business_settings")
+          .select("value")
+          .eq("key", "auto_review_request_enabled")
+          .maybeSingle(),
+        supabase
+          .from("sms_messages")
+          .select("id", { count: "exact" })
+          .ilike("body", "%Google review%")
+          .gte("created_at", format(thisMonthStart, "yyyy-MM-dd")),
       ]);
 
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
       setTotalCustomers(clientsRes.count || 0);
+      setAutoReviewEnabled(settingsRes.data?.value !== "false");
+      setReviewRequestsThisMonth(reviewSmsRes.count || 0);
     } catch (error) {
       console.error("Analytics fetch error:", error);
     } finally {
