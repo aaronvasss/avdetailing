@@ -37,7 +37,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
   }, [userId]);
 
   const fetchBookings = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("bookings")
       .select(`
         id,
@@ -61,11 +61,22 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
         customer_notes,
         duration_minutes,
         created_at,
+        guest_name,
+        guest_email,
+        guest_phone,
+        payment_method,
+        internal_notes,
         services (name, description),
         booking_add_ons (id, name, price)
       `)
-      .eq("user_id", userId)
       .order("scheduled_date", { ascending: true });
+
+    // Admins see ALL bookings, regular users see only their own
+    if (!isAdmin) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query;
 
     if (data) {
       setBookings(data);
