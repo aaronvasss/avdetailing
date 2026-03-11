@@ -128,9 +128,44 @@ serve(async (req) => {
         userEmail = booking.guest_email;
       }
 
-      // Use subtotal (base service price without add-ons) for the main line item
-      // Add-ons will be added as separate line items below
-      const basePrice = Number(booking.subtotal || booking.total_price || 0);
+      // SECURITY: Recalculate base price from service_packages or services table
+      // Never trust stored booking prices for payment amount
+      const packageSlug = metadata?.package_slug || '';
+      const vehicleSubType = metadata?.vehicle_sub_type || '';
+      const vehicleType = booking.vehicle_type || '';
+
+      let serverBasePrice = 0;
+
+      if (packageSlug && (vehicleSubType || vehicleType)) {
+        // Look up exact price from service_packages
+        const packageVehicleType = vehicleSubType || vehicleType;
+        const { data: pkg } = await serviceClient
+          .from("service_packages")
+          .select("price")
+          .eq("service_id", booking.service_id)
+          .eq("slug", packageSlug)
+          .eq("vehicle_type", packageVehicleType)
+          .eq("is_active", true)
+          .single();
+
+        if (pkg) {
+          serverBasePrice = Number(pkg.price);
+          logStep("Price validated from service_packages", { serverBasePrice, packageSlug, packageVehicleType });
+        }
+      }
+
+      // Fallback to services.base_price if no package match
+      if (serverBasePrice <= 0) {
+        const { data: svc } = await serviceClient
+          .from("services")
+          .select("base_price")
+          .eq("id", booking.service_id)
+          .single();
+        serverBasePrice = Number(svc?.base_price || 0);
+        logStep("Price fallback to services.base_price", { serverBasePrice });
+      }
+
+      const basePrice = serverBasePrice;
       
       if (basePrice > 0) {
         // Add 3.5% processing fee to the base service price
