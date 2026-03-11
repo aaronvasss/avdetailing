@@ -518,6 +518,39 @@ export type Database = {
         }
         Relationships: []
       }
+      import_history: {
+        Row: {
+          created_at: string
+          error_rows: number
+          id: string
+          import_type: string
+          imported_by: string
+          imported_rows: number
+          skipped_rows: number
+          total_rows: number
+        }
+        Insert: {
+          created_at?: string
+          error_rows?: number
+          id?: string
+          import_type: string
+          imported_by: string
+          imported_rows?: number
+          skipped_rows?: number
+          total_rows?: number
+        }
+        Update: {
+          created_at?: string
+          error_rows?: number
+          id?: string
+          import_type?: string
+          imported_by?: string
+          imported_rows?: number
+          skipped_rows?: number
+          total_rows?: number
+        }
+        Relationships: []
+      }
       membership_plans: {
         Row: {
           created_at: string

@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Save, Phone, Mail, Settings2, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { CsvImportSection } from "./CsvImportSection";
 
 interface BusinessSetting {
   key: string;
@@ -295,6 +297,10 @@ export function AdminSettingsTab() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* CSV Import Section */}
+      <Separator className="my-8" />
+      <CsvImportSection />
     </div>
   );
 }
