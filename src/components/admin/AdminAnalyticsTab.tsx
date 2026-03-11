@@ -222,17 +222,17 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       .sort((a, b) => b.value - a.value);
   };
 
-  // Calculate KPIs
+  // Calculate KPIs — only count actually-paid bookings
   const allBookings = bookings;
-  const completedBookings = bookings.filter(b => b.status === "completed");
+  const paidBookings = bookings.filter(isPaidBooking);
   const noShowBookings = bookings.filter(b => b.status === "no_show");
-  const totalRevenue = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
-  const totalBookings = completedBookings.length;
+  const totalRevenue = paidBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+  const totalBookings = paidBookings.length;
   const avgTicketValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
   
   // Payment method breakdown
-  const onlinePayments = completedBookings.filter(b => b.payment_method === "online");
-  const inPersonPayments = completedBookings.filter(b => b.payment_method !== "online");
+  const onlinePayments = paidBookings.filter(b => b.payment_method === "online");
+  const inPersonPayments = paidBookings.filter(b => b.payment_method !== "online");
   const onlineRevenue = onlinePayments.reduce((sum, b) => sum + (b.total_price || 0), 0);
   const inPersonRevenue = inPersonPayments.reduce((sum, b) => sum + (b.total_price || 0), 0);
   
