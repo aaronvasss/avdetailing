@@ -297,6 +297,10 @@ export function AdminSettingsTab() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* CSV Import Section */}
+      <Separator className="my-8" />
+      <CsvImportSection />
     </div>
   );
 }
