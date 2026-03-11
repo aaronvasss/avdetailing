@@ -43,6 +43,11 @@ interface Booking {
   customer_notes: string | null;
   duration_minutes: number | null;
   created_at: string;
+  guest_name: string | null;
+  guest_email: string | null;
+  guest_phone: string | null;
+  payment_method: string | null;
+  internal_notes: string | null;
   services: {
     name: string;
     description: string | null;
@@ -96,6 +101,11 @@ export function BookingsTab({ userId }: BookingsTabProps) {
         customer_notes,
         duration_minutes,
         created_at,
+        guest_name,
+        guest_email,
+        guest_phone,
+        payment_method,
+        internal_notes,
         services (name, description),
         booking_add_ons (id, name, price)
       `)

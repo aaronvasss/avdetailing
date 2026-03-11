@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -18,42 +19,16 @@ import {
   Mail,
   CalendarClock,
   XCircle,
+  User,
+  CheckCircle,
+  PlayCircle,
+  Loader2,
+  StickyNote,
+  CreditCard,
 } from "lucide-react";
-
-interface BookingAddOn {
-  id: string;
-  name: string;
-  price: number;
-}
-
-interface Booking {
-  id: string;
-  scheduled_date: string;
-  scheduled_time: string;
-  status: string;
-  payment_status: string | null;
-  total_price: number | null;
-  subtotal: number | null;
-  add_ons_total: number | null;
-  deposit_amount: number | null;
-  vehicle_make: string | null;
-  vehicle_model: string | null;
-  vehicle_type: string | null;
-  vehicle_year: number | null;
-  vehicle_size: string | null;
-  service_address: string | null;
-  service_city: string | null;
-  service_state: string | null;
-  service_zip: string | null;
-  customer_notes: string | null;
-  duration_minutes: number | null;
-  created_at: string;
-  services: {
-    name: string;
-    description: string | null;
-  } | null;
-  booking_add_ons?: BookingAddOn[];
-}
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Booking } from "./AppointmentCard";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -61,21 +36,23 @@ interface BookingDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   onReschedule: (booking: Booking) => void;
   onCancel: (booking: Booking) => void;
+  isAdmin?: boolean;
+  onStatusChange?: () => void;
 }
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  confirmed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  in_progress: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  completed: "bg-green-500/10 text-green-500 border-green-500/20",
-  cancelled: "bg-muted text-muted-foreground border-muted",
-  no_show: "bg-red-500/10 text-red-500 border-red-500/20",
+  confirmed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  in_progress: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  completed: "bg-muted text-muted-foreground border-muted",
+  cancelled: "bg-destructive/10 text-destructive border-destructive/20",
+  no_show: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 const paymentStatusColors: Record<string, string> = {
-  unpaid: "bg-red-500/10 text-red-500 border-red-500/20",
+  unpaid: "bg-destructive/10 text-destructive border-destructive/20",
   partial: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  paid: "bg-green-500/10 text-green-500 border-green-500/20",
+  paid: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   refunded: "bg-muted text-muted-foreground border-muted",
 };
 
@@ -85,7 +62,11 @@ export function BookingDetailsDialog({
   onOpenChange,
   onReschedule,
   onCancel,
+  isAdmin = false,
+  onStatusChange,
 }: BookingDetailsDialogProps) {
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
   if (!booking) return null;
 
   const isUpcoming =
@@ -102,6 +83,25 @@ export function BookingDetailsDialog({
     : 0;
   const remainingBalance = totalWithFee - (booking.deposit_amount || 0);
 
+  const customerName = booking.guest_name || "N/A";
+
+  const handleStatusChange = async (newStatus: string) => {
+    setUpdatingStatus(true);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: newStatus })
+      .eq("id", booking.id);
+
+    if (error) {
+      toast.error("Failed to update status");
+    } else {
+      toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+      onStatusChange?.();
+      onOpenChange(false);
+    }
+    setUpdatingStatus(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -115,6 +115,27 @@ export function BookingDetailsDialog({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Admin: Customer Info */}
+          {isAdmin && (
+            <div className="bg-accent/30 rounded-lg p-4 border border-border/50">
+              <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Customer
+              </h4>
+              <p className="font-semibold">{customerName}</p>
+              {booking.guest_email && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
+                  <Mail className="h-3 w-3" /> {booking.guest_email}
+                </p>
+              )}
+              {booking.guest_phone && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
+                  <Phone className="h-3 w-3" /> {booking.guest_phone}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Date & Time */}
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
             <div className="flex items-center gap-3">
@@ -158,25 +179,42 @@ export function BookingDetailsDialog({
           </div>
 
           {/* Location */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Service Location
-            </h4>
-            <p className="font-medium">{booking.service_address}</p>
-            <p className="text-sm text-muted-foreground">
-              {booking.service_city}, {booking.service_state} {booking.service_zip}
-            </p>
-          </div>
+          {booking.service_address && (
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Service Location
+              </h4>
+              <p className="font-medium">{booking.service_address}</p>
+              {(booking.service_city || booking.service_state || booking.service_zip) && (
+                <p className="text-sm text-muted-foreground">
+                  {[booking.service_city, booking.service_state].filter(Boolean).join(", ")} {booking.service_zip}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Customer Notes */}
           {booking.customer_notes && (
             <div>
               <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Your Notes
+                {isAdmin ? "Customer Notes" : "Your Notes"}
               </h4>
               <p className="text-sm bg-muted/50 rounded-lg p-3">
                 {booking.customer_notes}
+              </p>
+            </div>
+          )}
+
+          {/* Admin: Internal Notes */}
+          {isAdmin && booking.internal_notes && (
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                <StickyNote className="h-4 w-4" />
+                Internal Notes
+              </h4>
+              <p className="text-sm bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3">
+                {booking.internal_notes}
               </p>
             </div>
           )}
@@ -226,7 +264,7 @@ export function BookingDetailsDialog({
               </div>
               {booking.deposit_amount && booking.deposit_amount > 0 && (
                 <>
-                  <div className="flex justify-between text-green-500">
+                  <div className="flex justify-between text-emerald-500">
                     <span>Deposit Paid</span>
                     <span>-${booking.deposit_amount.toFixed(2)}</span>
                   </div>
@@ -237,7 +275,7 @@ export function BookingDetailsDialog({
                 </>
               )}
             </div>
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className="text-sm text-muted-foreground">Payment:</span>
               <Badge
                 className={
@@ -246,51 +284,122 @@ export function BookingDetailsDialog({
               >
                 {booking.payment_status || "unpaid"}
               </Badge>
+              {isAdmin && booking.payment_method && (
+                <>
+                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                    <CreditCard className="h-3 w-3" />
+                    {booking.payment_method.replace("_", " ")}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
           <Separator />
 
-          {/* Contact */}
-          <div className="flex gap-4">
-            <Button variant="outline" size="sm" className="flex-1" asChild>
-              <a href="tel:+12255216264">
-                <Phone className="h-4 w-4 mr-2" />
-                Call Us
-              </a>
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1" asChild>
-              <a href="mailto:aaronvasquez@avdetailingg.com">
-                <Mail className="h-4 w-4 mr-2" />
-                Email Us
-              </a>
-            </Button>
-          </div>
-
-          {/* Actions */}
-          {isUpcoming && (
-            <div className="flex gap-3">
-              {canReschedule && (
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => onReschedule(booking)}
-                >
-                  <CalendarClock className="h-4 w-4 mr-2" />
-                  Reschedule
-                </Button>
-              )}
-              {canCancel && (
-                <Button
-                  variant="destructive"
-                  className="flex-1"
-                  onClick={() => onCancel(booking)}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Cancel Booking
-                </Button>
-              )}
+          {/* Admin: Status Change Buttons */}
+          {isAdmin && (
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                Update Status
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {booking.status !== "confirmed" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingStatus}
+                    onClick={() => handleStatusChange("confirmed")}
+                    className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                  >
+                    {updatingStatus ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                    Confirm
+                  </Button>
+                )}
+                {booking.status !== "in_progress" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingStatus}
+                    onClick={() => handleStatusChange("in_progress")}
+                    className="border-blue-500/30 text-blue-500 hover:bg-blue-500/10"
+                  >
+                    {updatingStatus ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlayCircle className="h-4 w-4 mr-2" />}
+                    In Progress
+                  </Button>
+                )}
+                {booking.status !== "completed" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingStatus}
+                    onClick={() => handleStatusChange("completed")}
+                    className="border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
+                  >
+                    {updatingStatus ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                    Completed
+                  </Button>
+                )}
+                {booking.status !== "cancelled" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingStatus}
+                    onClick={() => handleStatusChange("cancelled")}
+                    className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                  >
+                    {updatingStatus ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </div>
+          )}
+
+          {/* Contact (non-admin) */}
+          {!isAdmin && (
+            <>
+              <div className="flex gap-4">
+                <Button variant="outline" size="sm" className="flex-1" asChild>
+                  <a href="tel:+12255216264">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call Us
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1" asChild>
+                  <a href="mailto:aaronvasquez@avdetailingg.com">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email Us
+                  </a>
+                </Button>
+              </div>
+
+              {/* Actions */}
+              {isUpcoming && (
+                <div className="flex gap-3">
+                  {canReschedule && (
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => onReschedule(booking)}
+                    >
+                      <CalendarClock className="h-4 w-4 mr-2" />
+                      Reschedule
+                    </Button>
+                  )}
+                  {canCancel && (
+                    <Button
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => onCancel(booking)}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Cancel Booking
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
           )}
 
           {/* Booking ID */}
