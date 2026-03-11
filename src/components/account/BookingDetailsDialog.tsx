@@ -97,6 +97,9 @@ export function BookingDetailsDialog({
       toast.error("Failed to update status");
     } else {
       toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+      if (newStatus === "in_progress") {
+        sendInProgressSms(booking.id);
+      }
       onStatusChange?.();
       onOpenChange(false);
     }

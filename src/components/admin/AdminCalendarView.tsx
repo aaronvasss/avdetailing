@@ -152,6 +152,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       toast.error("Failed to update status");
     } else {
       toast.success(`Booking ${newStatus}`);
+      if (newStatus === "in_progress") {
+        sendInProgressSms(bookingId);
+      }
       fetchBookings();
       setSelectedBooking(null);
     }

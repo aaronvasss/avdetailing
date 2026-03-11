@@ -142,6 +142,9 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
       toast.error("Failed to update status");
     } else {
       toast.success(`Booking marked as ${newStatus}`);
+      if (newStatus === "in_progress") {
+        sendInProgressSms(bookingId);
+      }
       fetchBookings();
     }
   };
