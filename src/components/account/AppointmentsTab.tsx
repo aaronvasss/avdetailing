@@ -193,12 +193,19 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
             Calendar
           </Button>
         </div>
-        <Button asChild>
-          <Link to="/book">
+        {isAdmin && onAdminBook ? (
+          <Button onClick={onAdminBook}>
             <Plus className="h-4 w-4 mr-2" />
             Book New Appointment
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button asChild>
+            <Link to="/book">
+              <Plus className="h-4 w-4 mr-2" />
+              Book New Appointment
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Calendar View */}
