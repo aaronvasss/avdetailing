@@ -351,6 +351,50 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           </div>
 
+          {/* Schedule */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Schedule *</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Date</Label>
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.scheduledDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.scheduledDate ? format(form.scheduledDate, "MMM d, yyyy") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={form.scheduledDate}
+                      onSelect={(date) => {
+                        setForm(prev => ({ ...prev, scheduledDate: date }));
+                        setCalendarOpen(false);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Time</Label>
+                <Select value={form.scheduledTime} onValueChange={v => handleChange("scheduledTime", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map(time => (
+                      <SelectItem key={time} value={time}>
+                        {format(new Date(`2000-01-01T${time}`), "h:mm a")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           {/* ── Pricing Section ── */}
           {form.serviceType && (
             <div>
@@ -382,8 +426,33 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                     </div>
                   )}
 
-                  {/* Package selector for car detailing */}
-                  {!isSpecialty && (
+                  {/* Membership packages */}
+                  {isMembership && (
+                    <div>
+                      <Label className="mb-2 block">Membership Frequency</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {membershipPackages.map(mp => (
+                          <button
+                            key={mp.id}
+                            type="button"
+                            onClick={() => setSelectedPackageId(mp.id)}
+                            className={cn(
+                              "rounded-lg border-2 p-3 text-center transition-all",
+                              selectedPackageId === mp.id
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-muted-foreground/40"
+                            )}
+                          >
+                            <p className="text-sm font-semibold">{mp.label}</p>
+                            <p className="text-lg font-bold text-primary">${mp.price}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Package selector for car / rv detailing */}
+                  {!isSpecialty && !isMembership && (
                     <div>
                       <Label className="mb-2 block">Package</Label>
                       <div className="grid grid-cols-2 gap-2">
@@ -448,7 +517,13 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                   {(packagePrice > 0 || addOnsTotal > 0) && (
                     <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
                       <div className="flex justify-between text-sm">
-                        <span>{isSpecialty ? "Specialty Deposit" : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}</span>
+                        <span>
+                          {isSpecialty
+                            ? "Specialty Deposit"
+                            : isMembership
+                              ? `Membership: ${membershipPackages.find(p => p.id === selectedPackageId)?.label || ""}`
+                              : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}
+                        </span>
                         <span className="font-medium">${packagePrice}</span>
                       </div>
                       {selectedAddOns.map(id => {
@@ -460,18 +535,10 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                           </div>
                         );
                       })}
-                      {selectedAddOns.length > 0 && (
-                        <div className="border-t border-border pt-1.5 mt-1.5 flex justify-between text-sm font-bold">
-                          <span>Total</span>
-                          <span className="text-primary">${totalPrice}</span>
-                        </div>
-                      )}
-                      {selectedAddOns.length === 0 && (
-                        <div className="flex justify-between text-sm font-bold pt-0.5">
-                          <span>Total</span>
-                          <span className="text-primary">${totalPrice}</span>
-                        </div>
-                      )}
+                      <div className={cn("flex justify-between text-sm font-bold", selectedAddOns.length > 0 && "border-t border-border pt-1.5 mt-1.5")}>
+                        <span>Total</span>
+                        <span className="text-primary">${totalPrice}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -490,50 +557,6 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               )}
             </div>
           )}
-
-          {/* Schedule */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Schedule *</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Date</Label>
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.scheduledDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {form.scheduledDate ? format(form.scheduledDate, "MMM d, yyyy") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={form.scheduledDate}
-                      onSelect={(date) => {
-                        setForm(prev => ({ ...prev, scheduledDate: date }));
-                        setCalendarOpen(false);
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
-                <Label>Time</Label>
-                <Select value={form.scheduledTime} onValueChange={v => handleChange("scheduledTime", v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map(time => (
-                      <SelectItem key={time} value={time}>
-                        {format(new Date(`2000-01-01T${time}`), "h:mm a")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
 
           {/* Payment */}
           <div>
