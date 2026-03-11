@@ -155,11 +155,15 @@ const MembershipsPage = () => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setPlans(data.map(plan => ({
-          ...plan,
-          frequency: frequencyDisplay[plan.frequency] || frequencyDisplay[plan.slug] || plan.frequency,
-          savings: savingsMap[plan.slug] || "",
-        })));
+        setPlans(data.map(plan => {
+          const multiplier = monthlyMultiplier[plan.frequency] || monthlyMultiplier[plan.slug] || 1;
+          return {
+            ...plan,
+            price: plan.price * multiplier,
+            frequency: frequencyDisplay[plan.frequency] || frequencyDisplay[plan.slug] || plan.frequency,
+            savings: savingsMap[plan.slug] || "",
+          };
+        }));
       } else {
         setPlans(fallbackPlans);
       }
