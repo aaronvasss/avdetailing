@@ -132,29 +132,35 @@ export function AppointmentsCalendarView({
 
         {/* Bookings */}
         <div className="space-y-1">
-          {dayBookings.slice(0, viewMode === "week" ? 5 : 2).map((booking) => (
-            <button
-              key={booking.id}
-              onClick={() => onSelectBooking(booking)}
-              className={cn(
-                "w-full text-left px-2 py-1 rounded text-xs font-medium truncate transition-all",
-                "hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary",
-                "bg-card border border-border/50"
-              )}
-            >
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    "w-2 h-2 rounded-full flex-shrink-0",
-                    statusColors[booking.status]
-                  )}
-                />
-                <span className="truncate">
-                  {booking.scheduled_time} - {booking.services?.name || "Service"}
-                </span>
-              </div>
-            </button>
-          ))}
+          {dayBookings.slice(0, viewMode === "week" ? 5 : 2).map((booking) => {
+            const customerName = booking.guest_name || "Customer";
+            return (
+              <button
+                key={booking.id}
+                onClick={() => onSelectBooking(booking)}
+                className={cn(
+                  "w-full text-left px-2 py-1 rounded text-xs font-medium truncate transition-all",
+                  "hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary",
+                  "bg-card border border-border/50"
+                )}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "w-2 h-2 rounded-full flex-shrink-0",
+                      statusColors[booking.status]
+                    )}
+                  />
+                  <span className="truncate">
+                    {booking.scheduled_time} - {customerName}
+                  </span>
+                </div>
+                <div className="truncate text-muted-foreground pl-3.5">
+                  {booking.services?.name || "Service"}
+                </div>
+              </button>
+            );
+          })}
           {dayBookings.length > (viewMode === "week" ? 5 : 2) && (
             <span className="text-xs text-muted-foreground px-2">
               +{dayBookings.length - (viewMode === "week" ? 5 : 2)} more
