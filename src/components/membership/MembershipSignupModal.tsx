@@ -45,6 +45,8 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showTermsError, setShowTermsError] = useState(false);
+  const [existingMembership, setExistingMembership] = useState(false);
+  const [checkingMembership, setCheckingMembership] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -58,6 +60,59 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
     vehicleModel: "",
     vehicleYear: "",
   });
+
+  // Check for existing active membership when email changes
+  useEffect(() => {
+    const checkExisting = async () => {
+      const email = formData.email.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setExistingMembership(false);
+        return;
+      }
+      setCheckingMembership(true);
+      try {
+        // Check membership_signups for active/pending signups with this email
+        const { data: signups } = await supabase
+          .from("membership_signups")
+          .select("id, status")
+          .eq("email", email)
+          .in("status", ["active", "completed"])
+          .limit(1);
+
+        if (signups && signups.length > 0) {
+          setExistingMembership(true);
+          setCheckingMembership(false);
+          return;
+        }
+
+        // Also check customer_memberships via profiles
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("email", email)
+          .limit(1);
+
+        if (profiles && profiles.length > 0) {
+          const { data: memberships } = await supabase
+            .from("customer_memberships")
+            .select("id")
+            .eq("user_id", profiles[0].user_id)
+            .eq("status", "active")
+            .limit(1);
+
+          setExistingMembership(!!(memberships && memberships.length > 0));
+        } else {
+          setExistingMembership(false);
+        }
+      } catch {
+        setExistingMembership(false);
+      }
+      setCheckingMembership(false);
+    };
+
+    const timeout = setTimeout(checkExisting, 500);
+    return () => clearTimeout(timeout);
+  }, [formData.email]);
 
   const handleChange = (field: string, value: string) => {
     if (field === "phone") {
