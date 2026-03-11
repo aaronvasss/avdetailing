@@ -32,6 +32,7 @@ interface Booking {
   scheduled_date: string;
   total_price: number | null;
   status: string;
+  payment_status: string | null;
   payment_method: string | null;
   services: { name: string; category: string } | null;
   vehicle_type: string | null;
