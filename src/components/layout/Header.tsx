@@ -200,7 +200,7 @@ export function Header() {
         <div
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-300",
-            mobileMenuOpen ? "max-h-[500px] pb-4" : "max-h-0"
+            mobileMenuOpen ? "max-h-[80vh] pb-4" : "max-h-0"
           )}
         >
           <div className="space-y-1 pt-2">
@@ -258,16 +258,17 @@ export function Header() {
                 {settings.publicBusinessPhone}
               </a>
               {user ? (
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
                     {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
-                    {isAdmin ? "Admin" : "My Account"}
+                    {isAdmin ? "Admin Panel" : "My Account"}
                   </Link>
                 </Button>
               ) : (
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                    Sign In / Sign Up
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
                   </Link>
                 </Button>
               )}
