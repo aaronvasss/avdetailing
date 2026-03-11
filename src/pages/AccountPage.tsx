@@ -103,7 +103,7 @@ export default function AccountPage() {
             <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <p className="text-sm font-medium text-primary mb-1">
-                  Welcome back
+                  {isAdmin ? "Hey Boss 👋" : "Welcome back"}
                 </p>
                 <h1 className="text-2xl sm:text-3xl font-bold">
                   {firstName}
