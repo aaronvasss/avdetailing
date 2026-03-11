@@ -195,15 +195,17 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   const getStatusBadge = (status: string) => {
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }> = {
       pending: { variant: "secondary", icon: <AlertCircle className="h-3 w-3" /> },
+      pending_payment: { variant: "secondary", icon: <AlertCircle className="h-3 w-3" /> },
       confirmed: { variant: "default", icon: <CheckCircle2 className="h-3 w-3" /> },
+      in_progress: { variant: "default", icon: <Loader2 className="h-3 w-3" /> },
       completed: { variant: "outline", icon: <CheckCircle2 className="h-3 w-3" /> },
       cancelled: { variant: "destructive", icon: <XCircle className="h-3 w-3" /> },
     };
     const { variant, icon } = config[status] || { variant: "secondary", icon: null };
     return (
-      <Badge variant={variant} className="gap-1 capitalize">
+      <Badge variant={variant} className="gap-1">
         {icon}
-        {status}
+        {formatStatusLabel(status)}
       </Badge>
     );
   };
