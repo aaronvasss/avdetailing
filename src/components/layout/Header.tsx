@@ -165,8 +165,8 @@ export function Header() {
             {user ? (
               <Button asChild variant="outline" size="sm">
                 <Link to="/account">
-                  <User className="h-4 w-4 mr-2" />
-                  Account
+                  {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
+                  {isAdmin ? "Admin" : "Account"}
                 </Link>
               </Button>
             ) : (
@@ -174,9 +174,11 @@ export function Header() {
                 <Link to="/auth">Sign In</Link>
               </Button>
             )}
-            <Button asChild className="glow-red">
-              <Link to="/book">Book Now</Link>
-            </Button>
+            {!isAdmin && (
+              <Button asChild className="glow-red">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
