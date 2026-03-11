@@ -113,9 +113,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   // Only count bookings where payment has actually been collected
   const isPaidBooking = (b: Booking) => 
     b.status !== "cancelled" && 
-    (b.payment_method === "online" 
-      ? ["paid", "completed"].includes(b.status) || b.status === "completed"
-      : b.status === "completed");
+    ["paid", "completed"].includes(b.payment_status || "");
 
   // Calculate revenue trends based on time range
   const getRevenueTrends = () => {
