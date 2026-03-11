@@ -127,7 +127,7 @@ export default function AccountPage() {
           </div>
 
           {/* Navigation Tabs */}
-          <Tabs defaultValue="appointments" className="space-y-6">
+          <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "appointments"} className="space-y-6">
             <div className="overflow-x-auto -mx-4 px-4 pb-2">
               <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 bg-card border border-border/50 p-1 h-auto">
                 <TabsTrigger
