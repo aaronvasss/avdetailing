@@ -64,7 +64,7 @@ const fallbackPlans = [
     slug: "weekly-premium",
     name: "Weekly Premium",
     frequency: "4x per month",
-    price: 130,
+    price: 520,
     savings: "Save $217/month vs. one-time",
     description: "The ultimate in vehicle care for enthusiasts and luxury owners.",
     features: [
