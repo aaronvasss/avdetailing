@@ -260,8 +260,8 @@ export function Header() {
               {user ? (
                 <Button asChild variant="outline" className="w-full">
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
-                    <User className="h-4 w-4 mr-2" />
-                    My Account
+                    {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
+                    {isAdmin ? "Admin" : "My Account"}
                   </Link>
                 </Button>
               ) : (
@@ -271,11 +271,13 @@ export function Header() {
                   </Link>
                 </Button>
               )}
-              <Button asChild className="w-full glow-red">
-                <Link to="/book" onClick={() => setMobileMenuOpen(false)}>
-                  Book Now
-                </Link>
-              </Button>
+              {!isAdmin && (
+                <Button asChild className="w-full glow-red">
+                  <Link to="/book" onClick={() => setMobileMenuOpen(false)}>
+                    Book Now
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

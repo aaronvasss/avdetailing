@@ -2,12 +2,15 @@ import { ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { StickyContactBar } from "./StickyContactBar";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { isAdmin } = useAdminCheck();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -15,7 +18,7 @@ export function Layout({ children }: LayoutProps) {
         {children}
       </main>
       <Footer />
-      <StickyContactBar />
+      {!isAdmin && <StickyContactBar />}
     </div>
   );
 }
