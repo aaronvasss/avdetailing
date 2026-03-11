@@ -19,9 +19,11 @@ import { CancelBookingDialog } from "./CancelBookingDialog";
 
 interface AppointmentsTabProps {
   userId: string;
+  isAdmin?: boolean;
+  onAdminBook?: () => void;
 }
 
-export function AppointmentsTab({ userId }: AppointmentsTabProps) {
+export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
