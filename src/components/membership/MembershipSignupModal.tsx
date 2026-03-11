@@ -318,6 +318,22 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
             </div>
           </div>
 
+          {/* Active Membership Warning */}
+          {existingMembership && (
+            <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-destructive">You already have an active membership.</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Please cancel your current plan before subscribing to a new one.{" "}
+                  <Link to="/account?tab=memberships" className="text-primary hover:underline font-medium" onClick={() => onOpenChange(false)}>
+                    Manage your membership →
+                  </Link>
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Terms Consent */}
           <div className="flex items-start space-x-3 p-3 border border-border rounded-lg bg-secondary/30">
             <Checkbox
@@ -352,13 +368,20 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
               }
               handleSubmit();
             }}
-            disabled={isSubmitting}
+            disabled={isSubmitting || existingMembership || checkingMembership}
           >
-            {isSubmitting ? (
+            {checkingMembership ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
+            ) : existingMembership ? (
+              "Already Subscribed"
             ) : (
               <>
                 Continue to Payment
