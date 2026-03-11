@@ -192,7 +192,7 @@ export function AppointmentsCalendarView({
           {/* View Toggle */}
           <div className="flex items-center gap-2">
             <Button
-              variant={viewMode === "month" ? "default" : "outline"}
+              variant={viewMode === "month" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setViewMode("month")}
             >
@@ -200,7 +200,7 @@ export function AppointmentsCalendarView({
               Month
             </Button>
             <Button
-              variant={viewMode === "week" ? "default" : "outline"}
+              variant={viewMode === "week" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setViewMode("week")}
             >

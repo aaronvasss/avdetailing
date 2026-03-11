@@ -177,7 +177,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
           <Button
-            variant={activeView === "list" ? "default" : "outline"}
+            variant={activeView === "list" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setActiveView("list")}
           >
@@ -185,7 +185,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
             List
           </Button>
           <Button
-            variant={activeView === "calendar" ? "default" : "outline"}
+            variant={activeView === "calendar" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setActiveView("calendar")}
           >
@@ -193,12 +193,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
             Calendar
           </Button>
         </div>
-        {isAdmin && onAdminBook ? (
-          <Button onClick={onAdminBook}>
-            <Plus className="h-4 w-4 mr-2" />
-            Book New Appointment
-          </Button>
-        ) : (
+        {!isAdmin && (
           <Button asChild>
             <Link to="/book">
               <Plus className="h-4 w-4 mr-2" />
