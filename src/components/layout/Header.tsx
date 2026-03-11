@@ -29,6 +29,7 @@ const navigation = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
   const { settings } = useBusinessSettings();
