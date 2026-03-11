@@ -3,7 +3,8 @@ import { useSearchParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Calendar, Download, Home, Loader2 } from "lucide-react";
+import { CheckCircle, Calendar, Download, Home, Loader2, Mail } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { generateICS } from "@/lib/calendar";
@@ -154,6 +155,12 @@ export default function BookingSuccessPage() {
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
+              <Alert className="border-primary/40 bg-primary/5">
+                <Mail className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-sm">
+                  <strong>Important:</strong> Please check your email inbox for your full booking confirmation. It contains important pre-appointment instructions to help us give you the best results.
+                </AlertDescription>
+              </Alert>
               {booking && (
                 <div className="bg-muted/50 rounded-lg p-6 space-y-4">
                   <h3 className="font-semibold text-lg">{booking.services?.name || 'Detailing Service'}</h3>
