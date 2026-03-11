@@ -223,6 +223,48 @@ export function AccountAnalyticsTab() {
         </Select>
       </div>
 
+      {/* Google Review Request Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-review"
+                  checked={autoReviewEnabled}
+                  disabled={togglingReview}
+                  onCheckedChange={async (checked) => {
+                    setTogglingReview(true);
+                    const { error } = await supabase
+                      .from("business_settings")
+                      .update({ value: checked ? "true" : "false", updated_at: new Date().toISOString() })
+                      .eq("key", "auto_review_request_enabled");
+                    if (error) {
+                      toast.error("Failed to update setting");
+                    } else {
+                      setAutoReviewEnabled(checked);
+                      toast.success(checked ? "Auto review requests enabled" : "Auto review requests disabled");
+                    }
+                    setTogglingReview(false);
+                  }}
+                />
+                <Label htmlFor="auto-review" className="text-sm font-medium cursor-pointer">
+                  Auto Google Review Request
+                </Label>
+              </div>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                Sends SMS + email when a booking is marked as completed
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">{reviewRequestsThisMonth}</span>
+              <span className="text-muted-foreground">sent this month</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KPI Row 1 */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card>
