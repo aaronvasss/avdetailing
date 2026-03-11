@@ -3,37 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Loader2,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  Eye
+import {
+  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -62,14 +43,26 @@ interface Client {
   created_at: string;
 }
 
-const PAGE_SIZE = 20;
+interface EnrichedClient extends Client {
+  totalBookings: number;
+  totalSpent: number;
+  lastServiceDate: string | null;
+  membershipStatus: string | null;
+}
+
+const PAGE_SIZE = 25;
+
+type SortField = "name" | "total_spent" | "last_service" | "date_added";
+type FilterType = "all" | "has_membership" | "imported" | "no_bookings";
 
 export function ClientsListView() {
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<EnrichedClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [sortBy, setSortBy] = useState<SortField>("date_added");
   const [formOpen, setFormOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
@@ -79,43 +72,218 @@ export function ClientsListView() {
   const fetchClients = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('clients')
-        .select('*', { count: 'exact' });
+      // Step 1: Build base query for clients
+      let countQuery = supabase.from("clients").select("*", { count: "exact", head: true });
+      let dataQuery = supabase.from("clients").select("*");
 
-      // Apply search filter
+      // Search filter
       if (search.trim()) {
         const searchTerm = `%${search.trim()}%`;
-        query = query.or(`full_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
+        const searchFilter = `full_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm},first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`;
+        countQuery = countQuery.or(searchFilter);
+        dataQuery = dataQuery.or(searchFilter);
       }
 
-      // Get count first
-      const { count } = await query;
-      setTotalCount(count || 0);
+      // Source filter for "imported"
+      if (filter === "imported") {
+        countQuery = countQuery.in("source", ["wix", "csv_import"]);
+        dataQuery = dataQuery.in("source", ["wix", "csv_import"]);
+      }
 
-      // Then get paginated data
-      let dataQuery = supabase
-        .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      // Sort
+      const sortMap: Record<SortField, { column: string; ascending: boolean }> = {
+        name: { column: "full_name", ascending: true },
+        total_spent: { column: "total_lifetime_spend", ascending: false },
+        last_service: { column: "created_at", ascending: false }, // fallback, real sort done client-side
+        date_added: { column: "created_at", ascending: false },
+      };
+      const sort = sortMap[sortBy];
+      dataQuery = dataQuery.order(sort.column, { ascending: sort.ascending });
 
-      if (search.trim()) {
-        const searchTerm = `%${search.trim()}%`;
-        dataQuery = dataQuery.or(`full_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
+      // Get count
+      const { count } = await countQuery;
+
+      // Get paginated data — for filters needing enrichment, fetch more
+      const needsEnrichmentFilter = filter === "has_membership" || filter === "no_bookings";
+      if (!needsEnrichmentFilter) {
+        dataQuery = dataQuery.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       }
 
       const { data, error } = await dataQuery;
-
       if (error) throw error;
-      setClients(data || []);
+
+      const rawClients: Client[] = data || [];
+
+      // Step 2: Enrich with booking data
+      // Gather all emails and phones for batch queries
+      const emails = rawClients.map((c) => c.email).filter(Boolean) as string[];
+      const phones = rawClients.map((c) => c.phone).filter(Boolean) as string[];
+
+      // Fetch booking aggregates by guest_email
+      const bookingsByEmail = new Map<string, { count: number; totalSpent: number; lastDate: string | null }>();
+      const bookingsByPhone = new Map<string, { count: number; totalSpent: number; lastDate: string | null }>();
+
+      if (emails.length > 0) {
+        const { data: emailBookings } = await supabase
+          .from("bookings")
+          .select("guest_email, total_price, payment_status, scheduled_date, status")
+          .in("guest_email", emails);
+
+        (emailBookings || []).forEach((b) => {
+          const key = b.guest_email?.toLowerCase();
+          if (!key) return;
+          const existing = bookingsByEmail.get(key) || { count: 0, totalSpent: 0, lastDate: null };
+          existing.count++;
+          if (b.payment_status === "paid" || b.payment_status === "completed") {
+            existing.totalSpent += Number(b.total_price) || 0;
+          }
+          if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
+            existing.lastDate = b.scheduled_date;
+          }
+          bookingsByEmail.set(key, existing);
+        });
+      }
+
+      // Also check bookings by user_id via profiles
+      const profileEmailToUserId = new Map<string, string>();
+      if (emails.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, email")
+          .in("email", emails);
+
+        (profiles || []).forEach((p) => {
+          if (p.email) profileEmailToUserId.set(p.email.toLowerCase(), p.user_id);
+        });
+
+        const userIds = Array.from(profileEmailToUserId.values());
+        if (userIds.length > 0) {
+          const { data: userBookings } = await supabase
+            .from("bookings")
+            .select("user_id, total_price, payment_status, scheduled_date, status")
+            .in("user_id", userIds);
+
+          // Map user_id back to email
+          const userIdToEmail = new Map<string, string>();
+          profileEmailToUserId.forEach((uid, email) => userIdToEmail.set(uid, email));
+
+          (userBookings || []).forEach((b) => {
+            const email = b.user_id ? userIdToEmail.get(b.user_id) : null;
+            if (!email) return;
+            const existing = bookingsByEmail.get(email) || { count: 0, totalSpent: 0, lastDate: null };
+            // Avoid double-counting if same booking found via guest_email
+            existing.count++;
+            if (b.payment_status === "paid" || b.payment_status === "completed") {
+              existing.totalSpent += Number(b.total_price) || 0;
+            }
+            if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
+              existing.lastDate = b.scheduled_date;
+            }
+            bookingsByEmail.set(email, existing);
+          });
+        }
+      }
+
+      if (phones.length > 0) {
+        const { data: phoneBookings } = await supabase
+          .from("bookings")
+          .select("guest_phone, total_price, payment_status, scheduled_date, status")
+          .in("guest_phone", phones);
+
+        (phoneBookings || []).forEach((b) => {
+          const key = b.guest_phone;
+          if (!key) return;
+          const existing = bookingsByPhone.get(key) || { count: 0, totalSpent: 0, lastDate: null };
+          existing.count++;
+          if (b.payment_status === "paid" || b.payment_status === "completed") {
+            existing.totalSpent += Number(b.total_price) || 0;
+          }
+          if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
+            existing.lastDate = b.scheduled_date;
+          }
+          bookingsByPhone.set(key, existing);
+        });
+      }
+
+      // Fetch membership status via profiles
+      const membershipByEmail = new Map<string, string>();
+      const userIds = Array.from(profileEmailToUserId.values());
+      if (userIds.length > 0) {
+        const { data: memberships } = await supabase
+          .from("customer_memberships")
+          .select("user_id, status")
+          .in("user_id", userIds);
+
+        const userIdToEmail = new Map<string, string>();
+        profileEmailToUserId.forEach((uid, email) => userIdToEmail.set(uid, email));
+
+        (memberships || []).forEach((m) => {
+          const email = userIdToEmail.get(m.user_id);
+          if (!email) return;
+          // Prioritize "active" status
+          const current = membershipByEmail.get(email);
+          if (!current || m.status === "active") {
+            membershipByEmail.set(email, m.status);
+          }
+        });
+      }
+
+      // Step 3: Build enriched clients
+      let enriched: EnrichedClient[] = rawClients.map((c) => {
+        const emailKey = c.email?.toLowerCase();
+        const emailStats = emailKey ? bookingsByEmail.get(emailKey) : null;
+        const phoneStats = c.phone ? bookingsByPhone.get(c.phone) : null;
+
+        // Combine stats (prefer email stats, add phone if no email match)
+        const totalBookings = (emailStats?.count || 0) + (emailKey && emailStats ? 0 : phoneStats?.count || 0);
+        const totalSpent = (emailStats?.totalSpent || 0) + (emailKey && emailStats ? 0 : phoneStats?.totalSpent || 0);
+        const lastServiceDate = emailStats?.lastDate || phoneStats?.lastDate || null;
+        const membershipStatus = emailKey ? membershipByEmail.get(emailKey) || null : null;
+
+        return {
+          ...c,
+          totalBookings,
+          totalSpent: totalSpent || (c.total_lifetime_spend || 0),
+          lastServiceDate,
+          membershipStatus,
+        };
+      });
+
+      // Step 4: Apply enrichment-based filters
+      if (filter === "has_membership") {
+        enriched = enriched.filter((c) => c.membershipStatus === "active");
+      } else if (filter === "no_bookings") {
+        enriched = enriched.filter((c) => c.totalBookings === 0);
+      }
+
+      // Sort by last_service if selected (can't do server-side)
+      if (sortBy === "last_service") {
+        enriched.sort((a, b) => {
+          if (!a.lastServiceDate && !b.lastServiceDate) return 0;
+          if (!a.lastServiceDate) return 1;
+          if (!b.lastServiceDate) return -1;
+          return b.lastServiceDate.localeCompare(a.lastServiceDate);
+        });
+      } else if (sortBy === "total_spent") {
+        enriched.sort((a, b) => b.totalSpent - a.totalSpent);
+      }
+
+      // Apply pagination for enrichment filters
+      if (needsEnrichmentFilter) {
+        setTotalCount(enriched.length);
+        enriched = enriched.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+      } else {
+        setTotalCount(count || 0);
+      }
+
+      setClients(enriched);
     } catch (error: any) {
-      console.error('Error fetching clients:', error);
+      console.error("Error fetching clients:", error);
       toast.error("Failed to load clients");
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [search, page, filter, sortBy]);
 
   useEffect(() => {
     fetchClients();
@@ -123,7 +291,7 @@ export function ClientsListView() {
 
   useEffect(() => {
     setPage(0);
-  }, [search]);
+  }, [search, filter, sortBy]);
 
   const handleEdit = (client: Client) => {
     setSelectedClient(client);
@@ -141,21 +309,15 @@ export function ClientsListView() {
 
   const handleDelete = async () => {
     if (!deleteClient) return;
-    
     setDeleting(true);
     try {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', deleteClient.id);
-
+      const { error } = await supabase.from("clients").delete().eq("id", deleteClient.id);
       if (error) throw error;
-      
       toast.success("Client deleted successfully");
       setDeleteClient(null);
       fetchClients();
     } catch (error: any) {
-      console.error('Error deleting client:', error);
+      console.error("Error deleting client:", error);
       toast.error("Failed to delete client");
     } finally {
       setDeleting(false);
@@ -163,22 +325,25 @@ export function ClientsListView() {
   };
 
   const getDisplayName = (client: Client) => {
-    return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unknown';
+    return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(" ") || "Unknown";
   };
 
-  const getAddress = (client: Client) => {
-    const parts = [client.address_line1, client.city, client.state].filter(Boolean);
-    return parts.length > 0 ? parts.join(', ') : null;
+  const formatSource = (source: string | null) => {
+    switch (source) {
+      case "wix": return "Wix Import";
+      case "csv_import": return "CSV Import";
+      case "manual": return "Manual";
+      default: return source || "Website";
+    }
   };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  // Show detail view if a client is selected
   if (viewingClient) {
     return (
-      <ClientDetailView 
-        client={viewingClient} 
-        onBack={() => setViewingClient(null)}
+      <ClientDetailView
+        client={viewingClient}
+        onBack={() => { setViewingClient(null); fetchClients(); }}
         onUpdate={fetchClients}
       />
     );
@@ -192,21 +357,21 @@ export function ClientsListView() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                All Clients
+                All Customers
               </CardTitle>
               <CardDescription>
-                {totalCount} total clients in your database
+                {totalCount} total customers in your database
               </CardDescription>
             </div>
             <Button onClick={handleAdd}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Client
+              Add Customer
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Search */}
-          <div className="flex gap-4 mb-4">
+          {/* Search, Filter, Sort */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -216,6 +381,28 @@ export function ClientsListView() {
                 className="pl-9"
               />
             </div>
+            <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Customers</SelectItem>
+                <SelectItem value="has_membership">Has Membership</SelectItem>
+                <SelectItem value="imported">Imported</SelectItem>
+                <SelectItem value="no_bookings">No Bookings Yet</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortField)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date_added">Date Added</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="total_spent">Total Spent</SelectItem>
+                <SelectItem value="last_service">Last Service</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Table */}
@@ -225,7 +412,7 @@ export function ClientsListView() {
             </div>
           ) : clients.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              {search ? "No clients found matching your search" : "No clients yet. Add your first client or import from CSV."}
+              {search || filter !== "all" ? "No customers found matching your criteria" : "No customers yet. Add your first customer or import from CSV."}
             </div>
           ) : (
             <>
@@ -234,76 +421,65 @@ export function ClientsListView() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Location</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>City</TableHead>
+                      <TableHead className="text-center">Bookings</TableHead>
+                      <TableHead className="text-right">Total Spent</TableHead>
+                      <TableHead>Membership</TableHead>
                       <TableHead>Source</TableHead>
-                      <TableHead>Added</TableHead>
+                      <TableHead>Last Service</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {clients.map((client) => (
-                      <TableRow key={client.id}>
+                      <TableRow
+                        key={client.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleView(client)}
+                      >
                         <TableCell>
                           <div className="font-medium">{getDisplayName(client)}</div>
-                          {client.notes && (
-                            <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                              {client.notes}
-                            </div>
-                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {client.email || <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {client.phone || <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {client.city || <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-center text-sm">
+                          {client.totalBookings}
+                        </TableCell>
+                        <TableCell className="text-right text-sm font-medium">
+                          {client.totalSpent > 0 ? `$${client.totalSpent.toFixed(0)}` : "—"}
                         </TableCell>
                         <TableCell>
-                          <div className="space-y-1">
-                            {client.email && (
-                              <div className="flex items-center gap-1 text-sm">
-                                <Mail className="h-3 w-3 text-muted-foreground" />
-                                <a href={`mailto:${client.email}`} className="text-primary hover:underline">
-                                  {client.email}
-                                </a>
-                              </div>
-                            )}
-                            {client.phone && (
-                              <div className="flex items-center gap-1 text-sm">
-                                <Phone className="h-3 w-3 text-muted-foreground" />
-                                <a href={`tel:${client.phone}`} className="text-primary hover:underline">
-                                  {client.phone}
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {getAddress(client) ? (
-                            <div className="flex items-center gap-1 text-sm">
-                              <MapPin className="h-3 w-3 text-muted-foreground" />
-                              <span>{getAddress(client)}</span>
-                            </div>
+                          {client.membershipStatus === "active" ? (
+                            <Badge className="bg-primary/10 text-primary text-xs">Active</Badge>
                           ) : (
-                            <span className="text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground">None</span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {client.source || 'unknown'}
+                          <Badge variant="outline" className="text-xs">
+                            {formatSource(client.source)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {format(new Date(client.created_at), 'MMM d, yyyy')}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {client.lastServiceDate
+                            ? format(new Date(client.lastServiceDate), "MMM d, yyyy")
+                            : "—"}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleView(client)}
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => handleView(client)}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(client)}
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(client)}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
@@ -326,16 +502,17 @@ export function ClientsListView() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
-                    Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
+                    Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.max(0, p - 1))}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
                       disabled={page === 0}
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
                     </Button>
                     <span className="text-sm text-muted-foreground">
                       Page {page + 1} of {totalPages}
@@ -343,10 +520,11 @@ export function ClientsListView() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                       disabled={page >= totalPages - 1}
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
                 </div>
@@ -368,9 +546,9 @@ export function ClientsListView() {
       <AlertDialog open={!!deleteClient} onOpenChange={() => setDeleteClient(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {deleteClient ? getDisplayName(deleteClient) : 'this client'}? 
+              Are you sure you want to delete {deleteClient ? getDisplayName(deleteClient) : "this customer"}?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
