@@ -583,45 +583,63 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 16px 0; text-align: center;">
                 Manage Your Booking
               </p>
-              <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                ${rescheduleUrl ? `
-                <a href="${rescheduleUrl}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
-                  📅 Reschedule
-                </a>
-                ` : ''}
-                ${cancelUrl ? `
-                <a href="${cancelUrl}" style="display: inline-block; background-color: #525252; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
-                  ✕ Cancel
-                </a>
-                ` : ''}
-              </div>
-              <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <a href="tel:+12255216264" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
-                  📞 Call Us
-                </a>
-                <a href="sms:+12255216264" style="display: inline-flex; align-items: center; gap: 6px; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 16px; border-radius: 8px; font-size: 13px;">
-                  💬 Text Us
-                </a>
-              </div>
+              <!-- Reschedule & Cancel Row -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 12px;">
+                <tr>
+                  <td width="50%" style="padding-right: 6px;">
+                    <a href="${rescheduleUrl}" style="display: block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 0; border-radius: 8px; font-weight: 600; font-size: 13px; text-align: center;">
+                      📅 Reschedule
+                    </a>
+                  </td>
+                  <td width="50%" style="padding-left: 6px;">
+                    <a href="${cancelUrl}" style="display: block; background-color: #525252; color: #ffffff; text-decoration: none; padding: 12px 0; border-radius: 8px; font-weight: 600; font-size: 13px; text-align: center;">
+                      ✕ Cancel
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <!-- Call & Text Row -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+                <tr>
+                  <td width="50%" style="padding-right: 6px;">
+                    <a href="tel:+12255216264" style="display: block; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 0; border-radius: 8px; font-size: 13px; text-align: center;">
+                      📞 Call Us
+                    </a>
+                  </td>
+                  <td width="50%" style="padding-left: 6px;">
+                    <a href="sms:+12255216264" style="display: block; background-color: #262626; color: #ffffff; text-decoration: none; padding: 10px 0; border-radius: 8px; font-size: 13px; text-align: center;">
+                      💬 Text Us
+                    </a>
+                  </td>
+                </tr>
+              </table>
               
               <!-- Calendar Options -->
-              <div style="margin-top: 20px; padding: 16px; background-color: #0a0a0a; border-radius: 8px;">
+              <div style="padding: 16px; background-color: #0a0a0a; border-radius: 8px;">
                 <p style="color: #737373; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px 0; text-align: center;">
                   📅 Add to Your Calendar
                 </p>
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                  <a href="${icsDataUri}" download="av-detailing-appointment.ics" style="display: inline-flex; align-items: center; gap: 6px; background-color: #333333; color: #ffffff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;">
-                    📱 Apple Calendar
-                  </a>
-                  <a href="${calendarUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background-color: #4285f4; color: #ffffff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;">
-                    📆 Google Calendar
-                  </a>
-                  <a href="${outlookUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background-color: #0078d4; color: #ffffff; text-decoration: none; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;">
-                    📧 Outlook
-                  </a>
-                </div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="33%" style="padding-right: 4px;">
+                      <a href="${icsDataUri}" download="av-detailing-appointment.ics" style="display: block; background-color: #333333; color: #ffffff; text-decoration: none; padding: 10px 4px; border-radius: 8px; font-size: 12px; font-weight: 500; text-align: center;">
+                        📱 Apple
+                      </a>
+                    </td>
+                    <td width="34%" style="padding: 0 4px;">
+                      <a href="${calendarUrl}" target="_blank" style="display: block; background-color: #4285f4; color: #ffffff; text-decoration: none; padding: 10px 4px; border-radius: 8px; font-size: 12px; font-weight: 500; text-align: center;">
+                        📆 Google
+                      </a>
+                    </td>
+                    <td width="33%" style="padding-left: 4px;">
+                      <a href="${outlookUrl}" target="_blank" style="display: block; background-color: #0078d4; color: #ffffff; text-decoration: none; padding: 10px 4px; border-radius: 8px; font-size: 12px; font-weight: 500; text-align: center;">
+                        📧 Outlook
+                      </a>
+                    </td>
+                  </tr>
+                </table>
                 <p style="color: #525252; font-size: 10px; margin: 10px 0 0 0; text-align: center;">
-                  iPhone/iPad users: Tap "Apple Calendar" to download
+                  iPhone/iPad users: Tap "Apple" to download .ics file
                 </p>
               </div>
             </div>
