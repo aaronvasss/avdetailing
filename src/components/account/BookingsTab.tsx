@@ -101,6 +101,11 @@ export function BookingsTab({ userId }: BookingsTabProps) {
         customer_notes,
         duration_minutes,
         created_at,
+        guest_name,
+        guest_email,
+        guest_phone,
+        payment_method,
+        internal_notes,
         services (name, description),
         booking_add_ons (id, name, price)
       `)
