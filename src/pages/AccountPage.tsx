@@ -14,7 +14,6 @@ import {
   LogOut,
   Plus,
   Settings,
-  BarChart3,
 } from "lucide-react";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { ProfileTab } from "@/components/account/ProfileTab";
@@ -22,17 +21,14 @@ import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
-import { AccountAnalyticsTab } from "@/components/account/AccountAnalyticsTab";
-import { AdminBookingModal } from "@/components/account/AdminBookingModal";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export default function AccountPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
-  const [adminBookingOpen, setAdminBookingOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const { isAdmin } = useAdminCheck();
+  const { isAdmin, isLoading: adminLoading } = useAdminCheck();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,7 +39,6 @@ export default function AccountPage() {
       }
       setUser(session.user);
       
-      // Fetch profile name
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name")
@@ -78,7 +73,7 @@ export default function AccountPage() {
     navigate("/");
   };
 
-  if (loading) {
+  if (loading || adminLoading) {
     return (
       <Layout>
         <div className="min-h-[60vh] flex items-center justify-center">
@@ -91,15 +86,20 @@ export default function AccountPage() {
     );
   }
 
+  // Admin gets the full dashboard layout
+  if (isAdmin) {
+    return <AdminDashboard user={user} profileName={profileName} />;
+  }
+
+  // Regular customer view
   const firstName = profileName?.split(" ")[0] || user?.email?.split("@")[0] || "there";
 
   return (
     <Layout>
       <div className="section-padding">
         <div className="container-custom max-w-6xl">
-          {/* Premium Header */}
+          {/* Header */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border/50 p-6 sm:p-8 mb-8">
-            {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
@@ -107,31 +107,17 @@ export default function AccountPage() {
 
             <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <p className="text-sm font-medium text-primary mb-1">
-                  {isAdmin ? "Hey Boss 👋" : "Welcome back"}
-                </p>
-                <h1 className="text-2xl sm:text-3xl font-bold">
-                  {firstName}
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1">
-                  {user?.email}
-                </p>
+                <p className="text-sm font-medium text-primary mb-1">Welcome back</p>
+                <h1 className="text-2xl sm:text-3xl font-bold">{firstName}</h1>
+                <p className="text-muted-foreground text-sm mt-1">{user?.email}</p>
               </div>
               <div className="flex gap-3">
-                {isAdmin ? (
-                  <Button size="lg" className="shadow-lg shadow-primary/20" onClick={() => setAdminBookingOpen(true)}>
+                <Button asChild size="lg" className="shadow-lg shadow-primary/20">
+                  <a href="/book">
                     <Plus className="mr-2 h-4 w-4" />
-                    New Booking
-                  </Button>
-                ) : (
-                  <Button asChild size="lg" className="shadow-lg shadow-primary/20">
-                    <a href="/book">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Book Service
-                    </a>
-                  </Button>
-                )}
-
+                    Book Service
+                  </a>
+                </Button>
                 <Button variant="outline" size="icon" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -139,7 +125,7 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
+          {/* Tabs */}
           <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "appointments"} className="space-y-6">
             <div className="overflow-x-auto -mx-4 px-4 pb-2">
               <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 bg-card border border-border/50 p-1 h-auto">
@@ -171,15 +157,6 @@ export default function AccountPage() {
                   <MapPin className="h-4 w-4" />
                   <span>Addresses</span>
                 </TabsTrigger>
-                {isAdmin && (
-                  <TabsTrigger
-                    value="analytics"
-                    className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                    <span>Analytics</span>
-                  </TabsTrigger>
-                )}
                 <TabsTrigger
                   value="settings"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -191,7 +168,7 @@ export default function AccountPage() {
             </div>
 
             <TabsContent value="appointments" className="mt-6">
-              <AppointmentsTab key={refreshKey} userId={user?.id} isAdmin={isAdmin} onAdminBook={() => setAdminBookingOpen(true)} />
+              <AppointmentsTab userId={user?.id} />
             </TabsContent>
 
             <TabsContent value="memberships" className="mt-6">
@@ -206,27 +183,12 @@ export default function AccountPage() {
               <AddressesTab userId={user?.id} />
             </TabsContent>
 
-            {isAdmin && (
-              <TabsContent value="analytics" className="mt-6">
-                <AccountAnalyticsTab />
-              </TabsContent>
-            )}
-
             <TabsContent value="settings" className="mt-6">
               <ProfileTab userId={user?.id} />
             </TabsContent>
           </Tabs>
         </div>
       </div>
-
-      {/* Admin Booking Modal */}
-      {isAdmin && (
-        <AdminBookingModal
-          open={adminBookingOpen}
-          onOpenChange={setAdminBookingOpen}
-          onSuccess={() => setRefreshKey(k => k + 1)}
-        />
-      )}
     </Layout>
   );
 }
