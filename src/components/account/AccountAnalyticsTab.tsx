@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, DollarSign, TrendingUp, Users, CalendarDays, Star, BarChart3, CreditCard } from "lucide-react";
+import { Loader2, DollarSign, TrendingUp, Users, CalendarDays, Star, BarChart3, CreditCard, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import {
   ChartContainer,
   ChartTooltip,
@@ -50,6 +53,9 @@ export function AccountAnalyticsTab() {
   const [memberships, setMemberships] = useState<any[]>([]);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [dateRange, setDateRange] = useState<DateRange>("month");
+  const [autoReviewEnabled, setAutoReviewEnabled] = useState(true);
+  const [reviewRequestsThisMonth, setReviewRequestsThisMonth] = useState(0);
+  const [togglingReview, setTogglingReview] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -58,7 +64,9 @@ export function AccountAnalyticsTab() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [bookingsRes, membershipsRes, clientsRes] = await Promise.all([
+      const thisMonthStart = startOfMonth(new Date());
+      
+      const [bookingsRes, membershipsRes, clientsRes, settingsRes, reviewSmsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("id, scheduled_date, total_price, status, payment_method, created_at, guest_email, guest_name, user_id, services (name, category)")
@@ -69,11 +77,23 @@ export function AccountAnalyticsTab() {
         supabase
           .from("clients")
           .select("id, created_at", { count: "exact" }),
+        supabase
+          .from("business_settings")
+          .select("value")
+          .eq("key", "auto_review_request_enabled")
+          .maybeSingle(),
+        supabase
+          .from("sms_messages")
+          .select("id", { count: "exact" })
+          .ilike("body", "%Google review%")
+          .gte("created_at", format(thisMonthStart, "yyyy-MM-dd")),
       ]);
 
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
       setTotalCustomers(clientsRes.count || 0);
+      setAutoReviewEnabled(settingsRes.data?.value !== "false");
+      setReviewRequestsThisMonth(reviewSmsRes.count || 0);
     } catch (error) {
       console.error("Analytics fetch error:", error);
     } finally {
@@ -202,6 +222,48 @@ export function AccountAnalyticsTab() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Google Review Request Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-review"
+                  checked={autoReviewEnabled}
+                  disabled={togglingReview}
+                  onCheckedChange={async (checked) => {
+                    setTogglingReview(true);
+                    const { error } = await supabase
+                      .from("business_settings")
+                      .update({ value: checked ? "true" : "false", updated_at: new Date().toISOString() })
+                      .eq("key", "auto_review_request_enabled");
+                    if (error) {
+                      toast.error("Failed to update setting");
+                    } else {
+                      setAutoReviewEnabled(checked);
+                      toast.success(checked ? "Auto review requests enabled" : "Auto review requests disabled");
+                    }
+                    setTogglingReview(false);
+                  }}
+                />
+                <Label htmlFor="auto-review" className="text-sm font-medium cursor-pointer">
+                  Auto Google Review Request
+                </Label>
+              </div>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                Sends SMS + email when a booking is marked as completed
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">{reviewRequestsThisMonth}</span>
+              <span className="text-muted-foreground">sent this month</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* KPI Row 1 */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
