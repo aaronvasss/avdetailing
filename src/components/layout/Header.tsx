@@ -200,7 +200,7 @@ export function Header() {
         <div
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-300",
-            mobileMenuOpen ? "max-h-[500px] pb-4" : "max-h-0"
+            mobileMenuOpen ? "max-h-[80vh] pb-4" : "max-h-0"
           )}
         >
           <div className="space-y-1 pt-2">
