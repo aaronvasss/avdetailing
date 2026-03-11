@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,44 @@ const timeSlots = [
   "16:00", "16:30", "17:00", "17:30", "18:00",
 ];
 
+// ── Hardcoded package pricing ──
+type VehicleBucket = "small" | "large";
+
+const getVehicleBucket = (vehicleType: string): VehicleBucket => {
+  if (["sedan", "suv-5"].includes(vehicleType)) return "small";
+  return "large"; // suv-8, truck
+};
+
+interface PackageDef {
+  id: string;
+  label: string;
+  prices: Record<VehicleBucket, number>;
+}
+
+const carPackages: PackageDef[] = [
+  { id: "exterior", label: "Exterior Only", prices: { small: 75, large: 85 } },
+  { id: "basic", label: "Basic", prices: { small: 120, large: 130 } },
+  { id: "silver", label: "Silver", prices: { small: 190, large: 200 } },
+  { id: "gold", label: "Gold", prices: { small: 295, large: 320 } },
+];
+
+// Silver has a special price for sedan vs suv-5
+const getSilverPrice = (vehicleType: string): number => {
+  if (vehicleType === "sedan") return 190;
+  if (vehicleType === "suv-5") return 195;
+  return 200; // large
+};
+
+const specialtyServices = ["ceramic", "paint", "boat", "aircraft"];
+
+const addOnsList = [
+  { id: "engine-bay", name: "Engine Bay Cleaning", price: 60 },
+  { id: "headlight", name: "Headlight Restoration", price: 70 },
+  { id: "odor", name: "Odor Elimination", price: 65 },
+  { id: "pet-hair", name: "Pet Hair Removal", price: 45 },
+  { id: "clay-bar", name: "Clay Bar Treatment", price: 70 },
+];
+
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
   let formatted = "";
@@ -52,29 +91,13 @@ const formatPhone = (value: string): string => {
   return formatted;
 };
 
-interface AddOn {
-  id: string;
-  name: string;
-  price: number;
-  description: string | null;
-}
-
-interface ServicePackage {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  vehicle_type: string;
-  description: string | null;
-  duration_estimate: string | null;
-}
-
 export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packages, setPackages] = useState<ServicePackage[]>([]);
-  const [addOns, setAddOns] = useState<AddOn[]>([]);
-  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [pricingMode, setPricingMode] = useState<"package" | "custom">("package");
+  const [selectedPackageId, setSelectedPackageId] = useState("");
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [customPrice, setCustomPrice] = useState("");
 
   const [form, setForm] = useState({
     firstName: "",
@@ -89,88 +112,55 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     vehicleMake: "",
     vehicleModel: "",
     vehicleYear: "",
-    packageId: "",
     scheduledDate: undefined as Date | undefined,
     scheduledTime: "",
     paymentMethod: "in_person",
     internalNotes: "",
     customerNotes: "",
-    totalPrice: "",
   });
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
+  const isSpecialty = specialtyServices.includes(form.serviceType);
+  const needsVehicleType = ["car", "ceramic", "paint"].includes(form.serviceType);
 
-  // Fetch packages when service + vehicle type change
-  useEffect(() => {
-    if (!form.serviceType) return;
-    
-    const fetchPackages = async () => {
-      const serviceId = selectedService?.serviceId;
-      if (!serviceId) return;
+  // Calculate package price
+  const packagePrice = useMemo(() => {
+    if (isSpecialty) return 100; // deposit
+    if (!selectedPackageId || !form.vehicleType) return 0;
+    const pkg = carPackages.find(p => p.id === selectedPackageId);
+    if (!pkg) return 0;
+    if (pkg.id === "silver") return getSilverPrice(form.vehicleType);
+    return pkg.prices[getVehicleBucket(form.vehicleType)];
+  }, [selectedPackageId, form.vehicleType, isSpecialty]);
 
-      let query = supabase
-        .from("service_packages")
-        .select("*")
-        .eq("service_id", serviceId)
-        .eq("is_active", true)
-        .order("sort_order");
+  // Calculate add-ons total
+  const addOnsTotal = useMemo(() => {
+    return addOnsList
+      .filter(a => selectedAddOns.includes(a.id))
+      .reduce((sum, a) => sum + a.price, 0);
+  }, [selectedAddOns]);
 
-      if (form.vehicleType) {
-        query = query.in("vehicle_type", [form.vehicleType, "all"]);
-      }
-
-      const { data } = await query;
-      setPackages(data || []);
-    };
-
-    fetchPackages();
-  }, [form.serviceType, form.vehicleType]);
-
-  // Fetch add-ons when service changes
-  useEffect(() => {
-    if (!selectedService) return;
-    
-    const fetchAddOns = async () => {
-      const { data } = await supabase
-        .from("service_add_ons")
-        .select("id, name, price, description")
-        .eq("service_id", selectedService.serviceId)
-        .eq("is_active", true);
-      setAddOns(data || []);
-      setSelectedAddOns([]);
-    };
-
-    fetchAddOns();
-  }, [form.serviceType]);
-
-  // Auto-calculate total price when package or add-ons change
-  useEffect(() => {
-    const pkg = packages.find(p => p.id === form.packageId);
-    if (pkg) {
-      const addOnsTotal = addOns
-        .filter(a => selectedAddOns.includes(a.id))
-        .reduce((sum, a) => sum + a.price, 0);
-      setForm(prev => ({ ...prev, totalPrice: (pkg.price + addOnsTotal).toString() }));
-    }
-  }, [form.packageId, selectedAddOns, packages, addOns]);
+  const totalPrice = pricingMode === "custom"
+    ? parseFloat(customPrice) || 0
+    : packagePrice + addOnsTotal;
 
   const handleChange = (field: string, value: string) => {
     if (field === "phone") value = formatPhone(value);
     setForm(prev => ({ ...prev, [field]: value }));
-    
-    // Reset dependent fields
+
     if (field === "serviceType") {
-      setForm(prev => ({ ...prev, packageId: "", vehicleType: "", totalPrice: "" }));
+      setSelectedPackageId("");
       setSelectedAddOns([]);
+      setForm(prev => ({ ...prev, vehicleType: "" }));
     }
     if (field === "vehicleType") {
-      setForm(prev => ({ ...prev, packageId: "", totalPrice: "" }));
+      setSelectedPackageId("");
     }
   };
 
-  const toggleAddOn = (addOnId: string) => {
-    setSelectedAddOns(prev => 
-      prev.includes(addOnId) ? prev.filter(id => id !== addOnId) : [...prev, addOnId]
+  const toggleAddOn = (id: string) => {
+    setSelectedAddOns(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   };
 
@@ -179,20 +169,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       toast.error("Please fill in required fields: name, service, date, and time");
       return;
     }
-
     if (!selectedService) return;
     setIsSubmitting(true);
 
     try {
-      const addOnsTotal = addOns
-        .filter(a => selectedAddOns.includes(a.id))
-        .reduce((sum, a) => sum + a.price, 0);
-      
-      const pkg = packages.find(p => p.id === form.packageId);
-      const subtotal = pkg?.price || parseFloat(form.totalPrice) || 0;
-      const totalPrice = subtotal + addOnsTotal;
+      const selectedAddOnDetails = addOnsList.filter(a => selectedAddOns.includes(a.id));
 
-      // Use the create-booking edge function
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
           service_id: selectedService.serviceId,
@@ -211,21 +193,19 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           service_zip: form.zip || null,
           customer_notes: form.customerNotes || null,
           payment_method: form.paymentMethod,
-          subtotal,
-          add_ons_total: addOnsTotal,
+          subtotal: pricingMode === "custom" ? totalPrice : packagePrice,
+          add_ons_total: pricingMode === "custom" ? 0 : addOnsTotal,
           total_price: totalPrice,
           status: form.paymentMethod === "in_person" ? "confirmed" : "pending",
-          payment_status: form.paymentMethod === "in_person" ? "unpaid" : "unpaid",
-          add_ons: selectedAddOns.map(id => {
-            const addOn = addOns.find(a => a.id === id);
-            return { add_on_id: id, name: addOn?.name || "", price: addOn?.price || 0 };
-          }),
+          payment_status: "unpaid",
+          add_ons: pricingMode === "package"
+            ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
+            : [],
         },
       });
 
       if (error) throw new Error(error.message);
 
-      // Add internal notes if provided
       if (form.internalNotes && data?.booking_id) {
         await supabase.from("booking_internal_notes").insert({
           booking_id: data.booking_id,
@@ -237,15 +217,18 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       onOpenChange(false);
       onSuccess();
 
-      // Reset form
+      // Reset
       setForm({
         firstName: "", lastName: "", email: "", phone: "",
         address: "", city: "", zip: "",
         serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
-        packageId: "", scheduledDate: undefined, scheduledTime: "",
-        paymentMethod: "in_person", internalNotes: "", customerNotes: "", totalPrice: "",
+        scheduledDate: undefined, scheduledTime: "",
+        paymentMethod: "in_person", internalNotes: "", customerNotes: "",
       });
+      setSelectedPackageId("");
       setSelectedAddOns([]);
+      setCustomPrice("");
+      setPricingMode("package");
     } catch (err) {
       console.error("Admin booking error:", err);
       toast.error("Failed to create booking. Please try again.");
@@ -253,8 +236,6 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setIsSubmitting(false);
     }
   };
-
-  const needsVehicleType = ["car", "ceramic", "paint"].includes(form.serviceType);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -352,43 +333,143 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           </div>
 
-          {/* Package Selection */}
-          {packages.length > 0 && (
+          {/* ── Pricing Section ── */}
+          {form.serviceType && (
             <div>
-              <Label>Package</Label>
-              <Select value={form.packageId} onValueChange={v => handleChange("packageId", v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select package" />
-                </SelectTrigger>
-                <SelectContent>
-                  {packages.map(pkg => (
-                    <SelectItem key={pkg.id} value={pkg.id}>
-                      {pkg.name} — ${pkg.price} {pkg.duration_estimate ? `(${pkg.duration_estimate})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pricing</h3>
 
-          {/* Add-ons */}
-          {addOns.length > 0 && (
-            <div>
-              <Label className="mb-2 block">Add-ons</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {addOns.map(addOn => (
-                  <div key={addOn.id} className="flex items-center gap-2 p-2 border border-border rounded-lg">
-                    <Checkbox
-                      checked={selectedAddOns.includes(addOn.id)}
-                      onCheckedChange={() => toggleAddOn(addOn.id)}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{addOn.name}</p>
-                      <p className="text-xs text-muted-foreground">${addOn.price}</p>
+              {/* Mode toggle */}
+              <RadioGroup
+                value={pricingMode}
+                onValueChange={(v) => setPricingMode(v as "package" | "custom")}
+                className="flex gap-4 mb-4"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="package" id="mode-package" />
+                  <Label htmlFor="mode-package" className="cursor-pointer text-sm font-medium">Use Package Pricing</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="custom" id="mode-custom" />
+                  <Label htmlFor="mode-custom" className="cursor-pointer text-sm font-medium">Custom Price</Label>
+                </div>
+              </RadioGroup>
+
+              {pricingMode === "package" ? (
+                <div className="space-y-4">
+                  {/* Specialty deposit notice */}
+                  {isSpecialty && (
+                    <div className="rounded-lg border border-border bg-muted/50 p-3">
+                      <p className="text-sm font-medium">Specialty Deposit: <span className="text-primary">$100</span></p>
+                      <p className="text-xs text-muted-foreground mt-1">Boat, Aircraft, Ceramic Coating & Paint Correction require a $100 deposit.</p>
+                    </div>
+                  )}
+
+                  {/* Package selector for car detailing */}
+                  {!isSpecialty && (
+                    <div>
+                      <Label className="mb-2 block">Package</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {carPackages.map(pkg => {
+                          const price = form.vehicleType
+                            ? (pkg.id === "silver" ? getSilverPrice(form.vehicleType) : pkg.prices[getVehicleBucket(form.vehicleType)])
+                            : null;
+                          return (
+                            <button
+                              key={pkg.id}
+                              type="button"
+                              onClick={() => setSelectedPackageId(pkg.id)}
+                              className={cn(
+                                "rounded-lg border-2 p-3 text-left transition-all",
+                                selectedPackageId === pkg.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-muted-foreground/40"
+                              )}
+                            >
+                              <p className="text-sm font-semibold">{pkg.label}</p>
+                              {price !== null ? (
+                                <p className="text-lg font-bold text-primary">${price}</p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">Select vehicle type</p>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add-ons */}
+                  <div>
+                    <Label className="mb-2 block">Add-ons</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {addOnsList.map(addOn => (
+                        <div
+                          key={addOn.id}
+                          onClick={() => toggleAddOn(addOn.id)}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                            selectedAddOns.includes(addOn.id)
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-muted-foreground/40"
+                          )}
+                        >
+                          <Checkbox
+                            checked={selectedAddOns.includes(addOn.id)}
+                            onCheckedChange={() => toggleAddOn(addOn.id)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{addOn.name}</p>
+                          </div>
+                          <p className="text-sm font-semibold text-primary">+${addOn.price}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {/* Price breakdown */}
+                  {(packagePrice > 0 || addOnsTotal > 0) && (
+                    <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
+                      <div className="flex justify-between text-sm">
+                        <span>{isSpecialty ? "Specialty Deposit" : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}</span>
+                        <span className="font-medium">${packagePrice}</span>
+                      </div>
+                      {selectedAddOns.map(id => {
+                        const a = addOnsList.find(x => x.id === id)!;
+                        return (
+                          <div key={id} className="flex justify-between text-sm text-muted-foreground">
+                            <span>+ {a.name}</span>
+                            <span>${a.price}</span>
+                          </div>
+                        );
+                      })}
+                      {selectedAddOns.length > 0 && (
+                        <div className="border-t border-border pt-1.5 mt-1.5 flex justify-between text-sm font-bold">
+                          <span>Total</span>
+                          <span className="text-primary">${totalPrice}</span>
+                        </div>
+                      )}
+                      {selectedAddOns.length === 0 && (
+                        <div className="flex justify-between text-sm font-bold pt-0.5">
+                          <span>Total</span>
+                          <span className="text-primary">${totalPrice}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Custom price mode */
+                <div>
+                  <Label>Enter Custom Price ($)</Label>
+                  <Input
+                    type="number"
+                    value={customPrice}
+                    onChange={e => setCustomPrice(e.target.value)}
+                    placeholder="0.00"
+                    className="mt-1 text-lg font-semibold"
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -436,35 +517,21 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           </div>
 
-          {/* Payment & Price */}
+          {/* Payment */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Payment</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Payment Method</Label>
-                <Select value={form.paymentMethod} onValueChange={v => handleChange("paymentMethod", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in_person">Cash / In-Person</SelectItem>
-                    <SelectItem value="zelle">Zelle</SelectItem>
-                    <SelectItem value="venmo">Venmo</SelectItem>
-                    <SelectItem value="check">Check</SelectItem>
-                    <SelectItem value="online">Charge via Stripe</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Total Price ($)</Label>
-                <Input
-                  type="number"
-                  value={form.totalPrice}
-                  onChange={e => handleChange("totalPrice", e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Payment Method</h3>
+            <Select value={form.paymentMethod} onValueChange={v => handleChange("paymentMethod", v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="in_person">Cash / In-Person</SelectItem>
+                <SelectItem value="zelle">Zelle</SelectItem>
+                <SelectItem value="venmo">Venmo</SelectItem>
+                <SelectItem value="check">Check</SelectItem>
+                <SelectItem value="online">Charge via Stripe</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Notes */}
@@ -502,7 +569,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Booking {form.totalPrice ? `— $${form.totalPrice}` : ""}
+                Create Booking {totalPrice > 0 ? `— $${totalPrice}` : ""}
               </>
             )}
           </Button>
