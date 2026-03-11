@@ -219,6 +219,31 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       console.error("Update error:", error);
     } else {
       toast.success("Booking updated successfully");
+
+      // Auto-send review request when status changes to "completed"
+      if (status === "completed" && booking.status !== "completed") {
+        const customerName = booking.profile_name || booking.guest_name || "Customer";
+        const customerPhone = booking.profile_phone || booking.guest_phone;
+        const customerEmail = booking.profile_email || booking.guest_email;
+
+        if (customerPhone || customerEmail) {
+          try {
+            await supabase.functions.invoke("send-review-request", {
+              body: {
+                booking_id: booking.id,
+                customer_name: customerName,
+                customer_phone: customerPhone || undefined,
+                customer_email: customerEmail || undefined,
+              },
+            });
+            toast.success("Review request sent to customer");
+          } catch (err) {
+            console.error("Review request error:", err);
+            // Don't show error to admin - review request is secondary
+          }
+        }
+      }
+
       onSave();
       onOpenChange(false);
     }
