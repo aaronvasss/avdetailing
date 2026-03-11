@@ -75,6 +75,18 @@ const getSilverPrice = (vehicleType: string): number => {
 
 const specialtyServices = ["ceramic", "paint", "boat", "aircraft"];
 
+interface MembershipDef {
+  id: string;
+  label: string;
+  price: number;
+}
+
+const membershipPackages: MembershipDef[] = [
+  { id: "monthly", label: "Monthly", price: 135 },
+  { id: "bi-weekly", label: "Bi-Weekly", price: 130 },
+  { id: "weekly", label: "Weekly", price: 130 },
+];
+
 const addOnsList = [
   { id: "engine-bay", name: "Engine Bay Cleaning", price: 60 },
   { id: "headlight", name: "Headlight Restoration", price: 70 },
