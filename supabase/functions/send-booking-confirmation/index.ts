@@ -280,7 +280,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     const escapeICS = (text: string) => text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
     
-    const icsContent = [
+    const icsLines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'PRODID:-//AV Detailing//Booking System//EN',
@@ -292,7 +292,7 @@ const handler = async (req: Request): Promise<Response> => {
       `DTSTART:${formatICSDate(startDate)}`,
       `DTEND:${formatICSDate(endDate)}`,
       `SUMMARY:${escapeICS('AV Detailing - ' + serviceName)}`,
-      `DESCRIPTION:${escapeICS(`Service: ${serviceName}\\nLocation: ${serviceAddress}, ${serviceCity}, ${serviceState}\\n\\nQuestions? Call (225) 521-6264`)}`,
+      `DESCRIPTION:${escapeICS('Service: ' + serviceName + '\\nLocation: ' + serviceAddress + ', ' + serviceCity + ', ' + serviceState + '\\n\\nQuestions? Call (225) 521-6264')}`,
       `LOCATION:${escapeICS(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}`,
       'STATUS:CONFIRMED',
       'BEGIN:VALARM',
@@ -307,10 +307,10 @@ const handler = async (req: Request): Promise<Response> => {
       'END:VALARM',
       'END:VEVENT',
       'END:VCALENDAR',
-    ].join('\\r\\n');
+    ].join('\r\n');
     
     // Create data URI for ICS download
-    const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent.replace(/\\\\r\\\\n/g, '\r\n'))}`;
+    const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsLines)}`;
     
     // Outlook Web URL
     const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent('AV Detailing - ' + serviceName)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(serviceAddress + ', ' + serviceCity + ', ' + serviceState)}&body=${encodeURIComponent('Mobile detailing service at your location.\n\nQuestions? Call (225) 521-6264')}`;
