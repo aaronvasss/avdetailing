@@ -19,9 +19,11 @@ import { CancelBookingDialog } from "./CancelBookingDialog";
 
 interface AppointmentsTabProps {
   userId: string;
+  isAdmin?: boolean;
+  onAdminBook?: () => void;
 }
 
-export function AppointmentsTab({ userId }: AppointmentsTabProps) {
+export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -191,12 +193,19 @@ export function AppointmentsTab({ userId }: AppointmentsTabProps) {
             Calendar
           </Button>
         </div>
-        <Button asChild>
-          <Link to="/book">
+        {isAdmin && onAdminBook ? (
+          <Button onClick={onAdminBook}>
             <Plus className="h-4 w-4 mr-2" />
             Book New Appointment
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button asChild>
+            <Link to="/book">
+              <Plus className="h-4 w-4 mr-2" />
+              Book New Appointment
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Calendar View */}
@@ -232,9 +241,13 @@ export function AppointmentsTab({ userId }: AppointmentsTabProps) {
                   <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                     Ready to give your vehicle the premium care it deserves?
                   </p>
-                  <Button asChild>
-                    <Link to="/book">Book Your Detail</Link>
-                  </Button>
+                  {isAdmin && onAdminBook ? (
+                    <Button onClick={onAdminBook}>Book Your Detail</Button>
+                  ) : (
+                    <Button asChild>
+                      <Link to="/book">Book Your Detail</Link>
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
