@@ -32,6 +32,7 @@ interface Booking {
   scheduled_date: string;
   total_price: number | null;
   status: string;
+  payment_status: string | null;
   payment_method: string | null;
   services: { name: string; category: string } | null;
   vehicle_type: string | null;
@@ -81,6 +82,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             scheduled_date,
             total_price,
             status,
+            payment_status,
             payment_method,
             vehicle_type,
             services (name, category)
@@ -108,9 +110,14 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     }
   };
 
+  // Only count bookings where payment has actually been collected
+  const isPaidBooking = (b: Booking) => 
+    b.status !== "cancelled" && 
+    ["paid", "completed"].includes(b.payment_status || "");
+
   // Calculate revenue trends based on time range
   const getRevenueTrends = () => {
-    const completedBookings = bookings.filter(b => b.status === "completed");
+    const completedBookings = bookings.filter(isPaidBooking);
     
     if (timeRange === "daily") {
       const last30Days = eachDayOfInterval({
@@ -215,17 +222,17 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       .sort((a, b) => b.value - a.value);
   };
 
-  // Calculate KPIs
+  // Calculate KPIs — only count actually-paid bookings
   const allBookings = bookings;
-  const completedBookings = bookings.filter(b => b.status === "completed");
+  const paidBookings = bookings.filter(isPaidBooking);
   const noShowBookings = bookings.filter(b => b.status === "no_show");
-  const totalRevenue = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
-  const totalBookings = completedBookings.length;
+  const totalRevenue = paidBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+  const totalBookings = paidBookings.length;
   const avgTicketValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
   
   // Payment method breakdown
-  const onlinePayments = completedBookings.filter(b => b.payment_method === "online");
-  const inPersonPayments = completedBookings.filter(b => b.payment_method !== "online");
+  const onlinePayments = paidBookings.filter(b => b.payment_method === "online");
+  const inPersonPayments = paidBookings.filter(b => b.payment_method !== "online");
   const onlineRevenue = onlinePayments.reduce((sum, b) => sum + (b.total_price || 0), 0);
   const inPersonRevenue = inPersonPayments.reduce((sum, b) => sum + (b.total_price || 0), 0);
   
@@ -243,7 +250,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   
   // This month stats
   const thisMonthStart = startOfMonth(new Date());
-  const thisMonthBookings = completedBookings.filter(b => 
+  const thisMonthBookings = paidBookings.filter(b => 
     parseISO(b.scheduled_date) >= thisMonthStart
   );
   const thisMonthRevenue = thisMonthBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
@@ -251,7 +258,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   // Last month stats for comparison
   const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
   const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
-  const lastMonthBookings = completedBookings.filter(b => {
+  const lastMonthBookings = paidBookings.filter(b => {
     const date = parseISO(b.scheduled_date);
     return date >= lastMonthStart && date <= lastMonthEnd;
   });
