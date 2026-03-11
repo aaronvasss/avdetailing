@@ -32,6 +32,7 @@ export function Header() {
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
   const { settings } = useBusinessSettings();
+  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
