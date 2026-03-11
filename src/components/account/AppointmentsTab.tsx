@@ -241,9 +241,13 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
                   <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                     Ready to give your vehicle the premium care it deserves?
                   </p>
-                  <Button asChild>
-                    <Link to="/book">Book Your Detail</Link>
-                  </Button>
+                  {isAdmin && onAdminBook ? (
+                    <Button onClick={onAdminBook}>Book Your Detail</Button>
+                  ) : (
+                    <Button asChild>
+                      <Link to="/book">Book Your Detail</Link>
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
