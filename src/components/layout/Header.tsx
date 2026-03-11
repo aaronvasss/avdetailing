@@ -258,16 +258,17 @@ export function Header() {
                 {settings.publicBusinessPhone}
               </a>
               {user ? (
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
                     {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
-                    {isAdmin ? "Admin" : "My Account"}
+                    {isAdmin ? "Admin Panel" : "My Account"}
                   </Link>
                 </Button>
               ) : (
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                    Sign In / Sign Up
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
                   </Link>
                 </Button>
               )}
