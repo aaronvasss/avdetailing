@@ -161,7 +161,6 @@ export default function BookingSuccessPage() {
                   <strong>Important:</strong> Please check your email inbox for your full booking confirmation. It contains important pre-appointment instructions to help us give you the best results.
                 </AlertDescription>
               </Alert>
-            <CardContent className="space-y-6">
               {booking && (
                 <div className="bg-muted/50 rounded-lg p-6 space-y-4">
                   <h3 className="font-semibold text-lg">{booking.services?.name || 'Detailing Service'}</h3>
