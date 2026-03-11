@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, ChevronDown, User } from "lucide-react";
+import { Menu, X, Phone, ChevronDown, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 const navigation = [
   { name: "Home", href: "/" },
