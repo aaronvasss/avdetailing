@@ -22,14 +22,13 @@ const CUSTOMER_FIELDS: { key: string; label: string; required?: boolean }[] = [
   { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
   { key: "phone", label: "Phone" },
-  { key: "address_line1", label: "Address" },
+  { key: "address_line1", label: "Street Address" },
   { key: "city", label: "City" },
+  { key: "state", label: "State" },
   { key: "zip", label: "ZIP" },
-  { key: "vehicle_make", label: "Vehicle Make" },
-  { key: "vehicle_model", label: "Vehicle Model" },
-  { key: "vehicle_year", label: "Vehicle Year" },
-  { key: "vehicle_type", label: "Vehicle Type" },
-  { key: "notes", label: "Notes" },
+  { key: "notes", label: "Notes / Labels" },
+  { key: "source", label: "Source" },
+  { key: "created_at", label: "Created At" },
 ];
 
 const BOOKING_FIELDS: { key: string; label: string; required?: boolean }[] = [
@@ -52,20 +51,23 @@ const BOOKING_FIELDS: { key: string; label: string; required?: boolean }[] = [
   { key: "customer_notes", label: "Notes" },
 ];
 
-// Header matching heuristics
+// Header matching heuristics — includes Wix export format
 const HEADER_ALIASES: Record<string, string[]> = {
   first_name: ["first name", "firstname", "first", "fname"],
   last_name: ["last name", "lastname", "last", "lname", "surname"],
-  email: ["email", "e-mail", "email address"],
-  phone: ["phone", "phone number", "telephone", "mobile", "cell"],
-  address_line1: ["address", "street", "address line 1", "street address"],
-  city: ["city", "town"],
-  zip: ["zip", "zipcode", "zip code", "postal", "postal code"],
-  vehicle_make: ["vehicle make", "make", "car make"],
-  vehicle_model: ["vehicle model", "model", "car model"],
-  vehicle_year: ["vehicle year", "year", "car year"],
-  vehicle_type: ["vehicle type", "type", "car type"],
-  notes: ["notes", "note", "comments", "comment"],
+  email: ["email", "e-mail", "email address", "email 1"],
+  phone: ["phone", "phone number", "telephone", "mobile", "cell", "phone 1"],
+  address_line1: [
+    "address", "street", "address line 1", "street address",
+    "address 2 - street", "address 1 - street",
+  ],
+  city: ["city", "town", "address 2 - city", "address 1 - city"],
+  state: ["state", "state/region", "address 2 - state/region", "address 1 - state/region"],
+  zip: ["zip", "zipcode", "zip code", "postal", "postal code", "address 2 - zip", "address 1 - zip"],
+  notes: ["notes", "note", "comments", "comment", "labels"],
+  source: ["source"],
+  created_at: ["created at", "created at (utc+0)", "created date", "date created"],
+  // bookings
   guest_name_first: ["customer first name", "first name", "firstname", "first"],
   guest_name_last: ["customer last name", "last name", "lastname", "last"],
   guest_email: ["customer email", "email", "e-mail"],
@@ -82,9 +84,28 @@ const HEADER_ALIASES: Record<string, string[]> = {
   customer_notes: ["notes", "customer notes", "comments"],
 };
 
+// For Wix CSVs: composite columns that should fall back (prioritize Address 2 over Address 1)
+const WIX_COMPOSITE_FIELDS: Record<string, { primary: string; fallback: string }> = {
+  address_line1: { primary: "Address 2 - Street", fallback: "Address 1 - Street" },
+  city: { primary: "Address 2 - City", fallback: "Address 1 - City" },
+  state: { primary: "Address 2 - State/Region", fallback: "Address 1 - State/Region" },
+  zip: { primary: "Address 2 - Zip", fallback: "Address 1 - Zip" },
+};
+
 function autoMap(csvHeaders: string[], fields: { key: string }[]): Record<string, string> {
   const mapping: Record<string, string> = {};
+  const headerLower = csvHeaders.map((h) => h.toLowerCase().trim());
+
   for (const field of fields) {
+    // For composite Wix fields, try primary first then fallback
+    const composite = WIX_COMPOSITE_FIELDS[field.key];
+    if (composite) {
+      const primaryIdx = headerLower.indexOf(composite.primary.toLowerCase());
+      const fallbackIdx = headerLower.indexOf(composite.fallback.toLowerCase());
+      if (primaryIdx >= 0) { mapping[field.key] = csvHeaders[primaryIdx]; continue; }
+      if (fallbackIdx >= 0) { mapping[field.key] = csvHeaders[fallbackIdx]; continue; }
+    }
+
     const aliases = HEADER_ALIASES[field.key] || [field.key.replace(/_/g, " ")];
     const match = csvHeaders.find((h) =>
       aliases.some((a) => h.toLowerCase().trim() === a.toLowerCase())
@@ -94,11 +115,39 @@ function autoMap(csvHeaders: string[], fields: { key: string }[]): Record<string
   return mapping;
 }
 
+/** Format phone: strip leading +1 and quotes, format as (XXX) XXX-XXXX */
+function formatPhone(raw: string): string | null {
+  if (!raw) return null;
+  // Strip quotes, spaces, dashes, parens, dots
+  let digits = raw.replace(/[^0-9]/g, "");
+  // Strip leading country code 1 if 11 digits
+  if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+  if (digits.length !== 10) return raw.trim() || null; // return as-is if not 10 digits
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+/** Get a composite value: try primary column first, then fallback */
+function getCompositeValue(row: Record<string, string>, fieldKey: string, mapping: Record<string, string>, allHeaders: string[]): string {
+  // If mapped to a specific column, use it
+  const mapped = mapping[fieldKey];
+  if (mapped && row[mapped]?.trim()) return row[mapped].trim();
+
+  // Try Wix composite fallback
+  const composite = WIX_COMPOSITE_FIELDS[fieldKey];
+  if (composite) {
+    const primaryVal = row[composite.primary]?.trim();
+    const fallbackVal = row[composite.fallback]?.trim();
+    if (primaryVal) return primaryVal;
+    if (fallbackVal) return fallbackVal;
+  }
+
+  return "";
+}
+
 function parseCsv(text: string): { headers: string[]; rows: Record<string, string>[] } {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   if (lines.length === 0) return { headers: [], rows: [] };
-  
-  // Simple CSV parser handling quoted fields
+
   const parseLine = (line: string): string[] => {
     const result: string[] = [];
     let current = "";
@@ -157,7 +206,6 @@ export function CsvImportWizard({ type, onClose }: Props) {
       setCsvRows(rows);
       const autoMapping = autoMap(headers, fields);
       setMapping(autoMapping);
-      // If all required fields are mapped, skip to preview
       const requiredFields = fields.filter((f) => f.required);
       const allMapped = requiredFields.every((f) => autoMapping[f.key]);
       setStep(allMapped ? "preview" : "mapping");
@@ -187,6 +235,9 @@ export function CsvImportWizard({ type, onClose }: Props) {
   }, [csvRows, mapping, fields]);
 
   const errRows = new Set(validationErrors().map((e) => e.row));
+
+  // For customers: also compute duplicate count
+  const [duplicateCount, setDuplicateCount] = useState(0);
   const validCount = csvRows.length - errRows.size;
 
   const handleImport = async () => {
@@ -201,36 +252,72 @@ export function CsvImportWizard({ type, onClose }: Props) {
       if (type === "customers") {
         // Check for existing emails
         const emails = csvRows.map((r) => mapping.email ? r[mapping.email]?.trim().toLowerCase() : "").filter(Boolean);
-        const { data: existing } = await supabase.from("clients").select("email").in("email", emails);
-        const existingEmails = new Set((existing || []).map((e) => e.email?.toLowerCase()));
+        const { data: existingByEmail } = await supabase.from("clients").select("email, phone").in("email", emails.length > 0 ? emails : ["__none__"]);
+        const existingEmails = new Set((existingByEmail || []).map((e) => e.email?.toLowerCase()).filter(Boolean));
+
+        // Check for existing phones (for rows without email)
+        const phones = csvRows
+          .map((r) => {
+            const rawEmail = mapping.email ? r[mapping.email]?.trim() : "";
+            if (rawEmail) return ""; // only check phone dups for rows without email
+            const rawPhone = mapping.phone ? r[mapping.phone]?.trim() : "";
+            return formatPhone(rawPhone) || "";
+          })
+          .filter(Boolean);
+        const { data: existingByPhone } = await supabase.from("clients").select("phone").in("phone", phones.length > 0 ? phones : ["__none__"]);
+        const existingPhones = new Set((existingByPhone || []).map((e) => e.phone).filter(Boolean));
 
         for (let i = 0; i < csvRows.length; i++) {
           if (errRows.has(i)) { errors++; continue; }
           const row = csvRows[i];
           const email = mapping.email ? row[mapping.email]?.trim().toLowerCase() : "";
+          const phone = formatPhone(mapping.phone ? row[mapping.phone]?.trim() : "");
+
+          // Duplicate check: by email first, then by phone if no email
           if (email && existingEmails.has(email)) { skipped++; continue; }
+          if (!email && phone && existingPhones.has(phone)) { skipped++; continue; }
 
           const firstName = mapping.first_name ? row[mapping.first_name]?.trim() : "";
           const lastName = mapping.last_name ? row[mapping.last_name]?.trim() : "";
+          const address = getCompositeValue(row, "address_line1", mapping, csvHeaders);
+          const city = getCompositeValue(row, "city", mapping, csvHeaders);
+          const state = getCompositeValue(row, "state", mapping, csvHeaders);
+          const zip = getCompositeValue(row, "zip", mapping, csvHeaders);
+          const notes = mapping.notes ? row[mapping.notes]?.trim() || null : null;
+          const source = mapping.source ? row[mapping.source]?.trim() || "wix" : "wix";
+          const createdAtRaw = mapping.created_at ? row[mapping.created_at]?.trim() : "";
+          let createdAt: string | undefined;
+          if (createdAtRaw) {
+            const d = new Date(createdAtRaw);
+            if (!isNaN(d.getTime())) createdAt = d.toISOString();
+          }
 
-          const { error } = await supabase.from("clients").insert({
+          const insertData: Record<string, any> = {
             first_name: firstName || null,
             last_name: lastName || null,
             full_name: [firstName, lastName].filter(Boolean).join(" ") || null,
             email: email || null,
-            phone: mapping.phone ? row[mapping.phone]?.trim() || null : null,
-            address_line1: mapping.address_line1 ? row[mapping.address_line1]?.trim() || null : null,
-            city: mapping.city ? row[mapping.city]?.trim() || null : null,
-            zip: mapping.zip ? row[mapping.zip]?.trim() || null : null,
-            notes: mapping.notes ? row[mapping.notes]?.trim() || null : null,
-            source: "csv_import",
-          });
+            phone: phone || null,
+            address_line1: address || null,
+            city: city || null,
+            state: state || null,
+            zip: zip || null,
+            notes: notes,
+            source: source,
+          };
+          if (createdAt) insertData.created_at = createdAt;
+
+          const { error } = await supabase.from("clients").insert(insertData);
 
           if (error) { errors++; console.error("Import row error:", error); }
-          else { imported++; if (email) existingEmails.add(email); }
+          else {
+            imported++;
+            if (email) existingEmails.add(email);
+            if (phone) existingPhones.add(phone);
+          }
         }
       } else {
-        // Bookings import - need to look up service_id
+        // Bookings import
         const { data: services } = await supabase.from("services").select("id, name, slug").eq("is_active", true);
         const serviceMap = new Map<string, string>();
         (services || []).forEach((s) => {
@@ -254,7 +341,6 @@ export function CsvImportWizard({ type, onClose }: Props) {
           const dateStr = mapping.scheduled_date ? row[mapping.scheduled_date]?.trim() : "";
           const timeStr = mapping.scheduled_time ? row[mapping.scheduled_time]?.trim() : "09:00";
 
-          // Parse date - try common formats
           let parsedDate = dateStr;
           if (dateStr) {
             const d = new Date(dateStr);
@@ -283,7 +369,7 @@ export function CsvImportWizard({ type, onClose }: Props) {
             service_id: serviceId,
             guest_name: guestName,
             guest_email: mapping.guest_email ? row[mapping.guest_email]?.trim() || null : null,
-            guest_phone: mapping.guest_phone ? row[mapping.guest_phone]?.trim() || null : null,
+            guest_phone: mapping.guest_phone ? formatPhone(row[mapping.guest_phone]?.trim() || "") : null,
             vehicle_type: mapping.vehicle_type ? row[mapping.vehicle_type]?.trim() || null : null,
             vehicle_make: mapping.vehicle_make ? row[mapping.vehicle_make]?.trim() || null : null,
             vehicle_model: mapping.vehicle_model ? row[mapping.vehicle_model]?.trim() || null : null,
@@ -327,6 +413,20 @@ export function CsvImportWizard({ type, onClose }: Props) {
     }
   };
 
+  /** Get the display value for a field in preview, applying transformations */
+  function getPreviewValue(row: Record<string, string>, fieldKey: string): string {
+    // For composite address fields, show the resolved value
+    if (WIX_COMPOSITE_FIELDS[fieldKey]) {
+      return getCompositeValue(row, fieldKey, mapping, csvHeaders);
+    }
+    if (fieldKey === "phone" || fieldKey === "guest_phone") {
+      const col = mapping[fieldKey];
+      return col ? formatPhone(row[col] || "") || "" : "";
+    }
+    const col = mapping[fieldKey];
+    return col ? row[col] || "" : "";
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -335,7 +435,7 @@ export function CsvImportWizard({ type, onClose }: Props) {
         </Button>
         <h2 className="text-lg font-semibold capitalize">Import {type}</h2>
         <div className="flex gap-1 ml-auto">
-          {(["upload", "mapping", "preview", "done"] as Step[]).map((s, i) => (
+          {(["upload", "mapping", "preview", "done"] as Step[]).map((s) => (
             <div key={s} className={`h-1.5 w-8 rounded-full ${step === s || (step === "importing" && s === "preview") ? "bg-primary" : "bg-muted"}`} />
           ))}
         </div>
@@ -357,6 +457,7 @@ export function CsvImportWizard({ type, onClose }: Props) {
               <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <p className="font-medium">Drop your CSV file here</p>
               <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
+              <p className="text-xs text-muted-foreground mt-3">Supports Wix Contacts export format</p>
               <input
                 ref={fileRef}
                 type="file"
@@ -406,7 +507,6 @@ export function CsvImportWizard({ type, onClose }: Props) {
       {/* PREVIEW STEP */}
       {step === "preview" && (
         <div className="space-y-4">
-          {/* Summary */}
           <div className="flex gap-3 flex-wrap">
             <Badge variant="outline" className="text-sm py-1 px-3">{csvRows.length} rows found</Badge>
             <Badge variant="secondary" className="text-sm py-1 px-3 text-green-700">{validCount} valid</Badge>
@@ -415,7 +515,6 @@ export function CsvImportWizard({ type, onClose }: Props) {
             )}
           </div>
 
-          {/* Preview table - first 5 rows */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Preview (first 5 rows)</CardTitle>
@@ -425,7 +524,7 @@ export function CsvImportWizard({ type, onClose }: Props) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10">#</TableHead>
-                    {fields.filter((f) => mapping[f.key]).map((f) => (
+                    {fields.filter((f) => mapping[f.key] || WIX_COMPOSITE_FIELDS[f.key]).map((f) => (
                       <TableHead key={f.key} className="text-xs whitespace-nowrap">{f.label}</TableHead>
                     ))}
                     <TableHead className="w-20">Status</TableHead>
@@ -435,9 +534,9 @@ export function CsvImportWizard({ type, onClose }: Props) {
                   {csvRows.slice(0, 5).map((row, i) => (
                     <TableRow key={i} className={errRows.has(i) ? "bg-destructive/5" : ""}>
                       <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
-                      {fields.filter((f) => mapping[f.key]).map((f) => (
+                      {fields.filter((f) => mapping[f.key] || WIX_COMPOSITE_FIELDS[f.key]).map((f) => (
                         <TableCell key={f.key} className="text-xs max-w-[150px] truncate">
-                          {row[mapping[f.key]] || <span className="text-muted-foreground italic">—</span>}
+                          {getPreviewValue(row, f.key) || <span className="text-muted-foreground italic">—</span>}
                         </TableCell>
                       ))}
                       <TableCell>
@@ -454,7 +553,6 @@ export function CsvImportWizard({ type, onClose }: Props) {
             </CardContent>
           </Card>
 
-          {/* Error details */}
           {errRows.size > 0 && (
             <Card className="border-destructive/30">
               <CardContent className="pt-4">
@@ -505,7 +603,7 @@ export function CsvImportWizard({ type, onClose }: Props) {
               <p className="text-lg font-semibold">Import Complete!</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Successfully imported <strong>{result.imported}</strong> {type}
-                {result.skipped > 0 && <>, <strong>{result.skipped}</strong> duplicates skipped</>}
+                {result.skipped > 0 && <>, <strong>{result.skipped}</strong> skipped as duplicates</>}
                 {result.errors > 0 && <>, <strong>{result.errors}</strong> errors</>}
               </p>
             </div>
