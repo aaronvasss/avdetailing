@@ -134,17 +134,22 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
   const isSpecialty = specialtyServices.includes(form.serviceType);
-  const needsVehicleType = ["car", "ceramic", "paint"].includes(form.serviceType);
+  const isMembership = form.serviceType === "membership";
+  const needsVehicleType = ["car", "ceramic", "paint", "membership"].includes(form.serviceType);
 
   // Calculate package price
   const packagePrice = useMemo(() => {
     if (isSpecialty) return 100; // deposit
+    if (isMembership) {
+      const mp = membershipPackages.find(p => p.id === selectedPackageId);
+      return mp?.price || 0;
+    }
     if (!selectedPackageId || !form.vehicleType) return 0;
     const pkg = carPackages.find(p => p.id === selectedPackageId);
     if (!pkg) return 0;
     if (pkg.id === "silver") return getSilverPrice(form.vehicleType);
     return pkg.prices[getVehicleBucket(form.vehicleType)];
-  }, [selectedPackageId, form.vehicleType, isSpecialty]);
+  }, [selectedPackageId, form.vehicleType, isSpecialty, isMembership]);
 
   // Calculate add-ons total
   const addOnsTotal = useMemo(() => {
