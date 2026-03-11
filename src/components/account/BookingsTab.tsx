@@ -43,6 +43,11 @@ interface Booking {
   customer_notes: string | null;
   duration_minutes: number | null;
   created_at: string;
+  guest_name: string | null;
+  guest_email: string | null;
+  guest_phone: string | null;
+  payment_method: string | null;
+  internal_notes: string | null;
   services: {
     name: string;
     description: string | null;
