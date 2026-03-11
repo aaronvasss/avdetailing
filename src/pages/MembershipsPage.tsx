@@ -88,8 +88,16 @@ const savingsMap: Record<string, string> = {
 
 const billingLabels: Record<string, string> = {
   "monthly": "/month",
-  "bi-weekly": "/visit",
-  "weekly-premium": "/visit",
+  "bi-weekly": "/month",
+  "weekly-premium": "/month",
+};
+
+// Monthly cost multipliers by frequency slug
+const monthlyMultiplier: Record<string, number> = {
+  "monthly": 1,
+  "bi-weekly": 2,
+  "weekly": 4,
+  "weekly-premium": 4,
 };
 
 const frequencyDisplay: Record<string, string> = {
