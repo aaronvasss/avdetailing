@@ -81,6 +81,41 @@ serve(async (req) => {
       });
     }
 
+    // Check for existing active membership
+    // Check membership_signups
+    const { data: existingSignups } = await serviceClient
+      .from("membership_signups")
+      .select("id")
+      .eq("email", body.email.trim())
+      .in("status", ["active", "completed"])
+      .limit(1);
+
+    if (existingSignups && existingSignups.length > 0) {
+      logStep("Blocked: existing active membership signup found");
+      return new Response(JSON.stringify({ error: "You already have an active membership. Please cancel your current plan before subscribing to a new one." }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check customer_memberships via Stripe
+    const stripeForCheck = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const existingCustomers = await stripeForCheck.customers.list({ email: body.email.trim(), limit: 1 });
+    if (existingCustomers.data.length > 0) {
+      const activeSubs = await stripeForCheck.subscriptions.list({
+        customer: existingCustomers.data[0].id,
+        status: "active",
+        limit: 1,
+      });
+      if (activeSubs.data.length > 0) {
+        logStep("Blocked: existing active Stripe subscription found");
+        return new Response(JSON.stringify({ error: "You already have an active membership. Please cancel your current plan before subscribing to a new one." }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Save signup info to membership_signups table
     const { data: signup, error: signupError } = await serviceClient
       .from("membership_signups")

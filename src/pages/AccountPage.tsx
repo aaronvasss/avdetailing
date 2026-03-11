@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
 } from "lucide-react";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
@@ -26,6 +27,7 @@ export default function AccountPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -101,7 +103,7 @@ export default function AccountPage() {
             <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <p className="text-sm font-medium text-primary mb-1">
-                  Welcome back
+                  {isAdmin ? "Hey Boss 👋" : "Welcome back"}
                 </p>
                 <h1 className="text-2xl sm:text-3xl font-bold">
                   {firstName}
@@ -125,7 +127,7 @@ export default function AccountPage() {
           </div>
 
           {/* Navigation Tabs */}
-          <Tabs defaultValue="appointments" className="space-y-6">
+          <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "appointments"} className="space-y-6">
             <div className="overflow-x-auto -mx-4 px-4 pb-2">
               <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 bg-card border border-border/50 p-1 h-auto">
                 <TabsTrigger

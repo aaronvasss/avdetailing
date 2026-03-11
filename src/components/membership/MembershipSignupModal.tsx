@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, CheckCircle } from "lucide-react";
+import { Loader2, ArrowRight, CheckCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -44,6 +45,8 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showTermsError, setShowTermsError] = useState(false);
+  const [existingMembership, setExistingMembership] = useState(false);
+  const [checkingMembership, setCheckingMembership] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -57,6 +60,59 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
     vehicleModel: "",
     vehicleYear: "",
   });
+
+  // Check for existing active membership when email changes
+  useEffect(() => {
+    const checkExisting = async () => {
+      const email = formData.email.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setExistingMembership(false);
+        return;
+      }
+      setCheckingMembership(true);
+      try {
+        // Check membership_signups for active/pending signups with this email
+        const { data: signups } = await supabase
+          .from("membership_signups")
+          .select("id, status")
+          .eq("email", email)
+          .in("status", ["active", "completed"])
+          .limit(1);
+
+        if (signups && signups.length > 0) {
+          setExistingMembership(true);
+          setCheckingMembership(false);
+          return;
+        }
+
+        // Also check customer_memberships via profiles
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("email", email)
+          .limit(1);
+
+        if (profiles && profiles.length > 0) {
+          const { data: memberships } = await supabase
+            .from("customer_memberships")
+            .select("id")
+            .eq("user_id", profiles[0].user_id)
+            .eq("status", "active")
+            .limit(1);
+
+          setExistingMembership(!!(memberships && memberships.length > 0));
+        } else {
+          setExistingMembership(false);
+        }
+      } catch {
+        setExistingMembership(false);
+      }
+      setCheckingMembership(false);
+    };
+
+    const timeout = setTimeout(checkExisting, 500);
+    return () => clearTimeout(timeout);
+  }, [formData.email]);
 
   const handleChange = (field: string, value: string) => {
     if (field === "phone") {
@@ -262,6 +318,22 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
             </div>
           </div>
 
+          {/* Active Membership Warning */}
+          {existingMembership && (
+            <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-destructive">You already have an active membership.</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Please cancel your current plan before subscribing to a new one.{" "}
+                  <Link to="/account?tab=memberships" className="text-primary hover:underline font-medium" onClick={() => onOpenChange(false)}>
+                    Manage your membership →
+                  </Link>
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Terms Consent */}
           <div className="flex items-start space-x-3 p-3 border border-border rounded-lg bg-secondary/30">
             <Checkbox
@@ -296,13 +368,20 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
               }
               handleSubmit();
             }}
-            disabled={isSubmitting}
+            disabled={isSubmitting || existingMembership || checkingMembership}
           >
-            {isSubmitting ? (
+            {checkingMembership ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
+            ) : existingMembership ? (
+              "Already Subscribed"
             ) : (
               <>
                 Continue to Payment
