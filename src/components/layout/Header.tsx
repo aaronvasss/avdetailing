@@ -29,6 +29,7 @@ const navigation = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
   const { settings } = useBusinessSettings();
@@ -208,29 +209,38 @@ export function Header() {
               <div key={item.name}>
                 {item.children ? (
                   <>
-                    <Link
-                      to={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
+                    <button
+                      type="button"
+                      onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
                       className={cn(
-                        "block px-3 py-2 text-base font-medium rounded-md",
+                        "flex items-center justify-between w-full px-3 py-2 text-base font-medium rounded-md",
                         isActive(item.href)
                           ? "text-primary bg-secondary"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                       )}
                     >
                       {item.name}
-                    </Link>
-                    <div className="pl-4 space-y-1">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.name}
-                          to={child.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md"
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
+                      <ChevronDown className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        mobileServicesOpen && "rotate-180"
+                      )} />
+                    </button>
+                    <div className={cn(
+                      "overflow-hidden transition-all duration-200",
+                      mobileServicesOpen ? "max-h-96" : "max-h-0"
+                    )}>
+                      <div className="pl-4 space-y-1">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.name}
+                            to={child.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md"
+                          >
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -250,13 +260,6 @@ export function Header() {
               </div>
             ))}
             <div className="pt-4 space-y-3 px-3">
-              <a
-                href={`tel:${settings.publicBusinessPhoneE164}`}
-                className="flex items-center text-sm text-muted-foreground"
-              >
-                <Phone className="h-4 w-4 mr-2" />
-                {settings.publicBusinessPhone}
-              </a>
               {user ? (
                 <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
@@ -269,13 +272,6 @@ export function Header() {
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                     <User className="h-4 w-4 mr-2" />
                     Sign In
-                  </Link>
-                </Button>
-              )}
-              {!isAdmin && (
-                <Button asChild className="w-full glow-red">
-                  <Link to="/book" onClick={() => setMobileMenuOpen(false)}>
-                    Book Now
                   </Link>
                 </Button>
               )}
