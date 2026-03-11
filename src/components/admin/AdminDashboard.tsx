@@ -64,7 +64,7 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard":
-        return <AdminOverviewTab />;
+        return <AdminOverviewTab isAdmin onViewBooking={() => {}} onTextCustomer={() => {}} />;
       case "calendar":
         return (
           <AppointmentsTab
