@@ -27,6 +27,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
 
