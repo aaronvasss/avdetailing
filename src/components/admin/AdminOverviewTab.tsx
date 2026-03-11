@@ -4,6 +4,7 @@ import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Calendar, Clock, MapPin, Phone, DollarSign, 
   Users, AlertCircle, CheckCircle2, XCircle,
@@ -12,6 +13,14 @@ import {
 } from "lucide-react";
 import { format, isToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns";
 import { toast } from "sonner";
+
+const PAID_STATUSES = ["paid", "completed"];
+
+const formatStatusLabel = (status: string): string => {
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
 
 interface Booking {
   id: string;
