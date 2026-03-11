@@ -28,6 +28,7 @@ const serviceTypes = [
   { id: "boat", label: "Boat Detailing", serviceId: "c15abb75-415f-499e-a681-7ce59e2faaa5" },
   { id: "rv", label: "RV/Motorhome", serviceId: "895a1ea3-4309-4a75-9406-555cf568b370" },
   { id: "aircraft", label: "Aircraft", serviceId: "71c8e20e-4bdf-42b8-ba46-d7565121c9d9" },
+  { id: "membership", label: "Membership Service", serviceId: "3763f8d6-9045-45d5-99cd-cb878bdceeb8" },
 ];
 
 const vehicleTypes = [
@@ -73,6 +74,18 @@ const getSilverPrice = (vehicleType: string): number => {
 };
 
 const specialtyServices = ["ceramic", "paint", "boat", "aircraft"];
+
+interface MembershipDef {
+  id: string;
+  label: string;
+  price: number;
+}
+
+const membershipPackages: MembershipDef[] = [
+  { id: "monthly", label: "Monthly", price: 135 },
+  { id: "bi-weekly", label: "Bi-Weekly", price: 130 },
+  { id: "weekly", label: "Weekly", price: 130 },
+];
 
 const addOnsList = [
   { id: "engine-bay", name: "Engine Bay Cleaning", price: 60 },
@@ -121,17 +134,22 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
   const isSpecialty = specialtyServices.includes(form.serviceType);
-  const needsVehicleType = ["car", "ceramic", "paint"].includes(form.serviceType);
+  const isMembership = form.serviceType === "membership";
+  const needsVehicleType = ["car", "ceramic", "paint", "membership"].includes(form.serviceType);
 
   // Calculate package price
   const packagePrice = useMemo(() => {
     if (isSpecialty) return 100; // deposit
+    if (isMembership) {
+      const mp = membershipPackages.find(p => p.id === selectedPackageId);
+      return mp?.price || 0;
+    }
     if (!selectedPackageId || !form.vehicleType) return 0;
     const pkg = carPackages.find(p => p.id === selectedPackageId);
     if (!pkg) return 0;
     if (pkg.id === "silver") return getSilverPrice(form.vehicleType);
     return pkg.prices[getVehicleBucket(form.vehicleType)];
-  }, [selectedPackageId, form.vehicleType, isSpecialty]);
+  }, [selectedPackageId, form.vehicleType, isSpecialty, isMembership]);
 
   // Calculate add-ons total
   const addOnsTotal = useMemo(() => {
@@ -333,6 +351,50 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           </div>
 
+          {/* Schedule */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Schedule *</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Date</Label>
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.scheduledDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.scheduledDate ? format(form.scheduledDate, "MMM d, yyyy") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={form.scheduledDate}
+                      onSelect={(date) => {
+                        setForm(prev => ({ ...prev, scheduledDate: date }));
+                        setCalendarOpen(false);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label>Time</Label>
+                <Select value={form.scheduledTime} onValueChange={v => handleChange("scheduledTime", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map(time => (
+                      <SelectItem key={time} value={time}>
+                        {format(new Date(`2000-01-01T${time}`), "h:mm a")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           {/* ── Pricing Section ── */}
           {form.serviceType && (
             <div>
@@ -364,8 +426,33 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                     </div>
                   )}
 
-                  {/* Package selector for car detailing */}
-                  {!isSpecialty && (
+                  {/* Membership packages */}
+                  {isMembership && (
+                    <div>
+                      <Label className="mb-2 block">Membership Frequency</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {membershipPackages.map(mp => (
+                          <button
+                            key={mp.id}
+                            type="button"
+                            onClick={() => setSelectedPackageId(mp.id)}
+                            className={cn(
+                              "rounded-lg border-2 p-3 text-center transition-all",
+                              selectedPackageId === mp.id
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-muted-foreground/40"
+                            )}
+                          >
+                            <p className="text-sm font-semibold">{mp.label}</p>
+                            <p className="text-lg font-bold text-primary">${mp.price}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Package selector for car / rv detailing */}
+                  {!isSpecialty && !isMembership && (
                     <div>
                       <Label className="mb-2 block">Package</Label>
                       <div className="grid grid-cols-2 gap-2">
@@ -430,7 +517,13 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                   {(packagePrice > 0 || addOnsTotal > 0) && (
                     <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1.5">
                       <div className="flex justify-between text-sm">
-                        <span>{isSpecialty ? "Specialty Deposit" : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}</span>
+                        <span>
+                          {isSpecialty
+                            ? "Specialty Deposit"
+                            : isMembership
+                              ? `Membership: ${membershipPackages.find(p => p.id === selectedPackageId)?.label || ""}`
+                              : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}
+                        </span>
                         <span className="font-medium">${packagePrice}</span>
                       </div>
                       {selectedAddOns.map(id => {
@@ -442,18 +535,10 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                           </div>
                         );
                       })}
-                      {selectedAddOns.length > 0 && (
-                        <div className="border-t border-border pt-1.5 mt-1.5 flex justify-between text-sm font-bold">
-                          <span>Total</span>
-                          <span className="text-primary">${totalPrice}</span>
-                        </div>
-                      )}
-                      {selectedAddOns.length === 0 && (
-                        <div className="flex justify-between text-sm font-bold pt-0.5">
-                          <span>Total</span>
-                          <span className="text-primary">${totalPrice}</span>
-                        </div>
-                      )}
+                      <div className={cn("flex justify-between text-sm font-bold", selectedAddOns.length > 0 && "border-t border-border pt-1.5 mt-1.5")}>
+                        <span>Total</span>
+                        <span className="text-primary">${totalPrice}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -472,50 +557,6 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               )}
             </div>
           )}
-
-          {/* Schedule */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Schedule *</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Date</Label>
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.scheduledDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {form.scheduledDate ? format(form.scheduledDate, "MMM d, yyyy") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={form.scheduledDate}
-                      onSelect={(date) => {
-                        setForm(prev => ({ ...prev, scheduledDate: date }));
-                        setCalendarOpen(false);
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
-                <Label>Time</Label>
-                <Select value={form.scheduledTime} onValueChange={v => handleChange("scheduledTime", v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map(time => (
-                      <SelectItem key={time} value={time}>
-                        {format(new Date(`2000-01-01T${time}`), "h:mm a")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
 
           {/* Payment */}
           <div>
