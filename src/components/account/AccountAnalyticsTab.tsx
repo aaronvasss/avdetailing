@@ -53,6 +53,9 @@ export function AccountAnalyticsTab() {
   const [memberships, setMemberships] = useState<any[]>([]);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [dateRange, setDateRange] = useState<DateRange>("month");
+  const [autoReviewEnabled, setAutoReviewEnabled] = useState(true);
+  const [reviewRequestsThisMonth, setReviewRequestsThisMonth] = useState(0);
+  const [togglingReview, setTogglingReview] = useState(false);
 
   useEffect(() => {
     fetchData();
