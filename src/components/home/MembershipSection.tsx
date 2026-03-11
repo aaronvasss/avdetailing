@@ -16,6 +16,13 @@ interface MembershipPlan {
   is_popular: boolean | null;
 }
 
+// Monthly cost multipliers by frequency
+const monthlyMultiplier: Record<string, number> = {
+  "monthly": 1,
+  "bi-weekly": 2,
+  "weekly": 4,
+};
+
 // Fallback plans that match the database structure
 const fallbackPlans: MembershipPlan[] = [
   {
