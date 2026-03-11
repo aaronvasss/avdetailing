@@ -303,6 +303,8 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook }: AppointmentsTa
         onOpenChange={setDetailsOpen}
         onReschedule={handleReschedule}
         onCancel={handleCancel}
+        isAdmin={isAdmin}
+        onStatusChange={handleSuccess}
       />
 
       <RescheduleDialog
