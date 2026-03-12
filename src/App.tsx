@@ -28,6 +28,11 @@ import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
+import WorkerLoginPage from "./pages/WorkerLoginPage";
+import WorkerDashboardPage from "./pages/WorkerDashboardPage";
+import WorkerAllJobsPage from "./pages/WorkerAllJobsPage";
+import WorkerEarningsPage from "./pages/WorkerEarningsPage";
+import WorkerProfilePage from "./pages/WorkerProfilePage";
 
 const queryClient = new QueryClient();
 
