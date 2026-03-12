@@ -300,6 +300,10 @@ export function AdminSettingsTab() {
         </CardContent>
       </Card>
 
+      {/* Workers Section */}
+      <Separator className="my-8" />
+      <WorkerManagementSection />
+
       {/* CSV Import Section */}
       <Separator className="my-8" />
       <CsvImportSection />
