@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Save, Phone, Mail, Settings2, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { CsvImportSection } from "./CsvImportSection";
+import { DangerZoneSection } from "./DangerZoneSection";
 
 interface BusinessSetting {
   key: string;
@@ -301,6 +302,10 @@ export function AdminSettingsTab() {
       {/* CSV Import Section */}
       <Separator className="my-8" />
       <CsvImportSection />
+
+      {/* Danger Zone */}
+      <Separator className="my-8" />
+      <DangerZoneSection />
     </div>
   );
 }
