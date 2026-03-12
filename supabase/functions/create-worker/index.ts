@@ -76,22 +76,43 @@ serve(async (req) => {
       });
     }
 
-    // The handle_new_user trigger will create profile and assign 'customer' role
-    // Update the role to 'staff'
+    // Create profile (trigger may not fire for admin-created users)
     await supabaseAdmin
+      .from("profiles")
+      .upsert({
+        user_id: newUser.user.id,
+        email,
+        full_name: fullName,
+        phone: phone || null,
+      }, { onConflict: "user_id" });
+
+    // Upsert role to 'staff' (insert if trigger didn't create, update if it did)
+    const { data: existingRole } = await supabaseAdmin
       .from("user_roles")
-      .update({ role: "staff" })
-      .eq("user_id", newUser.user.id);
+      .select("id")
+      .eq("user_id", newUser.user.id)
+      .maybeSingle();
+
+    if (existingRole) {
+      await supabaseAdmin
+        .from("user_roles")
+        .update({ role: "staff" })
+        .eq("user_id", newUser.user.id);
+    } else {
+      await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: newUser.user.id, role: "staff" });
+    }
 
     // Create worker profile
     await supabaseAdmin
       .from("worker_profiles")
-      .insert({
+      .upsert({
         user_id: newUser.user.id,
         phone: phone || null,
         pay_type: payType || "flat",
         pay_rate: payRate || 0,
-      });
+      }, { onConflict: "user_id" });
 
     return new Response(
       JSON.stringify({ success: true, userId: newUser.user.id }),
