@@ -56,6 +56,7 @@ const BOOKING_FIELDS: { key: string; label: string; required?: boolean }[] = [
 const HEADER_ALIASES: Record<string, string[]> = {
   first_name: ["first name", "firstname", "first", "fname"],
   last_name: ["last name", "lastname", "last", "lname", "surname"],
+  full_name_combined: ["name", "full name", "fullname", "contact name"],
   email: ["email", "e-mail", "email address", "email 1"],
   phone: ["phone", "phone number", "telephone", "mobile", "cell", "phone 1"],
   address_line1: [
