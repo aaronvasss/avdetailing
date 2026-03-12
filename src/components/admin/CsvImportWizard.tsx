@@ -279,8 +279,23 @@ export function CsvImportWizard({ type, onClose }: Props) {
           if (email && existingEmails.has(email)) { skipped++; continue; }
           if (!email && phone && existingPhones.has(phone)) { skipped++; continue; }
 
-          const firstName = mapping.first_name ? row[mapping.first_name]?.trim() : "";
-          const lastName = mapping.last_name ? row[mapping.last_name]?.trim() : "";
+          let firstName = mapping.first_name ? row[mapping.first_name]?.trim() : "";
+          let lastName = mapping.last_name ? row[mapping.last_name]?.trim() : "";
+
+          // If first name is missing, try splitting from a combined "Name" column
+          if (!firstName) {
+            const fullNameRaw = mapping.full_name_combined ? row[mapping.full_name_combined]?.trim() : "";
+            if (fullNameRaw) {
+              const spaceIdx = fullNameRaw.indexOf(" ");
+              if (spaceIdx > 0) {
+                firstName = fullNameRaw.slice(0, spaceIdx);
+                if (!lastName) lastName = fullNameRaw.slice(spaceIdx + 1).trim();
+              } else {
+                firstName = fullNameRaw;
+              }
+            }
+          }
+
           const address = getCompositeValue(row, "address_line1", mapping, csvHeaders);
           const city = getCompositeValue(row, "city", mapping, csvHeaders);
           const state = getCompositeValue(row, "state", mapping, csvHeaders);
