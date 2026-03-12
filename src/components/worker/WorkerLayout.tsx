@@ -39,7 +39,7 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
 
       if (!role) {
         toast.error("You don't have worker access");
-        navigate("/worker/login");
+        navigate("/account");
         return;
       }
 
