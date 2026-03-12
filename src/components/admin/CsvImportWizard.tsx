@@ -18,8 +18,9 @@ interface Props {
 type Step = "upload" | "mapping" | "preview" | "importing" | "done";
 
 const CUSTOMER_FIELDS: { key: string; label: string; required?: boolean }[] = [
-  { key: "first_name", label: "First Name", required: true },
+  { key: "first_name", label: "First Name" },
   { key: "last_name", label: "Last Name" },
+  { key: "full_name_combined", label: "Full Name (combined)" },
   { key: "email", label: "Email" },
   { key: "phone", label: "Phone" },
   { key: "address_line1", label: "Street Address" },
