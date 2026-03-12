@@ -229,12 +229,17 @@ export function CsvImportWizard({ type, onClose }: Props) {
       requiredFields.forEach((f) => {
         const csvCol = mapping[f.key];
         if (!csvCol || !row[csvCol]?.trim()) {
+          // For customer imports: don't flag first_name if a combined name exists
+          if (type === "customers" && f.key === "first_name") {
+            const fullNameCol = mapping.full_name_combined;
+            if (fullNameCol && row[fullNameCol]?.trim()) return;
+          }
           errors.push({ row: i, field: f.label });
         }
       });
     });
     return errors;
-  }, [csvRows, mapping, fields]);
+  }, [csvRows, mapping, fields, type]);
 
   const errRows = new Set(validationErrors().map((e) => e.row));
 
