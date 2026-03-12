@@ -10,6 +10,7 @@ import { Save, Phone, Mail, Settings2, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { CsvImportSection } from "./CsvImportSection";
 import { DangerZoneSection } from "./DangerZoneSection";
+import { WorkerManagementSection } from "./WorkerManagementSection";
 
 interface BusinessSetting {
   key: string;
