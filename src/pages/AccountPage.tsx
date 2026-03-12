@@ -37,6 +37,18 @@ export default function AccountPage() {
         navigate("/auth");
         return;
       }
+
+      // Redirect staff-only workers to /worker
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id);
+      const roleSet = new Set((roles || []).map((r) => r.role));
+      if (roleSet.has("staff") && !roleSet.has("admin")) {
+        navigate("/worker", { replace: true });
+        return;
+      }
+
       setUser(session.user);
       
       const { data: profile } = await supabase
