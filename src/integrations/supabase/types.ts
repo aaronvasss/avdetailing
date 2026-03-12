@@ -56,6 +56,44 @@ export type Database = {
           },
         ]
       }
+      booking_checklist_items: {
+        Row: {
+          booking_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          item_text: string
+        }
+        Insert: {
+          booking_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          item_text: string
+        }
+        Update: {
+          booking_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          item_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_checklist_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_internal_notes: {
         Row: {
           booking_id: string
@@ -1196,6 +1234,39 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      worker_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          pay_rate: number
+          pay_type: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pay_rate?: number
+          pay_type?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pay_rate?: number
+          pay_type?: string
+          phone?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
