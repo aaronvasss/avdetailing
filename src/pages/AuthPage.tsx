@@ -26,12 +26,23 @@ export default function AuthPage() {
   });
 
   useEffect(() => {
-    // Check if already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/account");
+        // Check if user is a staff-only worker (not admin)
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+        const roleSet = new Set((roles || []).map((r) => r.role));
+        if (roleSet.has("staff") && !roleSet.has("admin")) {
+          navigate("/worker");
+        } else {
+          navigate("/account");
+        }
       }
-    });
+    };
+    checkSession();
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
