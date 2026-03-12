@@ -18,8 +18,9 @@ interface Props {
 type Step = "upload" | "mapping" | "preview" | "importing" | "done";
 
 const CUSTOMER_FIELDS: { key: string; label: string; required?: boolean }[] = [
-  { key: "first_name", label: "First Name", required: true },
+  { key: "first_name", label: "First Name" },
   { key: "last_name", label: "Last Name" },
+  { key: "full_name_combined", label: "Full Name (combined)" },
   { key: "email", label: "Email" },
   { key: "phone", label: "Phone" },
   { key: "address_line1", label: "Street Address" },
@@ -55,6 +56,7 @@ const BOOKING_FIELDS: { key: string; label: string; required?: boolean }[] = [
 const HEADER_ALIASES: Record<string, string[]> = {
   first_name: ["first name", "firstname", "first", "fname"],
   last_name: ["last name", "lastname", "last", "lname", "surname"],
+  full_name_combined: ["name", "full name", "fullname", "contact name"],
   email: ["email", "e-mail", "email address", "email 1"],
   phone: ["phone", "phone number", "telephone", "mobile", "cell", "phone 1"],
   address_line1: [
@@ -227,12 +229,17 @@ export function CsvImportWizard({ type, onClose }: Props) {
       requiredFields.forEach((f) => {
         const csvCol = mapping[f.key];
         if (!csvCol || !row[csvCol]?.trim()) {
+          // For customer imports: don't flag first_name if a combined name exists
+          if (type === "customers" && f.key === "first_name") {
+            const fullNameCol = mapping.full_name_combined;
+            if (fullNameCol && row[fullNameCol]?.trim()) return;
+          }
           errors.push({ row: i, field: f.label });
         }
       });
     });
     return errors;
-  }, [csvRows, mapping, fields]);
+  }, [csvRows, mapping, fields, type]);
 
   const errRows = new Set(validationErrors().map((e) => e.row));
 
@@ -277,8 +284,23 @@ export function CsvImportWizard({ type, onClose }: Props) {
           if (email && existingEmails.has(email)) { skipped++; continue; }
           if (!email && phone && existingPhones.has(phone)) { skipped++; continue; }
 
-          const firstName = mapping.first_name ? row[mapping.first_name]?.trim() : "";
-          const lastName = mapping.last_name ? row[mapping.last_name]?.trim() : "";
+          let firstName = mapping.first_name ? row[mapping.first_name]?.trim() : "";
+          let lastName = mapping.last_name ? row[mapping.last_name]?.trim() : "";
+
+          // If first name is missing, try splitting from a combined "Name" column
+          if (!firstName) {
+            const fullNameRaw = mapping.full_name_combined ? row[mapping.full_name_combined]?.trim() : "";
+            if (fullNameRaw) {
+              const spaceIdx = fullNameRaw.indexOf(" ");
+              if (spaceIdx > 0) {
+                firstName = fullNameRaw.slice(0, spaceIdx);
+                if (!lastName) lastName = fullNameRaw.slice(spaceIdx + 1).trim();
+              } else {
+                firstName = fullNameRaw;
+              }
+            }
+          }
+
           const address = getCompositeValue(row, "address_line1", mapping, csvHeaders);
           const city = getCompositeValue(row, "city", mapping, csvHeaders);
           const state = getCompositeValue(row, "state", mapping, csvHeaders);
