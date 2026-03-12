@@ -302,6 +302,10 @@ export function AdminSettingsTab() {
       {/* CSV Import Section */}
       <Separator className="my-8" />
       <CsvImportSection />
+
+      {/* Danger Zone */}
+      <Separator className="my-8" />
+      <DangerZoneSection />
     </div>
   );
 }
