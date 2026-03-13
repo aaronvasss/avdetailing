@@ -93,6 +93,8 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
         return <AdminMembershipsTab />;
       case "analytics":
         return <AccountAnalyticsTab />;
+      case "team-chat":
+        return <AdminTeamChatTab />;
       case "settings":
         return <AdminSettingsTab />;
       default:
