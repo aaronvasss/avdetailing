@@ -26,6 +26,11 @@ import {
   StickyNote,
   CreditCard,
   Pencil,
+  Bell,
+  Send,
+  MessageSquare,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendInProgressSms } from "@/lib/in-progress-sms";
