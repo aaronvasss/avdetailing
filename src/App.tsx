@@ -33,6 +33,8 @@ import WorkerDashboardPage from "./pages/WorkerDashboardPage";
 import WorkerAllJobsPage from "./pages/WorkerAllJobsPage";
 import WorkerEarningsPage from "./pages/WorkerEarningsPage";
 import WorkerProfilePage from "./pages/WorkerProfilePage";
+import WorkerChatPage from "./pages/WorkerChatPage";
+import RatingPage from "./pages/RatingPage";
 
 const queryClient = new QueryClient();
 
