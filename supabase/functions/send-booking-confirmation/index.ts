@@ -5,8 +5,8 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Business email recipients
-const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
+// Admin email for separate booking alert
+const ADMIN_EMAIL = "aaronvasquez100@gmail.com";
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
@@ -823,31 +823,78 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const res = await fetch("https://api.resend.com/emails", {
+    // Determine if the customer email is the admin's own email
+    const isAdminBooking = customerEmail.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+    // EMAIL A: Send customer confirmation (skip if admin is booking for themselves)
+    if (!isAdminBooking) {
+      const customerRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "AV Detailing <noreply@avdetailing.net>",
+          to: [customerEmail.trim()],
+          subject: `✅ Booking Confirmed - ${safeServiceName} on ${formattedDate}`,
+          html: emailHtml,
+        }),
+      });
+
+      const customerData = await customerRes.json();
+      if (!customerRes.ok) {
+        console.error("Customer email failed:", customerData);
+        throw new Error(customerData.message || "Failed to send customer email");
+      }
+      console.log("Customer confirmation email sent:", customerData);
+    } else {
+      console.log("Skipping customer confirmation — admin is the customer");
+    }
+
+    // EMAIL B: Send separate admin notification (always)
+    const adminSubject = `New Booking 🚗 ${safeCustomerName} — ${safeServiceName} on ${shortDate}`;
+    const adminHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #111; color: #fff; border-radius: 12px;">
+        <h2 style="color: #ef4444;">New Booking Alert 🚗</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr><td style="padding: 8px 0; color: #999;">Customer</td><td style="padding: 8px 0; font-weight: bold;">${safeCustomerName}</td></tr>
+          ${customerPhone ? `<tr><td style="padding: 8px 0; color: #999;">Phone</td><td style="padding: 8px 0;"><a href="tel:${htmlEncode(customerPhone)}" style="color: #ef4444;">${htmlEncode(customerPhone)}</a></td></tr>` : ""}
+          <tr><td style="padding: 8px 0; color: #999;">Email</td><td style="padding: 8px 0;"><a href="mailto:${htmlEncode(customerEmail)}" style="color: #ef4444;">${htmlEncode(customerEmail)}</a></td></tr>
+          <tr><td style="padding: 8px 0; color: #999;">Service</td><td style="padding: 8px 0;">${safeServiceName}</td></tr>
+          <tr><td style="padding: 8px 0; color: #999;">Vehicle</td><td style="padding: 8px 0;">${safeVehicleInfo}</td></tr>
+          <tr><td style="padding: 8px 0; color: #999;">Date & Time</td><td style="padding: 8px 0;">${formattedDate} at ${safeScheduledTime}</td></tr>
+          <tr><td style="padding: 8px 0; color: #999;">Address</td><td style="padding: 8px 0;">${safeServiceAddress}, ${safeServiceCity}, ${safeServiceState} ${safeServiceZip}</td></tr>
+          <tr><td style="padding: 8px 0; color: #999;">Total</td><td style="padding: 8px 0; font-weight: bold; color: #22c55e;">$${totalWithFee.toFixed(2)}</td></tr>
+          <tr><td style="padding: 8px 0; color: #999;">Payment</td><td style="padding: 8px 0;">${paymentMethod.replace("_", " ")} — ${depositAmount > 0 ? `$${depositAmount.toFixed(2)} deposit paid` : "unpaid"}</td></tr>
+        </table>
+        <p style="margin-top: 16px; color: #666; font-size: 12px;">Booking ID: ${safeBookingId}</p>
+      </div>
+    `;
+
+    const adminRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "AV Detailing <noreply@avdetailing.net>",
-        to: [customerEmail.trim()],
-        cc: BUSINESS_EMAILS,
-        subject: `✅ Booking Confirmed - ${safeServiceName} on ${formattedDate}`,
-        html: emailHtml,
+        from: "AV Detailing <notifications@avdetailing.net>",
+        to: [ADMIN_EMAIL],
+        subject: adminSubject,
+        html: adminHtml,
       }),
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Resend API error:", data);
-      throw new Error(data.message || "Failed to send email");
+    const adminData = await adminRes.json();
+    if (!adminRes.ok) {
+      console.error("Admin notification email failed:", adminData);
+      // Don't throw — customer email already sent successfully
+    } else {
+      console.log("Admin notification email sent:", adminData);
     }
 
-    console.log("Booking confirmation email sent:", data);
-
-    return new Response(JSON.stringify({ success: true, data }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
