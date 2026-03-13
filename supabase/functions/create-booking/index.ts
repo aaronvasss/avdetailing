@@ -171,9 +171,10 @@ const handler = async (req: Request): Promise<Response> => {
       scheduled_time,
       duration_minutes: body.duration_minutes != null ? Math.min(Math.max(0, Number(body.duration_minutes)), 1440) : null,
 
-      guest_name: userId ? null : sanitize(body.guest_name, 100),
-      guest_email: userId ? null : validateEmail(body.guest_email),
-      guest_phone: userId ? null : validatePhone(body.guest_phone),
+      // Always store guest fields when provided — admin may create bookings on behalf of customers
+      guest_name: sanitize(body.guest_name, 100),
+      guest_email: validateEmail(body.guest_email),
+      guest_phone: validatePhone(body.guest_phone),
 
       vehicle_type: sanitize(body.vehicle_type, 50),
       vehicle_make: sanitize(body.vehicle_make, 50),
