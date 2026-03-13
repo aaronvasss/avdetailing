@@ -833,23 +833,31 @@ const handler = async (req: Request): Promise<Response> => {
 
     // EMAIL A: Send customer confirmation (skip if admin is booking for themselves)
     if (!isAdminBooking) {
+      console.log(`[EMAIL] Sending customer confirmation to: ${customerEmail.trim()}`);
+      console.log(`[EMAIL] From: AV Detailing <noreply@avdetailing.net>`);
+      
+      const emailPayload = {
+        from: "AV Detailing <noreply@avdetailing.net>",
+        to: [customerEmail.trim()],
+        subject: `✅ Booking Confirmed - ${safeServiceName} on ${formattedDate}`,
+        html: emailHtml,
+      };
+      
       const customerRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
-        body: JSON.stringify({
-          from: "AV Detailing <noreply@avdetailing.net>",
-          to: [customerEmail.trim()],
-          subject: `✅ Booking Confirmed - ${safeServiceName} on ${formattedDate}`,
-          html: emailHtml,
-        }),
+        body: JSON.stringify(emailPayload),
       });
 
       const customerData = await customerRes.json();
+      console.log(`[EMAIL] Resend API response status: ${customerRes.status}`);
+      console.log(`[EMAIL] Resend API response body:`, JSON.stringify(customerData));
+      
       if (!customerRes.ok) {
-        console.error("Customer email failed:", customerData);
+        console.error(`[EMAIL] Customer email FAILED to ${customerEmail.trim()}:`, customerData);
         // Log failed customer email
         await supabaseAdmin.from("booking_notification_log").insert({
           booking_id: bookingId,
@@ -860,7 +868,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
         throw new Error(customerData.message || "Failed to send customer email");
       }
-      console.log("Customer confirmation email sent:", customerData);
+      console.log(`[EMAIL] Customer confirmation DELIVERED to Resend for ${customerEmail.trim()}, id: ${customerData.id}`);
       // Log successful customer email
       await supabaseAdmin.from("booking_notification_log").insert({
         booking_id: bookingId,

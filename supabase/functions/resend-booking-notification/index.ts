@@ -247,14 +247,17 @@ serve(async (req) => {
       });
     }
 
-    // Log the notification
-    await supabase.from("booking_notification_log").insert({
-      booking_id: bookingId,
-      notification_type: type,
-      recipient,
-      status: success ? "sent" : "failed",
-      error_message: errorMessage || null,
-    });
+    // Log the notification — but skip for email_confirmation since
+    // send-booking-confirmation already logs its own entry (prevents duplicates)
+    if (type !== "email_confirmation") {
+      await supabase.from("booking_notification_log").insert({
+        booking_id: bookingId,
+        notification_type: type,
+        recipient,
+        status: success ? "sent" : "failed",
+        error_message: errorMessage || null,
+      });
+    }
 
     return new Response(
       JSON.stringify({ success, error: errorMessage }),

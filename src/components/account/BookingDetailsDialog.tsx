@@ -89,6 +89,7 @@ export function BookingDetailsDialog({
   const [adminError, setAdminError] = useState("");
   const [notificationLog, setNotificationLog] = useState<any[]>([]);
   const [liveBooking, setLiveBooking] = useState<Booking | null>(initialBooking);
+  const [lastSendTime, setLastSendTime] = useState<Record<string, number>>({});
 
   const activeBooking = liveBooking ?? initialBooking;
 
