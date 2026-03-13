@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Phone, Mail, User, Car, 
   DollarSign, Save, Loader2, CreditCard, Banknote, StickyNote, 
@@ -63,6 +64,19 @@ interface InternalNote {
   note: string;
   created_at: string;
   created_by: string | null;
+}
+
+interface BookingAddOn {
+  id: string;
+  add_on_id: string | null;
+  name: string;
+  price: number;
+}
+
+interface ServiceAddOn {
+  id: string;
+  name: string;
+  price: number;
 }
 
 interface BookingEditDialogProps {
@@ -118,6 +132,31 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
+  // Editable customer fields
+  const [editGuestName, setEditGuestName] = useState("");
+  const [editGuestEmail, setEditGuestEmail] = useState("");
+  const [editGuestPhone, setEditGuestPhone] = useState("");
+
+  // Editable vehicle fields
+  const [editVehicleMake, setEditVehicleMake] = useState("");
+  const [editVehicleModel, setEditVehicleModel] = useState("");
+  const [editVehicleYear, setEditVehicleYear] = useState("");
+  const [editVehicleType, setEditVehicleType] = useState("");
+
+  // Editable address fields
+  const [editAddress, setEditAddress] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editState, setEditState] = useState("");
+  const [editZip, setEditZip] = useState("");
+
+  // Editable price
+  const [editTotalPrice, setEditTotalPrice] = useState("");
+
+  // Add-ons
+  const [bookingAddOns, setBookingAddOns] = useState<BookingAddOn[]>([]);
+  const [allAddOns, setAllAddOns] = useState<ServiceAddOn[]>([]);
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
+
   // Initialize form when booking changes
   useEffect(() => {
     if (booking) {
@@ -127,10 +166,55 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       setPaymentStatus(booking.payment_status || "unpaid");
       setPaymentMethod(booking.payment_method || "in_person");
       setInternalNotes(booking.internal_notes || "");
+
+      // Customer
+      const name = booking.profile_name || booking.guest_name || "";
+      setEditGuestName(name);
+      setEditGuestEmail(booking.profile_email || booking.guest_email || "");
+      setEditGuestPhone(booking.profile_phone || booking.guest_phone || "");
+
+      // Vehicle
+      setEditVehicleMake(booking.vehicle_make || "");
+      setEditVehicleModel(booking.vehicle_model || "");
+      setEditVehicleYear(booking.vehicle_year ? String(booking.vehicle_year) : "");
+      setEditVehicleType(booking.vehicle_type || "");
+
+      // Address
+      setEditAddress(booking.service_address || "");
+      setEditCity(booking.service_city || "");
+      setEditState(booking.service_state || "LA");
+      setEditZip(booking.service_zip || "");
+
+      // Price
+      setEditTotalPrice(booking.total_price != null ? String(booking.total_price) : "");
+
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
+      fetchBookingAddOns(booking.id);
+      fetchAllAddOns();
     }
   }, [booking]);
+
+  const fetchBookingAddOns = async (bookingId: string) => {
+    const { data } = await supabase
+      .from("booking_add_ons")
+      .select("id, add_on_id, name, price")
+      .eq("booking_id", bookingId);
+    
+    if (data) {
+      setBookingAddOns(data);
+      setSelectedAddOnIds(data.map(a => a.add_on_id).filter(Boolean) as string[]);
+    }
+  };
+
+  const fetchAllAddOns = async () => {
+    const { data } = await supabase
+      .from("service_add_ons")
+      .select("id, name, price")
+      .eq("is_active", true);
+    
+    if (data) setAllAddOns(data.map(a => ({ ...a, price: Number(a.price) })));
+  };
 
   const fetchInternalNotes = async (bookingId: string) => {
     setLoadingNotes(true);
@@ -149,7 +233,6 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const fetchAvailableSlots = async (date: string, excludeBookingId: string) => {
     if (!booking) return;
     
-    // Get existing bookings for the date
     const { data: existingBookings } = await supabase
       .from("bookings")
       .select("id, scheduled_time, duration_minutes")
@@ -160,7 +243,6 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const duration = booking.duration_minutes || getPackageDuration(booking.services?.slug || "") || 120;
     const slots = generateTimeSlots(duration, existingBookings || []);
     
-    // Add current time if not in slots
     const currentTimeFormatted = booking.scheduled_time;
     if (!slots.includes(currentTimeFormatted)) {
       slots.unshift(currentTimeFormatted);
@@ -195,18 +277,46 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     }
   };
 
+  const toggleAddOn = (addOnId: string) => {
+    setSelectedAddOnIds(prev =>
+      prev.includes(addOnId) ? prev.filter(id => id !== addOnId) : [...prev, addOnId]
+    );
+  };
+
   const handleSave = async () => {
     if (!booking || !scheduledDate) return;
     
     setSaving(true);
     
-    const updates: any = {
+    // Calculate new add-ons total from selected add-ons
+    const newAddOnsTotal = selectedAddOnIds.reduce((sum, id) => {
+      const addon = allAddOns.find(a => a.id === id);
+      return sum + (addon?.price || 0);
+    }, 0);
+
+    const totalPrice = editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price;
+    const nameParts = editGuestName.trim().split(" ");
+
+    const updates: Record<string, any> = {
       scheduled_date: format(scheduledDate, "yyyy-MM-dd"),
       scheduled_time: scheduledTime,
       status,
       payment_status: paymentStatus,
       payment_method: paymentMethod,
       internal_notes: internalNotes || null,
+      guest_name: editGuestName.trim() || null,
+      guest_email: editGuestEmail.trim() || null,
+      guest_phone: editGuestPhone.trim() || null,
+      vehicle_make: editVehicleMake.trim() || null,
+      vehicle_model: editVehicleModel.trim() || null,
+      vehicle_year: editVehicleYear ? parseInt(editVehicleYear) : null,
+      vehicle_type: editVehicleType.trim() || null,
+      service_address: editAddress.trim() || null,
+      service_city: editCity.trim() || null,
+      service_state: editState.trim() || null,
+      service_zip: editZip.trim() || null,
+      total_price: totalPrice,
+      add_ons_total: newAddOnsTotal,
     };
     
     const { error } = await supabase
@@ -217,37 +327,63 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     if (error) {
       toast.error("Failed to save changes");
       console.error("Update error:", error);
-    } else {
-      toast.success("Booking updated successfully");
+      setSaving(false);
+      return;
+    }
 
-      // Auto-send review request when status changes to "completed"
-      if (status === "completed" && booking.status !== "completed") {
-        const customerName = booking.profile_name || booking.guest_name || "Customer";
-        const customerPhone = booking.profile_phone || booking.guest_phone;
-        const customerEmail = booking.profile_email || booking.guest_email;
+    // Sync booking_add_ons: remove old, insert new
+    const currentAddOnIds = bookingAddOns.map(a => a.add_on_id).filter(Boolean) as string[];
+    const toRemove = currentAddOnIds.filter(id => !selectedAddOnIds.includes(id));
+    const toAdd = selectedAddOnIds.filter(id => !currentAddOnIds.includes(id));
 
-        if (customerPhone || customerEmail) {
-          try {
-            await supabase.functions.invoke("send-review-request", {
-              body: {
-                booking_id: booking.id,
-                customer_name: customerName,
-                customer_phone: customerPhone || undefined,
-                customer_email: customerEmail || undefined,
-              },
-            });
-            toast.success("Review request sent to customer");
-          } catch (err) {
-            console.error("Review request error:", err);
-            // Don't show error to admin - review request is secondary
-          }
+    if (toRemove.length > 0) {
+      await supabase
+        .from("booking_add_ons")
+        .delete()
+        .eq("booking_id", booking.id)
+        .in("add_on_id", toRemove);
+    }
+
+    if (toAdd.length > 0) {
+      const newRecords = toAdd.map(addOnId => {
+        const addon = allAddOns.find(a => a.id === addOnId);
+        return {
+          booking_id: booking.id,
+          add_on_id: addOnId,
+          name: addon?.name || "Add-on",
+          price: addon?.price || 0,
+        };
+      });
+      await supabase.from("booking_add_ons").insert(newRecords);
+    }
+
+    toast.success("Booking updated successfully");
+
+    // Auto-send review request when status changes to "completed"
+    if (status === "completed" && booking.status !== "completed") {
+      const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
+      const customerPhone = editGuestPhone || booking.profile_phone || booking.guest_phone;
+      const customerEmail = editGuestEmail || booking.profile_email || booking.guest_email;
+
+      if (customerPhone || customerEmail) {
+        try {
+          await supabase.functions.invoke("send-review-request", {
+            body: {
+              booking_id: booking.id,
+              customer_name: customerName,
+              customer_phone: customerPhone || undefined,
+              customer_email: customerEmail || undefined,
+            },
+          });
+          toast.success("Review request sent to customer");
+        } catch (err) {
+          console.error("Review request error:", err);
         }
       }
-
-      onSave();
-      onOpenChange(false);
     }
-    
+
+    onSave();
+    onOpenChange(false);
     setSaving(false);
   };
 
@@ -281,7 +417,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const generateReceipt = () => {
     if (!booking) return;
     
-    const customerName = booking.profile_name || booking.guest_name || "Customer";
+    const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
     const serviceName = booking.services?.name || "Detailing Service";
     
     const receiptContent = `
@@ -292,28 +428,25 @@ Receipt #: ${booking.id.slice(0, 8).toUpperCase()}
 
 CUSTOMER
 ${customerName}
-${booking.profile_email || booking.guest_email || ""}
-${booking.profile_phone || booking.guest_phone || ""}
+${editGuestEmail || booking.profile_email || booking.guest_email || ""}
+${editGuestPhone || booking.profile_phone || booking.guest_phone || ""}
 
 SERVICE
 ${serviceName}
-${booking.vehicle_make || ""} ${booking.vehicle_model || ""} (${booking.vehicle_type || ""})
-Date: ${format(parseISO(booking.scheduled_date), "MMMM d, yyyy")}
-Time: ${booking.scheduled_time}
+${editVehicleMake || ""} ${editVehicleModel || ""} (${editVehicleType || ""})
+Date: ${scheduledDate ? format(scheduledDate, "MMMM d, yyyy") : booking.scheduled_date}
+Time: ${scheduledTime || booking.scheduled_time}
 
 LOCATION
-${booking.service_address || ""}
-${booking.service_city || ""}, ${booking.service_state || "LA"} ${booking.service_zip || ""}
+${editAddress || ""}
+${editCity || ""}, ${editState || "LA"} ${editZip || ""}
 
 PAYMENT
 ${"-".repeat(30)}
-Subtotal:      $${(booking.subtotal || booking.total_price || 0).toFixed(2)}
-Add-ons:       $${(booking.add_ons_total || 0).toFixed(2)}
-${"-".repeat(30)}
-TOTAL:         $${(booking.total_price || 0).toFixed(2)}
+Total:         $${(editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price || 0).toFixed(2)}
 
-Payment Method: ${booking.payment_method || "N/A"}
-Payment Status: ${booking.payment_status || "N/A"}
+Payment Method: ${paymentMethod || "N/A"}
+Payment Status: ${paymentStatus || "N/A"}
 
 ========================
 Thank you for your business!
@@ -335,9 +468,7 @@ AV Detailing
 
   if (!booking) return null;
 
-  const customerName = booking.profile_name || booking.guest_name || "Unknown";
-  const customerPhone = booking.profile_phone || booking.guest_phone;
-  const customerEmail = booking.profile_email || booking.guest_email;
+  const customerName = editGuestName || booking.profile_name || booking.guest_name || "Unknown";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -352,74 +483,67 @@ AV Detailing
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="details">Customer</TabsTrigger>
+            <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="payment">Payment</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
           </TabsList>
 
-          {/* Details Tab */}
+          {/* Customer & Details Tab */}
           <TabsContent value="details" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Customer
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-1 text-sm">
-                  <div className="font-medium">{customerName}</div>
-                  {customerPhone && (
-                    <a href={`tel:${customerPhone}`} className="text-primary hover:underline flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      {customerPhone}
-                    </a>
-                  )}
-                  {customerEmail && (
-                    <a href={`mailto:${customerEmail}`} className="text-primary hover:underline flex items-center gap-1">
-                      <Mail className="h-3 w-3" />
-                      {customerEmail}
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Car className="h-4 w-4" />
-                    Vehicle
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-1 text-sm">
-                  <div className="font-medium">
-                    {booking.vehicle_year} {booking.vehicle_make} {booking.vehicle_model}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Customer Info
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Full Name</Label>
+                    <Input value={editGuestName} onChange={e => setEditGuestName(e.target.value)} placeholder="Customer name" />
                   </div>
-                  <div className="text-muted-foreground">
-                    Type: {booking.vehicle_type} • Size: {booking.vehicle_size}
+                  <div className="space-y-1">
+                    <Label className="text-xs">Phone</Label>
+                    <Input value={editGuestPhone} onChange={e => setEditGuestPhone(e.target.value)} placeholder="(225) 555-0000" />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Email</Label>
+                  <Input value={editGuestEmail} onChange={e => setEditGuestEmail(e.target.value)} placeholder="email@example.com" type="email" />
+                </div>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Service Location
+                  Service Address
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm">
-                <a 
-                  href={`https://maps.google.com/?q=${encodeURIComponent(`${booking.service_address}, ${booking.service_city}, ${booking.service_state} ${booking.service_zip}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  {booking.service_address}, {booking.service_city}, {booking.service_state} {booking.service_zip}
-                </a>
+              <CardContent className="space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Street Address</Label>
+                  <Input value={editAddress} onChange={e => setEditAddress(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">City</Label>
+                    <Input value={editCity} onChange={e => setEditCity(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">State</Label>
+                    <Input value={editState} onChange={e => setEditState(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">ZIP</Label>
+                    <Input value={editZip} onChange={e => setEditZip(e.target.value)} />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -465,6 +589,65 @@ AV Detailing
             )}
           </TabsContent>
 
+          {/* Vehicle Tab */}
+          <TabsContent value="vehicle" className="space-y-4 mt-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Car className="h-4 w-4" />
+                  Vehicle Info
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Make</Label>
+                    <Input value={editVehicleMake} onChange={e => setEditVehicleMake(e.target.value)} placeholder="Toyota" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Model</Label>
+                    <Input value={editVehicleModel} onChange={e => setEditVehicleModel(e.target.value)} placeholder="Camry" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Year</Label>
+                    <Input value={editVehicleYear} onChange={e => setEditVehicleYear(e.target.value)} placeholder="2024" type="number" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Type</Label>
+                    <Input value={editVehicleType} onChange={e => setEditVehicleType(e.target.value)} placeholder="SUV (5 seats)" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Add-ons */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Add-ons</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allAddOns.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No add-ons available</p>
+                ) : (
+                  <div className="space-y-2">
+                    {allAddOns.map(addon => (
+                      <label key={addon.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer">
+                        <Checkbox
+                          checked={selectedAddOnIds.includes(addon.id)}
+                          onCheckedChange={() => toggleAddOn(addon.id)}
+                        />
+                        <span className="flex-1 text-sm">{addon.name}</span>
+                        <span className="text-sm text-muted-foreground">${addon.price.toFixed(2)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Schedule Tab */}
           <TabsContent value="schedule" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
@@ -482,7 +665,6 @@ AV Detailing
                       mode="single"
                       selected={scheduledDate}
                       onSelect={handleDateChange}
-                      disabled={(date) => date < new Date()}
                       className="pointer-events-auto"
                     />
                   </PopoverContent>
@@ -522,7 +704,7 @@ AV Detailing
             <div className="grid grid-cols-3 gap-4">
               <Card>
                 <CardContent className="pt-4 text-center">
-                  <div className="text-2xl font-bold">${(booking.total_price || 0).toFixed(2)}</div>
+                  <div className="text-2xl font-bold">${(editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price || 0).toFixed(2)}</div>
                   <div className="text-sm text-muted-foreground">Total</div>
                 </CardContent>
               </Card>
@@ -548,7 +730,7 @@ AV Detailing
               <>
                 <Separator />
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Payment Status</Label>
                     <Select value={paymentStatus} onValueChange={setPaymentStatus}>
@@ -576,45 +758,29 @@ AV Detailing
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Amount Override ($)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      value={editTotalPrice} 
+                      onChange={e => setEditTotalPrice(e.target.value)} 
+                      placeholder={String(booking.total_price || 0)}
+                    />
+                  </div>
                 </div>
 
                 {paymentStatus !== "paid" && (
                   <div className="space-y-2">
                     <Label>Quick Actions - Mark as Paid</Label>
                     <div className="flex flex-wrap gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleMarkAsPaid("cash")}
-                        disabled={saving}
-                      >
-                        <Banknote className="h-4 w-4 mr-1" />
-                        Cash
+                      <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid("cash")} disabled={saving}>
+                        <Banknote className="h-4 w-4 mr-1" /> Cash
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleMarkAsPaid("zelle")}
-                        disabled={saving}
-                      >
-                        Zelle
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleMarkAsPaid("venmo")}
-                        disabled={saving}
-                      >
-                        Venmo
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleMarkAsPaid("check")}
-                        disabled={saving}
-                      >
-                        Check
-                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid("zelle")} disabled={saving}>Zelle</Button>
+                      <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid("venmo")} disabled={saving}>Venmo</Button>
+                      <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid("check")} disabled={saving}>Check</Button>
                     </div>
                   </div>
                 )}
@@ -623,8 +789,7 @@ AV Detailing
 
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={generateReceipt}>
-                    <Receipt className="h-4 w-4 mr-1" />
-                    Download Receipt
+                    <Receipt className="h-4 w-4 mr-1" /> Download Receipt
                   </Button>
                   
                   {booking.stripe_payment_intent_id && (
@@ -633,8 +798,7 @@ AV Detailing
                       size="sm" 
                       onClick={() => window.open(`https://dashboard.stripe.com/payments/${booking.stripe_payment_intent_id}`, "_blank")}
                     >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      View in Stripe
+                      <ExternalLink className="h-4 w-4 mr-1" /> View in Stripe
                     </Button>
                   )}
                 </div>
