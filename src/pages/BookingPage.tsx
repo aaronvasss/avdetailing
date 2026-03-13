@@ -525,10 +525,10 @@ const BookingPage = () => {
         scheduled_time: selectedTime, // backend normalizes (also accepts HH:MM:SS)
         duration_minutes: selectedPackageDuration, // Include service duration for scheduling
 
-        // guest info only (backend will null these for logged-in users)
-        guest_name: user ? null : `${customerInfo.firstName} ${customerInfo.lastName}`,
-        guest_email: user ? null : customerInfo.email,
-        guest_phone: user ? null : customerInfo.phone,
+        // Always store customer contact info on the booking, even if admin is creating it
+        guest_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+        guest_email: customerInfo.email,
+        guest_phone: customerInfo.phone,
 
         vehicle_type: vehicleTypeLabel,
         vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
