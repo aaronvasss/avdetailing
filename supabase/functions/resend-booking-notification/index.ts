@@ -82,9 +82,10 @@ serve(async (req) => {
       profile = data;
     }
 
-    const customerName = profile?.full_name || booking.guest_name || "Customer";
-    const customerEmail = profile?.email || booking.guest_email;
-    const customerPhone = profile?.phone || booking.guest_phone;
+    // Prioritize guest fields (actual customer) over profile (may be admin who created booking)
+    const customerName = booking.guest_name || profile?.full_name || "Customer";
+    const customerEmail = booking.guest_email || profile?.email;
+    const customerPhone = booking.guest_phone || profile?.phone;
     const serviceName = booking.services?.name || "Detailing Service";
 
     // Fetch add-ons

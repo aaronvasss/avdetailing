@@ -167,11 +167,11 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       setPaymentMethod(booking.payment_method || "in_person");
       setInternalNotes(booking.internal_notes || "");
 
-      // Customer
-      const name = booking.profile_name || booking.guest_name || "";
+      // Customer — prioritize guest fields (actual customer) over profile (may be admin)
+      const name = booking.guest_name || booking.profile_name || "";
       setEditGuestName(name);
-      setEditGuestEmail(booking.profile_email || booking.guest_email || "");
-      setEditGuestPhone(booking.profile_phone || booking.guest_phone || "");
+      setEditGuestEmail(booking.guest_email || booking.profile_email || "");
+      setEditGuestPhone(booking.guest_phone || booking.profile_phone || "");
 
       // Vehicle
       setEditVehicleMake(booking.vehicle_make || "");

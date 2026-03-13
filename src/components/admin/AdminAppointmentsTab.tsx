@@ -176,7 +176,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
   };
 
   const getCustomerName = (booking: Booking) => {
-    return booking.profile_name || booking.guest_name || "Unknown";
+    return booking.guest_name || booking.profile_name || "Unknown";
   };
 
   const getCustomerPhone = (booking: Booking) => {
