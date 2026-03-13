@@ -103,7 +103,71 @@ export function BookingDetailsDialog({
     }
   }, [booking?.id, booking?.user_id]);
 
+  // Fetch notification log for this booking
+  useEffect(() => {
+    if (booking?.id && isAdmin) {
+      supabase
+        .from("booking_notification_log")
+        .select("*")
+        .eq("booking_id", booking.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => setNotificationLog(data || []));
+    } else {
+      setNotificationLog([]);
+    }
+  }, [booking?.id, isAdmin]);
+
+  // Reset sent states when booking changes
+  useEffect(() => {
+    setEmailSent(null);
+    setSmsSent(null);
+    setAdminSent(null);
+    setEmailError("");
+    setSmsError("");
+    setAdminError("");
+  }, [booking?.id]);
+
   if (!booking) return null;
+
+  const handleResendNotification = async (type: "email_confirmation" | "sms_confirmation" | "admin_notification") => {
+    const setLoading = type === "email_confirmation" ? setSendingEmail : type === "sms_confirmation" ? setSendingSms : setSendingAdmin;
+    const setSent = type === "email_confirmation" ? setEmailSent : type === "sms_confirmation" ? setSmsSent : setAdminSent;
+    const setErr = type === "email_confirmation" ? setEmailError : type === "sms_confirmation" ? setSmsError : setAdminError;
+
+    setLoading(true);
+    setSent(null);
+    setErr("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("resend-booking-notification", {
+        body: { bookingId: booking.id, type },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setSent("success");
+      toast.success(type === "email_confirmation" ? "Confirmation email resent!" : type === "sms_confirmation" ? "Confirmation SMS resent!" : "Admin notification resent!");
+
+      // Refresh log
+      const { data: logData } = await supabase
+        .from("booking_notification_log")
+        .select("*")
+        .eq("booking_id", booking.id)
+        .order("created_at", { ascending: false });
+      setNotificationLog(logData || []);
+
+      setTimeout(() => setSent(null), 3000);
+    } catch (err: any) {
+      setSent("error");
+      setErr(err.message || "Failed to send");
+      toast.error(`Failed: ${err.message || "Unknown error"}`);
+      setTimeout(() => setSent(null), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const isUpcoming =
     new Date(booking.scheduled_date) >= new Date() &&
