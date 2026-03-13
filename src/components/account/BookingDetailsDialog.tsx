@@ -96,7 +96,8 @@ export function BookingDetailsDialog({
   const canReschedule = isUpcoming && booking.status !== "in_progress";
   const canCancel = isUpcoming && booking.status !== "in_progress";
 
-  const processingFee = booking.total_price ? booking.total_price * 0.035 : 0;
+  const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
+  const processingFee = isOnlinePayment && booking.total_price ? booking.total_price * 0.035 : 0;
   const totalWithFee = booking.total_price
     ? booking.total_price + processingFee
     : 0;
