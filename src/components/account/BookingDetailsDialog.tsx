@@ -65,7 +65,7 @@ const paymentStatusColors: Record<string, string> = {
 };
 
 export function BookingDetailsDialog({
-  booking,
+  booking: initialBooking,
   open,
   onOpenChange,
   onReschedule,
@@ -88,34 +88,74 @@ export function BookingDetailsDialog({
   const [smsError, setSmsError] = useState("");
   const [adminError, setAdminError] = useState("");
   const [notificationLog, setNotificationLog] = useState<any[]>([]);
+  const [liveBooking, setLiveBooking] = useState<Booking | null>(initialBooking);
+
+  const activeBooking = liveBooking ?? initialBooking;
+
+  const refreshNotificationLog = async (bookingId: string) => {
+    const { data } = await supabase
+      .from("booking_notification_log")
+      .select("*")
+      .eq("booking_id", bookingId)
+      .order("created_at", { ascending: false });
+
+    setNotificationLog(data || []);
+  };
+
+  const refreshBookingFromDatabase = async (bookingId: string): Promise<Booking> => {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(`
+        *,
+        services (name, description, slug),
+        booking_add_ons (id, name, price)
+      `)
+      .eq("id", bookingId)
+      .single();
+
+    if (error || !data) {
+      throw error || new Error("Failed to refresh booking");
+    }
+
+    const latest = data as unknown as Booking;
+    setLiveBooking(latest);
+    return latest;
+  };
+
+  useEffect(() => {
+    setLiveBooking(initialBooking);
+  }, [initialBooking]);
+
+  useEffect(() => {
+    if (open && initialBooking?.id) {
+      refreshBookingFromDatabase(initialBooking.id).catch((error) => {
+        console.error("Failed to refresh booking details:", error);
+      });
+    }
+  }, [open, initialBooking?.id]);
 
   // Fetch profile data for logged-in users
   useEffect(() => {
-    if (booking?.user_id && !booking.guest_name) {
+    if (activeBooking?.user_id && !activeBooking.guest_name) {
       supabase
         .from("profiles")
         .select("full_name, email, phone")
-        .eq("user_id", booking.user_id)
+        .eq("user_id", activeBooking.user_id)
         .maybeSingle()
         .then(({ data }) => setProfileData(data));
     } else {
       setProfileData(null);
     }
-  }, [booking?.id, booking?.user_id]);
+  }, [activeBooking?.id, activeBooking?.user_id, activeBooking?.guest_name]);
 
   // Fetch notification log for this booking
   useEffect(() => {
-    if (booking?.id && isAdmin) {
-      supabase
-        .from("booking_notification_log")
-        .select("*")
-        .eq("booking_id", booking.id)
-        .order("created_at", { ascending: false })
-        .then(({ data }) => setNotificationLog(data || []));
+    if (activeBooking?.id && isAdmin) {
+      refreshNotificationLog(activeBooking.id);
     } else {
       setNotificationLog([]);
     }
-  }, [booking?.id, isAdmin]);
+  }, [activeBooking?.id, isAdmin]);
 
   // Reset sent states when booking changes
   useEffect(() => {
@@ -125,9 +165,10 @@ export function BookingDetailsDialog({
     setEmailError("");
     setSmsError("");
     setAdminError("");
-  }, [booking?.id]);
+  }, [activeBooking?.id]);
 
-  if (!booking) return null;
+  if (!activeBooking) return null;
+  const booking = activeBooking;
 
   const handleResendNotification = async (type: "email_confirmation" | "sms_confirmation" | "admin_notification") => {
     const setLoading = type === "email_confirmation" ? setSendingEmail : type === "sms_confirmation" ? setSendingSms : setSendingAdmin;
@@ -139,8 +180,18 @@ export function BookingDetailsDialog({
     setErr("");
 
     try {
+      const latestBooking = await refreshBookingFromDatabase(booking.id);
+
+      if (type === "email_confirmation" && !latestBooking.guest_email?.trim()) {
+        throw new Error("No customer email on file");
+      }
+
+      if (type === "sms_confirmation" && !latestBooking.guest_phone?.trim()) {
+        throw new Error("No customer phone on file");
+      }
+
       const { data, error } = await supabase.functions.invoke("resend-booking-notification", {
-        body: { bookingId: booking.id, type },
+        body: { bookingId: latestBooking.id, type },
       });
 
       if (error) throw error;
@@ -149,14 +200,7 @@ export function BookingDetailsDialog({
       setSent("success");
       toast.success(type === "email_confirmation" ? "Confirmation email resent!" : type === "sms_confirmation" ? "Confirmation SMS resent!" : "Admin notification resent!");
 
-      // Refresh log
-      const { data: logData } = await supabase
-        .from("booking_notification_log")
-        .select("*")
-        .eq("booking_id", booking.id)
-        .order("created_at", { ascending: false });
-      setNotificationLog(logData || []);
-
+      await refreshNotificationLog(latestBooking.id);
       setTimeout(() => setSent(null), 3000);
     } catch (err: any) {
       setSent("error");
@@ -210,9 +254,20 @@ export function BookingDetailsDialog({
     setUpdatingStatus(false);
   };
 
-  const handleEditSave = () => {
-    onStatusChange?.();
-    setEditDialogOpen(false);
+  const handleEditSave = async () => {
+    try {
+      await refreshBookingFromDatabase(booking.id);
+      if (isAdmin) {
+        await refreshNotificationLog(booking.id);
+      }
+      onStatusChange?.();
+    } catch (error) {
+      console.error("Failed to refresh updated booking:", error);
+      toast.error("Saved, but failed to refresh latest booking details");
+      onStatusChange?.();
+    } finally {
+      setEditDialogOpen(false);
+    }
   };
 
   // Build edit-compatible booking object for BookingEditDialog

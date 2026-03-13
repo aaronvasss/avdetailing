@@ -71,7 +71,7 @@ serve(async (req) => {
       });
     }
 
-    // Fetch profile if user_id exists
+    // Fetch profile only for display fallbacks (never for customer delivery recipient)
     let profile: any = null;
     if (booking.user_id) {
       const { data } = await supabase
@@ -82,10 +82,10 @@ serve(async (req) => {
       profile = data;
     }
 
-    // Prioritize guest fields (actual customer) over profile (may be admin who created booking)
-    const customerName = booking.guest_name || profile?.full_name || "Customer";
-    const customerEmail = booking.guest_email || profile?.email;
-    const customerPhone = booking.guest_phone || profile?.phone;
+    const customerName = booking.guest_name?.trim() || profile?.full_name || "Customer";
+    // Customer notification recipients must come strictly from current booking fields
+    const customerEmail = booking.guest_email?.trim() || null;
+    const customerPhone = booking.guest_phone?.trim() || null;
     const serviceName = booking.services?.name || "Detailing Service";
 
     // Fetch add-ons
