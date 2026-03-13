@@ -25,6 +25,7 @@ export type AdminSection =
   | "customers"
   | "memberships"
   | "analytics"
+  | "team-chat"
   | "settings";
 
 interface AdminSidebarProps {
