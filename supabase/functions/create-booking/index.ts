@@ -133,10 +133,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Generate a secure manage token for guest access
     const manageToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
 
-    // Look up service base price from DB
+    // Look up service base price and name from DB
     const { data: service, error: serviceError } = await serviceClient
       .from("services")
-      .select("base_price")
+      .select("base_price, name")
       .eq("id", body.service_id)
       .single();
 
