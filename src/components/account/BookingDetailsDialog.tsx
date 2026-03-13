@@ -77,6 +77,18 @@ export function BookingDetailsDialog({
   const [profileData, setProfileData] = useState<{ full_name: string | null; email: string | null; phone: string | null } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
+  // Resend notification states
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingSms, setSendingSms] = useState(false);
+  const [sendingAdmin, setSendingAdmin] = useState(false);
+  const [emailSent, setEmailSent] = useState<"success" | "error" | null>(null);
+  const [smsSent, setSmsSent] = useState<"success" | "error" | null>(null);
+  const [adminSent, setAdminSent] = useState<"success" | "error" | null>(null);
+  const [emailError, setEmailError] = useState("");
+  const [smsError, setSmsError] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [notificationLog, setNotificationLog] = useState<any[]>([]);
+
   // Fetch profile data for logged-in users
   useEffect(() => {
     if (booking?.user_id && !booking.guest_name) {
