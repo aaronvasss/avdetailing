@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 // Admin email for separate booking alert
 const ADMIN_EMAIL = "aaronvasquez100@gmail.com";
 
@@ -823,6 +823,9 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
+    // Create service-role client for logging notifications
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
     // Determine if the customer email is the admin's own email
     const isAdminBooking = customerEmail.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
@@ -845,9 +848,24 @@ const handler = async (req: Request): Promise<Response> => {
       const customerData = await customerRes.json();
       if (!customerRes.ok) {
         console.error("Customer email failed:", customerData);
+        // Log failed customer email
+        await supabaseAdmin.from("booking_notification_log").insert({
+          booking_id: bookingId,
+          notification_type: "email_confirmation",
+          recipient: customerEmail.trim(),
+          status: "failed",
+          error_message: customerData.message || `HTTP ${customerRes.status}`,
+        });
         throw new Error(customerData.message || "Failed to send customer email");
       }
       console.log("Customer confirmation email sent:", customerData);
+      // Log successful customer email
+      await supabaseAdmin.from("booking_notification_log").insert({
+        booking_id: bookingId,
+        notification_type: "email_confirmation",
+        recipient: customerEmail.trim(),
+        status: "sent",
+      });
     } else {
       console.log("Skipping customer confirmation — admin is the customer");
     }
@@ -889,9 +907,21 @@ const handler = async (req: Request): Promise<Response> => {
     const adminData = await adminRes.json();
     if (!adminRes.ok) {
       console.error("Admin notification email failed:", adminData);
-      // Don't throw — customer email already sent successfully
+      await supabaseAdmin.from("booking_notification_log").insert({
+        booking_id: bookingId,
+        notification_type: "admin_notification",
+        recipient: ADMIN_EMAIL,
+        status: "failed",
+        error_message: adminData.message || `HTTP ${adminRes.status}`,
+      });
     } else {
       console.log("Admin notification email sent:", adminData);
+      await supabaseAdmin.from("booking_notification_log").insert({
+        booking_id: bookingId,
+        notification_type: "admin_notification",
+        recipient: ADMIN_EMAIL,
+        status: "sent",
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
