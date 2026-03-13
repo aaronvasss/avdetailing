@@ -171,7 +171,18 @@ export function BookingDetailsDialog({
   if (!activeBooking) return null;
   const booking = activeBooking;
 
+  const RESEND_COOLDOWN_MS = 10000; // 10 seconds between resends
+
   const handleResendNotification = async (type: "email_confirmation" | "sms_confirmation" | "admin_notification") => {
+    // Debounce: prevent rapid-fire clicks within 10 seconds
+    const now = Date.now();
+    const lastTime = lastSendTime[type] || 0;
+    if (now - lastTime < RESEND_COOLDOWN_MS) {
+      const remaining = Math.ceil((RESEND_COOLDOWN_MS - (now - lastTime)) / 1000);
+      toast.error(`Please wait ${remaining}s before resending`);
+      return;
+    }
+
     const setLoading = type === "email_confirmation" ? setSendingEmail : type === "sms_confirmation" ? setSendingSms : setSendingAdmin;
     const setSent = type === "email_confirmation" ? setEmailSent : type === "sms_confirmation" ? setSmsSent : setAdminSent;
     const setErr = type === "email_confirmation" ? setEmailError : type === "sms_confirmation" ? setSmsError : setAdminError;
@@ -179,6 +190,7 @@ export function BookingDetailsDialog({
     setLoading(true);
     setSent(null);
     setErr("");
+    setLastSendTime(prev => ({ ...prev, [type]: now }));
 
     try {
       const latestBooking = await refreshBookingFromDatabase(booking.id);
