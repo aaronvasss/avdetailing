@@ -240,6 +240,33 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Notify workers about new booking
+    try {
+      const formatTime12 = (t: string) => {
+        const [h, m] = t.split(":");
+        const hour = parseInt(h);
+        return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+      };
+      await fetch(`${SUPABASE_URL}/functions/v1/notify-workers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          type: "new_booking",
+          booking_id: booking.id,
+          service_name: service.name,
+          customer_name: insertPayload.guest_name || "Customer",
+          scheduled_date: body.scheduled_date,
+          scheduled_time: formatTime12(scheduled_time),
+          address: insertPayload.service_address || "",
+        }),
+      });
+    } catch (notifyErr) {
+      console.error("Failed to notify workers:", notifyErr);
+    }
+
     return new Response(JSON.stringify({ booking, manageToken: booking.manage_token }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
