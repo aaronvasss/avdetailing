@@ -246,8 +246,9 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric'
     });
 
-    // Calculate processing fee (3.5%)
-    const processingFee = totalPrice * 0.035;
+    // Calculate processing fee (3.5%) — only for online/Stripe payments
+    const isOnlinePayment = paymentMethod === 'online' || paymentMethod === 'stripe' || paymentMethod === 'card';
+    const processingFee = isOnlinePayment ? totalPrice * 0.035 : 0;
     const totalWithFee = totalPrice + processingFee;
     const remainingBalance = totalWithFee - depositAmount;
 
@@ -378,12 +379,14 @@ const handler = async (req: Request): Promise<Response> => {
             <span style="display: table-cell; text-align: right; color: #d4d4d4; font-size: 13px;">$${totalPrice.toFixed(2)}</span>
           </div>
         </div>
+        ${isOnlinePayment ? `
         <div style="margin-bottom: 12px;">
           <div style="display: table; width: 100%;">
             <span style="display: table-cell; color: #a3a3a3; font-size: 13px;">Processing Fee (3.5%)</span>
             <span style="display: table-cell; text-align: right; color: #d4d4d4; font-size: 13px;">$${processingFee.toFixed(2)}</span>
           </div>
         </div>
+        ` : ''}
         
         <div style="border-top: 2px solid rgba(239,68,68,0.3); padding-top: 12px;">
           <div style="display: table; width: 100%; margin-bottom: 8px;">

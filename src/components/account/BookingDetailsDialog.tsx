@@ -96,7 +96,8 @@ export function BookingDetailsDialog({
   const canReschedule = isUpcoming && booking.status !== "in_progress";
   const canCancel = isUpcoming && booking.status !== "in_progress";
 
-  const processingFee = booking.total_price ? booking.total_price * 0.035 : 0;
+  const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
+  const processingFee = isOnlinePayment && booking.total_price ? booking.total_price * 0.035 : 0;
   const totalWithFee = booking.total_price
     ? booking.total_price + processingFee
     : 0;
@@ -302,10 +303,12 @@ export function BookingDetailsDialog({
                     ))}
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Processing Fee (3.5%)</span>
-                  <span>${processingFee.toFixed(2)}</span>
-                </div>
+                {isOnlinePayment && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Processing Fee (3.5%)</span>
+                    <span>${processingFee.toFixed(2)}</span>
+                  </div>
+                )}
                 <Separator className="my-2" />
                 <div className="flex justify-between font-semibold text-base">
                   <span>Total</span>
