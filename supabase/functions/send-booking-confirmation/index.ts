@@ -215,6 +215,7 @@ const handler = async (req: Request): Promise<Response> => {
     gateCode,
     parkingInstructions,
     manageToken,
+    skipAdminNotification = false,
   }: BookingConfirmationRequest = rawData;
 
   // Build manage URLs - always link to account page for managing bookings
