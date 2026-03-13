@@ -19,6 +19,7 @@ import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminClientsTab } from "@/components/admin/AdminClientsTab";
 import { AdminMembershipsTab } from "@/components/admin/AdminMembershipsTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
+import { AdminTeamChatTab } from "@/components/admin/AdminTeamChatTab";
 
 interface AdminDashboardProps {
   user: any;
