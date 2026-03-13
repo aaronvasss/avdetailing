@@ -33,6 +33,7 @@ const sectionTitles: Record<AdminSection, string> = {
   customers: "Customers",
   memberships: "Memberships",
   analytics: "Analytics",
+  "team-chat": "Team Chat",
   settings: "Settings",
 };
 
