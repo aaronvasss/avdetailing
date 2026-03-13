@@ -119,6 +119,7 @@ serve(async (req) => {
       recipient = customerEmail;
 
       // Call the existing send-booking-confirmation function
+      // Pass skipAdminNotification=true so only the CUSTOMER gets the email, not the admin again
       const confirmPayload = {
         customerEmail,
         customerName,
@@ -141,6 +142,7 @@ serve(async (req) => {
         depositAmount: booking.deposit_amount || 0,
         paymentMethod: booking.payment_method || "in_person",
         manageToken: booking.manage_token,
+        skipAdminNotification: true,
       };
 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/send-booking-confirmation`, {
