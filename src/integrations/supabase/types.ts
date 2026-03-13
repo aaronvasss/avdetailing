@@ -129,6 +129,44 @@ export type Database = {
           },
         ]
       }
+      booking_notification_log: {
+        Row: {
+          booking_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          notification_type: string
+          recipient: string
+          status: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notification_type: string
+          recipient: string
+          status?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notification_type?: string
+          recipient?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_notification_log_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_photos: {
         Row: {
           booking_id: string
