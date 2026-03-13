@@ -246,8 +246,9 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric'
     });
 
-    // Calculate processing fee (3.5%)
-    const processingFee = totalPrice * 0.035;
+    // Calculate processing fee (3.5%) — only for online/Stripe payments
+    const isOnlinePayment = paymentMethod === 'online' || paymentMethod === 'stripe' || paymentMethod === 'card';
+    const processingFee = isOnlinePayment ? totalPrice * 0.035 : 0;
     const totalWithFee = totalPrice + processingFee;
     const remainingBalance = totalWithFee - depositAmount;
 

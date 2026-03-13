@@ -303,10 +303,12 @@ export function BookingDetailsDialog({
                     ))}
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Processing Fee (3.5%)</span>
-                  <span>${processingFee.toFixed(2)}</span>
-                </div>
+                {isOnlinePayment && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Processing Fee (3.5%)</span>
+                    <span>${processingFee.toFixed(2)}</span>
+                  </div>
+                )}
                 <Separator className="my-2" />
                 <div className="flex justify-between font-semibold text-base">
                   <span>Total</span>
