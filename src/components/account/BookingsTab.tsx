@@ -48,6 +48,7 @@ interface Booking {
   guest_phone: string | null;
   payment_method: string | null;
   internal_notes: string | null;
+  user_id: string | null;
   services: {
     name: string;
     description: string | null;
