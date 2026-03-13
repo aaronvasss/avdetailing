@@ -47,6 +47,7 @@ interface BookingConfirmationRequest {
   gateCode?: string;
   parkingInstructions?: string;
   manageToken?: string;
+  skipAdminNotification?: boolean;
 }
 
 // Get client identifier for rate limiting

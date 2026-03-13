@@ -228,11 +228,12 @@ export function BookingDetailsDialog({
     : 0;
   const remainingBalance = totalWithFee - (booking.deposit_amount || 0);
 
-  // Resolve customer info: prioritize guest fields (which contain the actual customer info
-  // entered during booking) over profile data (which may be the admin who created the booking)
+  // Resolve customer info: ONLY use guest fields from the booking record.
+  // Never fall back to profileData (which is the admin's own profile) for email/phone,
+  // as that would mislead admins into thinking the admin email is the customer's email.
   const customerName = booking.guest_name || profileData?.full_name || "Unknown";
-  const customerEmail = booking.guest_email || profileData?.email;
-  const customerPhone = booking.guest_phone || profileData?.phone;
+  const customerEmail = booking.guest_email || null;
+  const customerPhone = booking.guest_phone || null;
 
   const handleStatusChange = async (newStatus: string) => {
     setUpdatingStatus(true);
