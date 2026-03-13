@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.calendar-feed]
 verify_jwt = false
+
+[functions.resend-booking-notification]
+verify_jwt = false

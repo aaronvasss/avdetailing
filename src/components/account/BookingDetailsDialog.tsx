@@ -26,6 +26,11 @@ import {
   StickyNote,
   CreditCard,
   Pencil,
+  Bell,
+  Send,
+  MessageSquare,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendInProgressSms } from "@/lib/in-progress-sms";
@@ -72,6 +77,18 @@ export function BookingDetailsDialog({
   const [profileData, setProfileData] = useState<{ full_name: string | null; email: string | null; phone: string | null } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
+  // Resend notification states
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingSms, setSendingSms] = useState(false);
+  const [sendingAdmin, setSendingAdmin] = useState(false);
+  const [emailSent, setEmailSent] = useState<"success" | "error" | null>(null);
+  const [smsSent, setSmsSent] = useState<"success" | "error" | null>(null);
+  const [adminSent, setAdminSent] = useState<"success" | "error" | null>(null);
+  const [emailError, setEmailError] = useState("");
+  const [smsError, setSmsError] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [notificationLog, setNotificationLog] = useState<any[]>([]);
+
   // Fetch profile data for logged-in users
   useEffect(() => {
     if (booking?.user_id && !booking.guest_name) {
@@ -86,7 +103,71 @@ export function BookingDetailsDialog({
     }
   }, [booking?.id, booking?.user_id]);
 
+  // Fetch notification log for this booking
+  useEffect(() => {
+    if (booking?.id && isAdmin) {
+      supabase
+        .from("booking_notification_log")
+        .select("*")
+        .eq("booking_id", booking.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => setNotificationLog(data || []));
+    } else {
+      setNotificationLog([]);
+    }
+  }, [booking?.id, isAdmin]);
+
+  // Reset sent states when booking changes
+  useEffect(() => {
+    setEmailSent(null);
+    setSmsSent(null);
+    setAdminSent(null);
+    setEmailError("");
+    setSmsError("");
+    setAdminError("");
+  }, [booking?.id]);
+
   if (!booking) return null;
+
+  const handleResendNotification = async (type: "email_confirmation" | "sms_confirmation" | "admin_notification") => {
+    const setLoading = type === "email_confirmation" ? setSendingEmail : type === "sms_confirmation" ? setSendingSms : setSendingAdmin;
+    const setSent = type === "email_confirmation" ? setEmailSent : type === "sms_confirmation" ? setSmsSent : setAdminSent;
+    const setErr = type === "email_confirmation" ? setEmailError : type === "sms_confirmation" ? setSmsError : setAdminError;
+
+    setLoading(true);
+    setSent(null);
+    setErr("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("resend-booking-notification", {
+        body: { bookingId: booking.id, type },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setSent("success");
+      toast.success(type === "email_confirmation" ? "Confirmation email resent!" : type === "sms_confirmation" ? "Confirmation SMS resent!" : "Admin notification resent!");
+
+      // Refresh log
+      const { data: logData } = await supabase
+        .from("booking_notification_log")
+        .select("*")
+        .eq("booking_id", booking.id)
+        .order("created_at", { ascending: false });
+      setNotificationLog(logData || []);
+
+      setTimeout(() => setSent(null), 3000);
+    } catch (err: any) {
+      setSent("error");
+      setErr(err.message || "Failed to send");
+      toast.error(`Failed: ${err.message || "Unknown error"}`);
+      setTimeout(() => setSent(null), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const isUpcoming =
     new Date(booking.scheduled_date) >= new Date() &&
@@ -417,7 +498,124 @@ export function BookingDetailsDialog({
               </div>
             )}
 
-            {/* Contact (non-admin) */}
+            {/* Admin: Resend Notifications */}
+            {isAdmin && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    Notifications
+                  </h4>
+                  <div className="space-y-2">
+                    {/* Resend Email */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                      disabled={!customerEmail || sendingEmail || emailSent === "success"}
+                      onClick={() => handleResendNotification("email_confirmation")}
+                    >
+                      {sendingEmail ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : emailSent === "success" ? (
+                        <Check className="h-4 w-4 mr-2 text-emerald-500" />
+                      ) : emailSent === "error" ? (
+                        <AlertCircle className="h-4 w-4 mr-2 text-destructive" />
+                      ) : (
+                        <Mail className="h-4 w-4 mr-2" />
+                      )}
+                      {emailSent === "success" ? "Sent!" : "📧 Resend Confirmation Email"}
+                      {!customerEmail && <span className="ml-auto text-xs text-muted-foreground">No email</span>}
+                    </Button>
+                    {emailSent === "error" && emailError && (
+                      <p className="text-xs text-destructive pl-6">{emailError}</p>
+                    )}
+
+                    {/* Resend SMS */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                      disabled={!customerPhone || sendingSms || smsSent === "success"}
+                      onClick={() => handleResendNotification("sms_confirmation")}
+                    >
+                      {sendingSms ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : smsSent === "success" ? (
+                        <Check className="h-4 w-4 mr-2 text-emerald-500" />
+                      ) : smsSent === "error" ? (
+                        <AlertCircle className="h-4 w-4 mr-2 text-destructive" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                      )}
+                      {smsSent === "success" ? "Sent!" : "📱 Resend Confirmation SMS"}
+                      {!customerPhone && <span className="ml-auto text-xs text-muted-foreground">No phone</span>}
+                    </Button>
+                    {smsSent === "error" && smsError && (
+                      <p className="text-xs text-destructive pl-6">{smsError}</p>
+                    )}
+
+                    {/* Resend Admin Notification */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                      disabled={sendingAdmin || adminSent === "success"}
+                      onClick={() => handleResendNotification("admin_notification")}
+                    >
+                      {sendingAdmin ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : adminSent === "success" ? (
+                        <Check className="h-4 w-4 mr-2 text-emerald-500" />
+                      ) : adminSent === "error" ? (
+                        <AlertCircle className="h-4 w-4 mr-2 text-destructive" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      {adminSent === "success" ? "Sent!" : "🔔 Resend Admin Notification"}
+                    </Button>
+                    {adminSent === "error" && adminError && (
+                      <p className="text-xs text-destructive pl-6">{adminError}</p>
+                    )}
+                  </div>
+
+                  {/* Notification Log */}
+                  {notificationLog.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Notification History</p>
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {notificationLog.map((log) => (
+                          <div key={log.id} className="flex items-center justify-between text-xs bg-muted/30 rounded px-2 py-1.5">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {log.notification_type === "email_confirmation" ? (
+                                <Mail className="h-3 w-3 shrink-0" />
+                              ) : log.notification_type === "sms_confirmation" ? (
+                                <MessageSquare className="h-3 w-3 shrink-0" />
+                              ) : (
+                                <Send className="h-3 w-3 shrink-0" />
+                              )}
+                              <span className="truncate">{log.recipient}</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 ml-2">
+                              <Badge className={log.status === "sent" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] px-1.5 py-0" : "bg-destructive/10 text-destructive border-destructive/20 text-[10px] px-1.5 py-0"}>
+                                {log.status}
+                              </Badge>
+                              <span className="text-muted-foreground whitespace-nowrap">
+                                {new Date(log.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}{" "}
+                                {new Date(log.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+
             {!isAdmin && (
               <>
                 <div className="flex gap-4">
