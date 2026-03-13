@@ -872,7 +872,8 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Skipping customer confirmation — admin is the customer");
     }
 
-    // EMAIL B: Send separate admin notification (always)
+    // EMAIL B: Send separate admin notification (skip if this is a resend — resends are customer-only)
+    if (!skipAdminNotification) {
     const adminSubject = `New Booking 🚗 ${safeCustomerName} — ${safeServiceName} on ${shortDate}`;
     const adminHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #111; color: #fff; border-radius: 12px;">
@@ -924,6 +925,9 @@ const handler = async (req: Request): Promise<Response> => {
         recipient: ADMIN_EMAIL,
         status: "sent",
       });
+    }
+    } else {
+      console.log("Skipping admin notification — resend mode (customer-only)");
     }
 
     return new Response(JSON.stringify({ success: true }), {
