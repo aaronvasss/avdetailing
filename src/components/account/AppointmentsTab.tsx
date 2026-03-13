@@ -67,6 +67,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         guest_phone,
         payment_method,
         internal_notes,
+        user_id,
         services (name, description),
         booking_add_ons (id, name, price)
       `)
