@@ -192,7 +192,19 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
         await supabase.functions.invoke("send-sms", {
           body: {
             to: booking.guest_phone,
-            message: `Hi ${firstName}! Your detail is done! 🚗✨ Thank you for choosing AV Detailing. We hope you love the results! Book your next service at avdetailing.net`,
+            message: `Hi ${firstName}! Your detail is done! 🚗✨ Thank you for choosing AV Detailing. We hope you love the results! Rate your experience: ${window.location.origin}/rate/${booking.id}`,
+          },
+        });
+      }
+
+      // Send review request email
+      if (booking.guest_email || booking.guest_phone) {
+        await supabase.functions.invoke("send-review-request", {
+          body: {
+            booking_id: booking.id,
+            customer_name: customerName,
+            customer_phone: booking.guest_phone,
+            customer_email: booking.guest_email,
           },
         });
       }

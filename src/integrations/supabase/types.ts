@@ -167,6 +167,41 @@ export type Database = {
           },
         ]
       }
+      booking_ratings: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string
+          customer_name: string | null
+          id: string
+          rating: number
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          rating: number
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_ratings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           add_ons_total: number | null
@@ -1187,6 +1222,33 @@ export type Database = {
         }
         Relationships: []
       }
+      team_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin: boolean
+          message: string
+          sender_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          message: string
+          sender_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          message?: string
+          sender_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       time_slots: {
         Row: {
           created_at: string
@@ -1237,6 +1299,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      worker_notifications: {
+        Row: {
+          body: string
+          booking_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       worker_profiles: {
         Row: {

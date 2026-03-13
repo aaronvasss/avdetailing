@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { WorkerJobCard } from "@/components/worker/WorkerJobCard";
+import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Loader2, CalendarDays, Inbox } from "lucide-react";
 import { format } from "date-fns";
 
@@ -31,6 +32,8 @@ export default function WorkerDashboardPage() {
   return (
     <WorkerLayout>
       <div className="space-y-4">
+        <WeatherWidget />
+
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-primary" />
           <h1 className="text-xl font-bold">Today's Jobs</h1>

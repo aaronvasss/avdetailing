@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,6 +25,7 @@ export type AdminSection =
   | "customers"
   | "memberships"
   | "analytics"
+  | "team-chat"
   | "settings";
 
 interface AdminSidebarProps {
@@ -41,6 +43,7 @@ const navItems: { id: AdminSection; label: string; icon: React.ElementType }[] =
   { id: "customers", label: "Customers", icon: Users },
   { id: "memberships", label: "Memberships", icon: CreditCard },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "team-chat", label: "Team Chat", icon: MessageSquare },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
