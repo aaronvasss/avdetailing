@@ -210,7 +210,7 @@ serve(async (req) => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "AV Detailing <notifications@avdetailingg.com>",
+          from: "AV Detailing <notifications@avdetailing.net>",
           to: [recipient],
           subject: `New Booking 🚗 ${customerName} — ${serviceName} on ${new Date(booking.scheduled_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
           html: `
