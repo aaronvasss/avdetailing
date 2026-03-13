@@ -617,7 +617,7 @@ const BookingPage = () => {
         }).filter(Boolean) as { name: string; price: number }[];
 
         await sendBookingConfirmation({
-          customerEmail: user?.email || customerInfo.email,
+          customerEmail: customerInfo.email,
           customerName: customerInfo.firstName,
           serviceName: serviceName,
           scheduledDate: selectedDate?.toISOString() || "",

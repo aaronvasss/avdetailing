@@ -5,8 +5,8 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Business email recipients
-const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
+// Admin email for separate booking alert
+const ADMIN_EMAIL = "aaronvasquez100@gmail.com";
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
