@@ -130,7 +130,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "AV Detailing <onboarding@resend.dev>",
+            from: "AV Detailing <noreply@avdetailing.net>",
             to: [body.customer_email],
             subject: `${firstName}, how did we do? 🚗✨`,
             html: `
