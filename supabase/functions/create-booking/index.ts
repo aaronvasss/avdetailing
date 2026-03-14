@@ -268,6 +268,23 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to notify workers:", notifyErr);
     }
 
+    // Send booking confirmation emails (customer + admin) — non-blocking
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          booking_id: booking.id,
+          mode: "auto",
+        }),
+      });
+    } catch (emailErr) {
+      console.error("Failed to send booking notifications:", emailErr);
+    }
+
     return new Response(JSON.stringify({ booking, manageToken: booking.manage_token }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -261,6 +261,7 @@ export type Database = {
           payment_status: string | null
           scheduled_date: string
           scheduled_time: string
+          sent_confirmation: boolean | null
           service_address: string | null
           service_city: string | null
           service_id: string
@@ -300,6 +301,7 @@ export type Database = {
           payment_status?: string | null
           scheduled_date: string
           scheduled_time: string
+          sent_confirmation?: boolean | null
           service_address?: string | null
           service_city?: string | null
           service_id: string
@@ -339,6 +341,7 @@ export type Database = {
           payment_status?: string | null
           scheduled_date?: string
           scheduled_time?: string
+          sent_confirmation?: boolean | null
           service_address?: string | null
           service_city?: string | null
           service_id?: string
