@@ -10,7 +10,7 @@ import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as Ca
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { sendBookingConfirmation } from "@/lib/email";
+// Booking confirmation emails are now sent server-side automatically
 import { sendBookingSms } from "@/lib/sms";
 import { bookingCustomerSchema } from "@/lib/validations";
 import { clearRateLimit } from "@/lib/security";
