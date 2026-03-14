@@ -238,30 +238,22 @@ serve(async (req) => {
                 }
               }
 
-              // Send confirmation email
+              // Send confirmation email + admin alert via unified notification function
               try {
-                if (customerEmail) {
-                  await supabase.functions.invoke('send-booking-confirmation', {
-                    body: {
-                      customerEmail,
-                      customerName,
-                      serviceName: (bookingData.services as any)?.name || 'Detailing Service',
-                      scheduledDate: bookingData.scheduled_date,
-                      scheduledTime: bookingData.scheduled_time,
-                      serviceAddress: bookingData.service_address,
-                      serviceCity: bookingData.service_city,
-                      serviceState: 'LA',
-                      serviceZip: bookingData.service_zip,
-                      vehicleType: bookingData.vehicle_type,
-                      totalPrice: bookingData.total_price,
-                      bookingId: bookingData.id,
-                      manageToken: bookingData.manage_token,
-                    },
-                  });
-                  logStep("Confirmation email triggered");
-                }
+                await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/process-booking-notifications`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                  },
+                  body: JSON.stringify({
+                    booking_id: bookingData.id,
+                    mode: "auto",
+                  }),
+                });
+                logStep("Booking notifications triggered");
               } catch (emailErr) {
-                logStep("Email trigger failed", { error: emailErr });
+                logStep("Notification trigger failed", { error: emailErr });
               }
 
               // Send SMS notification

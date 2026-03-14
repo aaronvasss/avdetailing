@@ -203,8 +203,15 @@ export function BookingDetailsDialog({
         throw new Error("No customer phone on file");
       }
 
-      const { data, error } = await supabase.functions.invoke("resend-booking-notification", {
-        body: { bookingId: latestBooking.id, type },
+      // Map old types to new modes
+      const modeMap: Record<string, string> = {
+        email_confirmation: "resend_customer",
+        admin_notification: "resend_admin",
+      };
+      const mode = modeMap[type] || type;
+
+      const { data, error } = await supabase.functions.invoke("process-booking-notifications", {
+        body: { booking_id: latestBooking.id, mode },
       });
 
       if (error) throw error;

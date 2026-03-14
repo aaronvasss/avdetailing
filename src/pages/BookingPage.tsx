@@ -609,37 +609,8 @@ const BookingPage = () => {
         }
       }
 
-      // Handle in-person payment - send confirmations and show success
-      try {
-        const selectedAddOnDetails = selectedAddOns.map(id => {
-          const addon = addOns.find(a => a.id === id);
-          return addon ? { name: addon.name, price: addon.price } : null;
-        }).filter(Boolean) as { name: string; price: number }[];
-
-        await sendBookingConfirmation({
-          customerEmail: customerInfo.email,
-          customerName: customerInfo.firstName,
-          serviceName: serviceName,
-          scheduledDate: selectedDate?.toISOString() || "",
-          scheduledTime: selectedTime,
-          serviceAddress: customerInfo.address,
-          serviceCity: customerInfo.city,
-          serviceState: "LA",
-          serviceZip: customerInfo.zip,
-          vehicleInfo: customerInfo.vehicleInfo,
-          vehicleType: vehicleTypeLabel,
-          totalPrice: totalPrice + addOnsTotal,
-          bookingId: createdId,
-          basePrice: totalPrice,
-          addOns: selectedAddOnDetails,
-          customerPhone: customerInfo.phone,
-          depositAmount: 0,
-          parkingInstructions: customerInfo.notes || undefined,
-          manageToken: manageToken,
-        });
-      } catch (emailError) {
-        console.error("Email failed but booking succeeded:", emailError);
-      }
+      // Confirmation emails are now sent automatically server-side by create-booking
+      // No frontend email call needed
 
       // Send SMS confirmation (non-blocking)
       try {
