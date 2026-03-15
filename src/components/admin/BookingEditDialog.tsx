@@ -15,13 +15,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Phone, Mail, User, Car, 
   DollarSign, Save, Loader2, CreditCard, Banknote, StickyNote, 
-  Receipt, ExternalLink, CheckCircle2, XCircle, AlertCircle
+  Receipt, ExternalLink, CheckCircle2, XCircle, AlertCircle, Wrench
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
+import { useWorkersList } from "@/hooks/useWorkersList";
 
 interface Booking {
   id: string;
