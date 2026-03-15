@@ -845,7 +845,7 @@ const BookingPage = () => {
                           name: `${customerInfo.firstName} ${customerInfo.lastName}`,
                           email: customerInfo.email,
                           phone: customerInfo.phone,
-                          message: `QUOTE REQUEST: ${serviceTypes.find(s => s.id === serviceType)?.label}\n\nVehicle/Aircraft: ${customerInfo.vehicleInfo || 'Not specified'}\n\nAdditional Details: ${customerInfo.notes || 'None'}`,
+                          message: `QUOTE REQUEST: ${serviceTypes.find(s => s.id === serviceType)?.label}\n\nVehicle/Aircraft: ${`${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}`.trim() || 'Not specified'}\n\nAdditional Details: ${customerInfo.notes || 'None'}`,
                           subject: `Quote Request: ${serviceTypes.find(s => s.id === serviceType)?.label}`,
                         },
                       });
