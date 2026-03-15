@@ -25,6 +25,7 @@ import {
   getWorkingHoursDisplay,
   formatDuration
 } from "@/lib/scheduling";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
 import { Checkbox } from "@/components/ui/checkbox";
