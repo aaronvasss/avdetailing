@@ -74,13 +74,28 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeFilters, setActiveFilters] = useState<string[]>(SERVICE_FILTERS.map(s => s.id));
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
 
   useEffect(() => {
     fetchBookings();
+    fetchBlockedDates();
   }, [currentDate, viewMode]);
+
+  const fetchBlockedDates = async () => {
+    const { data } = await supabase
+      .from("blocked_dates" as any)
+      .select("blocked_date");
+    if (data) {
+      setBlockedDates((data as any[]).map((d: any) => d.blocked_date));
+    }
+  };
+
+  const isDayBlocked = (date: Date) => {
+    return blockedDates.includes(format(date, "yyyy-MM-dd"));
+  };
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -387,14 +402,19 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                         className={cn(
                           "min-h-[100px] p-1 border-r last:border-r-0",
                           !inMonth && "opacity-40 bg-muted/20",
-                          isToday(day) && "bg-primary/5"
+                          isToday(day) && "bg-primary/5",
+                          isDayBlocked(day) && "bg-destructive/10"
                         )}
                       >
                         <div className={cn(
                           "text-sm font-medium mb-1 text-center",
-                          isToday(day) && "text-primary"
+                          isToday(day) && "text-primary",
+                          isDayBlocked(day) && "text-destructive"
                         )}>
                           {format(day, "d")}
+                          {isDayBlocked(day) && (
+                            <span className="block text-[9px] text-destructive font-normal">Blocked</span>
+                          )}
                         </div>
                         <div className="space-y-0.5">
                           {dayBookings.slice(0, 3).map(booking => (
@@ -433,16 +453,21 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                     key={idx} 
                     className={cn(
                       "p-2 text-center border-r last:border-r-0",
-                      isToday(day) && "bg-primary/10"
+                      isToday(day) && "bg-primary/10",
+                      isDayBlocked(day) && "bg-destructive/10"
                     )}
                   >
                     <div className="text-sm font-medium">{format(day, "EEE")}</div>
                     <div className={cn(
                       "text-lg font-bold",
-                      isToday(day) && "text-primary"
+                      isToday(day) && "text-primary",
+                      isDayBlocked(day) && "text-destructive"
                     )}>
                       {format(day, "d")}
                     </div>
+                    {isDayBlocked(day) && (
+                      <div className="text-[10px] text-destructive">Blocked</div>
+                    )}
                   </div>
                 ))}
               </div>

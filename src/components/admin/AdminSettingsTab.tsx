@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { CsvImportSection } from "./CsvImportSection";
 import { DangerZoneSection } from "./DangerZoneSection";
 import { WorkerManagementSection } from "./WorkerManagementSection";
+import { BusinessHoursSettings } from "./BusinessHoursSettings";
+import { BlockedDatesManager } from "./BlockedDatesManager";
 
 interface BusinessSetting {
   key: string;
@@ -167,6 +169,12 @@ export function AdminSettingsTab() {
           Manage phone numbers, email addresses, and other business configuration
         </p>
       </div>
+
+      {/* Business Hours & Scheduling */}
+      <BusinessHoursSettings />
+
+      {/* Blocked Dates */}
+      <BlockedDatesManager />
 
       {/* Phone Numbers */}
       <Card>

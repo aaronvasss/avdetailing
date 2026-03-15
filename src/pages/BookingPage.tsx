@@ -25,6 +25,7 @@ import {
   getWorkingHoursDisplay,
   formatDuration
 } from "@/lib/scheduling";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -235,6 +236,7 @@ const toDbTime = (input: string): string | null => {
 };
 
 const BookingPage = () => {
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [step, setStep] = useState(1);
   const [serviceType, setServiceType] = useState<string>("");
   const [vehicleSubType, setVehicleSubType] = useState<string>("");
@@ -404,7 +406,8 @@ const BookingPage = () => {
       // Generate available time slots based on service duration and existing bookings
       const slots = generateTimeSlots(
         selectedPackageDuration,
-        existingBookings || []
+        existingBookings || [],
+        schedulingConfig
       );
       
       setAvailableSlots(slots);
@@ -412,7 +415,7 @@ const BookingPage = () => {
     } catch (error) {
       console.error("Error fetching available slots:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(selectedPackageDuration, []));
+      setAvailableSlots(generateTimeSlots(selectedPackageDuration, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
@@ -1152,7 +1155,7 @@ const BookingPage = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => date < new Date() || isDateBlocked(date)}
                   className="rounded-lg border p-3"
                 />
               </div>
@@ -1161,7 +1164,7 @@ const BookingPage = () => {
                 <Label className="mb-4 block flex items-center justify-between">
                   <span>Select Time</span>
                   <span className="text-xs text-muted-foreground font-normal">
-                    Hours: {getWorkingHoursDisplay()}
+                    Hours: {getWorkingHoursDisplay(schedulingConfig)}
                   </span>
                 </Label>
                 {loadingSlots ? (

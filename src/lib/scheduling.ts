@@ -1,8 +1,7 @@
 import { format, parse, addMinutes, isBefore, isAfter, areIntervalsOverlapping } from "date-fns";
 
-// ============= SCHEDULING CONSTANTS =============
+// ============= SCHEDULING CONSTANTS (defaults — overridden by DB settings) =============
 
-// Working hours: 6:00 AM – 8:00 PM
 export const WORKING_HOURS = {
   START_HOUR: 6,
   START_MINUTE: 0,
@@ -10,11 +9,19 @@ export const WORKING_HOURS = {
   END_MINUTE: 0,
 };
 
-// Buffer time after each appointment (in minutes)
 export const BUFFER_MINUTES = 15;
-
-// Time slot interval (in minutes)
 export const SLOT_INTERVAL = 30;
+
+// Dynamic config interface matching useSchedulingSettings
+export interface SchedulingConfig {
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  bufferMinutes: number;
+  defaultDuration: number;
+  slotInterval: number;
+}
 
 
 
@@ -115,32 +122,29 @@ export function minutesToTime(minutes: number, format12h = true): string {
 /**
  * Gets the start of working hours in minutes from midnight
  */
-export function getWorkingStartMinutes(): number {
-  return WORKING_HOURS.START_HOUR * 60 + WORKING_HOURS.START_MINUTE;
+export function getWorkingStartMinutes(config?: SchedulingConfig): number {
+  const h = config?.startHour ?? WORKING_HOURS.START_HOUR;
+  const m = config?.startMinute ?? WORKING_HOURS.START_MINUTE;
+  return h * 60 + m;
 }
 
 /**
  * Gets the end of working hours in minutes from midnight
  */
-export function getWorkingEndMinutes(): number {
-  return WORKING_HOURS.END_HOUR * 60 + WORKING_HOURS.END_MINUTE;
+export function getWorkingEndMinutes(config?: SchedulingConfig): number {
+  const h = config?.endHour ?? WORKING_HOURS.END_HOUR;
+  const m = config?.endMinute ?? WORKING_HOURS.END_MINUTE;
+  return h * 60 + m;
 }
 
 /**
  * Checks if a time slot is valid for a given service duration
- * Ensures the service + buffer ends before working hours end
  */
-export function isSlotValid(slotMinutes: number, serviceDuration: number): boolean {
-  const workStart = getWorkingStartMinutes();
-  const workEnd = getWorkingEndMinutes();
-  const totalBlocked = serviceDuration + BUFFER_MINUTES;
+export function isSlotValid(slotMinutes: number, serviceDuration: number, config?: SchedulingConfig): boolean {
+  const workStart = getWorkingStartMinutes(config);
+  const workEnd = getWorkingEndMinutes(config);
   
-  // Slot must start at or after working hours start
   if (slotMinutes < workStart) return false;
-  
-  // Service + buffer must end at or before working hours end
-  // (We don't need buffer if it's the last appointment, but for safety we include it)
-  // Actually, the service itself must end before 7:30 PM
   if (slotMinutes + serviceDuration > workEnd) return false;
   
   return true;
@@ -154,29 +158,28 @@ export function generateTimeSlots(
   existingBookings: Array<{
     scheduled_time: string;
     duration_minutes: number | null;
-  }> = []
+  }> = [],
+  config?: SchedulingConfig
 ): string[] {
   const slots: string[] = [];
-  const workStart = getWorkingStartMinutes();
-  const workEnd = getWorkingEndMinutes();
+  const workStart = getWorkingStartMinutes(config);
+  const workEnd = getWorkingEndMinutes(config);
+  const interval = config?.slotInterval ?? SLOT_INTERVAL;
+  const buffer = config?.bufferMinutes ?? BUFFER_MINUTES;
+  const defaultDur = config?.defaultDuration ?? DEFAULT_DURATION;
   
-  // Generate slots at SLOT_INTERVAL intervals
-  for (let minutes = workStart; minutes <= workEnd; minutes += SLOT_INTERVAL) {
-    // Check if slot is valid (service ends before closing)
-    if (!isSlotValid(minutes, serviceDuration)) continue;
+  for (let minutes = workStart; minutes <= workEnd; minutes += interval) {
+    if (!isSlotValid(minutes, serviceDuration, config)) continue;
     
-    // Check if slot overlaps with existing bookings
     let isAvailable = true;
     
     for (const booking of existingBookings) {
       const bookingStart = timeToMinutes(booking.scheduled_time);
-      const bookingDuration = booking.duration_minutes || DEFAULT_DURATION;
-      const bookingEnd = bookingStart + bookingDuration + BUFFER_MINUTES;
+      const bookingDuration = booking.duration_minutes || defaultDur;
+      const bookingEnd = bookingStart + bookingDuration + buffer;
       
-      const slotEnd = minutes + serviceDuration + BUFFER_MINUTES;
+      const slotEnd = minutes + serviceDuration + buffer;
       
-      // Check for overlap: new slot overlaps if it starts before existing ends
-      // AND ends after existing starts
       if (minutes < bookingEnd && slotEnd > bookingStart) {
         isAvailable = false;
         break;
@@ -202,13 +205,15 @@ export function validateBookingTime(
     duration_minutes: number | null;
     id?: string;
   }> = [],
-  excludeBookingId?: string
+  excludeBookingId?: string,
+  config?: SchedulingConfig
 ): { valid: boolean; error?: string } {
   const slotMinutes = timeToMinutes(scheduledTime);
-  const workStart = getWorkingStartMinutes();
-  const workEnd = getWorkingEndMinutes();
+  const workStart = getWorkingStartMinutes(config);
+  const workEnd = getWorkingEndMinutes(config);
+  const buffer = config?.bufferMinutes ?? BUFFER_MINUTES;
+  const defaultDur = config?.defaultDuration ?? DEFAULT_DURATION;
   
-  // Check working hours
   if (slotMinutes < workStart) {
     return {
       valid: false,
@@ -216,7 +221,6 @@ export function validateBookingTime(
     };
   }
   
-  // Check if service ends before closing
   if (slotMinutes + serviceDuration > workEnd) {
     return {
       valid: false,
@@ -224,15 +228,14 @@ export function validateBookingTime(
     };
   }
   
-  // Check for overlaps with existing bookings
   for (const booking of existingBookings) {
     if (excludeBookingId && booking.id === excludeBookingId) continue;
     
     const bookingStart = timeToMinutes(booking.scheduled_time);
-    const bookingDuration = booking.duration_minutes || DEFAULT_DURATION;
-    const bookingEnd = bookingStart + bookingDuration + BUFFER_MINUTES;
+    const bookingDuration = booking.duration_minutes || defaultDur;
+    const bookingEnd = bookingStart + bookingDuration + buffer;
     
-    const slotEnd = slotMinutes + serviceDuration + BUFFER_MINUTES;
+    const slotEnd = slotMinutes + serviceDuration + buffer;
     
     if (slotMinutes < bookingEnd && slotEnd > bookingStart) {
       return {
@@ -264,6 +267,6 @@ export function formatDuration(minutes: number): string {
 /**
  * Gets display-friendly working hours
  */
-export function getWorkingHoursDisplay(): string {
-  return `${minutesToTime(getWorkingStartMinutes())} - ${minutesToTime(getWorkingEndMinutes())}`;
+export function getWorkingHoursDisplay(config?: SchedulingConfig): string {
+  return `${minutesToTime(getWorkingStartMinutes(config))} - ${minutesToTime(getWorkingEndMinutes(config))}`;
 }

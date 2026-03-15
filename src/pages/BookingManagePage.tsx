@@ -15,6 +15,7 @@ import {
   getWorkingHoursDisplay,
   formatDuration
 } from "@/lib/scheduling";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 
 interface BookingDetails {
   id: string;
@@ -41,6 +42,7 @@ interface BookingDetails {
 // Time slots are now generated dynamically based on service duration and availability
 
 export default function BookingManagePage() {
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
@@ -81,7 +83,8 @@ export default function BookingManagePage() {
       // Generate available time slots based on service duration and existing bookings
       const slots = generateTimeSlots(
         serviceDuration,
-        existingBookings || []
+        existingBookings || [],
+        schedulingConfig
       );
       
       setAvailableSlots(slots);
@@ -89,7 +92,7 @@ export default function BookingManagePage() {
     } catch (error) {
       console.error("Error fetching available slots:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(serviceDuration, []));
+      setAvailableSlots(generateTimeSlots(serviceDuration, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
@@ -299,7 +302,7 @@ export default function BookingManagePage() {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < new Date() || isDateBlocked(date)}
                     className="rounded-md border"
                   />
                 </div>
@@ -308,7 +311,7 @@ export default function BookingManagePage() {
                   <label className="text-sm font-medium mb-2 block flex items-center justify-between">
                     <span>New Time</span>
                     <span className="text-xs text-muted-foreground">
-                      Hours: {getWorkingHoursDisplay()}
+                      Hours: {getWorkingHoursDisplay(schedulingConfig)}
                     </span>
                   </label>
                   {loadingSlots ? (

@@ -19,6 +19,7 @@ import {
   getWorkingHoursDisplay,
   formatDuration
 } from "@/lib/scheduling";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 
 interface Booking {
   id: string;
@@ -46,6 +47,7 @@ export function RescheduleDialog({
   onOpenChange,
   onSuccess,
 }: RescheduleDialogProps) {
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -85,14 +87,15 @@ export function RescheduleDialog({
       // Generate available time slots based on service duration and existing bookings
       const slots = generateTimeSlots(
         serviceDuration,
-        existingBookings || []
+        existingBookings || [],
+        schedulingConfig
       );
       
       setAvailableSlots(slots);
     } catch (error) {
       console.error("Error checking availability:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(serviceDuration, []));
+      setAvailableSlots(generateTimeSlots(serviceDuration, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
@@ -161,7 +164,7 @@ export function RescheduleDialog({
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              disabled={(date) => isBefore(date, minDate)}
+              disabled={(date) => isBefore(date, minDate) || isDateBlocked(date)}
               className="rounded-md border mx-auto"
             />
           </div>
@@ -173,7 +176,7 @@ export function RescheduleDialog({
                 <Clock className="h-4 w-4" />
                 Select Time
                 <span className="text-xs text-muted-foreground ml-auto">
-                  Hours: {getWorkingHoursDisplay()}
+                  Hours: {getWorkingHoursDisplay(schedulingConfig)}
                 </span>
               </label>
               {loadingSlots ? (
