@@ -22,6 +22,7 @@ interface CreateBookingRequest {
   guest_phone?: string | null;
 
   vehicle_type?: string | null;
+  vehicle_year?: number | null;
   vehicle_make?: string | null;
   vehicle_model?: string | null;
 
