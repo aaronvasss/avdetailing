@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useWorkersList } from "@/hooks/useWorkersList";
 
 interface AdminBookingModalProps {
   open: boolean;
