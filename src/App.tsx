@@ -21,6 +21,7 @@ import ServiceAreasPage from "./pages/ServiceAreasPage";
 import BookingPage from "./pages/BookingPage";
 import BookingManagePage from "@/pages/BookingManagePage";
 import BookingCancelPage from "@/pages/BookingCancelPage";
+import PublicCancelPage from "@/pages/PublicCancelPage";
 import BookingSuccessPage from "./pages/BookingSuccessPage";
 import BookingCanceledPage from "./pages/BookingCanceledPage";
 import AuthPage from "./pages/AuthPage";
