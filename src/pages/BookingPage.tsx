@@ -533,6 +533,7 @@ const BookingPage = () => {
         guest_phone: customerInfo.phone,
 
         vehicle_type: vehicleTypeLabel,
+        vehicle_year: customerInfo.vehicleYear ? parseInt(customerInfo.vehicleYear) : null,
         vehicle_make: customerInfo.vehicleMake || null,
         vehicle_model: customerInfo.vehicleModel || null,
         service_address: customerInfo.address,
