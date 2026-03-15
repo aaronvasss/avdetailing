@@ -1164,7 +1164,7 @@ const BookingPage = () => {
                 <Label className="mb-4 block flex items-center justify-between">
                   <span>Select Time</span>
                   <span className="text-xs text-muted-foreground font-normal">
-                    Hours: {getWorkingHoursDisplay()}
+                    Hours: {getWorkingHoursDisplay(schedulingConfig)}
                   </span>
                 </Label>
                 {loadingSlots ? (
