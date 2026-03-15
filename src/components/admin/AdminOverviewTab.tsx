@@ -303,43 +303,53 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4">
           {todaysBookings.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No bookings scheduled for today</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {todaysBookings.map((booking) => (
                 <div 
                   key={booking.id} 
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                  className="relative p-4 rounded-xl border bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="text-center min-w-[60px]">
-                      <div className="text-lg font-bold text-primary">
+                  {/* Status badge - top right */}
+                  <div className="absolute top-3 right-3">
+                    {getStatusBadge(booking.status)}
+                  </div>
+
+                  <div className="flex gap-3">
+                    {/* Time - left column */}
+                    <div className="flex-shrink-0 min-w-[52px] pt-0.5">
+                      <div className="text-lg font-bold text-primary leading-tight">
                         {booking.scheduled_time.slice(0, 5)}
                       </div>
                     </div>
-                    <div className="border-l pl-4">
-                      <div className="font-medium">{getCustomerName(booking)}</div>
-                      <div className="text-sm text-muted-foreground">
+
+                    {/* Details - right column */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="font-semibold text-foreground text-base leading-tight pr-24 truncate">
+                        {getCustomerName(booking)}
+                      </div>
+                      <div className="text-sm text-muted-foreground truncate">
                         {booking.services?.name || "Detailing"} • {booking.vehicle_type}
                       </div>
                       <a 
                         href={`https://maps.google.com/?q=${encodeURIComponent(`${booking.service_address}, ${booking.service_city}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline flex items-center gap-1 mt-1"
+                        className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
                       >
-                        <MapPin className="h-3 w-3" />
-                        {booking.service_address}, {booking.service_city}
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{booking.service_address}, {booking.service_city}</span>
                       </a>
-                      <div className="flex items-center gap-1 mt-1">
-                        <UserCheck className="h-3 w-3 text-muted-foreground" />
+                      <div className="flex items-center gap-1">
+                        <UserCheck className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                         {booking.worker_name ? (
-                          <span className="text-xs font-medium text-foreground">{booking.worker_name}</span>
+                          <span className="text-xs text-muted-foreground">{booking.worker_name}</span>
                         ) : (
                           <span className="text-xs font-medium text-destructive">Unassigned</span>
                         )}
@@ -347,50 +357,51 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(booking.status)}
+                  {/* Action buttons - bottom right */}
+                  <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-border/50">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onViewBooking(booking)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     
-                    <div className="flex gap-2">
+                    {getCustomerPhone(booking) && (
                       <Button 
                         size="sm" 
                         variant="ghost"
-                        onClick={() => onViewBooking(booking)}
+                        className="h-8 w-8 p-0"
+                        onClick={() => onTextCustomer(getCustomerPhone(booking)!)}
                       >
-                        <Eye className="h-4 w-4" />
+                        <MessageSquare className="h-4 w-4" />
                       </Button>
-                      
-                      {getCustomerPhone(booking) && (
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => onTextCustomer(getCustomerPhone(booking)!)}
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                      )}
+                    )}
 
-                      {booking.status === "confirmed" && (
-                        <Button 
-                          size="sm" 
-                          variant="default"
-                          onClick={() => updateStatus(booking.id, "completed")}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Complete
-                        </Button>
-                      )}
+                    {booking.status === "confirmed" && (
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        className="h-8 text-xs"
+                        onClick={() => updateStatus(booking.id, "completed")}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Complete
+                      </Button>
+                    )}
 
-                      {booking.status === "pending" && (
-                        <Button 
-                          size="sm" 
-                          variant="default"
-                          onClick={() => updateStatus(booking.id, "confirmed")}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Confirm
-                        </Button>
-                      )}
-                    </div>
+                    {booking.status === "pending" && (
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        className="h-8 text-xs"
+                        onClick={() => updateStatus(booking.id, "confirmed")}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Confirm
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
