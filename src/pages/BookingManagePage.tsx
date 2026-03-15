@@ -311,7 +311,7 @@ export default function BookingManagePage() {
                   <label className="text-sm font-medium mb-2 block flex items-center justify-between">
                     <span>New Time</span>
                     <span className="text-xs text-muted-foreground">
-                      Hours: {getWorkingHoursDisplay()}
+                      Hours: {getWorkingHoursDisplay(schedulingConfig)}
                     </span>
                   </label>
                   {loadingSlots ? (
