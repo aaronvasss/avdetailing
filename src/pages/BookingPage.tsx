@@ -1394,7 +1394,7 @@ const BookingPage = () => {
               <div>
                 <label htmlFor="smsConsent" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
                   I agree to receive SMS & email reminders from AV Detailing LLC and I have read and accept the{" "}
-                  <a href="/AV_Detailing_Booking_Terms.pdf" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                   <a href="https://avdetailing.net/booking-terms.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:opacity-80 font-medium">
                     Booking Terms & Service Agreement
                   </a>.
                 </label>
