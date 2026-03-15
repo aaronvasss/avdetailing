@@ -453,16 +453,21 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                     key={idx} 
                     className={cn(
                       "p-2 text-center border-r last:border-r-0",
-                      isToday(day) && "bg-primary/10"
+                      isToday(day) && "bg-primary/10",
+                      isDayBlocked(day) && "bg-destructive/10"
                     )}
                   >
                     <div className="text-sm font-medium">{format(day, "EEE")}</div>
                     <div className={cn(
                       "text-lg font-bold",
-                      isToday(day) && "text-primary"
+                      isToday(day) && "text-primary",
+                      isDayBlocked(day) && "text-destructive"
                     )}>
                       {format(day, "d")}
                     </div>
+                    {isDayBlocked(day) && (
+                      <div className="text-[10px] text-destructive">Blocked</div>
+                    )}
                   </div>
                 ))}
               </div>
