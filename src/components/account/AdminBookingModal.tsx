@@ -112,6 +112,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [customPrice, setCustomPrice] = useState("");
+  const [assignedWorkerId, setAssignedWorkerId] = useState<string>("unassigned");
+  const { workers } = useWorkersList();
 
   const [form, setForm] = useState({
     firstName: "",
