@@ -36,8 +36,10 @@ interface Booking {
   guest_name: string | null;
   guest_phone: string | null;
   user_id: string | null;
+  assigned_worker_id: string | null;
   services: { name: string } | null;
   profiles: { full_name: string; phone: string } | null;
+  worker_name?: string | null;
 }
 
 interface AdminOverviewTabProps {
