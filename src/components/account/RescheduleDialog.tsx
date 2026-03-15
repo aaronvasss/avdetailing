@@ -95,7 +95,7 @@ export function RescheduleDialog({
     } catch (error) {
       console.error("Error checking availability:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(serviceDuration, []));
+      setAvailableSlots(generateTimeSlots(serviceDuration, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
