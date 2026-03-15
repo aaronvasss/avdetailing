@@ -52,8 +52,8 @@ export const PACKAGE_DURATIONS: Record<string, number> = {
   "aircraft-full": 390,  // 6.5 hours
 };
 
-// Default duration if package not found
-export const DEFAULT_DURATION = 120;
+// Default duration if package not found (2 hours 15 minutes)
+export const DEFAULT_DURATION = 135;
 
 // ============= UTILITY FUNCTIONS =============
 
