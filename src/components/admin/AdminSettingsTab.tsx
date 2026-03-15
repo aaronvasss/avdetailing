@@ -170,6 +170,12 @@ export function AdminSettingsTab() {
         </p>
       </div>
 
+      {/* Business Hours & Scheduling */}
+      <BusinessHoursSettings />
+
+      {/* Blocked Dates */}
+      <BlockedDatesManager />
+
       {/* Phone Numbers */}
       <Card>
         <CardHeader>
