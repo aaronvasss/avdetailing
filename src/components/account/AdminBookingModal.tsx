@@ -561,6 +561,22 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           )}
 
+          {/* Assign Technician */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assign Technician</h3>
+            <Select value={assignedWorkerId} onValueChange={setAssignedWorkerId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select technician" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {workers.map((w) => (
+                  <SelectItem key={w.user_id} value={w.user_id}>{w.display_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Payment */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Payment Method</h3>
