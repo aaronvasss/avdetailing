@@ -74,6 +74,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeFilters, setActiveFilters] = useState<string[]>(SERVICE_FILTERS.map(s => s.id));
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
