@@ -386,6 +386,31 @@ const BookingPage = () => {
     return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
   }, [selectedPackage]);
 
+  // Read referral code from URL param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setReferralCode(ref);
+      validateReferralCode(ref);
+    }
+  }, []);
+
+  const validateReferralCode = async (code: string) => {
+    if (!code.trim()) {
+      setReferralValid(null);
+      return;
+    }
+    setReferralChecking(true);
+    const { data } = await supabase
+      .from("referral_codes")
+      .select("user_id")
+      .eq("code", code.toUpperCase().trim())
+      .maybeSingle();
+    setReferralValid(!!data);
+    setReferralChecking(false);
+  };
+
   // Fetch available time slots when date changes
   useEffect(() => {
     if (selectedDate && selectedPackage) {
