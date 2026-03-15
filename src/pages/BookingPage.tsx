@@ -389,7 +389,7 @@ const BookingPage = () => {
     return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
   }, [selectedPackage]);
 
-  // Read referral code from URL param
+  // Read referral code from URL param + fetch user's available credits
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
@@ -397,6 +397,23 @@ const BookingPage = () => {
       setReferralCode(ref);
       validateReferralCode(ref);
     }
+
+    // Fetch available referral credits for logged-in user
+    const fetchCredits = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: rewards } = await supabase
+        .from("referral_rewards")
+        .select("id, reward_amount")
+        .eq("referrer_id", user.id)
+        .eq("is_redeemed", false);
+      if (rewards && rewards.length > 0) {
+        const total = rewards.reduce((sum: number, r: any) => sum + Number(r.reward_amount), 0);
+        setReferralCredit(total);
+        setReferralRewardIds(rewards.map((r: any) => r.id));
+      }
+    };
+    fetchCredits();
   }, []);
 
   const validateReferralCode = async (code: string) => {
