@@ -16,8 +16,7 @@ export const BUFFER_MINUTES = 15;
 // Time slot interval (in minutes)
 export const SLOT_INTERVAL = 30;
 
-// Default service duration (in minutes)
-export const DEFAULT_SERVICE_DURATION = 135; // 2 hours 15 minutes
+
 
 // ============= SERVICE DURATION MAP =============
 // Maps package slugs to their exact durations in minutes
