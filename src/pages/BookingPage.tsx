@@ -406,7 +406,8 @@ const BookingPage = () => {
       // Generate available time slots based on service duration and existing bookings
       const slots = generateTimeSlots(
         selectedPackageDuration,
-        existingBookings || []
+        existingBookings || [],
+        schedulingConfig
       );
       
       setAvailableSlots(slots);
