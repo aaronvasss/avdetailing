@@ -268,6 +268,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },
             ...(isAdmin ? [
               { value: totalCustomers, label: "Customers", icon: UserCheck, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
+              { value: `$${totalTips.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Tips Received", icon: DollarSign, iconColor: "text-emerald-500/50", cardClass: "bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20", valueColor: "text-emerald-600" },
             ] : []),
           ].map((card, idx) => {
             const Icon = card.icon;
