@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, ArrowRight, Phone, Info } from "lucide-react";
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { DepositBookingModal } from "@/components/booking/DepositBookingModal";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, serviceSchema, faqSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 interface ServicePageProps {
   title: string;
