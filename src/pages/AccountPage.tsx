@@ -14,6 +14,7 @@ import {
   LogOut,
   Plus,
   Settings,
+  Gift,
 } from "lucide-react";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { ProfileTab } from "@/components/account/ProfileTab";
@@ -21,6 +22,7 @@ import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
+import { ReferralTab } from "@/components/account/ReferralTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export default function AccountPage() {
@@ -170,6 +172,13 @@ export default function AccountPage() {
                   <span>Addresses</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="referrals"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Gift className="h-4 w-4" />
+                  <span>Referrals</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="settings"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
@@ -193,6 +202,10 @@ export default function AccountPage() {
 
             <TabsContent value="addresses" className="mt-6">
               <AddressesTab userId={user?.id} />
+            </TabsContent>
+
+            <TabsContent value="referrals" className="mt-6">
+              <ReferralTab userId={user?.id} />
             </TabsContent>
 
             <TabsContent value="settings" className="mt-6">

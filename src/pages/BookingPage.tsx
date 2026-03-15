@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle, CreditCard } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle, CreditCard, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -250,7 +250,12 @@ const BookingPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>(null);
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   const [smsConsent, setSmsConsent] = useState(false);
-  
+  const [referralCode, setReferralCode] = useState("");
+  const [referralValid, setReferralValid] = useState<boolean | null>(null);
+  const [referralChecking, setReferralChecking] = useState(false);
+  const [referralCredit, setReferralCredit] = useState(0);
+  const [referralRewardIds, setReferralRewardIds] = useState<string[]>([]);
+  const [useCredit, setUseCredit] = useState(true);
   const [customerInfo, setCustomerInfo] = useState({
     firstName: "",
     lastName: "",
@@ -383,6 +388,48 @@ const BookingPage = () => {
     if (!selectedPackage) return DEFAULT_DURATION;
     return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
   }, [selectedPackage]);
+
+  // Read referral code from URL param + fetch user's available credits
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setReferralCode(ref);
+      validateReferralCode(ref);
+    }
+
+    // Fetch available referral credits for logged-in user
+    const fetchCredits = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: rewards } = await supabase
+        .from("referral_rewards")
+        .select("id, reward_amount")
+        .eq("referrer_id", user.id)
+        .eq("is_redeemed", false);
+      if (rewards && rewards.length > 0) {
+        const total = rewards.reduce((sum: number, r: any) => sum + Number(r.reward_amount), 0);
+        setReferralCredit(total);
+        setReferralRewardIds(rewards.map((r: any) => r.id));
+      }
+    };
+    fetchCredits();
+  }, []);
+
+  const validateReferralCode = async (code: string) => {
+    if (!code.trim()) {
+      setReferralValid(null);
+      return;
+    }
+    setReferralChecking(true);
+    const { data } = await supabase
+      .from("referral_codes")
+      .select("user_id")
+      .eq("code", code.toUpperCase().trim())
+      .maybeSingle();
+    setReferralValid(!!data);
+    setReferralChecking(false);
+  };
 
   // Fetch available time slots when date changes
   useEffect(() => {
@@ -576,7 +623,47 @@ const BookingPage = () => {
 
       setBookingId(createdId);
 
-      // Handle online payment - redirect to Stripe
+      // Track referral if a valid referral code was used
+      if (referralCode.trim() && referralValid) {
+        try {
+          const { data: referrerData } = await supabase
+            .from("referral_codes")
+            .select("user_id")
+            .eq("code", referralCode.toUpperCase().trim())
+            .maybeSingle();
+
+          if (referrerData?.user_id) {
+            await supabase.from("referral_rewards").insert({
+              referrer_id: referrerData.user_id,
+              referred_booking_id: createdId,
+              reward_amount: 10,
+              is_redeemed: false,
+            } as any);
+          }
+        } catch (refErr) {
+          console.error("Referral tracking error:", refErr);
+          // Don't fail the booking over referral tracking
+        }
+      }
+
+      // Redeem referral credits if used
+      if (referralCredit > 0 && useCredit && referralRewardIds.length > 0) {
+        try {
+          for (const rewardId of referralRewardIds) {
+            await supabase
+              .from("referral_rewards")
+              .update({
+                is_redeemed: true,
+                redeemed_booking_id: createdId,
+                redeemed_at: new Date().toISOString(),
+              } as any)
+              .eq("id", rewardId);
+          }
+        } catch (creditErr) {
+          console.error("Credit redemption error:", creditErr);
+        }
+      }
+
       if (paymentMethod === 'online') {
         toast.loading("Redirecting to payment...");
         
@@ -1316,9 +1403,48 @@ const BookingPage = () => {
                 <Input id="vehicleModel" placeholder="Camry" required maxLength={50} value={customerInfo.vehicleModel} onChange={(e) => setCustomerInfo({...customerInfo, vehicleModel: e.target.value})} className={formErrors.vehicleModel ? "border-destructive" : ""} />
                 {formErrors.vehicleModel && <p className="text-sm text-destructive">{formErrors.vehicleModel}</p>}
               </div>
-              <div className="space-y-2 md:col-span-2">
+               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
                 <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." maxLength={1000} value={customerInfo.notes} onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="referralCode" className="flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-primary" />
+                  Referral Code (Optional)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="referralCode"
+                    placeholder="Enter a friend's referral code"
+                    maxLength={20}
+                    value={referralCode}
+                    onChange={(e) => {
+                      setReferralCode(e.target.value.toUpperCase());
+                      setReferralValid(null);
+                    }}
+                    className={cn(
+                      referralValid === true && "border-green-500",
+                      referralValid === false && "border-destructive"
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!referralCode.trim() || referralChecking}
+                    onClick={() => validateReferralCode(referralCode)}
+                  >
+                    {referralChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                  </Button>
+                </div>
+                {referralValid === true && (
+                  <p className="text-sm text-green-500 flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Valid referral code! Your friend will earn $10 credit.
+                  </p>
+                )}
+                {referralValid === false && (
+                  <p className="text-sm text-destructive">Invalid referral code</p>
+                )}
               </div>
             </div>
 
@@ -1373,18 +1499,43 @@ const BookingPage = () => {
                     {paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person'}
                   </span>
                 </div>
+                {referralCredit > 0 && useCredit && (
+                  <div className="flex justify-between items-center text-green-500">
+                    <span className="flex items-center gap-1">
+                      <Gift className="h-4 w-4" />
+                      Referral Credit
+                    </span>
+                    <span className="font-medium">-${Math.min(referralCredit, calculateTotal()).toFixed(2)}</span>
+                  </div>
+                )}
+                {referralCredit > 0 && (
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={useCredit}
+                      onCheckedChange={(checked) => setUseCredit(checked === true)}
+                      className="border-primary data-[state=checked]:bg-primary"
+                    />
+                    Apply ${referralCredit} referral credit
+                  </label>
+                )}
                 <div className="border-t pt-4 flex justify-between">
                   <span className="font-semibold">Total</span>
                   <span className="text-xl font-bold text-primary">
-                    ${paymentMethod === 'online' 
-                      ? (calculateTotal() + Math.round(calculateTotal() * 0.035 * 100) / 100).toFixed(2)
-                      : calculateTotal().toFixed(2)
-                    }
+                    ${(() => {
+                      let total = calculateTotal();
+                      if (referralCredit > 0 && useCredit) {
+                        total = Math.max(0, total - referralCredit);
+                      }
+                      if (paymentMethod === 'online' && total > 0) {
+                        total = total + Math.round(total * 0.035 * 100) / 100;
+                      }
+                      return total.toFixed(2);
+                    })()}
                   </span>
                 </div>
                 {paymentMethod === 'online' && (
                   <p className="text-xs text-muted-foreground">
-                    Includes 3.5% processing fee (${(Math.round(calculateTotal() * 0.035 * 100) / 100).toFixed(2)})
+                    Includes 3.5% processing fee
                   </p>
                 )}
               </CardContent>
