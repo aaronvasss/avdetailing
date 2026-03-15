@@ -54,6 +54,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   const [activeMemberships, setActiveMemberships] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [monthRevenue, setMonthRevenue] = useState(0);
+  const [totalTips, setTotalTips] = useState(0);
 
   useEffect(() => {
     fetchBookings();
@@ -61,6 +62,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
       fetchMemberships();
       fetchCustomerCount();
       fetchMonthRevenue();
+      fetchTotalTips();
     }
   }, []);
 
