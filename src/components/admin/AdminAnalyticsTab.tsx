@@ -97,7 +97,12 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             id,
             status,
             membership_plans (name, price)
-          `)
+          `),
+        supabase
+          .from("payment_records")
+          .select("amount_cents")
+          .eq("payment_type", "tip")
+          .eq("status", "paid")
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
@@ -105,6 +110,10 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
+      
+      const tipData = tipsRes.data || [];
+      setTipCount(tipData.length);
+      setTotalTips(tipData.reduce((sum, t) => sum + (t.amount_cents || 0), 0) / 100);
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
