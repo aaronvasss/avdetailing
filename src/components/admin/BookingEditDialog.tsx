@@ -192,6 +192,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       // Price
       setEditTotalPrice(booking.total_price != null ? String(booking.total_price) : "");
 
+      // Worker assignment
+      setEditAssignedWorkerId(booking.assigned_worker_id || "unassigned");
+
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
       fetchBookingAddOns(booking.id);
