@@ -1840,6 +1840,9 @@ const BookingPage = () => {
             );
           })()}
           
+          {/* Tip Section */}
+          <TipSection bookingId={bookingId} serviceTotal={calculateTotal()} />
+
           {/* Action Buttons */}
           <div className="flex gap-3">
             <Button asChild variant="outline" className="flex-1">
