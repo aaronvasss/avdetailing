@@ -203,6 +203,10 @@ export default function AccountPage() {
               <AddressesTab userId={user?.id} />
             </TabsContent>
 
+            <TabsContent value="referrals" className="mt-6">
+              <ReferralTab userId={user?.id} />
+            </TabsContent>
+
             <TabsContent value="settings" className="mt-6">
               <ProfileTab userId={user?.id} />
             </TabsContent>
