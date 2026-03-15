@@ -199,6 +199,18 @@ export default function BookingSuccessPage() {
                 <p className="text-center text-muted-foreground">{error}</p>
               )}
 
+              {/* Tip Section */}
+              {booking && tipStatus !== "success" && (
+                <TipSection bookingId={booking.id} serviceTotal={booking.total_price || 0} />
+              )}
+              {tipStatus === "success" && (
+                <Alert className="border-primary/40 bg-primary/5">
+                  <AlertDescription className="text-sm text-center">
+                    <strong>Thank you for the tip!</strong> Your generosity means a lot to our team. ❤️
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="flex flex-col sm:flex-row gap-3">
                 {booking && (
                   <Button variant="outline" className="flex-1" onClick={handleDownloadICS}>
