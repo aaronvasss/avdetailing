@@ -270,9 +270,9 @@ export function DepositBookingModal({ open, onOpenChange, serviceTitle }: Deposi
             <div>
               <label htmlFor="dep-terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
                 I agree to receive SMS & email reminders from AV Detailing LLC and I have read and accept the{" "}
-                <a href="/AV_Detailing_Booking_Terms.pdf" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
-                  Booking Terms & Service Agreement
-                </a>.
+                 <a href="https://avdetailing.net/booking-terms.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:opacity-80 font-medium">
+                   Booking Terms & Service Agreement
+                 </a>.
               </label>
               {showTermsError && (
                 <p className="text-xs text-destructive mt-1">Please agree to the terms to continue</p>

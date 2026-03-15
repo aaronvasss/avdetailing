@@ -51,11 +51,21 @@ export const bookingCustomerSchema = z.object({
     .trim()
     .min(5, "Please enter a valid ZIP code")
     .max(10, "ZIP code is too long"),
-  vehicleInfo: z
+  vehicleYear: z
     .string()
     .trim()
-    .min(3, "Please enter your vehicle details")
-    .max(200, "Vehicle info must be less than 200 characters"),
+    .min(4, "Please enter a valid year")
+    .max(4, "Year must be 4 digits"),
+  vehicleMake: z
+    .string()
+    .trim()
+    .min(1, "Vehicle make is required")
+    .max(50, "Make must be less than 50 characters"),
+  vehicleModel: z
+    .string()
+    .trim()
+    .min(1, "Vehicle model is required")
+    .max(50, "Model must be less than 50 characters"),
   notes: z
     .string()
     .trim()

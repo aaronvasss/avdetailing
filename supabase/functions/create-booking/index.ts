@@ -22,6 +22,7 @@ interface CreateBookingRequest {
   guest_phone?: string | null;
 
   vehicle_type?: string | null;
+  vehicle_year?: number | null;
   vehicle_make?: string | null;
   vehicle_model?: string | null;
 
@@ -179,6 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
       guest_phone: validatePhone(body.guest_phone),
 
       vehicle_type: sanitize(body.vehicle_type, 50),
+      vehicle_year: body.vehicle_year != null ? Math.min(Math.max(1900, Number(body.vehicle_year)), 2100) : null,
       vehicle_make: sanitize(body.vehicle_make, 50),
       vehicle_model: sanitize(body.vehicle_model, 50),
 

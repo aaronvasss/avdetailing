@@ -257,7 +257,9 @@ const BookingPage = () => {
     address: "",
     city: "",
     zip: "",
-    vehicleInfo: "",
+    vehicleYear: "",
+    vehicleMake: "",
+    vehicleModel: "",
     notes: "",
   });
 
@@ -531,8 +533,9 @@ const BookingPage = () => {
         guest_phone: customerInfo.phone,
 
         vehicle_type: vehicleTypeLabel,
-        vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
-        vehicle_model: customerInfo.vehicleInfo.split(" ").slice(2).join(" ") || null,
+        vehicle_year: customerInfo.vehicleYear ? parseInt(customerInfo.vehicleYear) : null,
+        vehicle_make: customerInfo.vehicleMake || null,
+        vehicle_model: customerInfo.vehicleModel || null,
         service_address: customerInfo.address,
         service_city: customerInfo.city,
         service_zip: customerInfo.zip,
@@ -802,8 +805,11 @@ const BookingPage = () => {
                     <Input 
                       id="quoteVehicle" 
                       placeholder={serviceType === "ceramic" ? "e.g., 2024 BMW X5" : "e.g., Cessna 172, Single-Engine"}
-                      value={customerInfo.vehicleInfo} 
-                      onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} 
+                      value={`${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}`.trim()} 
+                      onChange={(e) => {
+                        const parts = e.target.value.split(" ");
+                        setCustomerInfo({...customerInfo, vehicleYear: parts[0] || "", vehicleMake: parts[1] || "", vehicleModel: parts.slice(2).join(" ") || ""});
+                      }} 
                     />
                   </div>
                   <div className="space-y-2">
@@ -843,7 +849,7 @@ const BookingPage = () => {
                           name: `${customerInfo.firstName} ${customerInfo.lastName}`,
                           email: customerInfo.email,
                           phone: customerInfo.phone,
-                          message: `QUOTE REQUEST: ${serviceTypes.find(s => s.id === serviceType)?.label}\n\nVehicle/Aircraft: ${customerInfo.vehicleInfo || 'Not specified'}\n\nAdditional Details: ${customerInfo.notes || 'None'}`,
+                          message: `QUOTE REQUEST: ${serviceTypes.find(s => s.id === serviceType)?.label}\n\nVehicle/Aircraft: ${`${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}`.trim() || 'Not specified'}\n\nAdditional Details: ${customerInfo.notes || 'None'}`,
                           subject: `Quote Request: ${serviceTypes.find(s => s.id === serviceType)?.label}`,
                         },
                       });
@@ -1292,10 +1298,20 @@ const BookingPage = () => {
                 <Input id="zip" required maxLength={10} value={customerInfo.zip} onChange={(e) => setCustomerInfo({...customerInfo, zip: e.target.value})} className={formErrors.zip ? "border-destructive" : ""} />
                 {formErrors.zip && <p className="text-sm text-destructive">{formErrors.zip}</p>}
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="vehicleInfo">Vehicle Details</Label>
-                <Input id="vehicleInfo" placeholder="Year, Make, Model (e.g., 2020 Toyota Camry)" required maxLength={200} value={customerInfo.vehicleInfo} onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} className={formErrors.vehicleInfo ? "border-destructive" : ""} />
-                {formErrors.vehicleInfo && <p className="text-sm text-destructive">{formErrors.vehicleInfo}</p>}
+              <div className="space-y-2">
+                <Label htmlFor="vehicleYear">Year</Label>
+                <Input id="vehicleYear" type="number" placeholder="2024" required maxLength={4} value={customerInfo.vehicleYear} onChange={(e) => setCustomerInfo({...customerInfo, vehicleYear: e.target.value.slice(0, 4)})} className={formErrors.vehicleYear ? "border-destructive" : ""} />
+                {formErrors.vehicleYear && <p className="text-sm text-destructive">{formErrors.vehicleYear}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicleMake">Make</Label>
+                <Input id="vehicleMake" placeholder="Toyota" required maxLength={50} value={customerInfo.vehicleMake} onChange={(e) => setCustomerInfo({...customerInfo, vehicleMake: e.target.value})} className={formErrors.vehicleMake ? "border-destructive" : ""} />
+                {formErrors.vehicleMake && <p className="text-sm text-destructive">{formErrors.vehicleMake}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicleModel">Model</Label>
+                <Input id="vehicleModel" placeholder="Camry" required maxLength={50} value={customerInfo.vehicleModel} onChange={(e) => setCustomerInfo({...customerInfo, vehicleModel: e.target.value})} className={formErrors.vehicleModel ? "border-destructive" : ""} />
+                {formErrors.vehicleModel && <p className="text-sm text-destructive">{formErrors.vehicleModel}</p>}
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
@@ -1382,7 +1398,7 @@ const BookingPage = () => {
               <div>
                 <label htmlFor="smsConsent" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
                   I agree to receive SMS & email reminders from AV Detailing LLC and I have read and accept the{" "}
-                  <a href="/AV_Detailing_Booking_Terms.pdf" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                   <a href="https://avdetailing.net/booking-terms.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:opacity-80 font-medium">
                     Booking Terms & Service Agreement
                   </a>.
                 </label>
@@ -1615,7 +1631,7 @@ const BookingPage = () => {
                         const event = {
                           id: bookingId || `booking-${Date.now()}`,
                           title: `AV Detailing - ${calServiceName}`,
-                          description: `Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\nLocation: ${location}\n\nQuestions? Call (225) 521-6264\nhttps://avdetailing.net`,
+                          description: `Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}\nLocation: ${location}\n\nQuestions? Call (225) 521-6264\nhttps://avdetailing.net`,
                           location,
                           startDate,
                           endDate,
@@ -1657,7 +1673,7 @@ const BookingPage = () => {
                         const location = `${customerInfo.address}, ${customerInfo.city}, LA ${customerInfo.zip}`;
                         
                         const formatGoogleDate = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-                        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`AV Detailing - ${calServiceName}`)}&dates=${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}&details=${encodeURIComponent(`Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\n\nQuestions? Call (225) 521-6264`)}&location=${encodeURIComponent(location)}`;
+                        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`AV Detailing - ${calServiceName}`)}&dates=${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}&details=${encodeURIComponent(`Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}\n\nQuestions? Call (225) 521-6264`)}&location=${encodeURIComponent(location)}`;
                         window.open(googleUrl, "_blank");
                       }}
                     >
