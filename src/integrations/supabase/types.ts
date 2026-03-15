@@ -1149,6 +1149,75 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          is_redeemed: boolean
+          redeemed_at: string | null
+          redeemed_booking_id: string | null
+          referred_booking_id: string | null
+          referrer_id: string
+          reward_amount: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          redeemed_at?: string | null
+          redeemed_booking_id?: string | null
+          referred_booking_id?: string | null
+          referrer_id: string
+          reward_amount?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          redeemed_at?: string | null
+          redeemed_booking_id?: string | null
+          referred_booking_id?: string | null
+          referrer_id?: string
+          reward_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_redeemed_booking_id_fkey"
+            columns: ["redeemed_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_referred_booking_id_fkey"
+            columns: ["referred_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_add_ons: {
         Row: {
           created_at: string
