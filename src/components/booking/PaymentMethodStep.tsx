@@ -52,7 +52,6 @@ export const PaymentMethodStep = ({
           )}
           <Wallet className="h-6 w-6 text-primary mx-auto mb-2" />
           <h3 className="font-semibold text-base mb-1">Pay in Person</h3>
-          <p className="text-2xl font-bold text-foreground mb-2">${totalPrice.toFixed(2)}</p>
           <p className="text-xs text-muted-foreground">Cash • Venmo • Cash App</p>
         </button>
 
