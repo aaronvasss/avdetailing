@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { JsonLd, faqSchema } from "@/components/seo/JsonLd";
 
 const faqs = [
   {
