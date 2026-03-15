@@ -126,8 +126,25 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       return;
     }
 
+    // Collect worker IDs for name lookup
+    const workerIds = new Set<string>();
+    (data || []).forEach((b: any) => {
+      if (b.assigned_worker_id) workerIds.add(b.assigned_worker_id);
+    });
+
+    const workerNameMap: Record<string, string> = {};
+    if (workerIds.size > 0) {
+      const { data: workerProfiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", Array.from(workerIds));
+      (workerProfiles || []).forEach((p) => {
+        workerNameMap[p.user_id] = p.full_name || "Unknown";
+      });
+    }
+
     const bookingsWithProfiles = await Promise.all(
-      (data || []).map(async (booking) => {
+      (data || []).map(async (booking: any) => {
         let profiles = null;
         if (booking.user_id) {
           const { data: profile } = await supabase
@@ -137,7 +154,11 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             .maybeSingle();
           profiles = profile;
         }
-        return { ...booking, profiles };
+        return {
+          ...booking,
+          profiles,
+          worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+        };
       })
     );
 
