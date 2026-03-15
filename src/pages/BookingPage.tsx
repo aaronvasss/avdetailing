@@ -603,6 +603,29 @@ const BookingPage = () => {
 
       setBookingId(createdId);
 
+      // Track referral if a valid referral code was used
+      if (referralCode.trim() && referralValid) {
+        try {
+          const { data: referrerData } = await supabase
+            .from("referral_codes")
+            .select("user_id")
+            .eq("code", referralCode.toUpperCase().trim())
+            .maybeSingle();
+
+          if (referrerData?.user_id) {
+            await supabase.from("referral_rewards").insert({
+              referrer_id: referrerData.user_id,
+              referred_booking_id: createdId,
+              reward_amount: 10,
+              is_redeemed: false,
+            } as any);
+          }
+        } catch (refErr) {
+          console.error("Referral tracking error:", refErr);
+          // Don't fail the booking over referral tracking
+        }
+      }
+
       // Handle online payment - redirect to Stripe
       if (paymentMethod === 'online') {
         toast.loading("Redirecting to payment...");
