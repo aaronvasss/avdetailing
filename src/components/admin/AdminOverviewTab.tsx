@@ -336,6 +336,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                         <MapPin className="h-3 w-3" />
                         {booking.service_address}, {booking.service_city}
                       </a>
+                      <div className="flex items-center gap-1 mt-1">
+                        <UserCheck className="h-3 w-3 text-muted-foreground" />
+                        {booking.worker_name ? (
+                          <span className="text-xs font-medium text-foreground">{booking.worker_name}</span>
+                        ) : (
+                          <span className="text-xs font-medium text-destructive">Unassigned</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
