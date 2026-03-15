@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Wallet, ArrowLeft, ArrowRight, Check, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,10 +27,14 @@ export const PaymentMethodStep = ({
   const onlineTotal = totalPrice + processingFee;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">How Would You Like to Pay?</h2>
-        <p className="text-muted-foreground">Choose your preferred payment method</p>
+        <p className="text-muted-foreground mb-4">Choose your preferred payment method</p>
+        <div className="inline-block bg-muted/50 rounded-xl px-6 py-3 border border-border">
+          <p className="text-sm text-muted-foreground">Package Total</p>
+          <p className="text-3xl font-bold text-foreground">${totalPrice.toFixed(2)}</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -57,13 +60,10 @@ export const PaymentMethodStep = ({
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-1">Pay in Person</h3>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-muted-foreground mb-2">
                 Pay after service is complete
               </p>
-              <div className="text-xl font-bold text-primary">
-                ${totalPrice.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground">
                 Cash, Venmo, or Cash App accepted
               </p>
             </div>
@@ -94,14 +94,11 @@ export const PaymentMethodStep = ({
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-1">Pay Online</h3>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-muted-foreground mb-2">
                 Secure checkout via Stripe
               </p>
-              <div className="text-xl font-bold text-primary">
-                ${onlineTotal.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Includes 3.5% processing fee (${processingFee.toFixed(2)})
+              <p className="text-xs text-muted-foreground">
+                A 3.5% processing fee (${processingFee.toFixed(2)}) will be added at checkout
               </p>
             </div>
           </div>
@@ -116,29 +113,23 @@ export const PaymentMethodStep = ({
         </button>
       </div>
 
-      {/* Info Card */}
-      <Card className="border-muted">
-        <CardContent className="py-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-muted-foreground">
-              {selectedMethod === 'online' ? (
-                <>
-                  <p className="font-medium text-foreground mb-1">Paying online?</p>
-                  <p>You'll be redirected to a secure Stripe checkout page. Your booking will be confirmed once payment is complete.</p>
-                </>
-              ) : selectedMethod === 'in_person' ? (
-                <>
-                  <p className="font-medium text-foreground mb-1">Paying in person?</p>
-                  <p>Your booking will be confirmed immediately. Payment is due when the service is complete.</p>
-                </>
-              ) : (
-                <p>Select a payment method to continue with your booking.</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Dynamic Total Summary */}
+      {selectedMethod && (
+        <div className="bg-muted/30 rounded-xl p-4 border border-border text-center">
+          {selectedMethod === 'in_person' ? (
+            <p className="text-lg font-semibold text-foreground">
+              Total: <span className="text-primary">${totalPrice.toFixed(2)}</span>
+            </p>
+          ) : (
+            <p className="text-lg font-semibold text-foreground">
+              Total: <span className="text-primary">${onlineTotal.toFixed(2)}</span>
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                (includes ${processingFee.toFixed(2)} processing fee)
+              </span>
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-4">
         <Button 
