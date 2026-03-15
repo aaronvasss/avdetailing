@@ -1294,10 +1294,20 @@ const BookingPage = () => {
                 <Input id="zip" required maxLength={10} value={customerInfo.zip} onChange={(e) => setCustomerInfo({...customerInfo, zip: e.target.value})} className={formErrors.zip ? "border-destructive" : ""} />
                 {formErrors.zip && <p className="text-sm text-destructive">{formErrors.zip}</p>}
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="vehicleInfo">Vehicle Details</Label>
-                <Input id="vehicleInfo" placeholder="Year, Make, Model (e.g., 2020 Toyota Camry)" required maxLength={200} value={customerInfo.vehicleInfo} onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} className={formErrors.vehicleInfo ? "border-destructive" : ""} />
-                {formErrors.vehicleInfo && <p className="text-sm text-destructive">{formErrors.vehicleInfo}</p>}
+              <div className="space-y-2">
+                <Label htmlFor="vehicleYear">Year</Label>
+                <Input id="vehicleYear" type="number" placeholder="2024" required maxLength={4} value={customerInfo.vehicleYear} onChange={(e) => setCustomerInfo({...customerInfo, vehicleYear: e.target.value.slice(0, 4)})} className={formErrors.vehicleYear ? "border-destructive" : ""} />
+                {formErrors.vehicleYear && <p className="text-sm text-destructive">{formErrors.vehicleYear}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicleMake">Make</Label>
+                <Input id="vehicleMake" placeholder="Toyota" required maxLength={50} value={customerInfo.vehicleMake} onChange={(e) => setCustomerInfo({...customerInfo, vehicleMake: e.target.value})} className={formErrors.vehicleMake ? "border-destructive" : ""} />
+                {formErrors.vehicleMake && <p className="text-sm text-destructive">{formErrors.vehicleMake}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicleModel">Model</Label>
+                <Input id="vehicleModel" placeholder="Camry" required maxLength={50} value={customerInfo.vehicleModel} onChange={(e) => setCustomerInfo({...customerInfo, vehicleModel: e.target.value})} className={formErrors.vehicleModel ? "border-destructive" : ""} />
+                {formErrors.vehicleModel && <p className="text-sm text-destructive">{formErrors.vehicleModel}</p>}
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
