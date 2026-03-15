@@ -37,7 +37,7 @@ interface ServicePageProps {
 
 export function ServicePageTemplate({
   title,
-  location,
+  location: locationText,
   description,
   heroImage,
   idealFor,
@@ -49,7 +49,7 @@ export function ServicePageTemplate({
   depositFlow = false,
 }: ServicePageProps) {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
-  const location = useLocation();
+  const routeLocation = useLocation();
 
   const bookAction = depositFlow
     ? { onClick: () => setDepositModalOpen(true) }
@@ -60,15 +60,15 @@ export function ServicePageTemplate({
       <SEOHead
         title={`${title} Services in Baton Rouge`}
         description={description}
-        path={location.pathname}
+        path={routeLocation.pathname}
       />
-      <JsonLd data={serviceSchema(title, description, location.pathname)} />
+      <JsonLd data={serviceSchema(title, description, routeLocation.pathname)} />
       <JsonLd data={faqSchema(faqs)} />
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Services", path: "/services" },
-          { name: title, path: location.pathname },
+          { name: title, path: routeLocation.pathname },
         ])}
       />
       {/* Hero Section */}
