@@ -19,6 +19,7 @@ import {
   getWorkingHoursDisplay,
   formatDuration
 } from "@/lib/scheduling";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 
 interface Booking {
   id: string;
