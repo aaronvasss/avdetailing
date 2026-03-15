@@ -164,7 +164,7 @@ export function RescheduleDialog({
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              disabled={(date) => isBefore(date, minDate)}
+              disabled={(date) => isBefore(date, minDate) || isDateBlocked(date)}
               className="rounded-md border mx-auto"
             />
           </div>
