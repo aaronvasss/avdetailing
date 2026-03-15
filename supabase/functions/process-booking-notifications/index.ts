@@ -4,12 +4,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Unified Booking Notification System
 // Sends customer confirmations and admin alerts via email.
-// Transport: Resend API with verified avdetailing.net domain.
+// Transport: Lovable email queue (notify.avdetailing.net)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SENDER_DOMAIN = "notify.avdetailing.net";
 
 const ADMIN_EMAIL = "aaronvasquez100@gmail.com";
 const FROM_EMAIL = "AV Detailing <noreply@avdetailing.net>";
@@ -57,21 +57,51 @@ function includesCeramic(serviceName: string, addOns?: { name: string }[]): bool
     (addOns?.some(a => keywords.some(k => a.name.toLowerCase().includes(k))) ?? false);
 }
 
-// ━━━━ Email Sending (Transport Layer) ━━━━
+// ━━━━ Email Sending (Transport Layer — Queue-based) ━━━━
+
+let _supabaseAdmin: any = null;
+function getAdminClient() {
+  if (!_supabaseAdmin) _supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  return _supabaseAdmin;
+}
 
 async function sendEmail(to: string, from: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({ from, to: [to], subject, html }),
+    const supabase = getAdminClient();
+    const messageId = crypto.randomUUID();
+
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "booking_notification",
+      recipient_email: to,
+      status: "pending",
     });
-    const data = await res.json();
-    if (!res.ok) {
-      return { ok: false, error: data.message || `HTTP ${res.status}` };
+
+    const { error } = await supabase.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        message_id: messageId,
+        to,
+        from,
+        sender_domain: SENDER_DOMAIN,
+        subject,
+        html,
+        text: "",
+        purpose: "transactional",
+        label: "booking_notification",
+        queued_at: new Date().toISOString(),
+      },
+    });
+
+    if (error) {
+      await supabase.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: "booking_notification",
+        recipient_email: to,
+        status: "failed",
+        error_message: "Failed to enqueue email",
+      });
+      return { ok: false, error: String(error) };
     }
     return { ok: true };
   } catch (err) {
