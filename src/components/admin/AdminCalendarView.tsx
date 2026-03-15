@@ -111,6 +111,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
         guest_name,
         guest_phone,
         user_id,
+        assigned_worker_id,
         services (name, slug)
       `)
       .gte("scheduled_date", rangeStart)
