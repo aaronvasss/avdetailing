@@ -75,7 +75,6 @@ export const PaymentMethodStep = ({
           )}
           <CreditCard className="h-6 w-6 text-primary mx-auto mb-2" />
           <h3 className="font-semibold text-base mb-1">Pay Online</h3>
-          <p className="text-2xl font-bold text-foreground mb-2">${onlineTotal.toFixed(2)}</p>
           <p className="text-xs text-muted-foreground">via Stripe • All major cards accepted</p>
           {!stripeAvailable && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-xl">
