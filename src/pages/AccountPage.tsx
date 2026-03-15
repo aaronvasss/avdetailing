@@ -14,6 +14,7 @@ import {
   LogOut,
   Plus,
   Settings,
+  Gift,
 } from "lucide-react";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { ProfileTab } from "@/components/account/ProfileTab";
