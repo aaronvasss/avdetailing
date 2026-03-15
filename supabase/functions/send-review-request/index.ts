@@ -76,7 +76,7 @@ async function enqueueEmail(supabase: any, to: string, from: string, subject: st
       sender_domain: SENDER_DOMAIN,
       subject,
       html,
-      text: "",
+      text: subject,
       purpose: "transactional",
       label,
       queued_at: new Date().toISOString(),
