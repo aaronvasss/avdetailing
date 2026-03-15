@@ -421,7 +421,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             <Badge variant="secondary">{upcomingBookings.length} bookings</Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4">
           {upcomingBookings.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -432,32 +432,37 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
               {upcomingBookings.slice(0, 10).map((booking) => (
                 <div 
                   key={booking.id} 
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="flex items-center gap-3 p-3 rounded-xl border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => onViewBooking(booking)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="text-center min-w-[80px]">
-                      <div className="text-sm font-medium">
-                        {format(new Date(booking.scheduled_date), "EEE, MMM d")}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {booking.scheduled_time.slice(0, 5)}
-                      </div>
+                  {/* Date + Time - left column */}
+                  <div className="flex-shrink-0 min-w-[68px] text-center">
+                    <div className="text-sm font-semibold text-foreground leading-tight">
+                      {format(new Date(booking.scheduled_date), "EEE, MMM d")}
                     </div>
-                    <div>
-                      <div className="font-medium">{getCustomerName(booking)}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {booking.services?.name || "Detailing"} • {booking.service_city}
-                      </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {booking.scheduled_time.slice(0, 5)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {isAdmin && (
-                      <span className="text-sm font-medium">${booking.total_price?.toFixed(0)}</span>
-                    )}
-                    {getStatusBadge(booking.status)}
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+
+                  {/* Details - middle column */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="font-semibold text-foreground text-sm leading-tight truncate">
+                      {getCustomerName(booking)}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {booking.services?.name || "Detailing"} • {booking.service_city}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      {isAdmin && (
+                        <span className="text-xs font-semibold text-foreground">${booking.total_price?.toFixed(0)}</span>
+                      )}
+                      {getStatusBadge(booking.status)}
+                    </div>
                   </div>
+
+                  {/* Chevron */}
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 </div>
               ))}
             </div>
