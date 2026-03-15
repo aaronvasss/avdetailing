@@ -370,6 +370,29 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
 
     toast.success("Booking updated successfully");
 
+    // Notify worker if assigned or reassigned
+    if (newAssignedWorkerId && newAssignedWorkerId !== previousWorkerId) {
+      const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
+      const firstName = customerName.split(" ")[0];
+      const serviceName = booking.services?.name || "Detailing";
+      const formatTime12 = (t: string) => {
+        const [h, m] = t.split(":");
+        const hour = parseInt(h);
+        return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+      };
+      try {
+        await supabase.from("worker_notifications").insert({
+          user_id: newAssignedWorkerId,
+          title: "You've been assigned a new job! 🚗",
+          body: `${serviceName} for ${firstName} on ${format(scheduledDate!, "MMM d, yyyy")} at ${formatTime12(scheduledTime)}${editAddress ? ` — ${editAddress}` : ""}`,
+          type: "assignment",
+          booking_id: booking.id,
+        });
+      } catch (notifyErr) {
+        console.error("Failed to notify worker:", notifyErr);
+      }
+    }
+
     // Auto-send review request when status changes to "completed"
     if (status === "completed" && booking.status !== "completed") {
       const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
