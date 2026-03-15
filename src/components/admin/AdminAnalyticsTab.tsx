@@ -76,7 +76,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     try {
       const sixMonthsAgo = subMonths(new Date(), 6);
       
-      const [bookingsRes, membershipsRes] = await Promise.all([
+      const [bookingsRes, membershipsRes, tipsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select(`
