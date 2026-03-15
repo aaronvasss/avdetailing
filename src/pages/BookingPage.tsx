@@ -805,7 +805,10 @@ const BookingPage = () => {
                       id="quoteVehicle" 
                       placeholder={serviceType === "ceramic" ? "e.g., 2024 BMW X5" : "e.g., Cessna 172, Single-Engine"}
                       value={`${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}`.trim()} 
-                      onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} 
+                      onChange={(e) => {
+                        const parts = e.target.value.split(" ");
+                        setCustomerInfo({...customerInfo, vehicleYear: parts[0] || "", vehicleMake: parts[1] || "", vehicleModel: parts.slice(2).join(" ") || ""});
+                      }} 
                     />
                   </div>
                   <div className="space-y-2">
