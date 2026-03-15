@@ -804,8 +804,8 @@ const BookingPage = () => {
                     <Input 
                       id="quoteVehicle" 
                       placeholder={serviceType === "ceramic" ? "e.g., 2024 BMW X5" : "e.g., Cessna 172, Single-Engine"}
-                      value={customerInfo.vehicleInfo} 
-                      onChange={(e) => setCustomerInfo({...customerInfo, vehicleInfo: e.target.value})} 
+                      value={`${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}`.trim()} 
+                      onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} 
                     />
                   </div>
                   <div className="space-y-2">
