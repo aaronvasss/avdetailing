@@ -415,7 +415,7 @@ const BookingPage = () => {
     } catch (error) {
       console.error("Error fetching available slots:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(selectedPackageDuration, []));
+      setAvailableSlots(generateTimeSlots(selectedPackageDuration, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
