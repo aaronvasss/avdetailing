@@ -4,12 +4,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Unified Booking Notification System
 // Sends customer confirmations and admin alerts via email.
-// Transport: Resend API with verified avdetailing.net domain.
+// Transport: Lovable email queue (notify.avdetailing.net)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SENDER_DOMAIN = "notify.avdetailing.net";
 
 const ADMIN_EMAIL = "aaronvasquez100@gmail.com";
 const FROM_EMAIL = "AV Detailing <noreply@avdetailing.net>";
