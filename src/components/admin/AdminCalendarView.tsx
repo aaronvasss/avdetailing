@@ -402,14 +402,19 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                         className={cn(
                           "min-h-[100px] p-1 border-r last:border-r-0",
                           !inMonth && "opacity-40 bg-muted/20",
-                          isToday(day) && "bg-primary/5"
+                          isToday(day) && "bg-primary/5",
+                          isDayBlocked(day) && "bg-destructive/10"
                         )}
                       >
                         <div className={cn(
                           "text-sm font-medium mb-1 text-center",
-                          isToday(day) && "text-primary"
+                          isToday(day) && "text-primary",
+                          isDayBlocked(day) && "text-destructive"
                         )}>
                           {format(day, "d")}
+                          {isDayBlocked(day) && (
+                            <span className="block text-[9px] text-destructive font-normal">Blocked</span>
+                          )}
                         </div>
                         <div className="space-y-0.5">
                           {dayBookings.slice(0, 3).map(booking => (
