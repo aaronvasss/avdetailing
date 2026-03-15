@@ -81,7 +81,21 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
   useEffect(() => {
     fetchBookings();
+    fetchBlockedDates();
   }, [currentDate, viewMode]);
+
+  const fetchBlockedDates = async () => {
+    const { data } = await supabase
+      .from("blocked_dates" as any)
+      .select("blocked_date");
+    if (data) {
+      setBlockedDates((data as any[]).map((d: any) => d.blocked_date));
+    }
+  };
+
+  const isDayBlocked = (date: Date) => {
+    return blockedDates.includes(format(date, "yyyy-MM-dd"));
+  };
 
   const fetchBookings = async () => {
     setLoading(true);
