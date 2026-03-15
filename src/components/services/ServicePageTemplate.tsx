@@ -92,7 +92,7 @@ export function ServicePageTemplate({
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
               {title}
             </h1>
-            <p className="text-xl text-primary font-medium mb-4">{location}</p>
+            <p className="text-xl text-primary font-medium mb-4">{locationText}</p>
             <p className="text-lg text-muted-foreground mb-8">{description}</p>
             <div className="flex flex-col sm:flex-row gap-4">
               {depositFlow ? (
