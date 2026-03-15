@@ -28,6 +28,7 @@ import {
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
+import { TipSection } from "@/components/booking/TipSection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 
@@ -1840,6 +1841,9 @@ const BookingPage = () => {
             );
           })()}
           
+          {/* Tip Section */}
+          <TipSection bookingId={bookingId} serviceTotal={calculateTotal()} />
+
           {/* Action Buttons */}
           <div className="flex gap-3">
             <Button asChild variant="outline" className="flex-1">
