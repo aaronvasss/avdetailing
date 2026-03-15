@@ -1669,7 +1669,7 @@ const BookingPage = () => {
                         const location = `${customerInfo.address}, ${customerInfo.city}, LA ${customerInfo.zip}`;
                         
                         const formatGoogleDate = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-                        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`AV Detailing - ${calServiceName}`)}&dates=${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}&details=${encodeURIComponent(`Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleInfo}\n\nQuestions? Call (225) 521-6264`)}&location=${encodeURIComponent(location)}`;
+                        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`AV Detailing - ${calServiceName}`)}&dates=${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}&details=${encodeURIComponent(`Service: ${calServiceName}\nVehicle: ${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}\n\nQuestions? Call (225) 521-6264`)}&location=${encodeURIComponent(location)}`;
                         window.open(googleUrl, "_blank");
                       }}
                     >
