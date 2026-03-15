@@ -92,7 +92,7 @@ export default function BookingManagePage() {
     } catch (error) {
       console.error("Error fetching available slots:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(serviceDuration, []));
+      setAvailableSlots(generateTimeSlots(serviceDuration, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
