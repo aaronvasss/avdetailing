@@ -2,19 +2,22 @@ import { format, parse, addMinutes, isBefore, isAfter, areIntervalsOverlapping }
 
 // ============= SCHEDULING CONSTANTS =============
 
-// Working hours: 6:30 AM – 7:30 PM
+// Working hours: 6:00 AM – 8:00 PM
 export const WORKING_HOURS = {
   START_HOUR: 6,
-  START_MINUTE: 30,
-  END_HOUR: 19,
-  END_MINUTE: 30,
+  START_MINUTE: 0,
+  END_HOUR: 20,
+  END_MINUTE: 0,
 };
 
 // Buffer time after each appointment (in minutes)
-export const BUFFER_MINUTES = 30;
+export const BUFFER_MINUTES = 15;
 
 // Time slot interval (in minutes)
 export const SLOT_INTERVAL = 30;
+
+// Default service duration (in minutes)
+export const DEFAULT_SERVICE_DURATION = 135; // 2 hours 15 minutes
 
 // ============= SERVICE DURATION MAP =============
 // Maps package slugs to their exact durations in minutes

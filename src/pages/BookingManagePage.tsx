@@ -299,7 +299,7 @@ export default function BookingManagePage() {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={(date) => date < new Date() || date.getDay() === 0}
+                    disabled={(date) => date < new Date()}
                     className="rounded-md border"
                   />
                 </div>
