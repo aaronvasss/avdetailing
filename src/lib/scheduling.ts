@@ -1,8 +1,7 @@
 import { format, parse, addMinutes, isBefore, isAfter, areIntervalsOverlapping } from "date-fns";
 
-// ============= SCHEDULING CONSTANTS =============
+// ============= SCHEDULING CONSTANTS (defaults — overridden by DB settings) =============
 
-// Working hours: 6:00 AM – 8:00 PM
 export const WORKING_HOURS = {
   START_HOUR: 6,
   START_MINUTE: 0,
@@ -10,11 +9,19 @@ export const WORKING_HOURS = {
   END_MINUTE: 0,
 };
 
-// Buffer time after each appointment (in minutes)
 export const BUFFER_MINUTES = 15;
-
-// Time slot interval (in minutes)
 export const SLOT_INTERVAL = 30;
+
+// Dynamic config interface matching useSchedulingSettings
+export interface SchedulingConfig {
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  bufferMinutes: number;
+  defaultDuration: number;
+  slotInterval: number;
+}
 
 
 
