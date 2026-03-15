@@ -37,6 +37,8 @@ interface CreateBookingRequest {
   payment_status?: string | null;
   payment_method?: string | null;
 
+  assigned_worker_id?: string | null;
+
   // Add-on IDs from service_add_ons table
   add_on_ids?: string[];
 }
