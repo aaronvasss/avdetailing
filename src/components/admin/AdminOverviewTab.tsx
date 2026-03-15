@@ -166,6 +166,16 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
     setMonthRevenue(total);
   };
 
+  const fetchTotalTips = async () => {
+    const { data } = await supabase
+      .from("payment_records")
+      .select("amount_cents")
+      .eq("payment_type", "tip")
+      .eq("status", "paid");
+    const total = (data || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0);
+    setTotalTips(total / 100);
+  };
+
   const updateStatus = async (bookingId: string, newStatus: string) => {
     const { error } = await supabase
       .from("bookings")
