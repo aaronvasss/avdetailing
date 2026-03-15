@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { JsonLd, faqSchema } from "@/components/seo/JsonLd";
 
 const faqs = [
   {
@@ -43,6 +44,7 @@ const faqs = [
 export function FAQSection() {
   return (
     <section className="section-padding bg-card">
+      <JsonLd data={faqSchema(faqs)} />
       <div className="container-custom">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

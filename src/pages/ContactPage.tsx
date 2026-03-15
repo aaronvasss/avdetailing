@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEOHead } from "@/components/seo/SEOHead";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,6 +102,11 @@ const ContactPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Contact Us"
+        description="Contact AV Detailing in Baton Rouge, LA. Call (225) 521-6264 or fill out our form for a free estimate. Same-week availability for most services."
+        path="/contact"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

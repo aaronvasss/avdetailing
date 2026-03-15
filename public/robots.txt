@@ -12,3 +12,12 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /worker
+Disallow: /booking/manage
+Disallow: /booking/cancel
+Disallow: /booking/canceled
+Disallow: /auth
+
+Sitemap: https://avdetailing.lovable.app/sitemap.xml

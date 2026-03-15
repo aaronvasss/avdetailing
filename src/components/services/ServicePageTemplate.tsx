@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, ArrowRight, Phone, Info } from "lucide-react";
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { DepositBookingModal } from "@/components/booking/DepositBookingModal";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, serviceSchema, faqSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 interface ServicePageProps {
   title: string;
@@ -35,7 +37,7 @@ interface ServicePageProps {
 
 export function ServicePageTemplate({
   title,
-  location,
+  location: locationText,
   description,
   heroImage,
   idealFor,
@@ -47,6 +49,7 @@ export function ServicePageTemplate({
   depositFlow = false,
 }: ServicePageProps) {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const routeLocation = useLocation();
 
   const bookAction = depositFlow
     ? { onClick: () => setDepositModalOpen(true) }
@@ -54,6 +57,20 @@ export function ServicePageTemplate({
 
   return (
     <Layout>
+      <SEOHead
+        title={`${title} Services in Baton Rouge`}
+        description={description}
+        path={routeLocation.pathname}
+      />
+      <JsonLd data={serviceSchema(title, description, routeLocation.pathname)} />
+      <JsonLd data={faqSchema(faqs)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Services", path: "/services" },
+          { name: title, path: routeLocation.pathname },
+        ])}
+      />
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -75,7 +92,7 @@ export function ServicePageTemplate({
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
               {title}
             </h1>
-            <p className="text-xl text-primary font-medium mb-4">{location}</p>
+            <p className="text-xl text-primary font-medium mb-4">{locationText}</p>
             <p className="text-lg text-muted-foreground mb-8">{description}</p>
             <div className="flex flex-col sm:flex-row gap-4">
               {depositFlow ? (

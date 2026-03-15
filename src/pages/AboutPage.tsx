@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Shield, Award, Users, Heart, Leaf, ArrowRight } from "lucide-react";
 import aboutHeroImage from "@/assets/about-hero.jpg";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const values = [
   {
@@ -30,6 +31,11 @@ const values = [
 const AboutPage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="About Us"
+        description="Learn about AV Detailing - Baton Rouge's premier mobile auto detailing service. Fully insured, 5-star rated, serving the Capital Region with premium vehicle care."
+        path="/about"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

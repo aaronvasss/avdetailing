@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Car, Droplets, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const services = [
   {
@@ -53,6 +54,11 @@ const services = [
 const ServicesPage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Auto Detailing Services"
+        description="Professional mobile detailing services in Baton Rouge, LA. Car, boat, RV & aircraft detailing, ceramic coating, and paint correction. Book online today."
+        path="/services"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

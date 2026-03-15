@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEOHead } from "@/components/seo/SEOHead";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -29,6 +30,11 @@ const GalleryPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Before & After Gallery"
+        description="See stunning before and after auto detailing transformations by AV Detailing in Baton Rouge. Cars, boats, RVs and more."
+        path="/gallery"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

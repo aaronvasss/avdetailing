@@ -131,8 +131,11 @@ export function TestimonialsSection() {
               <div className="flex items-center gap-4">
                 <img
                   src={testimonial.image}
-                  alt={testimonial.name}
+                  alt={`${testimonial.name} review - ${testimonial.vehicle} detailing in ${testimonial.location}`}
                   className="w-12 h-12 rounded-full object-cover"
+                  loading="lazy"
+                  width={48}
+                  height={48}
                 />
                 <div>
                   <div className="font-semibold">{testimonial.name}</div>
