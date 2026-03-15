@@ -218,10 +218,11 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
     <p style="color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 16px;text-align:center;">Manage Your Booking</p>
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
       <tr>
-        <td width="50%" style="padding-right:6px;"><a href="${BASE_URL}/account" style="display:block;background-color:#3b82f6;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:13px;text-align:center;">📅 Reschedule</a></td>
-        <td width="50%" style="padding-left:6px;"><a href="${BASE_URL}/account" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:13px;text-align:center;">✕ Cancel</a></td>
+        <td width="50%" style="padding-right:6px;"><a href="${BASE_URL}/account" style="display:block;background-color:#3b82f6;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:13px;text-align:center;">📅 Manage Appointment</a></td>
+        <td width="50%" style="padding-left:6px;"><a href="${BASE_URL}/cancel/${booking.id}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:13px;text-align:center;">✕ Cancel Appointment</a></td>
       </tr>
     </table>
+    ${!booking.user_id ? '<p style="color:#737373;font-size:11px;text-align:center;margin:0 0 12px;">To manage your appointment, create a free account using the same email you booked with.</p>' : ''}
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
       <tr>
         <td width="50%" style="padding-right:6px;"><a href="tel:+12255216264" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;text-align:center;">📞 Call Us</a></td>
