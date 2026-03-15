@@ -627,6 +627,14 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                     {selectedBooking.status}
                   </Badge>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Technician</span>
+                  {selectedBooking.worker_name ? (
+                    <span className="font-medium">{selectedBooking.worker_name}</span>
+                  ) : (
+                    <span className="text-destructive font-medium">Unassigned</span>
+                  )}
+                </div>
                 {isAdmin && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total</span>
