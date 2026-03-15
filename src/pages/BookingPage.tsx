@@ -257,7 +257,9 @@ const BookingPage = () => {
     address: "",
     city: "",
     zip: "",
-    vehicleInfo: "",
+    vehicleYear: "",
+    vehicleMake: "",
+    vehicleModel: "",
     notes: "",
   });
 
