@@ -1482,18 +1482,43 @@ const BookingPage = () => {
                     {paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person'}
                   </span>
                 </div>
+                {referralCredit > 0 && useCredit && (
+                  <div className="flex justify-between items-center text-green-500">
+                    <span className="flex items-center gap-1">
+                      <Gift className="h-4 w-4" />
+                      Referral Credit
+                    </span>
+                    <span className="font-medium">-${Math.min(referralCredit, calculateTotal()).toFixed(2)}</span>
+                  </div>
+                )}
+                {referralCredit > 0 && (
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={useCredit}
+                      onCheckedChange={(checked) => setUseCredit(checked === true)}
+                      className="border-primary data-[state=checked]:bg-primary"
+                    />
+                    Apply ${referralCredit} referral credit
+                  </label>
+                )}
                 <div className="border-t pt-4 flex justify-between">
                   <span className="font-semibold">Total</span>
                   <span className="text-xl font-bold text-primary">
-                    ${paymentMethod === 'online' 
-                      ? (calculateTotal() + Math.round(calculateTotal() * 0.035 * 100) / 100).toFixed(2)
-                      : calculateTotal().toFixed(2)
-                    }
+                    ${(() => {
+                      let total = calculateTotal();
+                      if (referralCredit > 0 && useCredit) {
+                        total = Math.max(0, total - referralCredit);
+                      }
+                      if (paymentMethod === 'online' && total > 0) {
+                        total = total + Math.round(total * 0.035 * 100) / 100;
+                      }
+                      return total.toFixed(2);
+                    })()}
                   </span>
                 </div>
                 {paymentMethod === 'online' && (
                   <p className="text-xs text-muted-foreground">
-                    Includes 3.5% processing fee (${(Math.round(calculateTotal() * 0.035 * 100) / 100).toFixed(2)})
+                    Includes 3.5% processing fee
                   </p>
                 )}
               </CardContent>
