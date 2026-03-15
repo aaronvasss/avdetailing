@@ -28,6 +28,7 @@ export default function BookingSuccessPage() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const bookingId = searchParams.get("booking_id");
+  const tipStatus = searchParams.get("tip");
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
