@@ -472,6 +472,8 @@ serve(async (req) => {
     const customerEmail = booking.guest_email?.trim();
     const isAdminSelf = customerEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
+    console.log(`Processing notifications for booking ${booking_id} | mode=${mode} | customer=${customerEmail} | isAdminSelf=${isAdminSelf}`);
+
     // ━━━━ Customer Confirmation ━━━━
     if ((mode === "auto" || mode === "resend_customer") && customerEmail && !isAdminSelf) {
       const html = buildCustomerHtml(booking, serviceName, addOns || []);

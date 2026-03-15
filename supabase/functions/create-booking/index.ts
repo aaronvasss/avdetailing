@@ -273,9 +273,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Failed to notify workers:", notifyErr);
     }
 
-    // Send booking confirmation emails (customer + admin) — non-blocking
+    // Send booking confirmation emails (customer + admin)
     try {
-      await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
+      console.log(`Triggering notifications for booking ${booking.id}...`);
+      const notifRes = await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -286,6 +287,11 @@ const handler = async (req: Request): Promise<Response> => {
           mode: "auto",
         }),
       });
+      const notifData = await notifRes.json().catch(() => ({}));
+      console.log(`Notification response ${notifRes.status}:`, JSON.stringify(notifData));
+      if (!notifRes.ok) {
+        console.error(`Notification function returned ${notifRes.status}:`, notifData);
+      }
     } catch (emailErr) {
       console.error("Failed to send booking notifications:", emailErr);
     }
