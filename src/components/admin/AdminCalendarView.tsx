@@ -543,6 +543,13 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                               <div className="text-sm text-muted-foreground">
                                 {booking.service_address}, {booking.service_city}
                               </div>
+                              <div className="text-xs mt-0.5">
+                                {booking.worker_name ? (
+                                  <span className="text-foreground font-medium">👷 {booking.worker_name}</span>
+                                ) : (
+                                  <span className="text-destructive font-medium">Unassigned</span>
+                                )}
+                              </div>
                               {isAdmin && (
                                 <div className="text-sm font-medium text-primary mt-1">
                                   ${booking.total_price?.toFixed(0)}
