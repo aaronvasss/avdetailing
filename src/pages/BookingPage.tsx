@@ -28,6 +28,7 @@ import {
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
+import { TipSection } from "@/components/booking/TipSection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 
