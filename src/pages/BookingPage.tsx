@@ -252,6 +252,7 @@ const BookingPage = () => {
   const [smsConsent, setSmsConsent] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
+  const [referralChecking, setReferralChecking] = useState(false);
   const [referralCredit, setReferralCredit] = useState(0);
   const [referralRewardIds, setReferralRewardIds] = useState<string[]>([]);
   const [useCredit, setUseCredit] = useState(true);
