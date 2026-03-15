@@ -83,7 +83,8 @@ export default function BookingManagePage() {
       // Generate available time slots based on service duration and existing bookings
       const slots = generateTimeSlots(
         serviceDuration,
-        existingBookings || []
+        existingBookings || [],
+        schedulingConfig
       );
       
       setAvailableSlots(slots);
