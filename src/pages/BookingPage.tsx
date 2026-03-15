@@ -646,7 +646,24 @@ const BookingPage = () => {
         }
       }
 
-      // Handle online payment - redirect to Stripe
+      // Redeem referral credits if used
+      if (referralCredit > 0 && useCredit && referralRewardIds.length > 0) {
+        try {
+          for (const rewardId of referralRewardIds) {
+            await supabase
+              .from("referral_rewards")
+              .update({
+                is_redeemed: true,
+                redeemed_booking_id: createdId,
+                redeemed_at: new Date().toISOString(),
+              } as any)
+              .eq("id", rewardId);
+          }
+        } catch (creditErr) {
+          console.error("Credit redemption error:", creditErr);
+        }
+      }
+
       if (paymentMethod === 'online') {
         toast.loading("Redirecting to payment...");
         
