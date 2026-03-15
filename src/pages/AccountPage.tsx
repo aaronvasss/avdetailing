@@ -21,6 +21,7 @@ import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
+import { ReferralTab } from "@/components/account/ReferralTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export default function AccountPage() {
