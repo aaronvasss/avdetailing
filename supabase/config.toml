@@ -41,3 +41,5 @@ project_id = "prcrvuzncffsblsxblim"
     verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
+  [functions.cancel-booking-public]
+    verify_jwt = false

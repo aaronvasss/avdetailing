@@ -63,6 +63,7 @@ const App = () => (
           <Route path="/book" element={<BookingPage />} />
           <Route path="/booking/manage" element={<BookingManagePage />} />
           <Route path="/booking/cancel" element={<BookingCancelPage />} />
+          <Route path="/cancel/:bookingId" element={<PublicCancelPage />} />
           <Route path="/booking/success" element={<BookingSuccessPage />} />
           <Route path="/booking/canceled" element={<BookingCanceledPage />} />
           <Route path="/auth" element={<AuthPage />} />
