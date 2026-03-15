@@ -41,50 +41,52 @@ import RatingPage from "./pages/RatingPage";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/services/car-detailing" element={<CarDetailingPage />} />
-          <Route path="/services/ceramic-coating" element={<CeramicCoatingPage />} />
-          <Route path="/services/paint-correction" element={<PaintCorrectionPage />} />
-          <Route path="/services/boat-detailing" element={<BoatDetailingPage />} />
-          <Route path="/services/rv-detailing" element={<RVDetailingPage />} />
-          <Route path="/services/aircraft-detailing" element={<AircraftDetailingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/memberships" element={<MembershipsPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/reviews" element={<ReviewsPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/service-areas" element={<ServiceAreasPage />} />
-          <Route path="/book" element={<BookingPage />} />
-          <Route path="/booking/manage" element={<BookingManagePage />} />
-          <Route path="/booking/cancel" element={<BookingCancelPage />} />
-          <Route path="/cancel/:bookingId" element={<PublicCancelPage />} />
-          <Route path="/booking/success" element={<BookingSuccessPage />} />
-          <Route path="/booking/canceled" element={<BookingCanceledPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
-          <Route path="/worker/login" element={<WorkerLoginPage />} />
-          <Route path="/worker" element={<WorkerDashboardPage />} />
-          <Route path="/worker/jobs" element={<WorkerAllJobsPage />} />
-          <Route path="/worker/chat" element={<WorkerChatPage />} />
-          <Route path="/worker/earnings" element={<WorkerEarningsPage />} />
-          <Route path="/worker/profile" element={<WorkerProfilePage />} />
-          <Route path="/rate/:bookingId" element={<RatingPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/services/car-detailing" element={<CarDetailingPage />} />
+            <Route path="/services/ceramic-coating" element={<CeramicCoatingPage />} />
+            <Route path="/services/paint-correction" element={<PaintCorrectionPage />} />
+            <Route path="/services/boat-detailing" element={<BoatDetailingPage />} />
+            <Route path="/services/rv-detailing" element={<RVDetailingPage />} />
+            <Route path="/services/aircraft-detailing" element={<AircraftDetailingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/memberships" element={<MembershipsPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/service-areas" element={<ServiceAreasPage />} />
+            <Route path="/book" element={<BookingPage />} />
+            <Route path="/booking/manage" element={<BookingManagePage />} />
+            <Route path="/booking/cancel" element={<BookingCancelPage />} />
+            <Route path="/cancel/:bookingId" element={<PublicCancelPage />} />
+            <Route path="/booking/success" element={<BookingSuccessPage />} />
+            <Route path="/booking/canceled" element={<BookingCanceledPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+            <Route path="/worker/login" element={<WorkerLoginPage />} />
+            <Route path="/worker" element={<WorkerDashboardPage />} />
+            <Route path="/worker/jobs" element={<WorkerAllJobsPage />} />
+            <Route path="/worker/chat" element={<WorkerChatPage />} />
+            <Route path="/worker/earnings" element={<WorkerEarningsPage />} />
+            <Route path="/worker/profile" element={<WorkerProfilePage />} />
+            <Route path="/rate/:bookingId" element={<RatingPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;
