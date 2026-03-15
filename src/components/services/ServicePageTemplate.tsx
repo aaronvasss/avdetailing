@@ -49,6 +49,7 @@ export function ServicePageTemplate({
   depositFlow = false,
 }: ServicePageProps) {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const location = useLocation();
 
   const bookAction = depositFlow
     ? { onClick: () => setDepositModalOpen(true) }
@@ -56,6 +57,20 @@ export function ServicePageTemplate({
 
   return (
     <Layout>
+      <SEOHead
+        title={`${title} Services in Baton Rouge`}
+        description={description}
+        path={location.pathname}
+      />
+      <JsonLd data={serviceSchema(title, description, location.pathname)} />
+      <JsonLd data={faqSchema(faqs)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Services", path: "/services" },
+          { name: title, path: location.pathname },
+        ])}
+      />
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
