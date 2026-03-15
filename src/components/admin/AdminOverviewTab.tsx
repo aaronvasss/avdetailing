@@ -82,6 +82,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
         guest_name,
         guest_phone,
         user_id,
+        assigned_worker_id,
         services (name)
       `)
       .gte("scheduled_date", format(addDays(new Date(), -30), "yyyy-MM-dd"))
