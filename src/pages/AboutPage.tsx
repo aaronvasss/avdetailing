@@ -31,6 +31,11 @@ const values = [
 const AboutPage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="About Us"
+        description="Learn about AV Detailing - Baton Rouge's premier mobile auto detailing service. Fully insured, 5-star rated, serving the Capital Region with premium vehicle care."
+        path="/about"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

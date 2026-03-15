@@ -30,6 +30,11 @@ const GalleryPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Before & After Gallery"
+        description="See stunning before and after auto detailing transformations by AV Detailing in Baton Rouge. Cars, boats, RVs and more."
+        path="/gallery"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

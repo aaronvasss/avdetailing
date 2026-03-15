@@ -100,6 +100,11 @@ const ReviewsPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Customer Reviews"
+        description="Read 5-star reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto detailing service."
+        path="/reviews"
+      />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">
