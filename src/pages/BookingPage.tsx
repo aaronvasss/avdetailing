@@ -236,6 +236,7 @@ const toDbTime = (input: string): string | null => {
 };
 
 const BookingPage = () => {
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [step, setStep] = useState(1);
   const [serviceType, setServiceType] = useState<string>("");
   const [vehicleSubType, setVehicleSubType] = useState<string>("");
