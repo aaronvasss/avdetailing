@@ -1343,9 +1343,48 @@ const BookingPage = () => {
                 <Input id="vehicleModel" placeholder="Camry" required maxLength={50} value={customerInfo.vehicleModel} onChange={(e) => setCustomerInfo({...customerInfo, vehicleModel: e.target.value})} className={formErrors.vehicleModel ? "border-destructive" : ""} />
                 {formErrors.vehicleModel && <p className="text-sm text-destructive">{formErrors.vehicleModel}</p>}
               </div>
-              <div className="space-y-2 md:col-span-2">
+               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
                 <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." maxLength={1000} value={customerInfo.notes} onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="referralCode" className="flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-primary" />
+                  Referral Code (Optional)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="referralCode"
+                    placeholder="Enter a friend's referral code"
+                    maxLength={20}
+                    value={referralCode}
+                    onChange={(e) => {
+                      setReferralCode(e.target.value.toUpperCase());
+                      setReferralValid(null);
+                    }}
+                    className={cn(
+                      referralValid === true && "border-green-500",
+                      referralValid === false && "border-destructive"
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!referralCode.trim() || referralChecking}
+                    onClick={() => validateReferralCode(referralCode)}
+                  >
+                    {referralChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                  </Button>
+                </div>
+                {referralValid === true && (
+                  <p className="text-sm text-green-500 flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Valid referral code! Your friend will earn $10 credit.
+                  </p>
+                )}
+                {referralValid === false && (
+                  <p className="text-sm text-destructive">Invalid referral code</p>
+                )}
               </div>
             </div>
 
