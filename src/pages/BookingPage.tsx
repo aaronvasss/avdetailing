@@ -533,8 +533,8 @@ const BookingPage = () => {
         guest_phone: customerInfo.phone,
 
         vehicle_type: vehicleTypeLabel,
-        vehicle_make: customerInfo.vehicleInfo.split(" ")[1] || null,
-        vehicle_model: customerInfo.vehicleInfo.split(" ").slice(2).join(" ") || null,
+        vehicle_make: customerInfo.vehicleMake || null,
+        vehicle_model: customerInfo.vehicleModel || null,
         service_address: customerInfo.address,
         service_city: customerInfo.city,
         service_zip: customerInfo.zip,
