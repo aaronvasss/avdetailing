@@ -9,8 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { generateICS } from "@/lib/calendar";
 import { TipSection } from "@/components/booking/TipSection";
-import { format } from "date-fns";
-import { generateICS } from "@/lib/calendar";
 
 interface BookingDetails {
   id: string;
