@@ -15,13 +15,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Phone, Mail, User, Car, 
   DollarSign, Save, Loader2, CreditCard, Banknote, StickyNote, 
-  Receipt, ExternalLink, CheckCircle2, XCircle, AlertCircle
+  Receipt, ExternalLink, CheckCircle2, XCircle, AlertCircle, Wrench
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
+import { useWorkersList } from "@/hooks/useWorkersList";
 
 interface Booking {
   id: string;
@@ -53,6 +54,7 @@ interface Booking {
   service_id: string;
   stripe_payment_intent_id: string | null;
   stripe_checkout_session_id: string | null;
+  assigned_worker_id: string | null;
   services: { name: string; slug: string } | null;
   profile_name?: string | null;
   profile_phone?: string | null;
@@ -119,6 +121,7 @@ const PAYMENT_METHOD_OPTIONS = [
 export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin }: BookingEditDialogProps) {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const { workers } = useWorkersList();
   
   // Form state
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
@@ -131,6 +134,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [notes, setNotes] = useState<InternalNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [editAssignedWorkerId, setEditAssignedWorkerId] = useState<string>("unassigned");
 
   // Editable customer fields
   const [editGuestName, setEditGuestName] = useState("");
@@ -187,6 +191,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
 
       // Price
       setEditTotalPrice(booking.total_price != null ? String(booking.total_price) : "");
+
+      // Worker assignment
+      setEditAssignedWorkerId(booking.assigned_worker_id || "unassigned");
 
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
@@ -297,6 +304,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const totalPrice = editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price;
     const nameParts = editGuestName.trim().split(" ");
 
+    const newAssignedWorkerId = editAssignedWorkerId !== "unassigned" ? editAssignedWorkerId : null;
+    const previousWorkerId = booking.assigned_worker_id;
+
     const updates: Record<string, any> = {
       scheduled_date: format(scheduledDate, "yyyy-MM-dd"),
       scheduled_time: scheduledTime,
@@ -317,6 +327,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       service_zip: editZip.trim() || null,
       total_price: totalPrice,
       add_ons_total: newAddOnsTotal,
+      assigned_worker_id: newAssignedWorkerId,
     };
     
     const { error } = await supabase
@@ -358,6 +369,29 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     }
 
     toast.success("Booking updated successfully");
+
+    // Notify worker if assigned or reassigned
+    if (newAssignedWorkerId && newAssignedWorkerId !== previousWorkerId) {
+      const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
+      const firstName = customerName.split(" ")[0];
+      const serviceName = booking.services?.name || "Detailing";
+      const formatTime12 = (t: string) => {
+        const [h, m] = t.split(":");
+        const hour = parseInt(h);
+        return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+      };
+      try {
+        await supabase.from("worker_notifications").insert({
+          user_id: newAssignedWorkerId,
+          title: "You've been assigned a new job! 🚗",
+          body: `${serviceName} for ${firstName} on ${format(scheduledDate!, "MMM d, yyyy")} at ${formatTime12(scheduledTime)}${editAddress ? ` — ${editAddress}` : ""}`,
+          type: "assignment",
+          booking_id: booking.id,
+        });
+      } catch (notifyErr) {
+        console.error("Failed to notify worker:", notifyErr);
+      }
+    }
 
     // Auto-send review request when status changes to "completed"
     if (status === "completed" && booking.status !== "completed") {
@@ -578,6 +612,31 @@ AV Detailing
                 />
               </div>
             </div>
+
+            {/* Assign Technician */}
+            {isAdmin && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Assign Technician
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Select value={editAssignedWorkerId} onValueChange={setEditAssignedWorkerId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select technician" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {workers.map((w) => (
+                        <SelectItem key={w.user_id} value={w.user_id}>{w.display_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            )}
 
             {booking.customer_notes && (
               <div className="space-y-2">

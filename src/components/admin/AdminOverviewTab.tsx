@@ -36,8 +36,10 @@ interface Booking {
   guest_name: string | null;
   guest_phone: string | null;
   user_id: string | null;
+  assigned_worker_id: string | null;
   services: { name: string } | null;
   profiles: { full_name: string; phone: string } | null;
+  worker_name?: string | null;
 }
 
 interface AdminOverviewTabProps {
@@ -80,6 +82,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
         guest_name,
         guest_phone,
         user_id,
+        assigned_worker_id,
         services (name)
       `)
       .gte("scheduled_date", format(addDays(new Date(), -30), "yyyy-MM-dd"))
@@ -93,9 +96,25 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
       return;
     }
 
-    // Fetch profiles for bookings with user_id
+    // Fetch profiles for bookings with user_id, and worker names for assigned bookings
+    const workerIds = new Set<string>();
+    (data || []).forEach((b: any) => {
+      if (b.assigned_worker_id) workerIds.add(b.assigned_worker_id);
+    });
+
+    const workerNameMap: Record<string, string> = {};
+    if (workerIds.size > 0) {
+      const { data: workerProfiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", Array.from(workerIds));
+      (workerProfiles || []).forEach((p) => {
+        workerNameMap[p.user_id] = p.full_name || "Unknown";
+      });
+    }
+
     const bookingsWithProfiles = await Promise.all(
-      (data || []).map(async (booking) => {
+      (data || []).map(async (booking: any) => {
         let profiles = null;
         if (booking.user_id) {
           const { data: profile } = await supabase
@@ -105,7 +124,11 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             .maybeSingle();
           profiles = profile;
         }
-        return { ...booking, profiles };
+        return {
+          ...booking,
+          profiles,
+          worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+        };
       })
     );
 
@@ -313,6 +336,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                         <MapPin className="h-3 w-3" />
                         {booking.service_address}, {booking.service_city}
                       </a>
+                      <div className="flex items-center gap-1 mt-1">
+                        <UserCheck className="h-3 w-3 text-muted-foreground" />
+                        {booking.worker_name ? (
+                          <span className="text-xs font-medium text-foreground">{booking.worker_name}</span>
+                        ) : (
+                          <span className="text-xs font-medium text-destructive">Unassigned</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useWorkersList } from "@/hooks/useWorkersList";
 
 interface AdminBookingModalProps {
   open: boolean;
@@ -111,6 +112,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [customPrice, setCustomPrice] = useState("");
+  const [assignedWorkerId, setAssignedWorkerId] = useState<string>("unassigned");
+  const { workers } = useWorkersList();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -216,6 +219,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           total_price: totalPrice,
           status: form.paymentMethod === "in_person" ? "confirmed" : "pending",
           payment_status: "unpaid",
+          assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
@@ -224,11 +228,33 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
       if (error) throw new Error(error.message);
 
-      if (form.internalNotes && data?.booking_id) {
+      const bookingId = data?.booking?.id || data?.booking_id;
+
+      if (form.internalNotes && bookingId) {
         await supabase.from("booking_internal_notes").insert({
-          booking_id: data.booking_id,
+          booking_id: bookingId,
           note: form.internalNotes,
         });
+      }
+
+      // Notify assigned worker
+      if (assignedWorkerId !== "unassigned" && bookingId) {
+        const formatTime12 = (t: string) => {
+          const [h, m] = t.split(":");
+          const hour = parseInt(h);
+          return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+        };
+        try {
+          await supabase.from("worker_notifications").insert({
+            user_id: assignedWorkerId,
+            title: "You've been assigned a new job! 🚗",
+            body: `${selectedService.label} for ${form.firstName} on ${format(form.scheduledDate!, "MMM d, yyyy")} at ${formatTime12(form.scheduledTime)}${form.address ? ` — ${form.address}` : ""}`,
+            type: "assignment",
+            booking_id: bookingId,
+          });
+        } catch (notifyErr) {
+          console.error("Failed to notify worker:", notifyErr);
+        }
       }
 
       toast.success("Booking created successfully!");
@@ -247,6 +273,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setSelectedAddOns([]);
       setCustomPrice("");
       setPricingMode("package");
+      setAssignedWorkerId("unassigned");
     } catch (err) {
       console.error("Admin booking error:", err);
       toast.error("Failed to create booking. Please try again.");
@@ -557,6 +584,22 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               )}
             </div>
           )}
+
+          {/* Assign Technician */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assign Technician</h3>
+            <Select value={assignedWorkerId} onValueChange={setAssignedWorkerId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select technician" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {workers.map((w) => (
+                  <SelectItem key={w.user_id} value={w.user_id}>{w.display_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Payment */}
           <div>

@@ -245,6 +245,7 @@ export type Database = {
           add_ons_total: number | null
           address_id: string | null
           address_notes: string | null
+          assigned_worker_id: string | null
           created_at: string
           customer_notes: string | null
           deposit_amount: number | null
@@ -285,6 +286,7 @@ export type Database = {
           add_ons_total?: number | null
           address_id?: string | null
           address_notes?: string | null
+          assigned_worker_id?: string | null
           created_at?: string
           customer_notes?: string | null
           deposit_amount?: number | null
@@ -325,6 +327,7 @@ export type Database = {
           add_ons_total?: number | null
           address_id?: string | null
           address_notes?: string | null
+          assigned_worker_id?: string | null
           created_at?: string
           customer_notes?: string | null
           deposit_amount?: number | null

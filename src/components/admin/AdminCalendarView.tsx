@@ -31,8 +31,10 @@ interface Booking {
   guest_name: string | null;
   guest_phone: string | null;
   user_id: string | null;
+  assigned_worker_id: string | null;
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; phone: string } | null;
+  worker_name?: string | null;
 }
 
 interface AdminCalendarViewProps {
@@ -109,6 +111,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
         guest_name,
         guest_phone,
         user_id,
+        assigned_worker_id,
         services (name, slug)
       `)
       .gte("scheduled_date", rangeStart)
@@ -123,8 +126,25 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       return;
     }
 
+    // Collect worker IDs for name lookup
+    const workerIds = new Set<string>();
+    (data || []).forEach((b: any) => {
+      if (b.assigned_worker_id) workerIds.add(b.assigned_worker_id);
+    });
+
+    const workerNameMap: Record<string, string> = {};
+    if (workerIds.size > 0) {
+      const { data: workerProfiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", Array.from(workerIds));
+      (workerProfiles || []).forEach((p) => {
+        workerNameMap[p.user_id] = p.full_name || "Unknown";
+      });
+    }
+
     const bookingsWithProfiles = await Promise.all(
-      (data || []).map(async (booking) => {
+      (data || []).map(async (booking: any) => {
         let profiles = null;
         if (booking.user_id) {
           const { data: profile } = await supabase
@@ -134,7 +154,11 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             .maybeSingle();
           profiles = profile;
         }
-        return { ...booking, profiles };
+        return {
+          ...booking,
+          profiles,
+          worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+        };
       })
     );
 
@@ -519,6 +543,13 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                               <div className="text-sm text-muted-foreground">
                                 {booking.service_address}, {booking.service_city}
                               </div>
+                              <div className="text-xs mt-0.5">
+                                {booking.worker_name ? (
+                                  <span className="text-foreground font-medium">👷 {booking.worker_name}</span>
+                                ) : (
+                                  <span className="text-destructive font-medium">Unassigned</span>
+                                )}
+                              </div>
                               {isAdmin && (
                                 <div className="text-sm font-medium text-primary mt-1">
                                   ${booking.total_price?.toFixed(0)}
@@ -595,6 +626,14 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                   <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
                     {selectedBooking.status}
                   </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Technician</span>
+                  {selectedBooking.worker_name ? (
+                    <span className="font-medium">{selectedBooking.worker_name}</span>
+                  ) : (
+                    <span className="text-destructive font-medium">Unassigned</span>
+                  )}
                 </div>
                 {isAdmin && (
                   <div className="flex justify-between">

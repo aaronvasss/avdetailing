@@ -37,6 +37,8 @@ interface CreateBookingRequest {
   payment_status?: string | null;
   payment_method?: string | null;
 
+  assigned_worker_id?: string | null;
+
   // Add-on IDs from service_add_ons table
   add_on_ids?: string[];
 }
@@ -192,6 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
       payment_status: body.payment_status ?? "unpaid",
       payment_method: body.payment_method ?? "in_person",
       manage_token: manageToken,
+      assigned_worker_id: body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
     };
 
     const { data: booking, error } = await serviceClient
