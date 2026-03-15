@@ -47,6 +47,7 @@ export function RescheduleDialog({
   onOpenChange,
   onSuccess,
 }: RescheduleDialogProps) {
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [loading, setLoading] = useState(false);

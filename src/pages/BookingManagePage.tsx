@@ -42,6 +42,7 @@ interface BookingDetails {
 // Time slots are now generated dynamically based on service duration and availability
 
 export default function BookingManagePage() {
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
