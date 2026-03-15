@@ -3,11 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const DEFAULT_SMS_SENDER = "+12252284796";
+const SENDER_DOMAIN = "notify.avdetailing.net";
+const FROM_DOMAIN = "avdetailing.net";
 const GOOGLE_REVIEW_URL = "https://g.page/r/CYyQqJOk3f1hEBM/review";
 
 const corsHeaders = {
@@ -16,7 +17,7 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[REVIEW-REQUEST] ${step}${detailsStr}`);
 };
 
@@ -55,10 +56,49 @@ async function getBusinessSettings(supabase: any) {
   }
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+async function enqueueEmail(supabase: any, to: string, from: string, subject: string, html: string, label: string) {
+  const messageId = crypto.randomUUID();
+
+  await supabase.from("email_send_log").insert({
+    message_id: messageId,
+    template_name: label,
+    recipient_email: to,
+    status: "pending",
+  });
+
+  const { error } = await supabase.rpc("enqueue_email", {
+    queue_name: "transactional_emails",
+    payload: {
+      message_id: messageId,
+      to,
+      from,
+      sender_domain: SENDER_DOMAIN,
+      subject,
+      html,
+      text: "",
+      purpose: "transactional",
+      label,
+      queued_at: new Date().toISOString(),
+    },
+  });
+
+  if (error) {
+    console.error(`Failed to enqueue ${label}`, error);
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: label,
+      recipient_email: to,
+      status: "failed",
+      error_message: "Failed to enqueue email",
+    });
+    return { ok: false, error: String(error) };
   }
+
+  return { ok: true, messageId };
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     logStep("Function started");
@@ -68,8 +108,7 @@ serve(async (req) => {
 
     if (!body.booking_id || !body.customer_name) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -79,8 +118,7 @@ serve(async (req) => {
     if (!autoReviewEnabled) {
       logStep("Auto review requests disabled");
       return new Response(JSON.stringify({ success: false, message: "Auto review requests are disabled" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -89,7 +127,7 @@ serve(async (req) => {
 
     const results: { sms?: any; email?: any } = {};
 
-    // Send SMS
+    // Send SMS (still via Twilio - SMS is not part of email migration)
     if (body.customer_phone) {
       const formatted = formatPhoneNumber(body.customer_phone);
       if (/^\+1\d{10}$/.test(formatted)) {
@@ -119,53 +157,43 @@ serve(async (req) => {
       }
     }
 
-    // Send Email
-    if (body.customer_email && RESEND_API_KEY) {
-      logStep("Sending review email", { to: body.customer_email });
-      try {
-        const emailRes = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${RESEND_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "AV Detailing <noreply@avdetailing.net>",
-            to: [body.customer_email],
-            subject: `${firstName}, how did we do? 🚗✨`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #1a1a1a;">Hi ${firstName}! 🚗✨</h2>
-                <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                  Thank you for choosing <strong>AV Detailing</strong>! We hope your vehicle is looking amazing.
-                </p>
-                <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                  We'd love it if you could take 30 seconds to leave us a Google review — it really helps us grow!
-                </p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${GOOGLE_REVIEW_URL}" 
-                     style="display: inline-block; background-color: #dc2626; color: white; padding: 14px 32px; 
-                            text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
-                    ⭐ Leave a Review
-                  </a>
-                </div>
-                <p style="font-size: 14px; color: #666;">
-                  Thank you!<br/>— AV Detailing Team
-                </p>
-              </div>
-            `,
-          }),
-        });
-        const emailData = await emailRes.json();
-        results.email = { success: emailRes.ok, id: emailData.id };
-        logStep("Email result", results.email);
-      } catch (err) {
-        results.email = { success: false, error: String(err) };
-        logStep("Email error", results.email);
-      }
+    // Send Email via queue (migrated from Resend)
+    if (body.customer_email) {
+      logStep("Enqueuing review email", { to: body.customer_email });
+
+      const emailHtml = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <h2 style="color:#1a1a1a;">Hi ${firstName}! 🚗✨</h2>
+          <p style="font-size:16px;color:#333;line-height:1.6;">
+            Thank you for choosing <strong>AV Detailing</strong>! We hope your vehicle is looking amazing.
+          </p>
+          <p style="font-size:16px;color:#333;line-height:1.6;">
+            We'd love it if you could take 30 seconds to leave us a Google review — it really helps us grow!
+          </p>
+          <div style="text-align:center;margin:30px 0;">
+            <a href="${GOOGLE_REVIEW_URL}" 
+               style="display:inline-block;background-color:#dc2626;color:white;padding:14px 32px;
+                      text-decoration:none;border-radius:8px;font-size:16px;font-weight:bold;">
+              ⭐ Leave a Review
+            </a>
+          </div>
+          <p style="font-size:14px;color:#666;">
+            Thank you!<br/>— AV Detailing Team
+          </p>
+        </div>`;
+
+      const emailResult = await enqueueEmail(
+        supabase, body.customer_email,
+        `AV Detailing <noreply@${FROM_DOMAIN}>`,
+        `${firstName}, how did we do? 🚗✨`,
+        emailHtml, "review_request"
+      );
+
+      results.email = { success: emailResult.ok, messageId: emailResult.messageId };
+      logStep("Email enqueue result", results.email);
     }
 
-    // Log the review request in sms_messages for tracking
+    // Log SMS in sms_messages for tracking
     if (results.sms?.success && body.customer_phone) {
       await supabase.from("sms_messages").insert({
         booking_id: body.booking_id,
