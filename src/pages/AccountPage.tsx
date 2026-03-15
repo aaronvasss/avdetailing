@@ -171,6 +171,13 @@ export default function AccountPage() {
                   <span>Addresses</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="referrals"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Gift className="h-4 w-4" />
+                  <span>Referrals</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="settings"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
