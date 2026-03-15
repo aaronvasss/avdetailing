@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Shield, Award, Users, Heart, Leaf, ArrowRight } from "lucide-react";
 import aboutHeroImage from "@/assets/about-hero.jpg";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const values = [
   {

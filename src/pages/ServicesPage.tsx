@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Car, Droplets, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const services = [
   {

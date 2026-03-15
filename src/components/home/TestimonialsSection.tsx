@@ -137,7 +137,6 @@ export function TestimonialsSection() {
                   width={48}
                   height={48}
                 />
-                />
                 <div>
                   <div className="font-semibold">{testimonial.name}</div>
                   <div className="text-sm text-muted-foreground">
