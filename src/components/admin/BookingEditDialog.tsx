@@ -613,6 +613,31 @@ AV Detailing
               </div>
             </div>
 
+            {/* Assign Technician */}
+            {isAdmin && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Assign Technician
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Select value={editAssignedWorkerId} onValueChange={setEditAssignedWorkerId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select technician" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {workers.map((w) => (
+                        <SelectItem key={w.user_id} value={w.user_id}>{w.display_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            )}
+
             {booking.customer_notes && (
               <div className="space-y-2">
                 <Label>Customer Notes</Label>
