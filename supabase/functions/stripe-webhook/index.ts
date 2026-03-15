@@ -172,6 +172,30 @@ serve(async (req) => {
           break;
         }
 
+        // Handle tip payments
+        if (session.mode === 'payment' && session.metadata?.payment_type === 'tip') {
+          const tipBookingId = session.metadata?.booking_id;
+          const tipAmount = session.amount_total || 0;
+          logStep("Processing tip payment", { tipBookingId, tipAmount });
+
+          await supabase.from("payment_records").insert({
+            amount_cents: tipAmount,
+            payment_type: 'tip',
+            status: 'paid',
+            booking_id: tipBookingId || null,
+            stripe_payment_intent_id: session.payment_intent as string,
+            stripe_checkout_session_id: session.id,
+            stripe_customer_id: session.customer as string || null,
+            metadata: {
+              booking_id: tipBookingId,
+              payment_type: 'tip',
+            },
+          });
+
+          logStep("Tip payment recorded", { tipBookingId, tipAmount });
+          break;
+        }
+
         if (session.mode === 'payment' && bookingId) {
           // One-time payment for booking
           const { data: bookingData, error } = await supabase

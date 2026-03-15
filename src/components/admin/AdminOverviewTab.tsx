@@ -276,6 +276,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
               "Revenue (MTD)": "Monthly Revenue (Month-to-Date, paid only)",
               "Members": "Active Membership Subscribers",
               "Customers": "Total Registered Customers",
+              "Tips Received": "Total tips from all completed bookings",
             };
             const tooltip = fullLabels[card.label];
             const cardEl = (
