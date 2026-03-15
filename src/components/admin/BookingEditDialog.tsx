@@ -304,6 +304,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const totalPrice = editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price;
     const nameParts = editGuestName.trim().split(" ");
 
+    const newAssignedWorkerId = editAssignedWorkerId !== "unassigned" ? editAssignedWorkerId : null;
+    const previousWorkerId = booking.assigned_worker_id;
+
     const updates: Record<string, any> = {
       scheduled_date: format(scheduledDate, "yyyy-MM-dd"),
       scheduled_time: scheduledTime,
@@ -324,6 +327,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       service_zip: editZip.trim() || null,
       total_price: totalPrice,
       add_ons_total: newAddOnsTotal,
+      assigned_worker_id: newAssignedWorkerId,
     };
     
     const { error } = await supabase
