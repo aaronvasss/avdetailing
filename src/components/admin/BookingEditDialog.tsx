@@ -121,6 +121,7 @@ const PAYMENT_METHOD_OPTIONS = [
 export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin }: BookingEditDialogProps) {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const { workers } = useWorkersList();
   
   // Form state
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
@@ -133,6 +134,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [notes, setNotes] = useState<InternalNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [editAssignedWorkerId, setEditAssignedWorkerId] = useState<string>("unassigned");
 
   // Editable customer fields
   const [editGuestName, setEditGuestName] = useState("");

@@ -79,6 +79,7 @@ interface Booking {
   service_id: string;
   stripe_payment_intent_id: string | null;
   stripe_checkout_session_id: string | null;
+  assigned_worker_id: string | null;
   services: { name: string; slug: string } | null;
   profile_name?: string | null;
   profile_phone?: string | null;
