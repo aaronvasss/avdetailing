@@ -87,7 +87,7 @@ async function sendEmail(to: string, from: string, subject: string, html: string
         sender_domain: SENDER_DOMAIN,
         subject,
         html,
-        text: "",
+        text: subject,
         purpose: "transactional",
         label: "booking_notification",
         queued_at: new Date().toISOString(),
