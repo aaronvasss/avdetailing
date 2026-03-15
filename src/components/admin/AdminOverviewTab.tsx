@@ -54,6 +54,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   const [activeMemberships, setActiveMemberships] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [monthRevenue, setMonthRevenue] = useState(0);
+  const [totalTips, setTotalTips] = useState(0);
 
   useEffect(() => {
     fetchBookings();
@@ -61,6 +62,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
       fetchMemberships();
       fetchCustomerCount();
       fetchMonthRevenue();
+      fetchTotalTips();
     }
   }, []);
 
@@ -164,6 +166,16 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
     setMonthRevenue(total);
   };
 
+  const fetchTotalTips = async () => {
+    const { data } = await supabase
+      .from("payment_records")
+      .select("amount_cents")
+      .eq("payment_type", "tip")
+      .eq("status", "paid");
+    const total = (data || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0);
+    setTotalTips(total / 100);
+  };
+
   const updateStatus = async (bookingId: string, newStatus: string) => {
     const { error } = await supabase
       .from("bookings")
@@ -256,6 +268,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },
             ...(isAdmin ? [
               { value: totalCustomers, label: "Customers", icon: UserCheck, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
+              { value: `$${totalTips.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Tips Received", icon: DollarSign, iconColor: "text-emerald-500/50", cardClass: "bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20", valueColor: "text-emerald-600" },
             ] : []),
           ].map((card, idx) => {
             const Icon = card.icon;
@@ -263,6 +276,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
               "Revenue (MTD)": "Monthly Revenue (Month-to-Date, paid only)",
               "Members": "Active Membership Subscribers",
               "Customers": "Total Registered Customers",
+              "Tips Received": "Total tips from all completed bookings",
             };
             const tooltip = fullLabels[card.label];
             const cardEl = (

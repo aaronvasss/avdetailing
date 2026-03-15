@@ -63,6 +63,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [totalTips, setTotalTips] = useState(0);
+  const [tipCount, setTipCount] = useState(0);
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("daily");
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     try {
       const sixMonthsAgo = subMonths(new Date(), 6);
       
-      const [bookingsRes, membershipsRes] = await Promise.all([
+      const [bookingsRes, membershipsRes, tipsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select(`
@@ -95,7 +97,12 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             id,
             status,
             membership_plans (name, price)
-          `)
+          `),
+        supabase
+          .from("payment_records")
+          .select("amount_cents")
+          .eq("payment_type", "tip")
+          .eq("status", "paid")
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
@@ -103,6 +110,10 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
+      
+      const tipData = tipsRes.data || [];
+      setTipCount(tipData.length);
+      setTotalTips(tipData.reduce((sum, t) => sum + (t.amount_cents || 0), 0) / 100);
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -358,13 +369,13 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">No-Show Rate</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Tips Received</CardTitle>
+            <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{noShowRate}%</div>
+            <div className="text-2xl font-bold text-emerald-600">${totalTips.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              {noShowBookings.length} no-shows
+              {tipCount} tips from customers
             </p>
           </CardContent>
         </Card>
