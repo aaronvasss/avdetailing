@@ -1155,7 +1155,7 @@ const BookingPage = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => date < new Date() || isDateBlocked(date)}
                   className="rounded-lg border p-3"
                 />
               </div>
