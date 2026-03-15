@@ -176,7 +176,7 @@ export function RescheduleDialog({
                 <Clock className="h-4 w-4" />
                 Select Time
                 <span className="text-xs text-muted-foreground ml-auto">
-                  Hours: {getWorkingHoursDisplay()}
+                  Hours: {getWorkingHoursDisplay(schedulingConfig)}
                 </span>
               </label>
               {loadingSlots ? (
