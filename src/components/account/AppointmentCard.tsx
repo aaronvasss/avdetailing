@@ -55,7 +55,6 @@ export interface Booking {
   guest_email: string | null;
   guest_phone: string | null;
   payment_method: string | null;
-  internal_notes: string | null;
   user_id: string | null;
   service_id?: string;
   services: {

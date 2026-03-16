@@ -99,7 +99,7 @@ serve(async (req) => {
         deposit_required: true,
         deposit_amount: 100,
         status: 'pending',
-        internal_notes: `Preferred date: ${body.preferred_date}${body.preferred_time ? ` at ${body.preferred_time}` : ''}`,
+        customer_notes: [body.condition_description?.slice(0, 1000), `Preferred date: ${body.preferred_date}${body.preferred_time ? ` at ${body.preferred_time}` : ''}`].filter(Boolean).join(' | '),
       })
       .select("id")
       .single();

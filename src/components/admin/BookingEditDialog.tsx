@@ -48,7 +48,6 @@ interface Booking {
   guest_phone: string | null;
   guest_email: string | null;
   customer_notes: string | null;
-  internal_notes: string | null;
   duration_minutes: number | null;
   user_id: string | null;
   service_id: string;
@@ -169,7 +168,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       setStatus(booking.status);
       setPaymentStatus(booking.payment_status || "unpaid");
       setPaymentMethod(booking.payment_method || "in_person");
-      setInternalNotes(booking.internal_notes || "");
+      setInternalNotes("");
 
       // Customer — prioritize guest fields (actual customer) over profile (may be admin)
       const name = booking.guest_name || booking.profile_name || "";

@@ -322,7 +322,6 @@ Questions? Call (225) 521-6264`;
         .from("bookings")
         .update({
           status: "cancelled",
-          internal_notes: sanitizedReason ? `Cancelled by customer: ${sanitizedReason}` : "Cancelled by customer via manage link",
         })
         .eq("id", booking.id);
 

@@ -74,7 +74,6 @@ interface Booking {
   guest_email: string | null;
   duration_minutes: number | null;
   customer_notes: string | null;
-  internal_notes: string | null;
   user_id: string | null;
   service_id: string;
   stripe_payment_intent_id: string | null;

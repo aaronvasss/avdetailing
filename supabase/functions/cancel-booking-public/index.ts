@@ -103,7 +103,7 @@ serve(async (req) => {
 
       const { error: updateErr } = await supabase
         .from("bookings")
-        .update({ status: "cancelled", internal_notes: "Cancelled by customer via public cancel page" })
+        .update({ status: "cancelled" })
         .eq("id", booking_id);
 
       if (updateErr) {

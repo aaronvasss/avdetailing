@@ -47,7 +47,6 @@ interface Booking {
   guest_email: string | null;
   guest_phone: string | null;
   payment_method: string | null;
-  internal_notes: string | null;
   user_id: string | null;
   services: {
     name: string;
@@ -106,7 +105,6 @@ export function BookingsTab({ userId }: BookingsTabProps) {
         guest_email,
         guest_phone,
         payment_method,
-        internal_notes,
         user_id,
         services (name, description),
         booking_add_ons (id, name, price)
