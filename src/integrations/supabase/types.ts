@@ -1046,6 +1046,7 @@ export type Database = {
           guest_name: string | null
           guest_phone: string | null
           id: string
+          internal_notes: string | null
           quoted_at: string | null
           quoted_price: number | null
           service_address: string | null
@@ -1077,6 +1078,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          internal_notes?: string | null
           quoted_at?: string | null
           quoted_price?: number | null
           service_address?: string | null
@@ -1108,6 +1110,7 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
+          internal_notes?: string | null
           quoted_at?: string | null
           quoted_price?: number | null
           service_address?: string | null
