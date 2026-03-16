@@ -997,6 +997,41 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_internal_notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string
+          quote_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note: string
+          quote_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string
+          quote_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_internal_notes_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_photos: {
         Row: {
           caption: string | null
@@ -1046,7 +1081,6 @@ export type Database = {
           guest_name: string | null
           guest_phone: string | null
           id: string
-          internal_notes: string | null
           quoted_at: string | null
           quoted_price: number | null
           service_address: string | null
@@ -1078,7 +1112,6 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
-          internal_notes?: string | null
           quoted_at?: string | null
           quoted_price?: number | null
           service_address?: string | null
@@ -1110,7 +1143,6 @@ export type Database = {
           guest_name?: string | null
           guest_phone?: string | null
           id?: string
-          internal_notes?: string | null
           quoted_at?: string | null
           quoted_price?: number | null
           service_address?: string | null
