@@ -48,7 +48,6 @@ interface Booking {
   guest_phone: string | null;
   guest_email: string | null;
   customer_notes: string | null;
-  internal_notes: string | null;
   duration_minutes: number | null;
   user_id: string | null;
   service_id: string;
