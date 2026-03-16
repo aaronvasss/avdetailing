@@ -202,7 +202,7 @@ export function AdminQuotesTab() {
     await fetchQuotePhotos(quote.id);
   };
 
-  const openQuoteForm = (quote: Quote) => {
+  const openQuoteForm = async (quote: Quote) => {
     setSelectedQuote(quote);
     setQuotedPrice(quote.quoted_price?.toString() || "");
     setEstimatedHours(quote.estimated_hours?.toString() || "");
