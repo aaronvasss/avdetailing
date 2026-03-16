@@ -1660,6 +1660,13 @@ export type Database = {
           read_ct: number
         }[]
       }
+      validate_referral_code: {
+        Args: { code_input: string }
+        Returns: {
+          is_valid: boolean
+          referrer_user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "customer" | "staff"

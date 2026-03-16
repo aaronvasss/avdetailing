@@ -189,12 +189,13 @@ const handler = async (req: Request): Promise<Response> => {
       service_zip: sanitize(body.service_zip, 10),
       address_notes: sanitize(body.address_notes, 500),
 
-      subtotal: body.subtotal != null ? Math.max(0, Number(body.subtotal)) : serverSubtotal,
+      subtotal: serverSubtotal,
       add_ons_total: serverAddOnsTotal,
-      total_price: body.total_price != null ? Math.max(0, Number(body.total_price)) : serverTotal,
-      status: body.status ?? "pending",
-      payment_status: body.payment_status ?? "unpaid",
-      payment_method: body.payment_method ?? "in_person",
+      total_price: serverTotal,
+      // SECURITY: Never trust client-supplied status/payment fields
+      status: "pending",
+      payment_status: "unpaid",
+      payment_method: body.payment_method === "online" ? "online" : "in_person",
       manage_token: manageToken,
       assigned_worker_id: body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
     };

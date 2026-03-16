@@ -424,11 +424,8 @@ const BookingPage = () => {
     }
     setReferralChecking(true);
     const { data } = await supabase
-      .from("referral_codes")
-      .select("user_id")
-      .eq("code", code.toUpperCase().trim())
-      .maybeSingle();
-    setReferralValid(!!data);
+      .rpc("validate_referral_code", { code_input: code.toUpperCase().trim() });
+    setReferralValid(!!data && data.length > 0);
     setReferralChecking(false);
   };
 
@@ -603,7 +600,6 @@ const BookingPage = () => {
       };
 
       // Use backend function to guarantee insert succeeds for guests (and return a booking ID)
-      console.log("create-booking payload:", createPayload);
       const { data: createResp, error: createErr } = await supabase.functions.invoke(
         "create-booking",
         { body: createPayload },
@@ -628,14 +624,13 @@ const BookingPage = () => {
       if (referralCode.trim() && referralValid) {
         try {
           const { data: referrerData } = await supabase
-            .from("referral_codes")
-            .select("user_id")
-            .eq("code", referralCode.toUpperCase().trim())
-            .maybeSingle();
+            .rpc("validate_referral_code", { code_input: referralCode.toUpperCase().trim() });
 
-          if (referrerData?.user_id) {
+          const referrerRow = referrerData?.[0];
+
+          if (referrerRow?.referrer_user_id) {
             await supabase.from("referral_rewards").insert({
-              referrer_id: referrerData.user_id,
+              referrer_id: referrerRow.referrer_user_id,
               referred_booking_id: createdId,
               reward_amount: 10,
               is_redeemed: false,
