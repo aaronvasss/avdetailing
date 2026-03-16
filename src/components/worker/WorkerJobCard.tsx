@@ -274,8 +274,16 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
 
           {fullAddress && (
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="flex-1 text-sm">{fullAddress}</span>
+              <MapPin className="h-4 w-4 text-primary shrink-0" />
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 text-sm text-primary hover:underline cursor-pointer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                📍 {fullAddress}
+              </a>
               <Button variant="outline" size="sm" onClick={openNavigation} className="shrink-0">
                 <Navigation className="h-4 w-4 mr-1" />
                 Navigate
