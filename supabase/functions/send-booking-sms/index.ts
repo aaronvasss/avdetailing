@@ -125,6 +125,15 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify service role authorization
+  const authHeader = req.headers.get("Authorization");
+  const SUPABASE_SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  if (!authHeader?.includes(SUPABASE_SERVICE_ROLE)) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
   try {
     const body: BookingSmsRequest = await req.json();
     
