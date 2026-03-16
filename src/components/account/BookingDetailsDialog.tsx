@@ -203,19 +203,39 @@ export function BookingDetailsDialog({
         throw new Error("No customer phone on file");
       }
 
-      // Map old types to new modes
-      const modeMap: Record<string, string> = {
-        email_confirmation: "resend_customer",
-        admin_notification: "resend_admin",
-      };
-      const mode = modeMap[type] || type;
+      // SMS uses a different edge function
+      if (type === "sms_confirmation") {
+        const { data, error } = await supabase.functions.invoke("send-booking-sms", {
+          body: {
+            customerPhone: latestBooking.guest_phone,
+            customerName: latestBooking.guest_name || "Customer",
+            serviceName: booking.services?.name || "Detailing",
+            scheduledDate: latestBooking.scheduled_date,
+            scheduledTime: latestBooking.scheduled_time,
+            serviceAddress: latestBooking.service_address || "",
+            serviceCity: latestBooking.service_city || "",
+            totalPrice: latestBooking.total_price || 0,
+            bookingId: latestBooking.id,
+            notifyBusiness: false,
+          },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      } else {
+        // Map old types to new modes for email notifications
+        const modeMap: Record<string, string> = {
+          email_confirmation: "resend_customer",
+          admin_notification: "resend_admin",
+        };
+        const mode = modeMap[type] || type;
 
-      const { data, error } = await supabase.functions.invoke("process-booking-notifications", {
-        body: { booking_id: latestBooking.id, mode },
-      });
+        const { data, error } = await supabase.functions.invoke("process-booking-notifications", {
+          body: { booking_id: latestBooking.id, mode },
+        });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      }
 
       setSent("success");
       toast.success(type === "email_confirmation" ? "Confirmation email resent!" : type === "sms_confirmation" ? "Confirmation SMS resent!" : "Admin notification resent!");
