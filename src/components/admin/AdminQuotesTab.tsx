@@ -75,7 +75,6 @@ interface Quote {
   deposit_amount: number | null;
   deposit_required: boolean;
   customer_notes: string | null;
-  internal_notes: string | null;
   quoted_at: string | null;
   expires_at: string | null;
   booking_id: string | null;
@@ -154,9 +153,9 @@ export function AdminQuotesTab() {
       const enrichedQuotes = data?.map(q => ({
         ...q,
         profiles: q.user_id ? profilesMap[q.user_id] : null
-      })) || [];
+      })) || [] as Quote[];
 
-      setQuotes(enrichedQuotes);
+      setQuotes(enrichedQuotes as Quote[]);
     } catch (error) {
       console.error('Error fetching quotes:', error);
       toast.error("Failed to load quotes");
@@ -203,12 +202,20 @@ export function AdminQuotesTab() {
     await fetchQuotePhotos(quote.id);
   };
 
-  const openQuoteForm = (quote: Quote) => {
+  const openQuoteForm = async (quote: Quote) => {
     setSelectedQuote(quote);
     setQuotedPrice(quote.quoted_price?.toString() || "");
     setEstimatedHours(quote.estimated_hours?.toString() || "");
     setDepositAmount(quote.service_type === 'aircraft' ? AIRCRAFT_DEPOSIT.toString() : (quote.deposit_amount?.toString() || ""));
-    setInternalNotes(quote.internal_notes || "");
+    // Fetch internal notes from separate table
+    const { data: noteData } = await supabase
+      .from('quote_internal_notes')
+      .select('note')
+      .eq('quote_id', quote.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setInternalNotes(noteData?.note || "");
     setQuoteFormOpen(true);
   };
 
@@ -233,12 +240,21 @@ export function AdminQuotesTab() {
           estimated_hours: hours,
           deposit_amount: deposit,
           deposit_required: selectedQuote.service_type === 'aircraft' || (deposit && deposit > 0),
-          internal_notes: internalNotes || null,
           status: 'quoted',
           quoted_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
         })
         .eq('id', selectedQuote.id);
+
+      // Save internal notes to separate table
+      if (internalNotes) {
+        await supabase
+          .from('quote_internal_notes')
+          .upsert({
+            quote_id: selectedQuote.id,
+            note: internalNotes,
+          }, { onConflict: 'quote_id' });
+      }
 
       if (error) throw error;
 
