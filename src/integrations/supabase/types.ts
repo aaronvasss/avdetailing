@@ -1026,7 +1026,7 @@ export type Database = {
           {
             foreignKeyName: "quote_internal_notes_quote_id_fkey"
             columns: ["quote_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
