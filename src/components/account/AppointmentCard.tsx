@@ -139,8 +139,11 @@ export function AppointmentCard({
     ? `${booking.service_address}, ${booking.service_city}`
     : booking.service_city || "Location TBD";
 
-  const totalWithFee = booking.total_price
-    ? (booking.total_price * 1.035).toFixed(2)
+  const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
+  const displayTotal = booking.total_price
+    ? isOnlinePayment
+      ? (booking.total_price * 1.035).toFixed(2)
+      : Number(booking.total_price).toFixed(2)
     : null;
 
   if (compact) {
@@ -269,10 +272,10 @@ export function AppointmentCard({
               {status.label}
             </Badge>
           </div>
-          {totalWithFee && (
+          {displayTotal && (
             <div className="text-right">
-              <p className="text-xl font-bold text-primary">${totalWithFee}</p>
-              <p className="text-xs text-muted-foreground">Total with fees</p>
+              <p className="text-xl font-bold text-primary">${displayTotal}</p>
+              <p className="text-xs text-muted-foreground">{isOnlinePayment ? "Total with fees" : "Total"}</p>
             </div>
           )}
         </div>
@@ -352,10 +355,10 @@ export function AppointmentCard({
         {!isUpcoming && (
           <div className="pt-4 border-t border-border/50 flex items-center justify-between text-sm text-muted-foreground">
             <span>Booking completed</span>
-            {totalWithFee && (
+            {displayTotal && (
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                {totalWithFee}
+                {displayTotal}
               </span>
             )}
           </div>
