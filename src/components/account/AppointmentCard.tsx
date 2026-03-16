@@ -139,8 +139,11 @@ export function AppointmentCard({
     ? `${booking.service_address}, ${booking.service_city}`
     : booking.service_city || "Location TBD";
 
-  const totalWithFee = booking.total_price
-    ? (booking.total_price * 1.035).toFixed(2)
+  const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
+  const displayTotal = booking.total_price
+    ? isOnlinePayment
+      ? (booking.total_price * 1.035).toFixed(2)
+      : Number(booking.total_price).toFixed(2)
     : null;
 
   if (compact) {
