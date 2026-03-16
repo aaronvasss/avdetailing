@@ -636,14 +636,15 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                   <span>{selectedBooking.scheduled_time}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Address</span>
+                  <span className="text-muted-foreground">Service Location</span>
                   <a 
-                    href={`https://maps.google.com/?q=${encodeURIComponent(`${selectedBooking.service_address}, ${selectedBooking.service_city}`)}`}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedBooking.service_address}, ${selectedBooking.service_city}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline text-right max-w-[60%]"
+                    className="text-primary hover:underline cursor-pointer text-right max-w-[60%] flex items-center gap-1 justify-end"
                   >
-                    {selectedBooking.service_address}, {selectedBooking.service_city}
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    📍 {selectedBooking.service_address}, {selectedBooking.service_city}
                   </a>
                 </div>
                 <div className="flex justify-between">

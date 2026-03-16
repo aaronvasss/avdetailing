@@ -352,13 +352,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                         {booking.services?.name || "Detailing"} • {booking.vehicle_type}
                       </div>
                       <a 
-                        href={`https://maps.google.com/?q=${encodeURIComponent(`${booking.service_address}, ${booking.service_city}`)}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${booking.service_address}, ${booking.service_city}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                        className="text-sm text-primary hover:underline cursor-pointer flex items-center gap-1 truncate"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{booking.service_address}, {booking.service_city}</span>
+                        <span className="truncate">📍 {booking.service_address}, {booking.service_city}</span>
                       </a>
                       <div className="flex items-center gap-1">
                         <UserCheck className="h-3 w-3 text-muted-foreground flex-shrink-0" />
