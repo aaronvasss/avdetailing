@@ -390,12 +390,22 @@ export function BookingDetailsDialog({
                   <MapPin className="h-4 w-4" />
                   Service Location
                 </h4>
-                <p className="font-medium">{booking.service_address}</p>
-                {(booking.service_city || booking.service_state || booking.service_zip) && (
-                  <p className="text-sm text-muted-foreground">
-                    {[booking.service_city, booking.service_state].filter(Boolean).join(", ")} {booking.service_zip}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([booking.service_address, booking.service_city, booking.service_state].filter(Boolean).join(", "))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <p className="font-medium flex items-center gap-1">
+                    <span>📍</span> {booking.service_address}
                   </p>
-                )}
+                  {(booking.service_city || booking.service_state || booking.service_zip) && (
+                    <p className="text-sm text-muted-foreground">
+                      {[booking.service_city, booking.service_state].filter(Boolean).join(", ")} {booking.service_zip}
+                    </p>
+                  )}
+                </a>
               </div>
             )}
 
