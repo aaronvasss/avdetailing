@@ -272,10 +272,10 @@ export function AppointmentCard({
               {status.label}
             </Badge>
           </div>
-          {totalWithFee && (
+          {displayTotal && (
             <div className="text-right">
-              <p className="text-xl font-bold text-primary">${totalWithFee}</p>
-              <p className="text-xs text-muted-foreground">Total with fees</p>
+              <p className="text-xl font-bold text-primary">${displayTotal}</p>
+              <p className="text-xs text-muted-foreground">{isOnlinePayment ? "Total with fees" : "Total"}</p>
             </div>
           )}
         </div>
