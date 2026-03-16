@@ -335,7 +335,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .eq("id", booking.id);
     
     if (error) {
-      toast.error("Failed to save changes");
+      toast.error(`Failed to save: ${error.message}`);
       console.error("Update error:", error);
       setSaving(false);
       return;
