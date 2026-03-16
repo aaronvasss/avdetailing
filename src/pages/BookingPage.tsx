@@ -628,9 +628,9 @@ const BookingPage = () => {
 
           const referrerRow = referrerData?.[0];
 
-          if (referrerData?.user_id) {
+          if (referrerRow?.referrer_user_id) {
             await supabase.from("referral_rewards").insert({
-              referrer_id: referrerData.user_id,
+              referrer_id: referrerRow.referrer_user_id,
               referred_booking_id: createdId,
               reward_amount: 10,
               is_redeemed: false,
