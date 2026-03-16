@@ -240,12 +240,21 @@ export function AdminQuotesTab() {
           estimated_hours: hours,
           deposit_amount: deposit,
           deposit_required: selectedQuote.service_type === 'aircraft' || (deposit && deposit > 0),
-          internal_notes: internalNotes || null,
           status: 'quoted',
           quoted_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
         })
         .eq('id', selectedQuote.id);
+
+      // Save internal notes to separate table
+      if (internalNotes) {
+        await supabase
+          .from('quote_internal_notes')
+          .upsert({
+            quote_id: selectedQuote.id,
+            note: internalNotes,
+          }, { onConflict: 'quote_id' });
+      }
 
       if (error) throw error;
 
