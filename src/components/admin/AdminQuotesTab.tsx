@@ -153,9 +153,9 @@ export function AdminQuotesTab() {
       const enrichedQuotes = data?.map(q => ({
         ...q,
         profiles: q.user_id ? profilesMap[q.user_id] : null
-      })) || [];
+      })) || [] as Quote[];
 
-      setQuotes(enrichedQuotes);
+      setQuotes(enrichedQuotes as Quote[]);
     } catch (error) {
       console.error('Error fetching quotes:', error);
       toast.error("Failed to load quotes");
