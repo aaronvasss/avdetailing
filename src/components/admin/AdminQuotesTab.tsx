@@ -75,7 +75,6 @@ interface Quote {
   deposit_amount: number | null;
   deposit_required: boolean;
   customer_notes: string | null;
-  internal_notes: string | null;
   quoted_at: string | null;
   expires_at: string | null;
   booking_id: string | null;
