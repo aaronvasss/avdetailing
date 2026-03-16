@@ -168,7 +168,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       setStatus(booking.status);
       setPaymentStatus(booking.payment_status || "unpaid");
       setPaymentMethod(booking.payment_method || "in_person");
-      setInternalNotes(booking.internal_notes || "");
+      setInternalNotes("");
 
       // Customer — prioritize guest fields (actual customer) over profile (may be admin)
       const name = booking.guest_name || booking.profile_name || "";

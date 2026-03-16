@@ -411,18 +411,6 @@ export function BookingDetailsDialog({
               </div>
             )}
 
-            {/* Admin: Internal Notes */}
-            {isAdmin && booking.internal_notes && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                  <StickyNote className="h-4 w-4" />
-                  Internal Notes
-                </h4>
-                <p className="text-sm bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3">
-                  {booking.internal_notes}
-                </p>
-              </div>
-            )}
 
             <Separator />
 
