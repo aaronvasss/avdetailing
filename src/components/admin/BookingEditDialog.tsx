@@ -312,7 +312,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       status,
       payment_status: paymentStatus,
       payment_method: paymentMethod,
-      internal_notes: internalNotes || null,
+      
       guest_name: editGuestName.trim() || null,
       guest_email: editGuestEmail.trim() || null,
       guest_phone: editGuestPhone.trim() || null,
