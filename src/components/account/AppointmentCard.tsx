@@ -355,10 +355,10 @@ export function AppointmentCard({
         {!isUpcoming && (
           <div className="pt-4 border-t border-border/50 flex items-center justify-between text-sm text-muted-foreground">
             <span>Booking completed</span>
-            {totalWithFee && (
+            {displayTotal && (
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                {totalWithFee}
+                {displayTotal}
               </span>
             )}
           </div>
