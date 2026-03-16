@@ -14,6 +14,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify service role authorization
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.includes(SUPABASE_SERVICE_ROLE_KEY)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { type, booking_id, service_name, customer_name, scheduled_date, scheduled_time, address } = await req.json();
 

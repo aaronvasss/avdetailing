@@ -312,7 +312,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       status,
       payment_status: paymentStatus,
       payment_method: paymentMethod,
-      internal_notes: internalNotes || null,
+      
       guest_name: editGuestName.trim() || null,
       guest_email: editGuestEmail.trim() || null,
       guest_phone: editGuestPhone.trim() || null,
@@ -335,7 +335,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .eq("id", booking.id);
     
     if (error) {
-      toast.error("Failed to save changes");
+      toast.error(`Failed to save: ${error.message}`);
       console.error("Update error:", error);
       setSaving(false);
       return;
