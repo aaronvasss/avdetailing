@@ -424,11 +424,8 @@ const BookingPage = () => {
     }
     setReferralChecking(true);
     const { data } = await supabase
-      .from("referral_codes")
-      .select("user_id")
-      .eq("code", code.toUpperCase().trim())
-      .maybeSingle();
-    setReferralValid(!!data);
+      .rpc("validate_referral_code", { code_input: code.toUpperCase().trim() });
+    setReferralValid(!!data && data.length > 0);
     setReferralChecking(false);
   };
 
