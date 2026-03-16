@@ -624,10 +624,9 @@ const BookingPage = () => {
       if (referralCode.trim() && referralValid) {
         try {
           const { data: referrerData } = await supabase
-            .from("referral_codes")
-            .select("user_id")
-            .eq("code", referralCode.toUpperCase().trim())
-            .maybeSingle();
+            .rpc("validate_referral_code", { code_input: referralCode.toUpperCase().trim() });
+
+          const referrerRow = referrerData?.[0];
 
           if (referrerData?.user_id) {
             await supabase.from("referral_rewards").insert({
