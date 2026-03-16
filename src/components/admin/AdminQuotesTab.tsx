@@ -207,7 +207,15 @@ export function AdminQuotesTab() {
     setQuotedPrice(quote.quoted_price?.toString() || "");
     setEstimatedHours(quote.estimated_hours?.toString() || "");
     setDepositAmount(quote.service_type === 'aircraft' ? AIRCRAFT_DEPOSIT.toString() : (quote.deposit_amount?.toString() || ""));
-    setInternalNotes(quote.internal_notes || "");
+    // Fetch internal notes from separate table
+    const { data: noteData } = await supabase
+      .from('quote_internal_notes')
+      .select('note')
+      .eq('quote_id', quote.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setInternalNotes(noteData?.note || "");
     setQuoteFormOpen(true);
   };
 
