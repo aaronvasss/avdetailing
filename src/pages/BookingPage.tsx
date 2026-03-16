@@ -603,7 +603,6 @@ const BookingPage = () => {
       };
 
       // Use backend function to guarantee insert succeeds for guests (and return a booking ID)
-      console.log("create-booking payload:", createPayload);
       const { data: createResp, error: createErr } = await supabase.functions.invoke(
         "create-booking",
         { body: createPayload },
