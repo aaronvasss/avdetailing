@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
-const EXCLUDED_PREFIXES = ["/account", "/admin", "/worker"];
+const EXCLUDED_PREFIXES = ["/account", "/admin", "/worker", "/book", "/booking", "/thank-you", "/cancel", "/rate", "/auth"];
 
 function isPublicPage(pathname: string): boolean {
   return !EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
