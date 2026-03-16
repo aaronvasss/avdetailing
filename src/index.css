@@ -189,3 +189,9 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
+
+/* GHL Chat Widget - minimize auto-popup */
+[data-widget-id="69b754de666024db355f0faf"] .chat-widget-launcher {
+  bottom: 20px !important;
+  right: 20px !important;
+}
