@@ -920,16 +920,25 @@ AV Detailing
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
+        <div className="flex flex-col gap-3 pt-4 pb-2 mt-4">
+          <Button 
+            onClick={handleSave} 
+            disabled={saving} 
+            variant="destructive" 
+            className="w-full min-h-[44px] text-base"
+          >
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             <Save className="h-4 w-4 mr-2" />
             Save Changes
           </Button>
-        </DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            className="w-full min-h-[44px] text-base"
+          >
+            Cancel
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
