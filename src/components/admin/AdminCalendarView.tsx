@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Toggle } from "@/components/ui/toggle";
 import { 
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, 
-  Loader2, Car, Droplets, Ship, Truck, Plane
+  Loader2, Car, Droplets, Ship, Truck, Plane, MapPin
 } from "lucide-react";
 import { 
   format, startOfWeek, endOfWeek, startOfDay, addDays, startOfMonth, endOfMonth,
