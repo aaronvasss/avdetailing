@@ -190,10 +190,16 @@
   }
 }
 
-/* GHL Widget - force small size and hide popup */
+/* GHL Chat Widget */
+.ghl-widget-hidden #chat-widget-container,
+.ghl-widget-hidden .chat-widget-container,
+.ghl-widget-hidden [data-widget-id] {
+  display: none !important;
+}
+
 #chat-widget-container {
-  width: 55px !important;
-  height: 55px !important;
+  width: 56px !important;
+  height: 56px !important;
   bottom: 20px !important;
   right: 20px !important;
 }
@@ -203,27 +209,28 @@
 }
 
 .chat-widget-launcher {
-  width: 55px !important;
-  height: 55px !important;
+  width: 56px !important;
+  height: 56px !important;
   min-width: unset !important;
   min-height: unset !important;
-  bottom: 20px !important;
-  right: 20px !important;
-  background-color: #E02020 !important;
+  border-radius: 50% !important;
+  background: hsl(var(--primary)) !important;
+  box-shadow: var(--shadow-red) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-/* When chat is actively open, allow full size */
+.chat-widget-launcher:hover {
+  transform: scale(1.08) !important;
+  box-shadow: var(--shadow-red-lg) !important;
+}
+
 #chat-widget-container.chat-widget-open,
 #chat-widget-container:has(iframe[style*="height: 500"]),
 #chat-widget-container:has(iframe[style*="height: 600"]),
 #chat-widget-container:has(iframe[style*="height:500"]),
 #chat-widget-container:has(iframe[style*="height:600"]) {
-  width: 400px !important;
-  height: 650px !important;
-}
-
-[data-widget-id="69b754de666024db355f0faf"] .chat-widget-launcher {
-  bottom: 20px !important;
-  right: 20px !important;
-  background-color: #E02020 !important;
+  width: 380px !important;
+  height: 620px !important;
+  border-radius: 1rem !important;
+  box-shadow: var(--shadow-lg) !important;
 }
