@@ -521,6 +521,48 @@ export function BookingDetailsDialog({
               </div>
             </div>
 
+            {/* Worker Pay Info (admin only) */}
+            {isAdmin && booking.assigned_worker_id && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Worker Pay
+                  </h4>
+                  {(() => {
+                    const bAny = booking as any;
+                    const hasOverride = bAny.worker_pay_type && bAny.worker_pay_rate != null;
+                    const payType = hasOverride ? bAny.worker_pay_type : null;
+                    const payRate = hasOverride ? Number(bAny.worker_pay_rate) : null;
+                    const jobValue = booking.total_price || 0;
+
+                    let rateLabel = "Default rate";
+                    let earnedAmount = 0;
+
+                    if (hasOverride && payType === "percentage") {
+                      rateLabel = `Custom: ${payRate}% of value`;
+                      earnedAmount = jobValue * (payRate! / 100);
+                    } else if (hasOverride && payType === "flat") {
+                      rateLabel = `Custom: $${payRate!.toFixed(2)} flat`;
+                      earnedAmount = payRate!;
+                    }
+
+                    return (
+                      <div className="text-sm space-y-1">
+                        <p className="text-muted-foreground">{rateLabel}</p>
+                        {hasOverride && (
+                          <p className="font-medium">
+                            Worker earns: <span className="text-primary">${earnedAmount.toFixed(2)}</span>
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </>
+            )}
+
             <Separator />
 
             {/* Admin: Edit + Status Change */}
