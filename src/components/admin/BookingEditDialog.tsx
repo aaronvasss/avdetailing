@@ -197,6 +197,18 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       // Worker assignment
       setEditAssignedWorkerId(booking.assigned_worker_id || "unassigned");
 
+      // Pay rate override
+      const bAny = booking as any;
+      if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
+        setEditUseCustomPayRate(true);
+        setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
+        setEditCustomPayRate(String(bAny.worker_pay_rate));
+      } else {
+        setEditUseCustomPayRate(false);
+        setEditCustomPayType("percentage");
+        setEditCustomPayRate("");
+      }
+
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
       fetchBookingAddOns(booking.id);
