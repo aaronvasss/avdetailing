@@ -342,6 +342,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       total_price: totalPrice,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
+      worker_pay_type: editUseCustomPayRate && editCustomPayRate ? editCustomPayType : null,
+      worker_pay_rate: editUseCustomPayRate && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
     };
     
     const { error } = await supabase
