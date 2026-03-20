@@ -196,6 +196,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
     try {
       const selectedAddOnDetails = addOnsList.filter(a => selectedAddOns.includes(a.id));
+      const isPastDate = form.scheduledDate ? isBefore(startOfDay(form.scheduledDate), startOfDay(new Date())) : false;
 
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
@@ -218,12 +219,13 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           subtotal: pricingMode === "custom" ? totalPrice : packagePrice,
           add_ons_total: pricingMode === "custom" ? 0 : addOnsTotal,
           total_price: totalPrice,
-          status: form.paymentMethod === "in_person" ? "confirmed" : "pending",
+          status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
+          skip_notifications: isPastDate,
         },
       });
 
