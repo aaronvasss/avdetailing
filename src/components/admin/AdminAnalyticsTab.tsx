@@ -433,6 +433,33 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
         </Card>
       </div>
 
+      {/* Labor Cost Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Labor Cost (6mo)</CardTitle>
+          <Wrench className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">${totalLaborCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <p className="text-xs text-muted-foreground mb-4">
+            {completedWithWorker.length} jobs with assigned workers • Profit margin: {totalRevenue > 0 ? ((1 - totalLaborCost / totalRevenue) * 100).toFixed(1) : "N/A"}%
+          </p>
+          {Object.keys(workerEarningsMap).length > 0 && (
+            <div className="space-y-2 border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase">Per-Worker Breakdown</p>
+              {Object.entries(workerEarningsMap)
+                .sort((a, b) => b[1].earnings - a[1].earnings)
+                .map(([wId, data]) => (
+                  <div key={wId} className="flex items-center justify-between text-sm">
+                    <span>{workerNames[wId] || "Unknown"}</span>
+                    <span className="font-medium">${data.earnings.toFixed(2)} <span className="text-xs text-muted-foreground">({data.jobs} jobs)</span></span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* KPI Cards - Row 2 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
