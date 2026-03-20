@@ -609,6 +609,57 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Pay Rate Override */}
+            {assignedWorkerId !== "unassigned" && (
+              <div className="mt-3 space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={useCustomPayRate}
+                    onCheckedChange={(checked) => setUseCustomPayRate(!!checked)}
+                  />
+                  <span className="text-sm">Custom rate for this job</span>
+                </label>
+                {useCustomPayRate && (
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <Label className="text-xs">Pay Type</Label>
+                      <Select value={customPayType} onValueChange={(v) => setCustomPayType(v as "percentage" | "flat")}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="percentage">% of job value</SelectItem>
+                          <SelectItem value="flat">Flat amount ($)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs">{customPayType === "percentage" ? "Percentage" : "Amount ($)"}</Label>
+                      <Input
+                        type="number"
+                        step={customPayType === "percentage" ? "1" : "0.01"}
+                        value={customPayRate}
+                        onChange={(e) => setCustomPayRate(e.target.value)}
+                        placeholder={customPayType === "percentage" ? "25" : "50.00"}
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                )}
+                {useCustomPayRate && customPayRate && totalPrice > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Worker earns: <span className="font-semibold text-foreground">
+                      ${customPayType === "percentage"
+                        ? (totalPrice * (parseFloat(customPayRate) / 100)).toFixed(2)
+                        : parseFloat(customPayRate).toFixed(2)
+                      }
+                    </span>
+                    {customPayType === "percentage" && ` (${customPayRate}% of $${totalPrice})`}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Payment */}
