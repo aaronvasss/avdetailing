@@ -31,6 +31,7 @@ import {
   MessageSquare,
   Check,
   AlertCircle,
+  Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendInProgressSms } from "@/lib/in-progress-sms";
