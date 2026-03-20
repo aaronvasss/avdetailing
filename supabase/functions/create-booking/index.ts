@@ -42,6 +42,9 @@ interface CreateBookingRequest {
 
   // Add-on IDs from service_add_ons table
   add_on_ids?: string[];
+
+  // Skip notifications for past-date bookings created by admin
+  skip_notifications?: boolean;
 }
 
 function toDbTime(input: string): string {
