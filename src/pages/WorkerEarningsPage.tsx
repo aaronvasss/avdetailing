@@ -28,7 +28,7 @@ export default function WorkerEarningsPage() {
 
     setWorkerProfile(wp);
 
-    // Get all completed bookings
+    // Get all completed bookings assigned to this worker
     const { data: bookings } = await supabase
       .from("bookings")
       .select("*, services(name)")
@@ -49,13 +49,37 @@ export default function WorkerEarningsPage() {
   const weekJobs = completedBookings.filter((b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd);
   const monthJobs = completedBookings.filter((b) => b.scheduled_date >= monthStart && b.scheduled_date <= monthEnd);
 
+  // Calculate earnings for a single booking using per-booking override or global rate
+  const calcBookingEarnings = (b: any): number => {
+    if (b.worker_pay_type && b.worker_pay_rate != null) {
+      // Per-booking override
+      if (b.worker_pay_type === "percentage") {
+        return (b.total_price || 0) * (Number(b.worker_pay_rate) / 100);
+      }
+      return Number(b.worker_pay_rate);
+    }
+    // Fall back to global worker rate
+    if (!workerProfile) return 0;
+    if (workerProfile.pay_type === "percentage") {
+      return (b.total_price || 0) * (workerProfile.pay_rate / 100);
+    }
+    return workerProfile.pay_rate;
+  };
+
   const calcEarnings = (jobs: any[]) => {
     const totalValue = jobs.reduce((sum, b) => sum + (b.total_price || 0), 0);
-    if (!workerProfile) return { totalValue, earnings: 0 };
-    if (workerProfile.pay_type === "percentage") {
-      return { totalValue, earnings: totalValue * (workerProfile.pay_rate / 100) };
+    const earnings = jobs.reduce((sum, b) => sum + calcBookingEarnings(b), 0);
+    return { totalValue, earnings };
+  };
+
+  const getBookingRateLabel = (b: any): string => {
+    if (b.worker_pay_type && b.worker_pay_rate != null) {
+      if (b.worker_pay_type === "percentage") return `${b.worker_pay_rate}%`;
+      return `$${Number(b.worker_pay_rate).toFixed(2)} flat`;
     }
-    return { totalValue, earnings: jobs.length * workerProfile.pay_rate };
+    if (!workerProfile) return "—";
+    if (workerProfile.pay_type === "percentage") return `${workerProfile.pay_rate}%`;
+    return `$${workerProfile.pay_rate} flat`;
   };
 
   const todayEarnings = calcEarnings(todayJobs);
@@ -142,7 +166,7 @@ export default function WorkerEarningsPage() {
         {workerProfile && (
           <Card>
             <CardContent className="pt-4 pb-3 px-4">
-              <p className="text-sm text-muted-foreground">Your pay rate</p>
+              <p className="text-sm text-muted-foreground">Your default pay rate</p>
               <p className="font-semibold">
                 {workerProfile.pay_type === "percentage"
                   ? `${workerProfile.pay_rate}% per job`
@@ -158,29 +182,33 @@ export default function WorkerEarningsPage() {
           {completedBookings.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">No completed jobs yet</p>
           ) : (
-            completedBookings.slice(0, 50).map((b) => (
-              <Card key={b.id}>
-                <CardContent className="py-3 px-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{(b.services as any)?.name || "Service"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(b.scheduled_date), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">${(b.total_price || 0).toFixed(2)}</p>
-                    {workerProfile && (
-                      <p className="text-xs text-primary">
-                        ${(workerProfile.pay_type === "percentage"
-                          ? (b.total_price || 0) * (workerProfile.pay_rate / 100)
-                          : workerProfile.pay_rate
-                        ).toFixed(2)}
+            completedBookings.slice(0, 50).map((b) => {
+              const earnings = calcBookingEarnings(b);
+              const rateLabel = getBookingRateLabel(b);
+              const hasOverride = b.worker_pay_type && b.worker_pay_rate != null;
+              return (
+                <Card key={b.id}>
+                  <CardContent className="py-3 px-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{(b.services as any)?.name || "Service"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(b.scheduled_date), "MMM d, yyyy")}
                       </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                      <p className="text-xs text-muted-foreground">
+                        Rate: {rateLabel}
+                        {hasOverride && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Custom</Badge>}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">${(b.total_price || 0).toFixed(2)}</p>
+                      <p className="text-xs text-primary font-medium">
+                        ${earnings.toFixed(2)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </div>
