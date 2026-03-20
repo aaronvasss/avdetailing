@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, parseISO } from "date-fns";
-import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -36,6 +36,9 @@ interface Booking {
   payment_method: string | null;
   services: { name: string; category: string } | null;
   vehicle_type: string | null;
+  assigned_worker_id: string | null;
+  worker_pay_type: string | null;
+  worker_pay_rate: number | null;
 }
 
 interface Membership {
@@ -66,6 +69,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [totalTips, setTotalTips] = useState(0);
   const [tipCount, setTipCount] = useState(0);
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
+  const [workerNames, setWorkerNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchData();
@@ -76,7 +81,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     try {
       const sixMonthsAgo = subMonths(new Date(), 6);
       
-      const [bookingsRes, membershipsRes, tipsRes] = await Promise.all([
+      const [bookingsRes, membershipsRes, tipsRes, wpRes] = await Promise.all([
         supabase
           .from("bookings")
           .select(`
@@ -87,6 +92,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             payment_status,
             payment_method,
             vehicle_type,
+            assigned_worker_id,
+            worker_pay_type,
+            worker_pay_rate,
             services (name, category)
           `)
           .gte("scheduled_date", format(sixMonthsAgo, "yyyy-MM-dd"))
@@ -102,7 +110,10 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           .from("payment_records")
           .select("amount_cents")
           .eq("payment_type", "tip")
-          .eq("status", "paid")
+          .eq("status", "paid"),
+        supabase
+          .from("worker_profiles")
+          .select("user_id, pay_rate, pay_type, is_active"),
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
@@ -110,6 +121,22 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
+      setWorkerProfiles(wpRes.data || []);
+      
+      // Fetch worker display names
+      const wpData = wpRes.data || [];
+      if (wpData.length > 0) {
+        const userIds = wpData.map((w: any) => w.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, email")
+          .in("user_id", userIds);
+        const names: Record<string, string> = {};
+        (profiles || []).forEach((p: any) => {
+          names[p.user_id] = p.full_name || p.email || "Unknown";
+        });
+        setWorkerNames(names);
+      }
       
       const tipData = tipsRes.data || [];
       setTipCount(tipData.length);
@@ -285,6 +312,31 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     { name: "In-Person", value: inPersonRevenue, count: inPersonPayments.length },
   ];
 
+  // Labor cost calculation
+  const calcBookingLaborCost = (b: Booking): number => {
+    if (b.worker_pay_type && b.worker_pay_rate != null) {
+      if (b.worker_pay_type === "percentage") return (b.total_price || 0) * (Number(b.worker_pay_rate) / 100);
+      return Number(b.worker_pay_rate);
+    }
+    if (!b.assigned_worker_id) return 0;
+    const wp = workerProfiles.find((w: any) => w.user_id === b.assigned_worker_id);
+    if (!wp) return 0;
+    if (wp.pay_type === "percentage") return (b.total_price || 0) * (wp.pay_rate / 100);
+    return wp.pay_rate;
+  };
+
+  const completedWithWorker = paidBookings.filter(b => b.assigned_worker_id);
+  const totalLaborCost = completedWithWorker.reduce((sum, b) => sum + calcBookingLaborCost(b), 0);
+
+  // Per-worker breakdown
+  const workerEarningsMap: Record<string, { earnings: number; jobs: number }> = {};
+  completedWithWorker.forEach(b => {
+    const wId = b.assigned_worker_id!;
+    if (!workerEarningsMap[wId]) workerEarningsMap[wId] = { earnings: 0, jobs: 0 };
+    workerEarningsMap[wId].earnings += calcBookingLaborCost(b);
+    workerEarningsMap[wId].jobs += 1;
+  });
+
   const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
   const vehicleDistribution = getVehicleDistribution();
@@ -380,6 +432,33 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Labor Cost Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Labor Cost (6mo)</CardTitle>
+          <Wrench className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">${totalLaborCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <p className="text-xs text-muted-foreground mb-4">
+            {completedWithWorker.length} jobs with assigned workers • Profit margin: {totalRevenue > 0 ? ((1 - totalLaborCost / totalRevenue) * 100).toFixed(1) : "N/A"}%
+          </p>
+          {Object.keys(workerEarningsMap).length > 0 && (
+            <div className="space-y-2 border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase">Per-Worker Breakdown</p>
+              {Object.entries(workerEarningsMap)
+                .sort((a, b) => b[1].earnings - a[1].earnings)
+                .map(([wId, data]) => (
+                  <div key={wId} className="flex items-center justify-between text-sm">
+                    <span>{workerNames[wId] || "Unknown"}</span>
+                    <span className="font-medium">${data.earnings.toFixed(2)} <span className="text-xs text-muted-foreground">({data.jobs} jobs)</span></span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* KPI Cards - Row 2 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

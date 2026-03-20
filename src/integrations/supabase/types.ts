@@ -304,6 +304,8 @@ export type Database = {
           vehicle_size: string | null
           vehicle_type: string | null
           vehicle_year: number | null
+          worker_pay_rate: number | null
+          worker_pay_type: string | null
         }
         Insert: {
           add_ons_total?: number | null
@@ -344,6 +346,8 @@ export type Database = {
           vehicle_size?: string | null
           vehicle_type?: string | null
           vehicle_year?: number | null
+          worker_pay_rate?: number | null
+          worker_pay_type?: string | null
         }
         Update: {
           add_ons_total?: number | null
@@ -384,6 +388,8 @@ export type Database = {
           vehicle_size?: string | null
           vehicle_type?: string | null
           vehicle_year?: number | null
+          worker_pay_rate?: number | null
+          worker_pay_type?: string | null
         }
         Relationships: [
           {
