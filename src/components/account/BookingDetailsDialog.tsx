@@ -113,7 +113,7 @@ function BookingPhotosInline({ bookingId }: { bookingId: string }) {
   return (
     <div>
       <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-        <CameraIcon className="h-4 w-4" /> Photos
+        <Camera className="h-4 w-4" /> Photos
       </h4>
       <div className="space-y-4">
         {renderGrid("Before", beforePhotos)}
