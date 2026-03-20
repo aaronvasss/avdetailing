@@ -87,7 +87,7 @@ function BookingPhotosInline({ bookingId }: { bookingId: string }) {
   if (photos.length === 0) return (
     <div>
       <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-        <CameraIcon className="h-4 w-4" /> Photos
+        <Camera className="h-4 w-4" /> Photos
       </h4>
       <p className="text-sm text-muted-foreground">No photos uploaded yet</p>
     </div>
