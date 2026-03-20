@@ -45,6 +45,10 @@ interface CreateBookingRequest {
 
   // Skip notifications for past-date bookings created by admin
   skip_notifications?: boolean;
+
+  // Per-booking worker pay rate override
+  worker_pay_type?: string | null;
+  worker_pay_rate?: number | null;
 }
 
 function toDbTime(input: string): string {

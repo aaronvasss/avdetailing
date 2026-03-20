@@ -225,6 +225,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
+          worker_pay_type: useCustomPayRate && customPayRate ? customPayType : null,
+          worker_pay_rate: useCustomPayRate && customPayRate ? parseFloat(customPayRate) : null,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
