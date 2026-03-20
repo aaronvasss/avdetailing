@@ -9,11 +9,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfDay, isBefore } from "date-fns";
 import { useWorkersList } from "@/hooks/useWorkersList";
 
 interface AdminBookingModalProps {
