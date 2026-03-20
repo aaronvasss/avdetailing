@@ -133,7 +133,7 @@ function BookingPhotosInline({ bookingId }: { bookingId: string }) {
   );
 }
 
-
+export function BookingDetailsDialog({
   booking: initialBooking,
   open,
   onOpenChange,
