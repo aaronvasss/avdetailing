@@ -250,54 +250,59 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Notify workers about new booking
-    try {
-      const formatTime12 = (t: string) => {
-        const [h, m] = t.split(":");
-        const hour = parseInt(h);
-        return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
-      };
-      await fetch(`${SUPABASE_URL}/functions/v1/notify-workers`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({
-          type: "new_booking",
-          booking_id: booking.id,
-          service_name: service.name,
-          customer_name: insertPayload.guest_name || "Customer",
-          scheduled_date: body.scheduled_date,
-          scheduled_time: formatTime12(scheduled_time),
-          address: insertPayload.service_address || "",
-        }),
-      });
-    } catch (notifyErr) {
-      console.error("Failed to notify workers:", notifyErr);
-    }
-
-    // Send booking confirmation emails (customer + admin)
-    try {
-      console.log(`Triggering notifications for booking ${booking.id}...`);
-      const notifRes = await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({
-          booking_id: booking.id,
-          mode: "auto",
-        }),
-      });
-      const notifData = await notifRes.json().catch(() => ({}));
-      console.log(`Notification response ${notifRes.status}:`, JSON.stringify(notifData));
-      if (!notifRes.ok) {
-        console.error(`Notification function returned ${notifRes.status}:`, notifData);
+    // Skip notifications for past-date bookings (admin creating historical records)
+    if (!body.skip_notifications) {
+      // Notify workers about new booking
+      try {
+        const formatTime12 = (t: string) => {
+          const [h, m] = t.split(":");
+          const hour = parseInt(h);
+          return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+        };
+        await fetch(`${SUPABASE_URL}/functions/v1/notify-workers`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({
+            type: "new_booking",
+            booking_id: booking.id,
+            service_name: service.name,
+            customer_name: insertPayload.guest_name || "Customer",
+            scheduled_date: body.scheduled_date,
+            scheduled_time: formatTime12(scheduled_time),
+            address: insertPayload.service_address || "",
+          }),
+        });
+      } catch (notifyErr) {
+        console.error("Failed to notify workers:", notifyErr);
       }
-    } catch (emailErr) {
-      console.error("Failed to send booking notifications:", emailErr);
+
+      // Send booking confirmation emails (customer + admin)
+      try {
+        console.log(`Triggering notifications for booking ${booking.id}...`);
+        const notifRes = await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({
+            booking_id: booking.id,
+            mode: "auto",
+          }),
+        });
+        const notifData = await notifRes.json().catch(() => ({}));
+        console.log(`Notification response ${notifRes.status}:`, JSON.stringify(notifData));
+        if (!notifRes.ok) {
+          console.error(`Notification function returned ${notifRes.status}:`, notifData);
+        }
+      } catch (emailErr) {
+        console.error("Failed to send booking notifications:", emailErr);
+      }
+    } else {
+      console.log(`Skipping notifications for past-date booking ${booking.id}`);
     }
 
     return new Response(JSON.stringify({ booking, manageToken: booking.manage_token }), {
