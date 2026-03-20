@@ -563,6 +563,9 @@ export function BookingDetailsDialog({
               </>
             )}
 
+            {/* Booking Photos (admin only) */}
+            {isAdmin && <BookingPhotosInline bookingId={booking.id} />}
+
             <Separator />
 
             {/* Admin: Edit + Status Change */}
