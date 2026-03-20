@@ -121,6 +121,22 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
+      setWorkerProfiles(wpRes.data || []);
+      
+      // Fetch worker display names
+      const wpData = wpRes.data || [];
+      if (wpData.length > 0) {
+        const userIds = wpData.map((w: any) => w.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, email")
+          .in("user_id", userIds);
+        const names: Record<string, string> = {};
+        (profiles || []).forEach((p: any) => {
+          names[p.user_id] = p.full_name || p.email || "Unknown";
+        });
+        setWorkerNames(names);
+      }
       
       const tipData = tipsRes.data || [];
       setTipCount(tipData.length);
