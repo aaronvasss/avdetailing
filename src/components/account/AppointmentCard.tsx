@@ -56,6 +56,9 @@ export interface Booking {
   guest_phone: string | null;
   payment_method: string | null;
   user_id: string | null;
+  assigned_worker_id?: string | null;
+  worker_pay_type?: string | null;
+  worker_pay_rate?: number | null;
   service_id?: string;
   services: {
     name: string;
