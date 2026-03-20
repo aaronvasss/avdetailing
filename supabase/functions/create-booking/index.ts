@@ -205,6 +205,8 @@ const handler = async (req: Request): Promise<Response> => {
       payment_method: body.payment_method === "online" ? "online" : "in_person",
       manage_token: manageToken,
       assigned_worker_id: body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
+      worker_pay_type: body.worker_pay_type === "percentage" || body.worker_pay_type === "flat" ? body.worker_pay_type : null,
+      worker_pay_rate: body.worker_pay_rate != null ? Math.min(Math.max(0, Number(body.worker_pay_rate)), 100000) : null,
     };
 
     const { data: booking, error } = await serviceClient
