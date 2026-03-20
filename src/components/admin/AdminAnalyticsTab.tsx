@@ -312,6 +312,31 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     { name: "In-Person", value: inPersonRevenue, count: inPersonPayments.length },
   ];
 
+  // Labor cost calculation
+  const calcBookingLaborCost = (b: Booking): number => {
+    if (b.worker_pay_type && b.worker_pay_rate != null) {
+      if (b.worker_pay_type === "percentage") return (b.total_price || 0) * (Number(b.worker_pay_rate) / 100);
+      return Number(b.worker_pay_rate);
+    }
+    if (!b.assigned_worker_id) return 0;
+    const wp = workerProfiles.find((w: any) => w.user_id === b.assigned_worker_id);
+    if (!wp) return 0;
+    if (wp.pay_type === "percentage") return (b.total_price || 0) * (wp.pay_rate / 100);
+    return wp.pay_rate;
+  };
+
+  const completedWithWorker = paidBookings.filter(b => b.assigned_worker_id);
+  const totalLaborCost = completedWithWorker.reduce((sum, b) => sum + calcBookingLaborCost(b), 0);
+
+  // Per-worker breakdown
+  const workerEarningsMap: Record<string, { earnings: number; jobs: number }> = {};
+  completedWithWorker.forEach(b => {
+    const wId = b.assigned_worker_id!;
+    if (!workerEarningsMap[wId]) workerEarningsMap[wId] = { earnings: 0, jobs: 0 };
+    workerEarningsMap[wId].earnings += calcBookingLaborCost(b);
+    workerEarningsMap[wId].jobs += 1;
+  });
+
   const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
   const vehicleDistribution = getVehicleDistribution();
