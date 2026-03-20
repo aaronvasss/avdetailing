@@ -67,7 +67,73 @@ const paymentStatusColors: Record<string, string> = {
   refunded: "bg-muted text-muted-foreground border-muted",
 };
 
-export function BookingDetailsDialog({
+function BookingPhotosInline({ bookingId }: { bookingId: string }) {
+  const [photos, setPhotos] = useState<any[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
+  const [viewPhoto, setViewPhoto] = useState<string | null>(null);
+  const { getBookingPhotos } = usePhotoUpload();
+
+  useEffect(() => {
+    setLoadingPhotos(true);
+    getBookingPhotos(bookingId).then((p) => {
+      setPhotos(p);
+      setLoadingPhotos(false);
+    });
+  }, [bookingId]);
+
+  const beforePhotos = photos.filter((p) => p.photoType === "before");
+  const afterPhotos = photos.filter((p) => p.photoType === "after");
+
+  if (loadingPhotos) return <p className="text-xs text-muted-foreground">Loading photos...</p>;
+  if (photos.length === 0) return (
+    <div>
+      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+        <CameraIcon className="h-4 w-4" /> Photos
+      </h4>
+      <p className="text-sm text-muted-foreground">No photos uploaded yet</p>
+    </div>
+  );
+
+  const renderGrid = (label: string, items: any[]) => items.length > 0 ? (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-muted-foreground">{label} ({items.length})</p>
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((p: any, i: number) => (
+          <img
+            key={p.id || i}
+            src={p.url}
+            alt={label}
+            className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setViewPhoto(p.url)}
+          />
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div>
+      <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+        <CameraIcon className="h-4 w-4" /> Photos
+      </h4>
+      <div className="space-y-4">
+        {renderGrid("Before", beforePhotos)}
+        {renderGrid("After", afterPhotos)}
+      </div>
+
+      {/* Fullscreen photo viewer */}
+      {viewPhoto && (
+        <Dialog open onOpenChange={() => setViewPhoto(null)}>
+          <DialogContent className="max-w-4xl p-0 bg-black/95">
+            <img src={viewPhoto} alt="Full size" className="w-full max-h-[80vh] object-contain" />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+
   booking: initialBooking,
   open,
   onOpenChange,
