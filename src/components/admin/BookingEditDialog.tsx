@@ -134,6 +134,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [editAssignedWorkerId, setEditAssignedWorkerId] = useState<string>("unassigned");
+  const [editUseCustomPayRate, setEditUseCustomPayRate] = useState(false);
+  const [editCustomPayType, setEditCustomPayType] = useState<"percentage" | "flat">("percentage");
+  const [editCustomPayRate, setEditCustomPayRate] = useState("");
 
   // Editable customer fields
   const [editGuestName, setEditGuestName] = useState("");
