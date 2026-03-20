@@ -638,7 +638,7 @@ AV Detailing
                     Assign Technician
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <Select value={editAssignedWorkerId} onValueChange={setEditAssignedWorkerId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select technician" />
@@ -650,6 +650,57 @@ AV Detailing
                       ))}
                     </SelectContent>
                   </Select>
+
+                  {/* Pay Rate Override */}
+                  {editAssignedWorkerId !== "unassigned" && (
+                    <div className="space-y-3 pt-2 border-t border-border">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={editUseCustomPayRate}
+                          onCheckedChange={(checked) => setEditUseCustomPayRate(!!checked)}
+                        />
+                        <span className="text-sm">Custom rate for this job</span>
+                      </label>
+                      {editUseCustomPayRate && (
+                        <div className="flex gap-3 items-end">
+                          <div className="flex-1 space-y-1">
+                            <Label className="text-xs">Pay Type</Label>
+                            <Select value={editCustomPayType} onValueChange={(v) => setEditCustomPayType(v as "percentage" | "flat")}>
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">% of job value</SelectItem>
+                                <SelectItem value="flat">Flat amount ($)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <Label className="text-xs">{editCustomPayType === "percentage" ? "Percentage" : "Amount ($)"}</Label>
+                            <Input
+                              type="number"
+                              step={editCustomPayType === "percentage" ? "1" : "0.01"}
+                              value={editCustomPayRate}
+                              onChange={(e) => setEditCustomPayRate(e.target.value)}
+                              placeholder={editCustomPayType === "percentage" ? "25" : "50.00"}
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {editUseCustomPayRate && editCustomPayRate && (editTotalPrice || booking.total_price) && (
+                        <p className="text-xs text-muted-foreground">
+                          Worker earns: <span className="font-semibold text-foreground">
+                            ${editCustomPayType === "percentage"
+                              ? ((parseFloat(editTotalPrice) || booking.total_price || 0) * (parseFloat(editCustomPayRate) / 100)).toFixed(2)
+                              : parseFloat(editCustomPayRate).toFixed(2)
+                            }
+                          </span>
+                          {editCustomPayType === "percentage" && ` (${editCustomPayRate}% of $${parseFloat(editTotalPrice) || booking.total_price || 0})`}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
