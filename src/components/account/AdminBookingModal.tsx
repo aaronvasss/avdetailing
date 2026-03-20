@@ -390,6 +390,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.scheduledDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {form.scheduledDate ? format(form.scheduledDate, "MMM d, yyyy") : "Pick a date"}
+                      {form.scheduledDate && isBefore(startOfDay(form.scheduledDate), startOfDay(new Date())) && (
+                        <Badge variant="outline" className="ml-auto text-xs text-muted-foreground border-muted-foreground/30">Past Date</Badge>
+                      )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -401,6 +404,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                         setCalendarOpen(false);
                       }}
                       initialFocus
+                      className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
