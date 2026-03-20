@@ -9,11 +9,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, startOfDay, isBefore } from "date-fns";
 import { useWorkersList } from "@/hooks/useWorkersList";
 
 interface AdminBookingModalProps {
@@ -195,6 +196,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
     try {
       const selectedAddOnDetails = addOnsList.filter(a => selectedAddOns.includes(a.id));
+      const isPastDate = form.scheduledDate ? isBefore(startOfDay(form.scheduledDate), startOfDay(new Date())) : false;
 
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
@@ -217,12 +219,13 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           subtotal: pricingMode === "custom" ? totalPrice : packagePrice,
           add_ons_total: pricingMode === "custom" ? 0 : addOnsTotal,
           total_price: totalPrice,
-          status: form.paymentMethod === "in_person" ? "confirmed" : "pending",
+          status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
+          skip_notifications: isPastDate,
         },
       });
 
@@ -389,6 +392,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.scheduledDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {form.scheduledDate ? format(form.scheduledDate, "MMM d, yyyy") : "Pick a date"}
+                      {form.scheduledDate && isBefore(startOfDay(form.scheduledDate), startOfDay(new Date())) && (
+                        <Badge variant="outline" className="ml-auto text-xs text-muted-foreground border-muted-foreground/30">Past Date</Badge>
+                      )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -400,6 +406,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                         setCalendarOpen(false);
                       }}
                       initialFocus
+                      className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
