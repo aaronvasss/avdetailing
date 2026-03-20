@@ -114,6 +114,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [customPrice, setCustomPrice] = useState("");
   const [assignedWorkerId, setAssignedWorkerId] = useState<string>("unassigned");
+  const [useCustomPayRate, setUseCustomPayRate] = useState(false);
+  const [customPayType, setCustomPayType] = useState<"percentage" | "flat">("percentage");
+  const [customPayRate, setCustomPayRate] = useState("");
   const { workers } = useWorkersList();
 
   const [form, setForm] = useState({
