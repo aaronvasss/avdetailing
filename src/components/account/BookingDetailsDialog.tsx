@@ -37,9 +37,7 @@ import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
 import { BookingEditDialog } from "@/components/admin/BookingEditDialog";
-import { BookingPhotosSection } from "@/components/admin/BookingPhotosSection";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
-import { Camera as CameraIcon } from "lucide-react";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
