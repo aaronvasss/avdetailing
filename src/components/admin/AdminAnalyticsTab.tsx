@@ -81,7 +81,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     try {
       const sixMonthsAgo = subMonths(new Date(), 6);
       
-      const [bookingsRes, membershipsRes, tipsRes] = await Promise.all([
+      const [bookingsRes, membershipsRes, tipsRes, wpRes] = await Promise.all([
         supabase
           .from("bookings")
           .select(`
@@ -92,6 +92,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             payment_status,
             payment_method,
             vehicle_type,
+            assigned_worker_id,
+            worker_pay_type,
+            worker_pay_rate,
             services (name, category)
           `)
           .gte("scheduled_date", format(sixMonthsAgo, "yyyy-MM-dd"))
@@ -107,7 +110,10 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           .from("payment_records")
           .select("amount_cents")
           .eq("payment_type", "tip")
-          .eq("status", "paid")
+          .eq("status", "paid"),
+        supabase
+          .from("worker_profiles")
+          .select("user_id, pay_rate, pay_type, is_active"),
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
