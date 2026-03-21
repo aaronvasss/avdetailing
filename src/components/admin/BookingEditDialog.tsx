@@ -321,6 +321,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     }, 0);
 
     const totalPrice = editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price;
+    // Keep subtotal in sync: subtotal = total - add-ons
+    const newSubtotal = totalPrice != null ? Math.max(0, totalPrice - newAddOnsTotal) : booking.subtotal;
     const nameParts = editGuestName.trim().split(" ");
 
     const newAssignedWorkerId = editAssignedWorkerId !== "unassigned" ? editAssignedWorkerId : null;
@@ -345,6 +347,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       service_state: editState.trim() || null,
       service_zip: editZip.trim() || null,
       total_price: totalPrice,
+      subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
       worker_pay_type: editUseCustomPayRate && editCustomPayRate ? editCustomPayType : null,
@@ -892,7 +895,7 @@ AV Detailing
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Amount Override ($)</Label>
+                    <Label>Total Price ($)</Label>
                     <Input 
                       type="number" 
                       step="0.01"
@@ -900,6 +903,9 @@ AV Detailing
                       onChange={e => setEditTotalPrice(e.target.value)} 
                       placeholder={String(booking.total_price || 0)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Change the service price. Worker pay will recalculate based on this amount.
+                    </p>
                   </div>
                 </div>
 

@@ -143,9 +143,8 @@ export function AppointmentCard({
     : booking.service_city || "Location TBD";
 
   const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
-  // Ensure displayed total is never less than subtotal + add-ons
-  const computedTotal = (booking.subtotal || 0) + (booking.add_ons_total || 0);
-  const effectiveTotal = Math.max(booking.total_price || 0, computedTotal);
+  // Use total_price as source of truth
+  const effectiveTotal = booking.total_price || 0;
   const displayTotal = effectiveTotal > 0
     ? isOnlinePayment
       ? (effectiveTotal * 1.035).toFixed(2)
