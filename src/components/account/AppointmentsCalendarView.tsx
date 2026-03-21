@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { parse as parseDate, format as formatDate } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -151,8 +152,20 @@ export function AppointmentsCalendarView({
                       statusColors[booking.status]
                     )}
                   />
-                  <span className="truncate">
-                    {booking.scheduled_time} - {customerName}
+                    <span className="truncate">
+                    {(() => {
+                      try {
+                        const t = parseDate(booking.scheduled_time, "HH:mm:ss", new Date());
+                        return formatDate(t, "h:mm a");
+                      } catch {
+                        try {
+                          const t = parseDate(booking.scheduled_time, "HH:mm", new Date());
+                          return formatDate(t, "h:mm a");
+                        } catch {
+                          return booking.scheduled_time;
+                        }
+                      }
+                    })()} - {customerName}
                   </span>
                 </div>
                 <div className="truncate text-muted-foreground pl-3.5">
