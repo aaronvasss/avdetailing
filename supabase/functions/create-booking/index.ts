@@ -46,6 +46,9 @@ interface CreateBookingRequest {
   // Skip notifications for past-date bookings created by admin
   skip_notifications?: boolean;
 
+  // Direct client linkage from admin search
+  client_id?: string | null;
+
   // Per-booking worker pay rate override
   worker_pay_type?: string | null;
   worker_pay_rate?: number | null;
