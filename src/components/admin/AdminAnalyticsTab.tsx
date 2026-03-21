@@ -31,6 +31,7 @@ interface Booking {
   id: string;
   scheduled_date: string;
   total_price: number | null;
+  tip_amount: number | null;
   status: string;
   payment_status: string | null;
   payment_method: string | null;
