@@ -902,6 +902,29 @@ AV Detailing
                   </div>
                 </div>
 
+                {/* Tip Amount (non-online payments) */}
+                {paymentMethod !== "online" && paymentMethod !== "stripe" && (
+                  <div className="space-y-2">
+                    <Label>Tip Amount ($)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={editTipAmount}
+                      onChange={e => setEditTipAmount(e.target.value)}
+                      placeholder="0.00"
+                    />
+                    {editTipAmount && parseFloat(editTipAmount) > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Total collected: <span className="font-semibold text-foreground">
+                          ${((parseFloat(editTotalPrice) || booking.total_price || 0) + parseFloat(editTipAmount)).toFixed(2)}
+                        </span>
+                        {' '}(Service ${(parseFloat(editTotalPrice) || booking.total_price || 0).toFixed(2)} + Tip ${parseFloat(editTipAmount).toFixed(2)})
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {paymentStatus !== "paid" && (
                   <div className="space-y-2">
                     <Label>Quick Actions - Mark as Paid</Label>

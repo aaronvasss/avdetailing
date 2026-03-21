@@ -187,6 +187,7 @@ export default function WorkerEarningsPage() {
               const earnings = calcBookingEarnings(b);
               const rateLabel = getBookingRateLabel(b);
               const hasOverride = b.worker_pay_type && b.worker_pay_rate != null;
+              const tipAmount = Number(b.tip_amount) || 0;
               return (
                 <Card key={b.id}>
                   <CardContent className="py-3 px-4 flex items-center justify-between">
@@ -203,7 +204,15 @@ export default function WorkerEarningsPage() {
                     <div className="text-right">
                       <p className="text-sm font-semibold">${(b.total_price || 0).toFixed(2)}</p>
                       <p className="text-xs text-primary font-medium">
-                        ${earnings.toFixed(2)}
+                        Pay: ${earnings.toFixed(2)}
+                      </p>
+                      {tipAmount > 0 && (
+                        <p className="text-xs text-emerald-600 font-medium">
+                          Tip: ${tipAmount.toFixed(2)}
+                        </p>
+                      )}
+                      <p className="text-xs font-bold mt-0.5">
+                        Total: ${(earnings + tipAmount).toFixed(2)}
                       </p>
                     </div>
                   </CardContent>
