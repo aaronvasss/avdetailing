@@ -120,6 +120,15 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [customPayRate, setCustomPayRate] = useState("");
   const { workers } = useWorkersList();
 
+  // Customer search state
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerResults, setCustomerResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientName, setSelectedClientName] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -140,6 +149,78 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     customerNotes: "",
     tipAmount: "",
   });
+
+  // Search clients as user types
+  useEffect(() => {
+    if (customerSearch.length < 2) {
+      setCustomerResults([]);
+      setShowResults(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const search = customerSearch.trim();
+        const digitsOnly = search.replace(/\D/g, "");
+        
+        let query = supabase
+          .from("clients")
+          .select("id, full_name, first_name, last_name, email, phone, address_line1, city, zip")
+          .limit(8);
+
+        if (digitsOnly.length >= 3) {
+          query = query.or(`phone.ilike.%${digitsOnly}%,full_name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+        } else {
+          query = query.or(`full_name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+        }
+
+        const { data } = await query;
+        setCustomerResults(data || []);
+        setShowResults(true);
+      } catch (err) {
+        console.error("Customer search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [customerSearch]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selectClient = (client: any) => {
+    const firstName = client.first_name || (client.full_name?.split(" ")[0]) || "";
+    const lastName = client.last_name || (client.full_name?.split(" ").slice(1).join(" ")) || "";
+    setForm(prev => ({
+      ...prev,
+      firstName,
+      lastName,
+      email: client.email || prev.email,
+      phone: client.phone ? formatPhone(client.phone) : prev.phone,
+      address: client.address_line1 || prev.address,
+      city: client.city || prev.city,
+      zip: client.zip || prev.zip,
+    }));
+    setSelectedClientId(client.id);
+    setSelectedClientName(client.full_name || `${firstName} ${lastName}`);
+    setCustomerSearch("");
+    setShowResults(false);
+    toast.success(`Loaded details for ${client.full_name || firstName}`);
+  };
+
+  const clearSelectedClient = () => {
+    setSelectedClientId(null);
+    setSelectedClientName(null);
+  };
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
   const isSpecialty = specialtyServices.includes(form.serviceType);
