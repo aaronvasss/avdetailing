@@ -124,23 +124,40 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
         if (profile) userId = profile.user_id;
       }
 
-      // Fetch bookings (by user_id or guest_email/phone)
-      let bookingsQuery = supabase
+      // Fetch bookings - use client_id first, fall back to user_id or guest fields
+      let bookingsData: Booking[] = [];
+      
+      // Primary: fetch by client_id
+      const { data: clientBookings } = await supabase
         .from('bookings')
         .select('id, scheduled_date, scheduled_time, status, payment_status, total_price, vehicle_type, services(name)')
+        .eq('client_id', client.id)
         .order('scheduled_date', { ascending: false })
-        .limit(20);
+        .limit(50);
+      
+      bookingsData = clientBookings || [];
 
-      if (userId) {
-        bookingsQuery = bookingsQuery.eq('user_id', userId);
-      } else if (client.email) {
-        bookingsQuery = bookingsQuery.eq('guest_email', client.email);
-      } else if (client.phone) {
-        bookingsQuery = bookingsQuery.eq('guest_phone', client.phone);
+      // Fallback: also fetch by user_id or guest fields if client_id yielded nothing
+      if (bookingsData.length === 0) {
+        let bookingsQuery = supabase
+          .from('bookings')
+          .select('id, scheduled_date, scheduled_time, status, payment_status, total_price, vehicle_type, services(name)')
+          .order('scheduled_date', { ascending: false })
+          .limit(50);
+
+        if (userId) {
+          bookingsQuery = bookingsQuery.eq('user_id', userId);
+        } else if (client.email) {
+          bookingsQuery = bookingsQuery.eq('guest_email', client.email);
+        } else if (client.phone) {
+          bookingsQuery = bookingsQuery.eq('guest_phone', client.phone);
+        }
+
+        const { data } = await bookingsQuery;
+        bookingsData = data || [];
       }
 
-      const { data: bookingsData } = await bookingsQuery;
-      setBookings(bookingsData || []);
+      setBookings(bookingsData);
 
       // Calculate lifetime spend
       const spend = (bookingsData || [])
