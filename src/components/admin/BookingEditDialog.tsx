@@ -895,7 +895,7 @@ AV Detailing
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Amount Override ($)</Label>
+                    <Label>Total Price ($)</Label>
                     <Input 
                       type="number" 
                       step="0.01"
@@ -903,6 +903,9 @@ AV Detailing
                       onChange={e => setEditTotalPrice(e.target.value)} 
                       placeholder={String(booking.total_price || 0)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Change the service price. Worker pay will recalculate based on this amount.
+                    </p>
                   </div>
                 </div>
 
