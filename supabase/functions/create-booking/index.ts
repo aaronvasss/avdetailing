@@ -49,6 +49,9 @@ interface CreateBookingRequest {
   // Per-booking worker pay rate override
   worker_pay_type?: string | null;
   worker_pay_rate?: number | null;
+
+  // Tip amount for cash/in-person payments
+  tip_amount?: number | null;
 }
 
 function toDbTime(input: string): string {
