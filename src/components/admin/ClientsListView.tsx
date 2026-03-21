@@ -351,7 +351,7 @@ export function ClientsListView() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -361,7 +361,7 @@ export function ClientsListView() {
                 {totalCount} total customers in your database
               </CardDescription>
             </div>
-            <Button onClick={handleAdd}>
+            <Button onClick={handleAdd} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
             </Button>
