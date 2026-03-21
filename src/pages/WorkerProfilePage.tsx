@@ -35,11 +35,12 @@ export default function WorkerProfilePage() {
     });
     setWorkerProfile(wp);
 
-    // Fetch stats
+    // Fetch stats only for bookings assigned to this worker
     const { data: completedBookings } = await supabase
       .from("bookings")
-      .select("id, total_price, scheduled_date")
-      .eq("status", "completed");
+      .select("id, total_price, scheduled_date, worker_pay_rate, worker_pay_type")
+      .eq("status", "completed")
+      .eq("assigned_worker_id", user.id);
 
     const totalJobs = completedBookings?.length || 0;
 
