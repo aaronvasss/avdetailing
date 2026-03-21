@@ -346,7 +346,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
                     {/* Details - right column */}
                     <div className="flex-1 min-w-0 space-y-1">
-                      <div className="font-semibold text-foreground text-base leading-tight pr-24 truncate">
+                      <div className="font-semibold text-foreground text-sm sm:text-base leading-tight pr-20 sm:pr-24 truncate">
                         {getCustomerName(booking)}
                       </div>
                       <div className="text-sm text-muted-foreground truncate">
