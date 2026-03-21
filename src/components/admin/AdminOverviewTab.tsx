@@ -307,14 +307,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
       {/* Today's Schedule */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Today's Schedule
             </CardTitle>
-            <Badge variant="outline" className="font-normal">
-              {format(today, "EEEE, MMMM d")}
+            <Badge variant="outline" className="font-normal text-[10px] sm:text-xs">
+              {format(today, "MMM d")}
             </Badge>
           </div>
         </CardHeader>
@@ -339,17 +339,17 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                   <div className="flex gap-3">
                     {/* Time - left column */}
                     <div className="flex-shrink-0 min-w-[52px] pt-0.5">
-                      <div className="text-lg font-bold text-primary leading-tight">
+                      <div className="text-base sm:text-lg font-bold text-primary leading-tight">
                         {booking.scheduled_time.slice(0, 5)}
                       </div>
                     </div>
 
                     {/* Details - right column */}
                     <div className="flex-1 min-w-0 space-y-1">
-                      <div className="font-semibold text-foreground text-base leading-tight pr-24 truncate">
+                      <div className="font-semibold text-foreground text-sm sm:text-base leading-tight pr-20 sm:pr-24 truncate">
                         {getCustomerName(booking)}
                       </div>
-                      <div className="text-sm text-muted-foreground truncate">
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
                         {booking.services?.name || "Detailing"} • {booking.vehicle_type}
                       </div>
                       <a 
@@ -428,13 +428,13 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
       {/* Upcoming This Week */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Upcoming This Week
             </CardTitle>
-            <Badge variant="secondary">{upcomingBookings.length} bookings</Badge>
+            <Badge variant="secondary" className="text-[10px] sm:text-xs">{upcomingBookings.length} bookings</Badge>
           </div>
         </CardHeader>
         <CardContent className="px-4">
