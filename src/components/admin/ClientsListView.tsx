@@ -328,6 +328,7 @@ export function ClientsListView() {
       case "wix": return "Wix Import";
       case "csv_import": return "CSV Import";
       case "manual": return "Manual";
+      case "booking": return "Booking";
       default: return source || "Website";
     }
   };
