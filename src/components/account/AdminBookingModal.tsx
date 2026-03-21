@@ -398,6 +398,60 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {/* Customer Info */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Customer Info</h3>
+            
+            {/* Customer Search */}
+            <div ref={searchRef} className="relative mb-3">
+              {selectedClientId ? (
+                <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
+                  <User className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium flex-1">{selectedClientName}</span>
+                  <Badge variant="secondary" className="text-xs">Existing Customer</Badge>
+                  <button onClick={clearSelectedClient} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={customerSearch}
+                      onChange={e => setCustomerSearch(e.target.value)}
+                      onFocus={() => customerResults.length > 0 && setShowResults(true)}
+                      placeholder="Search existing customer by name, phone, or email..."
+                      className="pl-9"
+                    />
+                    {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                  </div>
+                  {showResults && customerResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-popover shadow-md max-h-60 overflow-y-auto">
+                      {customerResults.map(client => (
+                        <button
+                          key={client.id}
+                          type="button"
+                          onClick={() => selectClient(client)}
+                          className="w-full text-left px-3 py-2 hover:bg-accent transition-colors border-b border-border last:border-0"
+                        >
+                          <p className="text-sm font-medium">{client.full_name || `${client.first_name || ""} ${client.last_name || ""}`}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {client.phone && <span>{client.phone}</span>}
+                            {client.phone && client.email && <span> · </span>}
+                            {client.email && <span>{client.email}</span>}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showResults && customerSearch.length >= 2 && customerResults.length === 0 && !isSearching && (
+                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-popover shadow-md px-3 py-3 text-center">
+                      <p className="text-sm text-muted-foreground">No matching customers found</p>
+                      <p className="text-xs text-muted-foreground mt-1">Fill in the details below to create a new customer</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>First Name *</Label>
