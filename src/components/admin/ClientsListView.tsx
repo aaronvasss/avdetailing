@@ -114,27 +114,50 @@ export function ClientsListView() {
 
       const rawClients: Client[] = data || [];
 
-      // Step 2: Enrich with booking data
-      // Gather all emails and phones for batch queries
+      // Step 2: Enrich with booking data via client_id (primary) and fallback to email/phone
+      const clientIds = rawClients.map(c => c.id);
+      const bookingsByClientId = new Map<string, { count: number; totalSpent: number; lastDate: string | null }>();
+
+      if (clientIds.length > 0) {
+        const { data: clientBookings } = await supabase
+          .from("bookings")
+          .select("client_id, total_price, payment_status, scheduled_date, status")
+          .in("client_id", clientIds);
+
+        (clientBookings || []).forEach((b) => {
+          const key = b.client_id;
+          if (!key) return;
+          const existing = bookingsByClientId.get(key) || { count: 0, totalSpent: 0, lastDate: null };
+          existing.count++;
+          if (b.payment_status === "paid" || b.payment_status === "completed" || b.status === "completed") {
+            existing.totalSpent += Number(b.total_price) || 0;
+          }
+          if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
+            existing.lastDate = b.scheduled_date;
+          }
+          bookingsByClientId.set(key, existing);
+        });
+      }
+
+      // Fallback: also check by guest_email/guest_phone for bookings not yet linked
       const emails = rawClients.map((c) => c.email).filter(Boolean) as string[];
       const phones = rawClients.map((c) => c.phone).filter(Boolean) as string[];
-
-      // Fetch booking aggregates by guest_email
       const bookingsByEmail = new Map<string, { count: number; totalSpent: number; lastDate: string | null }>();
       const bookingsByPhone = new Map<string, { count: number; totalSpent: number; lastDate: string | null }>();
 
       if (emails.length > 0) {
         const { data: emailBookings } = await supabase
           .from("bookings")
-          .select("guest_email, total_price, payment_status, scheduled_date, status")
-          .in("guest_email", emails);
+          .select("guest_email, total_price, payment_status, scheduled_date, status, client_id")
+          .in("guest_email", emails)
+          .is("client_id", null);
 
         (emailBookings || []).forEach((b) => {
           const key = b.guest_email?.toLowerCase();
           if (!key) return;
           const existing = bookingsByEmail.get(key) || { count: 0, totalSpent: 0, lastDate: null };
           existing.count++;
-          if (b.payment_status === "paid" || b.payment_status === "completed") {
+          if (b.payment_status === "paid" || b.payment_status === "completed" || b.status === "completed") {
             existing.totalSpent += Number(b.total_price) || 0;
           }
           if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
@@ -144,8 +167,31 @@ export function ClientsListView() {
         });
       }
 
-      // Also check bookings by user_id via profiles
+      if (phones.length > 0) {
+        const { data: phoneBookings } = await supabase
+          .from("bookings")
+          .select("guest_phone, total_price, payment_status, scheduled_date, status, client_id")
+          .in("guest_phone", phones)
+          .is("client_id", null);
+
+        (phoneBookings || []).forEach((b) => {
+          const key = b.guest_phone;
+          if (!key) return;
+          const existing = bookingsByPhone.get(key) || { count: 0, totalSpent: 0, lastDate: null };
+          existing.count++;
+          if (b.payment_status === "paid" || b.payment_status === "completed" || b.status === "completed") {
+            existing.totalSpent += Number(b.total_price) || 0;
+          }
+          if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
+            existing.lastDate = b.scheduled_date;
+          }
+          bookingsByPhone.set(key, existing);
+        });
+      }
+
+      // Fetch membership status via profiles
       const profileEmailToUserId = new Map<string, string>();
+      const membershipByEmail = new Map<string, string>();
       if (emails.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
@@ -158,86 +204,35 @@ export function ClientsListView() {
 
         const userIds = Array.from(profileEmailToUserId.values());
         if (userIds.length > 0) {
-          const { data: userBookings } = await supabase
-            .from("bookings")
-            .select("user_id, total_price, payment_status, scheduled_date, status")
+          const { data: memberships } = await supabase
+            .from("customer_memberships")
+            .select("user_id, status")
             .in("user_id", userIds);
 
-          // Map user_id back to email
           const userIdToEmail = new Map<string, string>();
           profileEmailToUserId.forEach((uid, email) => userIdToEmail.set(uid, email));
 
-          (userBookings || []).forEach((b) => {
-            const email = b.user_id ? userIdToEmail.get(b.user_id) : null;
+          (memberships || []).forEach((m) => {
+            const email = userIdToEmail.get(m.user_id);
             if (!email) return;
-            const existing = bookingsByEmail.get(email) || { count: 0, totalSpent: 0, lastDate: null };
-            // Avoid double-counting if same booking found via guest_email
-            existing.count++;
-            if (b.payment_status === "paid" || b.payment_status === "completed") {
-              existing.totalSpent += Number(b.total_price) || 0;
+            const current = membershipByEmail.get(email);
+            if (!current || m.status === "active") {
+              membershipByEmail.set(email, m.status);
             }
-            if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
-              existing.lastDate = b.scheduled_date;
-            }
-            bookingsByEmail.set(email, existing);
           });
         }
       }
 
-      if (phones.length > 0) {
-        const { data: phoneBookings } = await supabase
-          .from("bookings")
-          .select("guest_phone, total_price, payment_status, scheduled_date, status")
-          .in("guest_phone", phones);
-
-        (phoneBookings || []).forEach((b) => {
-          const key = b.guest_phone;
-          if (!key) return;
-          const existing = bookingsByPhone.get(key) || { count: 0, totalSpent: 0, lastDate: null };
-          existing.count++;
-          if (b.payment_status === "paid" || b.payment_status === "completed") {
-            existing.totalSpent += Number(b.total_price) || 0;
-          }
-          if (b.scheduled_date && (!existing.lastDate || b.scheduled_date > existing.lastDate)) {
-            existing.lastDate = b.scheduled_date;
-          }
-          bookingsByPhone.set(key, existing);
-        });
-      }
-
-      // Fetch membership status via profiles
-      const membershipByEmail = new Map<string, string>();
-      const userIds = Array.from(profileEmailToUserId.values());
-      if (userIds.length > 0) {
-        const { data: memberships } = await supabase
-          .from("customer_memberships")
-          .select("user_id, status")
-          .in("user_id", userIds);
-
-        const userIdToEmail = new Map<string, string>();
-        profileEmailToUserId.forEach((uid, email) => userIdToEmail.set(uid, email));
-
-        (memberships || []).forEach((m) => {
-          const email = userIdToEmail.get(m.user_id);
-          if (!email) return;
-          // Prioritize "active" status
-          const current = membershipByEmail.get(email);
-          if (!current || m.status === "active") {
-            membershipByEmail.set(email, m.status);
-          }
-        });
-      }
-
       // Step 3: Build enriched clients
       let enriched: EnrichedClient[] = rawClients.map((c) => {
+        const clientIdStats = bookingsByClientId.get(c.id);
         const emailKey = c.email?.toLowerCase();
         const emailStats = emailKey ? bookingsByEmail.get(emailKey) : null;
         const phoneStats = c.phone ? bookingsByPhone.get(c.phone) : null;
 
-        // Combine stats (prefer email stats, add phone if no email match)
-        const totalBookings = (emailStats?.count || 0) + (emailKey && emailStats ? 0 : phoneStats?.count || 0);
-        const totalSpent = (emailStats?.totalSpent || 0) + (emailKey && emailStats ? 0 : phoneStats?.totalSpent || 0);
-        const lastServiceDate = emailStats?.lastDate || phoneStats?.lastDate || null;
+        const totalBookings = (clientIdStats?.count || 0) + (emailStats?.count || 0) + (phoneStats?.count || 0);
+        const totalSpent = (clientIdStats?.totalSpent || 0) + (emailStats?.totalSpent || 0) + (phoneStats?.totalSpent || 0);
+        const lastServiceDate = clientIdStats?.lastDate || emailStats?.lastDate || phoneStats?.lastDate || null;
         const membershipStatus = emailKey ? membershipByEmail.get(emailKey) || null : null;
 
         return {
@@ -333,6 +328,7 @@ export function ClientsListView() {
       case "wix": return "Wix Import";
       case "csv_import": return "CSV Import";
       case "manual": return "Manual";
+      case "booking": return "Booking";
       default: return source || "Website";
     }
   };
