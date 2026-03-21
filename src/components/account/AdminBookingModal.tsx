@@ -512,13 +512,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {/* Address */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Service Location</h3>
-            <div className="space-y-3">
-              <Input value={form.address} onChange={e => handleChange("address", e.target.value)} placeholder="Street address" />
-              <div className="grid grid-cols-2 gap-3">
-                <Input value={form.city} onChange={e => handleChange("city", e.target.value)} placeholder="City" />
-                <Input value={form.zip} onChange={e => handleChange("zip", e.target.value)} placeholder="ZIP" maxLength={10} />
-              </div>
-            </div>
+            <Input value={form.address} onChange={e => handleChange("address", e.target.value)} placeholder="Street address" />
           </div>
 
           {/* Service Selection */}
