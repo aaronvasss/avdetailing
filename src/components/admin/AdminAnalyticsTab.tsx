@@ -141,8 +141,15 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       }
       
       const tipData = tipsRes.data || [];
-      setTipCount(tipData.length);
-      setTotalTips(tipData.reduce((sum, t) => sum + (t.amount_cents || 0), 0) / 100);
+      const onlineTipTotal = tipData.reduce((sum, t) => sum + (t.amount_cents || 0), 0) / 100;
+      const onlineTipCount = tipData.length;
+      
+      // Also sum tip_amount from bookings (cash/in-person tips)
+      const bookingTips = (bookingsRes.data || []).filter((b: any) => b.tip_amount && b.tip_amount > 0);
+      const bookingTipTotal = bookingTips.reduce((sum: number, b: any) => sum + Number(b.tip_amount), 0);
+      
+      setTipCount(onlineTipCount + bookingTips.length);
+      setTotalTips(onlineTipTotal + bookingTipTotal);
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {

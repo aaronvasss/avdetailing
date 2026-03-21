@@ -167,13 +167,13 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   };
 
   const fetchTotalTips = async () => {
-    const { data } = await supabase
-      .from("payment_records")
-      .select("amount_cents")
-      .eq("payment_type", "tip")
-      .eq("status", "paid");
-    const total = (data || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0);
-    setTotalTips(total / 100);
+    const [onlineRes, bookingRes] = await Promise.all([
+      supabase.from("payment_records").select("amount_cents").eq("payment_type", "tip").eq("status", "paid"),
+      supabase.from("bookings").select("tip_amount").not("tip_amount", "is", null).gt("tip_amount", 0),
+    ]);
+    const onlineTotal = (onlineRes.data || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0) / 100;
+    const bookingTotal = (bookingRes.data || []).reduce((sum, r) => sum + Number(r.tip_amount || 0), 0);
+    setTotalTips(onlineTotal + bookingTotal);
   };
 
   const updateStatus = async (bookingId: string, newStatus: string) => {
