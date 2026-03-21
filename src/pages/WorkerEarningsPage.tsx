@@ -73,7 +73,7 @@ export default function WorkerEarningsPage() {
   };
 
   const calcEarnings = (jobs: any[]) => {
-    const totalValue = jobs.reduce((sum, b) => sum + (b.total_price || 0), 0);
+    const totalValue = jobs.reduce((sum, b) => sum + getEffectiveTotal(b), 0);
     const earnings = jobs.reduce((sum, b) => sum + calcBookingEarnings(b), 0);
     const tips = jobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
     return { totalValue, earnings, tips };
