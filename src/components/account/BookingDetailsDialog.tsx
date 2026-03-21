@@ -34,6 +34,7 @@ import {
   Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
