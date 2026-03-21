@@ -33,6 +33,7 @@ export default function WorkerEarningsPage() {
       .from("bookings")
       .select("*, services(name)")
       .eq("status", "completed")
+      .eq("assigned_worker_id", user.id)
       .order("scheduled_date", { ascending: false });
 
     setCompletedBookings(bookings || []);
