@@ -428,13 +428,13 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
       {/* Upcoming This Week */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Upcoming This Week
             </CardTitle>
-            <Badge variant="secondary">{upcomingBookings.length} bookings</Badge>
+            <Badge variant="secondary" className="text-[10px] sm:text-xs">{upcomingBookings.length} bookings</Badge>
           </div>
         </CardHeader>
         <CardContent className="px-4">
