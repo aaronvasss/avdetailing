@@ -422,8 +422,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
-      worker_pay_type: editUseCustomPayRate && editCustomPayRate ? editCustomPayType : null,
-      worker_pay_rate: editUseCustomPayRate && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
+      // Always save pay rate when a worker is assigned (default or custom)
+      worker_pay_type: newAssignedWorkerId && editCustomPayRate ? editCustomPayType : null,
+      worker_pay_rate: newAssignedWorkerId && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
       tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
     };
     
