@@ -137,6 +137,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [editUseCustomPayRate, setEditUseCustomPayRate] = useState(false);
   const [editCustomPayType, setEditCustomPayType] = useState<"percentage" | "flat">("percentage");
   const [editCustomPayRate, setEditCustomPayRate] = useState("");
+  const [editTipAmount, setEditTipAmount] = useState("");
 
   // Editable customer fields
   const [editGuestName, setEditGuestName] = useState("");
