@@ -133,7 +133,8 @@ export default function WorkerEarningsPage() {
               <p className="text-xs text-muted-foreground">jobs</p>
               {workerProfile && (
                 <p className="text-sm font-semibold text-primary mt-1">
-                  ${weekEarnings.earnings.toFixed(2)}
+                  ${(weekEarnings.earnings + weekEarnings.tips).toFixed(2)}
+                  {weekEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${weekEarnings.tips.toFixed(0)} tips)</span>}
                 </p>
               )}
             </CardContent>
