@@ -349,7 +349,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                       <div className="font-semibold text-foreground text-sm sm:text-base leading-tight pr-20 sm:pr-24 truncate">
                         {getCustomerName(booking)}
                       </div>
-                      <div className="text-sm text-muted-foreground truncate">
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
                         {booking.services?.name || "Detailing"} • {booking.vehicle_type}
                       </div>
                       <a 
