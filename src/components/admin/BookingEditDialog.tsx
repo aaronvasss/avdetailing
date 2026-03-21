@@ -660,21 +660,7 @@ AV Detailing
               <CardContent className="space-y-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Street Address</Label>
-                  <Input value={editAddress} onChange={e => setEditAddress(e.target.value)} />
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">City</Label>
-                    <Input value={editCity} onChange={e => setEditCity(e.target.value)} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">State</Label>
-                    <Input value={editState} onChange={e => setEditState(e.target.value)} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">ZIP</Label>
-                    <Input value={editZip} onChange={e => setEditZip(e.target.value)} />
-                  </div>
+                  <Input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="Street address" />
                 </div>
               </CardContent>
             </Card>
