@@ -781,7 +781,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {/* Assign Technician */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assign Technician</h3>
-            <Select value={assignedWorkerId} onValueChange={setAssignedWorkerId}>
+            <Select value={assignedWorkerId} onValueChange={handleWorkerAssign}>
               <SelectTrigger>
                 <SelectValue placeholder="Select technician" />
               </SelectTrigger>
@@ -793,13 +793,40 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               </SelectContent>
             </Select>
 
-            {/* Pay Rate Override */}
+            {/* Pay Rate - auto-applied from worker profile */}
             {assignedWorkerId !== "unassigned" && (
               <div className="mt-3 space-y-3">
+                {/* Default rate display */}
+                {workerDefaultPayRate && !useCustomPayRate && (
+                  <div className="p-2 bg-muted rounded-md">
+                    <p className="text-xs text-muted-foreground">Default Pay Rate</p>
+                    <p className="text-sm font-semibold">
+                      {workerDefaultPayType === "percentage"
+                        ? `${workerDefaultPayRate}% of job value`
+                        : `$${Number(workerDefaultPayRate).toFixed(2)} flat per job`}
+                    </p>
+                    {workerDefaultPayType === "percentage" && totalPrice > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Worker earns: <span className="font-semibold text-foreground">
+                          ${(totalPrice * (parseFloat(workerDefaultPayRate) / 100)).toFixed(2)}
+                        </span>
+                        {` (${workerDefaultPayRate}% of $${totalPrice})`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={useCustomPayRate}
-                    onCheckedChange={(checked) => setUseCustomPayRate(!!checked)}
+                    onCheckedChange={(checked) => {
+                      const isCustom = !!checked;
+                      setUseCustomPayRate(isCustom);
+                      if (!isCustom && workerDefaultPayRate) {
+                        setCustomPayType(workerDefaultPayType);
+                        setCustomPayRate(workerDefaultPayRate);
+                      }
+                    }}
                   />
                   <span className="text-sm">Custom rate for this job</span>
                 </label>
