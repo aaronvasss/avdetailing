@@ -112,6 +112,7 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "online", label: "Online (Stripe)" },
   { value: "in_person", label: "In Person" },
   { value: "cash", label: "Cash" },
+  { value: "cashapp", label: "Cash App" },
   { value: "zelle", label: "Zelle" },
   { value: "venmo", label: "Venmo" },
   { value: "check", label: "Check" },
