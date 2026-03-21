@@ -201,16 +201,25 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       // Worker assignment
       setEditAssignedWorkerId(booking.assigned_worker_id || "unassigned");
 
-      // Pay rate override
+      // Pay rate override - only mark as custom if booking has a saved override
       const bAny = booking as any;
       if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
-        setEditUseCustomPayRate(true);
+        // Check if booking already has a saved rate - we'll determine if it's custom
+        // after fetching the worker's default
         setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
         setEditCustomPayRate(String(bAny.worker_pay_rate));
       } else {
-        setEditUseCustomPayRate(false);
         setEditCustomPayType("percentage");
         setEditCustomPayRate("");
+      }
+      setEditUseCustomPayRate(false); // Will be set properly after worker profile loads
+
+      // Fetch worker default pay rate if assigned
+      if (booking.assigned_worker_id) {
+        fetchWorkerPayRate(booking.assigned_worker_id, bAny.worker_pay_type, bAny.worker_pay_rate);
+      } else {
+        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayRate("");
       }
 
       // Tip amount
@@ -222,6 +231,67 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       fetchAllAddOns();
     }
   }, [booking]);
+
+  // Fetch a worker's default pay rate from worker_profiles
+  const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
+    const { data: wp } = await supabase
+      .from("worker_profiles")
+      .select("pay_type, pay_rate")
+      .eq("user_id", workerId)
+      .maybeSingle();
+
+    if (wp) {
+      setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+      setWorkerDefaultPayRate(String(wp.pay_rate));
+
+      // If booking has a saved rate that differs from default, mark as custom override
+      if (savedPayType && savedPayRate != null) {
+        const isCustom = savedPayType !== wp.pay_type || Number(savedPayRate) !== Number(wp.pay_rate);
+        setEditUseCustomPayRate(isCustom);
+        if (!isCustom) {
+          // Using default rate - sync display
+          setEditCustomPayType(wp.pay_type as "percentage" | "flat");
+          setEditCustomPayRate(String(wp.pay_rate));
+        }
+      } else {
+        // No saved rate - use default
+        setEditUseCustomPayRate(false);
+        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
+        setEditCustomPayRate(String(wp.pay_rate));
+      }
+    }
+  };
+
+  // When worker assignment changes, fetch their default rate
+  const handleWorkerChange = async (workerId: string) => {
+    setEditAssignedWorkerId(workerId);
+    setEditUseCustomPayRate(false);
+    
+    if (workerId !== "unassigned") {
+      const { data: wp } = await supabase
+        .from("worker_profiles")
+        .select("pay_type, pay_rate")
+        .eq("user_id", workerId)
+        .maybeSingle();
+
+      if (wp) {
+        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+        setWorkerDefaultPayRate(String(wp.pay_rate));
+        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
+        setEditCustomPayRate(String(wp.pay_rate));
+      } else {
+        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayRate("");
+        setEditCustomPayType("percentage");
+        setEditCustomPayRate("");
+      }
+    } else {
+      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayRate("");
+      setEditCustomPayType("percentage");
+      setEditCustomPayRate("");
+    }
+  };
 
   const fetchBookingAddOns = async (bookingId: string) => {
     const { data } = await supabase
