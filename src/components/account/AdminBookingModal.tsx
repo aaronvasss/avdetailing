@@ -682,6 +682,39 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 <SelectItem value="online">Charge via Stripe</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Tip Amount for non-online payments */}
+            {form.paymentMethod !== "online" && (
+              <div className="mt-3">
+                <Label>Tip Amount (optional)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.tipAmount || ""}
+                  onChange={e => setForm(prev => ({ ...prev, tipAmount: e.target.value }))}
+                  placeholder="0.00"
+                  className="mt-1"
+                />
+                {form.tipAmount && parseFloat(form.tipAmount) > 0 && totalPrice > 0 && (
+                  <div className="mt-2 rounded-lg border border-border bg-muted/30 p-3 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Service</span>
+                      <span>${totalPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Tip</span>
+                      <span>${parseFloat(form.tipAmount).toFixed(2)}</span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between font-semibold">
+                      <span>Total Collected</span>
+                      <span className="text-primary">${(totalPrice + parseFloat(form.tipAmount)).toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Notes */}
