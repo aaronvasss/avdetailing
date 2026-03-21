@@ -336,10 +336,11 @@ export function BookingDetailsDialog({
   const canCancel = isUpcoming && booking.status !== "in_progress";
 
   const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
-  const processingFee = isOnlinePayment && booking.total_price ? booking.total_price * 0.035 : 0;
-  const totalWithFee = booking.total_price
-    ? booking.total_price + processingFee
-    : 0;
+  // Compute effective total: ensure it's never less than subtotal + add-ons
+  const computedTotal = (booking.subtotal || 0) + (booking.add_ons_total || 0);
+  const effectiveTotal = Math.max(booking.total_price || 0, computedTotal);
+  const processingFee = isOnlinePayment && effectiveTotal ? effectiveTotal * 0.035 : 0;
+  const totalWithFee = effectiveTotal + processingFee;
   const remainingBalance = totalWithFee - (booking.deposit_amount || 0);
 
   // Resolve customer info: ONLY use guest fields from the booking record.
