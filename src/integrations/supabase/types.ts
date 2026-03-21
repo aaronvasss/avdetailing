@@ -270,6 +270,7 @@ export type Database = {
           address_id: string | null
           address_notes: string | null
           assigned_worker_id: string | null
+          client_id: string | null
           created_at: string
           customer_notes: string | null
           deposit_amount: number | null
@@ -313,6 +314,7 @@ export type Database = {
           address_id?: string | null
           address_notes?: string | null
           assigned_worker_id?: string | null
+          client_id?: string | null
           created_at?: string
           customer_notes?: string | null
           deposit_amount?: number | null
@@ -356,6 +358,7 @@ export type Database = {
           address_id?: string | null
           address_notes?: string | null
           assigned_worker_id?: string | null
+          client_id?: string | null
           created_at?: string
           customer_notes?: string | null
           deposit_amount?: number | null
@@ -400,6 +403,13 @@ export type Database = {
             columns: ["address_id"]
             isOneToOne: false
             referencedRelation: "customer_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {

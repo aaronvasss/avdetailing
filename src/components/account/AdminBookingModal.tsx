@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CalendarIcon, Plus } from "lucide-react";
+import { Loader2, CalendarIcon, Plus, Search, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -120,6 +120,15 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [customPayRate, setCustomPayRate] = useState("");
   const { workers } = useWorkersList();
 
+  // Customer search state
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerResults, setCustomerResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientName, setSelectedClientName] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -140,6 +149,78 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     customerNotes: "",
     tipAmount: "",
   });
+
+  // Search clients as user types
+  useEffect(() => {
+    if (customerSearch.length < 2) {
+      setCustomerResults([]);
+      setShowResults(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const search = customerSearch.trim();
+        const digitsOnly = search.replace(/\D/g, "");
+        
+        let query = supabase
+          .from("clients")
+          .select("id, full_name, first_name, last_name, email, phone, address_line1, city, zip")
+          .limit(8);
+
+        if (digitsOnly.length >= 3) {
+          query = query.or(`phone.ilike.%${digitsOnly}%,full_name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+        } else {
+          query = query.or(`full_name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+        }
+
+        const { data } = await query;
+        setCustomerResults(data || []);
+        setShowResults(true);
+      } catch (err) {
+        console.error("Customer search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [customerSearch]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selectClient = (client: any) => {
+    const firstName = client.first_name || (client.full_name?.split(" ")[0]) || "";
+    const lastName = client.last_name || (client.full_name?.split(" ").slice(1).join(" ")) || "";
+    setForm(prev => ({
+      ...prev,
+      firstName,
+      lastName,
+      email: client.email || prev.email,
+      phone: client.phone ? formatPhone(client.phone) : prev.phone,
+      address: client.address_line1 || prev.address,
+      city: client.city || prev.city,
+      zip: client.zip || prev.zip,
+    }));
+    setSelectedClientId(client.id);
+    setSelectedClientName(client.full_name || `${firstName} ${lastName}`);
+    setCustomerSearch("");
+    setShowResults(false);
+    toast.success(`Loaded details for ${client.full_name || firstName}`);
+  };
+
+  const clearSelectedClient = () => {
+    setSelectedClientId(null);
+    setSelectedClientName(null);
+  };
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
   const isSpecialty = specialtyServices.includes(form.serviceType);
@@ -232,6 +313,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
           worker_pay_type: useCustomPayRate && customPayRate ? customPayType : null,
           worker_pay_rate: useCustomPayRate && customPayRate ? parseFloat(customPayRate) : null,
+          client_id: selectedClientId,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
@@ -291,6 +373,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setUseCustomPayRate(false);
       setCustomPayType("percentage");
       setCustomPayRate("");
+      setSelectedClientId(null);
+      setSelectedClientName(null);
+      setCustomerSearch("");
     } catch (err) {
       console.error("Admin booking error:", err);
       toast.error("Failed to create booking. Please try again.");
@@ -313,6 +398,60 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {/* Customer Info */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Customer Info</h3>
+            
+            {/* Customer Search */}
+            <div ref={searchRef} className="relative mb-3">
+              {selectedClientId ? (
+                <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
+                  <User className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium flex-1">{selectedClientName}</span>
+                  <Badge variant="secondary" className="text-xs">Existing Customer</Badge>
+                  <button onClick={clearSelectedClient} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={customerSearch}
+                      onChange={e => setCustomerSearch(e.target.value)}
+                      onFocus={() => customerResults.length > 0 && setShowResults(true)}
+                      placeholder="Search existing customer by name, phone, or email..."
+                      className="pl-9"
+                    />
+                    {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                  </div>
+                  {showResults && customerResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-popover shadow-md max-h-60 overflow-y-auto">
+                      {customerResults.map(client => (
+                        <button
+                          key={client.id}
+                          type="button"
+                          onClick={() => selectClient(client)}
+                          className="w-full text-left px-3 py-2 hover:bg-accent transition-colors border-b border-border last:border-0"
+                        >
+                          <p className="text-sm font-medium">{client.full_name || `${client.first_name || ""} ${client.last_name || ""}`}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {client.phone && <span>{client.phone}</span>}
+                            {client.phone && client.email && <span> · </span>}
+                            {client.email && <span>{client.email}</span>}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showResults && customerSearch.length >= 2 && customerResults.length === 0 && !isSearching && (
+                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-popover shadow-md px-3 py-3 text-center">
+                      <p className="text-sm text-muted-foreground">No matching customers found</p>
+                      <p className="text-xs text-muted-foreground mt-1">Fill in the details below to create a new customer</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>First Name *</Label>
