@@ -682,6 +682,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="in_person">Cash / In-Person</SelectItem>
+                <SelectItem value="cashapp">Cash App</SelectItem>
                 <SelectItem value="zelle">Zelle</SelectItem>
                 <SelectItem value="venmo">Venmo</SelectItem>
                 <SelectItem value="check">Check</SelectItem>
