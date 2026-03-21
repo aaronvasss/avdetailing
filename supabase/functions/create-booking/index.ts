@@ -213,9 +213,82 @@ const handler = async (req: Request): Promise<Response> => {
       tip_amount: body.tip_amount != null ? Math.min(Math.max(0, Number(body.tip_amount)), 10000) : null,
     };
 
+    // ── Upsert client record ──
+    let clientId: string | null = null;
+    const guestEmail = validateEmail(body.guest_email);
+    const guestPhone = validatePhone(body.guest_phone);
+    const guestName = sanitize(body.guest_name, 100);
+
+    if (guestEmail || guestPhone) {
+      // Try to find existing client by email or phone
+      let existingClient = null;
+      if (guestEmail) {
+        const { data } = await serviceClient
+          .from("clients")
+          .select("id")
+          .eq("email", guestEmail)
+          .limit(1)
+          .maybeSingle();
+        existingClient = data;
+      }
+      if (!existingClient && guestPhone) {
+        const { data } = await serviceClient
+          .from("clients")
+          .select("id")
+          .eq("phone", guestPhone)
+          .limit(1)
+          .maybeSingle();
+        existingClient = data;
+      }
+
+      if (existingClient) {
+        clientId = existingClient.id;
+        // Update client with latest info
+        const updatePayload: Record<string, unknown> = {};
+        if (guestName) {
+          const parts = guestName.split(" ");
+          updatePayload.full_name = guestName;
+          updatePayload.first_name = parts[0] || null;
+          updatePayload.last_name = parts.slice(1).join(" ") || null;
+        }
+        if (guestEmail) updatePayload.email = guestEmail;
+        if (guestPhone) updatePayload.phone = guestPhone;
+        if (insertPayload.service_address) updatePayload.address_line1 = insertPayload.service_address;
+        if (insertPayload.service_city) updatePayload.city = insertPayload.service_city;
+        if (insertPayload.service_zip) updatePayload.zip = insertPayload.service_zip;
+        if (Object.keys(updatePayload).length > 0) {
+          await serviceClient.from("clients").update(updatePayload).eq("id", clientId);
+        }
+      } else {
+        // Create new client
+        const nameParts = (guestName || "").split(" ");
+        const { data: newClient } = await serviceClient
+          .from("clients")
+          .insert({
+            full_name: guestName,
+            first_name: nameParts[0] || null,
+            last_name: nameParts.slice(1).join(" ") || null,
+            email: guestEmail,
+            phone: guestPhone,
+            address_line1: insertPayload.service_address,
+            city: insertPayload.service_city,
+            zip: insertPayload.service_zip,
+            source: "booking",
+          })
+          .select("id")
+          .single();
+        if (newClient) clientId = newClient.id;
+      }
+    }
+
+    // If client_id was passed directly (from admin search), use it
+    if (body.client_id && uuidRegex.test(body.client_id)) {
+      clientId = body.client_id;
+    }
+
     const { data: booking, error } = await serviceClient
       .from("bookings")
-      .insert(insertPayload)
+      .insert({ ...insertPayload, client_id: clientId })
       .select("id, manage_token")
       .single();
 
