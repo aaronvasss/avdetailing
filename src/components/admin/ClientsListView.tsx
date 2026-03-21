@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
-  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye,
+  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye, Phone,
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientFormDialog } from "./ClientFormDialog";
