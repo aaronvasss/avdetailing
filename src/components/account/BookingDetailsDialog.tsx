@@ -723,7 +723,7 @@ export function BookingDetailsDialog({
                     const hasOverride = bAny.worker_pay_type && bAny.worker_pay_rate != null;
                     const payType = hasOverride ? bAny.worker_pay_type : null;
                     const payRate = hasOverride ? Number(bAny.worker_pay_rate) : null;
-                    const jobValue = effectiveTotal;
+                    const jobValue = booking.total_price || 0;
 
                     let rateLabel = "Default rate";
                     let earnedAmount = 0;

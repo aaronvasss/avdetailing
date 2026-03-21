@@ -176,9 +176,44 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Use client-supplied subtotal only as a hint; store it but checkout will recalculate
-    const serverSubtotal = Number(service.base_price);
-    const serverTotal = serverSubtotal + serverAddOnsTotal;
+    // Check if caller is admin/staff — if so, trust their supplied pricing (package-based)
+    const isCallerStaff = userId ? await (async () => {
+      const { data } = await serviceClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", ["admin", "staff"]);
+      return data && data.length > 0;
+    })() : false;
+
+    // Determine pricing: admin-supplied values take priority if caller is staff
+    let finalSubtotal: number;
+    let finalAddOnsTotal: number;
+    let finalTotal: number;
+
+    if (isCallerStaff && body.total_price != null && body.total_price > 0) {
+      // Admin/staff supplied specific pricing (from package selection or custom)
+      finalSubtotal = body.subtotal != null ? Number(body.subtotal) : Number(body.total_price);
+      finalAddOnsTotal = body.add_ons_total != null ? Number(body.add_ons_total) : serverAddOnsTotal;
+      finalTotal = Number(body.total_price);
+    } else {
+      // Default: calculate from service base_price
+      finalSubtotal = Number(service.base_price);
+      finalAddOnsTotal = serverAddOnsTotal;
+      finalTotal = finalSubtotal + finalAddOnsTotal;
+    }
+
+    // Determine status: admin can set custom status for past bookings
+    let finalStatus = "pending";
+    let finalPaymentStatus = "unpaid";
+    let finalPaymentMethod = body.payment_method === "online" ? "online" : "in_person";
+
+    if (isCallerStaff) {
+      // Admin can set status, payment_status, and payment_method
+      if (body.status) finalStatus = body.status;
+      if (body.payment_status) finalPaymentStatus = body.payment_status;
+      if (body.payment_method) finalPaymentMethod = body.payment_method;
+    }
 
     const insertPayload = {
       user_id: userId,
@@ -202,13 +237,12 @@ const handler = async (req: Request): Promise<Response> => {
       service_zip: sanitize(body.service_zip, 10),
       address_notes: sanitize(body.address_notes, 500),
 
-      subtotal: serverSubtotal,
-      add_ons_total: serverAddOnsTotal,
-      total_price: serverTotal,
-      // SECURITY: Never trust client-supplied status/payment fields
-      status: "pending",
-      payment_status: "unpaid",
-      payment_method: body.payment_method === "online" ? "online" : "in_person",
+      subtotal: finalSubtotal,
+      add_ons_total: finalAddOnsTotal,
+      total_price: finalTotal,
+      status: finalStatus,
+      payment_status: finalPaymentStatus,
+      payment_method: finalPaymentMethod,
       manage_token: manageToken,
       assigned_worker_id: body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
       worker_pay_type: body.worker_pay_type === "percentage" || body.worker_pay_type === "flat" ? body.worker_pay_type : null,
