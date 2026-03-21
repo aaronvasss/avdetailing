@@ -89,6 +89,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             id,
             scheduled_date,
             total_price,
+            tip_amount,
             status,
             payment_status,
             payment_method,
