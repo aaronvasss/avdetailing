@@ -307,14 +307,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
       {/* Today's Schedule */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Today's Schedule
             </CardTitle>
-            <Badge variant="outline" className="font-normal">
-              {format(today, "EEEE, MMMM d")}
+            <Badge variant="outline" className="font-normal text-[10px] sm:text-xs">
+              {format(today, "MMM d")}
             </Badge>
           </div>
         </CardHeader>
