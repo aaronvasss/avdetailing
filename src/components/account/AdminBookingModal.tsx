@@ -313,6 +313,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
           worker_pay_type: useCustomPayRate && customPayRate ? customPayType : null,
           worker_pay_rate: useCustomPayRate && customPayRate ? parseFloat(customPayRate) : null,
+          client_id: selectedClientId,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
