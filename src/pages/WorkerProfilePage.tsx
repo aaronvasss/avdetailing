@@ -52,11 +52,17 @@ export default function WorkerProfilePage() {
 
     let weekEarnings = 0;
     if (wp) {
-      if (wp.pay_type === "percentage") {
-        weekEarnings = weekJobs.reduce((s, b) => s + (b.total_price || 0) * (wp.pay_rate / 100), 0);
-      } else {
-        weekEarnings = weekJobs.length * wp.pay_rate;
-      }
+      weekEarnings = weekJobs.reduce((sum, booking: any) => {
+        if (booking.worker_pay_type && booking.worker_pay_rate != null) {
+          return sum + (booking.worker_pay_type === "percentage"
+            ? (Number(booking.total_price) || 0) * (Number(booking.worker_pay_rate) / 100)
+            : Number(booking.worker_pay_rate));
+        }
+        if (wp.pay_type === "percentage") {
+          return sum + (Number(booking.total_price) || 0) * (wp.pay_rate / 100);
+        }
+        return sum + wp.pay_rate;
+      }, 0);
     }
 
     // Get ratings
