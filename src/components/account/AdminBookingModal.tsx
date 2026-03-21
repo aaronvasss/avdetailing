@@ -406,6 +406,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setUseCustomPayRate(false);
       setCustomPayType("percentage");
       setCustomPayRate("");
+      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayRate("");
       setSelectedClientId(null);
       setSelectedClientName(null);
       setCustomerSearch("");
