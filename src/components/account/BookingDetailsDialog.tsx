@@ -145,6 +145,11 @@ export function BookingDetailsDialog({
   const [profileData, setProfileData] = useState<{ full_name: string | null; email: string | null; phone: string | null } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
+  // Tip tracking state
+  const [showTipInput, setShowTipInput] = useState(false);
+  const [tipAmount, setTipAmount] = useState("");
+  const [savingTip, setSavingTip] = useState(false);
+
   // Resend notification states
   const [sendingEmail, setSendingEmail] = useState(false);
   const [sendingSms, setSendingSms] = useState(false);
