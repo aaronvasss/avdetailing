@@ -152,8 +152,20 @@ export function AppointmentsCalendarView({
                       statusColors[booking.status]
                     )}
                   />
-                  <span className="truncate">
-                    {booking.scheduled_time} - {customerName}
+                    <span className="truncate">
+                    {(() => {
+                      try {
+                        const t = parseDate(booking.scheduled_time, "HH:mm:ss", new Date());
+                        return formatDate(t, "h:mm a");
+                      } catch {
+                        try {
+                          const t = parseDate(booking.scheduled_time, "HH:mm", new Date());
+                          return formatDate(t, "h:mm a");
+                        } catch {
+                          return booking.scheduled_time;
+                        }
+                      }
+                    })()} - {customerName}
                   </span>
                 </div>
                 <div className="truncate text-muted-foreground pl-3.5">
