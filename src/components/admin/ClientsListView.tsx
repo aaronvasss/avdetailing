@@ -57,6 +57,7 @@ type SortField = "name" | "total_spent" | "last_service" | "date_added";
 type FilterType = "all" | "has_membership" | "imported" | "no_bookings";
 
 export function ClientsListView() {
+  const isMobile = useIsMobile();
   const [clients, setClients] = useState<EnrichedClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
