@@ -118,7 +118,40 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [useCustomPayRate, setUseCustomPayRate] = useState(false);
   const [customPayType, setCustomPayType] = useState<"percentage" | "flat">("percentage");
   const [customPayRate, setCustomPayRate] = useState("");
+  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
+  const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
   const { workers } = useWorkersList();
+
+  // Auto-fetch worker default pay rate when assigned
+  const handleWorkerAssign = async (workerId: string) => {
+    setAssignedWorkerId(workerId);
+    setUseCustomPayRate(false);
+    
+    if (workerId !== "unassigned") {
+      const { data: wp } = await supabase
+        .from("worker_profiles")
+        .select("pay_type, pay_rate")
+        .eq("user_id", workerId)
+        .maybeSingle();
+
+      if (wp) {
+        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+        setWorkerDefaultPayRate(String(wp.pay_rate));
+        setCustomPayType(wp.pay_type as "percentage" | "flat");
+        setCustomPayRate(String(wp.pay_rate));
+      } else {
+        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayRate("");
+        setCustomPayType("percentage");
+        setCustomPayRate("");
+      }
+    } else {
+      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayRate("");
+      setCustomPayType("percentage");
+      setCustomPayRate("");
+    }
+  };
 
   // Customer search state
   const [customerSearch, setCustomerSearch] = useState("");
