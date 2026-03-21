@@ -50,6 +50,21 @@ export default function WorkerAllJobsPage() {
 
   useEffect(() => {
     fetchBookings();
+
+    const channel = supabase
+      .channel("worker-all-jobs")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        () => {
+          fetchBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchBookings]);
 
   const filters: { key: FilterType; label: string }[] = [

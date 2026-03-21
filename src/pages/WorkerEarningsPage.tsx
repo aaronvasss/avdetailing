@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,15 +11,17 @@ export default function WorkerEarningsPage() {
   const [completedBookings, setCompletedBookings] = useState<any[]>([]);
   const [workerProfile, setWorkerProfile] = useState<any>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
 
-  const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setCompletedBookings([]);
+      setWorkerProfile(null);
+      setLoading(false);
+      return;
+    }
 
-    // Get worker profile for pay rate
     const { data: wp } = await supabase
       .from("worker_profiles")
       .select("*")
@@ -28,7 +30,6 @@ export default function WorkerEarningsPage() {
 
     setWorkerProfile(wp);
 
-    // Get all completed bookings assigned to this worker
     const { data: bookings } = await supabase
       .from("bookings")
       .select("*, services(name)")
@@ -38,7 +39,26 @@ export default function WorkerEarningsPage() {
 
     setCompletedBookings(bookings || []);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+
+    const channel = supabase
+      .channel("worker-earnings")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchData]);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");

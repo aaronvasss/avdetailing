@@ -35,11 +35,12 @@ export default function WorkerProfilePage() {
     });
     setWorkerProfile(wp);
 
-    // Fetch stats
+    // Fetch stats only for bookings assigned to this worker
     const { data: completedBookings } = await supabase
       .from("bookings")
-      .select("id, total_price, scheduled_date")
-      .eq("status", "completed");
+      .select("id, total_price, scheduled_date, worker_pay_rate, worker_pay_type")
+      .eq("status", "completed")
+      .eq("assigned_worker_id", user.id);
 
     const totalJobs = completedBookings?.length || 0;
 
@@ -51,11 +52,17 @@ export default function WorkerProfilePage() {
 
     let weekEarnings = 0;
     if (wp) {
-      if (wp.pay_type === "percentage") {
-        weekEarnings = weekJobs.reduce((s, b) => s + (b.total_price || 0) * (wp.pay_rate / 100), 0);
-      } else {
-        weekEarnings = weekJobs.length * wp.pay_rate;
-      }
+      weekEarnings = weekJobs.reduce((sum, booking: any) => {
+        if (booking.worker_pay_type && booking.worker_pay_rate != null) {
+          return sum + (booking.worker_pay_type === "percentage"
+            ? (Number(booking.total_price) || 0) * (Number(booking.worker_pay_rate) / 100)
+            : Number(booking.worker_pay_rate));
+        }
+        if (wp.pay_type === "percentage") {
+          return sum + (Number(booking.total_price) || 0) * (wp.pay_rate / 100);
+        }
+        return sum + wp.pay_rate;
+      }, 0);
     }
 
     // Get ratings
