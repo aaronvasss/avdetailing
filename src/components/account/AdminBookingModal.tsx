@@ -137,6 +137,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     paymentMethod: "in_person",
     internalNotes: "",
     customerNotes: "",
+    tipAmount: "",
   });
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
