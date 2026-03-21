@@ -143,10 +143,13 @@ export function AppointmentCard({
     : booking.service_city || "Location TBD";
 
   const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
-  const displayTotal = booking.total_price
+  // Ensure displayed total is never less than subtotal + add-ons
+  const computedTotal = (booking.subtotal || 0) + (booking.add_ons_total || 0);
+  const effectiveTotal = Math.max(booking.total_price || 0, computedTotal);
+  const displayTotal = effectiveTotal > 0
     ? isOnlinePayment
-      ? (booking.total_price * 1.035).toFixed(2)
-      : Number(booking.total_price).toFixed(2)
+      ? (effectiveTotal * 1.035).toFixed(2)
+      : effectiveTotal.toFixed(2)
     : null;
 
   if (compact) {

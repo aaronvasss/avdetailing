@@ -51,18 +51,23 @@ export default function WorkerEarningsPage() {
   const monthJobs = completedBookings.filter((b) => b.scheduled_date >= monthStart && b.scheduled_date <= monthEnd);
 
   // Calculate earnings for a single booking using per-booking override or global rate
+  // Compute effective total: never less than subtotal + add-ons
+  const getEffectiveTotal = (b: any): number => {
+    const computed = (Number(b.subtotal) || 0) + (Number(b.add_ons_total) || 0);
+    return Math.max(Number(b.total_price) || 0, computed);
+  };
+
   const calcBookingEarnings = (b: any): number => {
+    const jobValue = getEffectiveTotal(b);
     if (b.worker_pay_type && b.worker_pay_rate != null) {
-      // Per-booking override
       if (b.worker_pay_type === "percentage") {
-        return (b.total_price || 0) * (Number(b.worker_pay_rate) / 100);
+        return jobValue * (Number(b.worker_pay_rate) / 100);
       }
       return Number(b.worker_pay_rate);
     }
-    // Fall back to global worker rate
     if (!workerProfile) return 0;
     if (workerProfile.pay_type === "percentage") {
-      return (b.total_price || 0) * (workerProfile.pay_rate / 100);
+      return jobValue * (workerProfile.pay_rate / 100);
     }
     return workerProfile.pay_rate;
   };
