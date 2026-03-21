@@ -339,7 +339,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                   <div className="flex gap-3">
                     {/* Time - left column */}
                     <div className="flex-shrink-0 min-w-[52px] pt-0.5">
-                      <div className="text-lg font-bold text-primary leading-tight">
+                      <div className="text-base sm:text-lg font-bold text-primary leading-tight">
                         {booking.scheduled_time.slice(0, 5)}
                       </div>
                     </div>
