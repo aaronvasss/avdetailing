@@ -210,6 +210,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         setEditCustomPayRate("");
       }
 
+      // Tip amount
+      setEditTipAmount((booking as any).tip_amount != null ? String((booking as any).tip_amount) : "");
+
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
       fetchBookingAddOns(booking.id);
