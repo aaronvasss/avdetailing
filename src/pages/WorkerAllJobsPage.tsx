@@ -16,11 +16,19 @@ export default function WorkerAllJobsPage() {
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const today = format(new Date(), "yyyy-MM-dd");
 
     let query = supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
+      .eq("assigned_worker_id", user.id)
       .neq("status", "cancelled")
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true });
