@@ -369,17 +369,17 @@ export function ClientsListView() {
         <CardContent>
           {/* Search, Filter, Sort */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
+            <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, email, or phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 w-full"
               />
             </div>
             <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -390,7 +390,7 @@ export function ClientsListView() {
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortField)}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
