@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
-  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye,
+  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye, Phone,
 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientFormDialog } from "./ClientFormDialog";
@@ -56,6 +57,7 @@ type SortField = "name" | "total_spent" | "last_service" | "date_added";
 type FilterType = "all" | "has_membership" | "imported" | "no_bookings";
 
 export function ClientsListView() {
+  const isMobile = useIsMobile();
   const [clients, setClients] = useState<EnrichedClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -368,17 +370,17 @@ export function ClientsListView() {
         <CardContent>
           {/* Search, Filter, Sort */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
+            <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, email, or phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 w-full"
               />
             </div>
             <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -389,7 +391,7 @@ export function ClientsListView() {
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortField)}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -412,87 +414,149 @@ export function ClientsListView() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>City</TableHead>
-                      <TableHead className="text-center">Bookings</TableHead>
-                      <TableHead className="text-right">Total Spent</TableHead>
-                      <TableHead>Membership</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Last Service</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {clients.map((client) => (
-                      <TableRow
-                        key={client.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleView(client)}
-                      >
-                        <TableCell>
-                          <div className="font-medium">{getDisplayName(client)}</div>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {client.email || <span className="text-muted-foreground">—</span>}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {client.phone || <span className="text-muted-foreground">—</span>}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {client.city || <span className="text-muted-foreground">—</span>}
-                        </TableCell>
-                        <TableCell className="text-center text-sm">
-                          {client.totalBookings}
-                        </TableCell>
-                        <TableCell className="text-right text-sm font-medium">
-                          {client.totalSpent > 0 ? `$${client.totalSpent.toFixed(0)}` : "—"}
-                        </TableCell>
-                        <TableCell>
-                          {client.membershipStatus === "active" ? (
-                            <Badge className="bg-primary/10 text-primary text-xs">Active</Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">None</span>
+              {/* Mobile Card Layout */}
+              {isMobile ? (
+                <div className="space-y-3">
+                  {clients.map((client) => (
+                    <div
+                      key={client.id}
+                      className="border rounded-lg p-4 cursor-pointer hover:bg-muted/50 active:bg-muted/70 transition-colors"
+                      onClick={() => handleView(client)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm leading-tight break-words">
+                            {getDisplayName(client)}
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground break-all">
+                            {client.email || <span className="italic text-muted-foreground/60">No email on file</span>}
+                          </div>
+                          {client.phone && (
+                            <div className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {client.phone}
+                            </div>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(client)}>
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteClient(client)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 mt-3 pt-3 border-t text-xs text-muted-foreground">
+                        <span>{client.totalBookings} booking{client.totalBookings !== 1 ? "s" : ""}</span>
+                        <span>·</span>
+                        <span className="font-medium text-foreground">
+                          {client.totalSpent > 0 ? `$${client.totalSpent.toFixed(0)}` : "$0"}
+                        </span>
+                        {client.membershipStatus === "active" && (
+                          <>
+                            <span>·</span>
+                            <Badge className="bg-primary/10 text-primary text-[10px] px-1.5 py-0">Member</Badge>
+                          </>
+                        )}
+                        <span className="ml-auto">
+                          <Badge variant="outline" className="text-[10px]">
                             {formatSource(client.source)}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {client.lastServiceDate
-                            ? format(new Date(client.lastServiceDate), "MMM d, yyyy")
-                            : "—"}
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => handleView(client)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(client)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeleteClient(client)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Desktop Table Layout */
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>City</TableHead>
+                        <TableHead className="text-center">Bookings</TableHead>
+                        <TableHead className="text-right">Total Spent</TableHead>
+                        <TableHead>Membership</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Last Service</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {clients.map((client) => (
+                        <TableRow
+                          key={client.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleView(client)}
+                        >
+                          <TableCell>
+                            <div className="font-medium">{getDisplayName(client)}</div>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {client.email || <span className="italic text-muted-foreground/60 text-xs">No email on file</span>}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {client.phone || <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {client.city || <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="text-center text-sm">
+                            {client.totalBookings}
+                          </TableCell>
+                          <TableCell className="text-right text-sm font-medium">
+                            {client.totalSpent > 0 ? `$${client.totalSpent.toFixed(0)}` : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {client.membershipStatus === "active" ? (
+                              <Badge className="bg-primary/10 text-primary text-xs">Active</Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">None</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {formatSource(client.source)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {client.lastServiceDate
+                              ? format(new Date(client.lastServiceDate), "MMM d, yyyy")
+                              : "—"}
+                          </TableCell>
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => handleView(client)}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(client)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeleteClient(client)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
 
               {/* Pagination */}
               {totalPages > 1 && (
