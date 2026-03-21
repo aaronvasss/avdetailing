@@ -257,12 +257,12 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
     <div className="space-y-6">
       {/* KPI Cards */}
       <TooltipProvider>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
             { value: todaysBookings.length, label: "Today", icon: Calendar, iconColor: "text-primary/50", cardClass: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20", valueColor: "text-primary" },
             { value: thisWeekBookings.length, label: "This Week", icon: Clock, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
             ...(isAdmin ? [
-              { value: `$${(monthRevenue + totalTips).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: `Revenue (MTD)${totalTips > 0 ? ` incl. $${totalTips.toFixed(0)} tips` : ""}`, icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
+              { value: `$${(monthRevenue + totalTips).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Revenue MTD", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
               { value: activeMemberships, label: "Members", icon: CreditCard, iconColor: "text-blue-500/50", cardClass: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20", valueColor: "text-blue-600" },
             ] : []),
             { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },
@@ -270,18 +270,19 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
               { value: totalCustomers, label: "Customers", icon: UserCheck, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
               { value: `$${totalTips.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Tips Received", icon: DollarSign, iconColor: "text-emerald-500/50", cardClass: "bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20", valueColor: "text-emerald-600" },
             ] : []),
-          ].map((card, idx) => {
+          ].map((card, idx, arr) => {
             const Icon = card.icon;
+            const isLastOdd = idx === arr.length - 1 && arr.length % 2 !== 0;
             const fullLabels: Record<string, string> = {
-              "Revenue (MTD)": "Monthly Revenue (Month-to-Date, paid only)",
+              "Revenue MTD": "Monthly Revenue (Month-to-Date, paid only)",
               "Members": "Active Membership Subscribers",
               "Customers": "Total Registered Customers",
               "Tips Received": "Total tips from all completed bookings",
             };
             const tooltip = fullLabels[card.label];
             const cardEl = (
-              <Card key={idx} className={`${card.cardClass} h-full`}>
-                <CardContent className="p-3 sm:p-4 h-[80px] flex items-center">
+              <Card key={idx} className={`${card.cardClass} ${isLastOdd ? "col-span-2 md:col-span-1" : ""}`}>
+                <CardContent className="p-4 h-[80px] flex items-center">
                   <div className="flex items-center justify-between w-full">
                     <div className="min-w-0">
                       <div className={`text-xl font-bold leading-tight ${card.valueColor}`}>{card.value}</div>
