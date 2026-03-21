@@ -721,7 +721,7 @@ AV Detailing
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Select value={editAssignedWorkerId} onValueChange={setEditAssignedWorkerId}>
+                  <Select value={editAssignedWorkerId} onValueChange={handleWorkerChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select technician" />
                     </SelectTrigger>
@@ -733,13 +733,41 @@ AV Detailing
                     </SelectContent>
                   </Select>
 
-                  {/* Pay Rate Override */}
+                  {/* Pay Rate - shows default rate automatically */}
                   {editAssignedWorkerId !== "unassigned" && (
                     <div className="space-y-3 pt-2 border-t border-border">
+                      {/* Default rate display */}
+                      {workerDefaultPayRate && !editUseCustomPayRate && (
+                        <div className="p-2 bg-muted rounded-md">
+                          <p className="text-xs text-muted-foreground">Default Pay Rate</p>
+                          <p className="text-sm font-semibold">
+                            {workerDefaultPayType === "percentage"
+                              ? `${workerDefaultPayRate}% of job value`
+                              : `$${Number(workerDefaultPayRate).toFixed(2)} flat per job`}
+                          </p>
+                          {workerDefaultPayType === "percentage" && (editTotalPrice || booking.total_price) && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Worker earns: <span className="font-semibold text-foreground">
+                                ${((parseFloat(editTotalPrice) || booking.total_price || 0) * (parseFloat(workerDefaultPayRate) / 100)).toFixed(2)}
+                              </span>
+                              {` (${workerDefaultPayRate}% of $${parseFloat(editTotalPrice) || booking.total_price || 0})`}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       <label className="flex items-center gap-2 cursor-pointer">
                         <Checkbox
                           checked={editUseCustomPayRate}
-                          onCheckedChange={(checked) => setEditUseCustomPayRate(!!checked)}
+                          onCheckedChange={(checked) => {
+                            const isCustom = !!checked;
+                            setEditUseCustomPayRate(isCustom);
+                            if (!isCustom && workerDefaultPayRate) {
+                              // Reset to default rate
+                              setEditCustomPayType(workerDefaultPayType);
+                              setEditCustomPayRate(workerDefaultPayRate);
+                            }
+                          }}
                         />
                         <span className="text-sm">Custom rate for this job</span>
                       </label>
