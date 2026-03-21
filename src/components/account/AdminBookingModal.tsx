@@ -373,6 +373,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setUseCustomPayRate(false);
       setCustomPayType("percentage");
       setCustomPayRate("");
+      setSelectedClientId(null);
+      setSelectedClientName(null);
+      setCustomerSearch("");
     } catch (err) {
       console.error("Admin booking error:", err);
       toast.error("Failed to create booking. Please try again.");
