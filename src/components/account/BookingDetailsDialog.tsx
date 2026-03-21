@@ -525,10 +525,10 @@ export function BookingDetailsDialog({
                 Pricing Summary
               </h4>
               <div className="space-y-2 text-sm">
-                {booking.subtotal != null && (
+                {effectiveTotal > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Service</span>
-                    <span>${booking.subtotal.toFixed(2)}</span>
+                    <span>${(effectiveTotal - (booking.add_ons_total || 0)).toFixed(2)}</span>
                   </div>
                 )}
                 {/* Add-ons section */}
