@@ -211,7 +211,7 @@ export default function WorkerEarningsPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold">${(b.total_price || 0).toFixed(2)}</p>
+                      <p className="text-sm font-semibold">${getEffectiveTotal(b).toFixed(2)}</p>
                       <p className="text-xs text-primary font-medium">
                         Pay: ${earnings.toFixed(2)}
                       </p>
