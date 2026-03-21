@@ -139,6 +139,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [editCustomPayType, setEditCustomPayType] = useState<"percentage" | "flat">("percentage");
   const [editCustomPayRate, setEditCustomPayRate] = useState("");
   const [editTipAmount, setEditTipAmount] = useState("");
+  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
+  const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
 
   // Editable customer fields
   const [editGuestName, setEditGuestName] = useState("");
@@ -199,16 +201,25 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       // Worker assignment
       setEditAssignedWorkerId(booking.assigned_worker_id || "unassigned");
 
-      // Pay rate override
+      // Pay rate override - only mark as custom if booking has a saved override
       const bAny = booking as any;
       if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
-        setEditUseCustomPayRate(true);
+        // Check if booking already has a saved rate - we'll determine if it's custom
+        // after fetching the worker's default
         setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
         setEditCustomPayRate(String(bAny.worker_pay_rate));
       } else {
-        setEditUseCustomPayRate(false);
         setEditCustomPayType("percentage");
         setEditCustomPayRate("");
+      }
+      setEditUseCustomPayRate(false); // Will be set properly after worker profile loads
+
+      // Fetch worker default pay rate if assigned
+      if (booking.assigned_worker_id) {
+        fetchWorkerPayRate(booking.assigned_worker_id, bAny.worker_pay_type, bAny.worker_pay_rate);
+      } else {
+        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayRate("");
       }
 
       // Tip amount
@@ -220,6 +231,67 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       fetchAllAddOns();
     }
   }, [booking]);
+
+  // Fetch a worker's default pay rate from worker_profiles
+  const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
+    const { data: wp } = await supabase
+      .from("worker_profiles")
+      .select("pay_type, pay_rate")
+      .eq("user_id", workerId)
+      .maybeSingle();
+
+    if (wp) {
+      setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+      setWorkerDefaultPayRate(String(wp.pay_rate));
+
+      // If booking has a saved rate that differs from default, mark as custom override
+      if (savedPayType && savedPayRate != null) {
+        const isCustom = savedPayType !== wp.pay_type || Number(savedPayRate) !== Number(wp.pay_rate);
+        setEditUseCustomPayRate(isCustom);
+        if (!isCustom) {
+          // Using default rate - sync display
+          setEditCustomPayType(wp.pay_type as "percentage" | "flat");
+          setEditCustomPayRate(String(wp.pay_rate));
+        }
+      } else {
+        // No saved rate - use default
+        setEditUseCustomPayRate(false);
+        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
+        setEditCustomPayRate(String(wp.pay_rate));
+      }
+    }
+  };
+
+  // When worker assignment changes, fetch their default rate
+  const handleWorkerChange = async (workerId: string) => {
+    setEditAssignedWorkerId(workerId);
+    setEditUseCustomPayRate(false);
+    
+    if (workerId !== "unassigned") {
+      const { data: wp } = await supabase
+        .from("worker_profiles")
+        .select("pay_type, pay_rate")
+        .eq("user_id", workerId)
+        .maybeSingle();
+
+      if (wp) {
+        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+        setWorkerDefaultPayRate(String(wp.pay_rate));
+        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
+        setEditCustomPayRate(String(wp.pay_rate));
+      } else {
+        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayRate("");
+        setEditCustomPayType("percentage");
+        setEditCustomPayRate("");
+      }
+    } else {
+      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayRate("");
+      setEditCustomPayType("percentage");
+      setEditCustomPayRate("");
+    }
+  };
 
   const fetchBookingAddOns = async (bookingId: string) => {
     const { data } = await supabase
@@ -350,8 +422,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
-      worker_pay_type: editUseCustomPayRate && editCustomPayRate ? editCustomPayType : null,
-      worker_pay_rate: editUseCustomPayRate && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
+      // Always save pay rate when a worker is assigned (default or custom)
+      worker_pay_type: newAssignedWorkerId && editCustomPayRate ? editCustomPayType : null,
+      worker_pay_rate: newAssignedWorkerId && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
       tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
     };
     
@@ -648,7 +721,7 @@ AV Detailing
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Select value={editAssignedWorkerId} onValueChange={setEditAssignedWorkerId}>
+                  <Select value={editAssignedWorkerId} onValueChange={handleWorkerChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select technician" />
                     </SelectTrigger>
@@ -660,13 +733,41 @@ AV Detailing
                     </SelectContent>
                   </Select>
 
-                  {/* Pay Rate Override */}
+                  {/* Pay Rate - shows default rate automatically */}
                   {editAssignedWorkerId !== "unassigned" && (
                     <div className="space-y-3 pt-2 border-t border-border">
+                      {/* Default rate display */}
+                      {workerDefaultPayRate && !editUseCustomPayRate && (
+                        <div className="p-2 bg-muted rounded-md">
+                          <p className="text-xs text-muted-foreground">Default Pay Rate</p>
+                          <p className="text-sm font-semibold">
+                            {workerDefaultPayType === "percentage"
+                              ? `${workerDefaultPayRate}% of job value`
+                              : `$${Number(workerDefaultPayRate).toFixed(2)} flat per job`}
+                          </p>
+                          {workerDefaultPayType === "percentage" && (editTotalPrice || booking.total_price) && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Worker earns: <span className="font-semibold text-foreground">
+                                ${((parseFloat(editTotalPrice) || booking.total_price || 0) * (parseFloat(workerDefaultPayRate) / 100)).toFixed(2)}
+                              </span>
+                              {` (${workerDefaultPayRate}% of $${parseFloat(editTotalPrice) || booking.total_price || 0})`}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       <label className="flex items-center gap-2 cursor-pointer">
                         <Checkbox
                           checked={editUseCustomPayRate}
-                          onCheckedChange={(checked) => setEditUseCustomPayRate(!!checked)}
+                          onCheckedChange={(checked) => {
+                            const isCustom = !!checked;
+                            setEditUseCustomPayRate(isCustom);
+                            if (!isCustom && workerDefaultPayRate) {
+                              // Reset to default rate
+                              setEditCustomPayType(workerDefaultPayType);
+                              setEditCustomPayRate(workerDefaultPayRate);
+                            }
+                          }}
                         />
                         <span className="text-sm">Custom rate for this job</span>
                       </label>

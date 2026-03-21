@@ -118,7 +118,40 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [useCustomPayRate, setUseCustomPayRate] = useState(false);
   const [customPayType, setCustomPayType] = useState<"percentage" | "flat">("percentage");
   const [customPayRate, setCustomPayRate] = useState("");
+  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
+  const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
   const { workers } = useWorkersList();
+
+  // Auto-fetch worker default pay rate when assigned
+  const handleWorkerAssign = async (workerId: string) => {
+    setAssignedWorkerId(workerId);
+    setUseCustomPayRate(false);
+    
+    if (workerId !== "unassigned") {
+      const { data: wp } = await supabase
+        .from("worker_profiles")
+        .select("pay_type, pay_rate")
+        .eq("user_id", workerId)
+        .maybeSingle();
+
+      if (wp) {
+        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+        setWorkerDefaultPayRate(String(wp.pay_rate));
+        setCustomPayType(wp.pay_type as "percentage" | "flat");
+        setCustomPayRate(String(wp.pay_rate));
+      } else {
+        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayRate("");
+        setCustomPayType("percentage");
+        setCustomPayRate("");
+      }
+    } else {
+      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayRate("");
+      setCustomPayType("percentage");
+      setCustomPayRate("");
+    }
+  };
 
   // Customer search state
   const [customerSearch, setCustomerSearch] = useState("");
@@ -311,8 +344,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
-          worker_pay_type: useCustomPayRate && customPayRate ? customPayType : null,
-          worker_pay_rate: useCustomPayRate && customPayRate ? parseFloat(customPayRate) : null,
+           worker_pay_type: assignedWorkerId !== "unassigned" && customPayRate ? customPayType : null,
+           worker_pay_rate: assignedWorkerId !== "unassigned" && customPayRate ? parseFloat(customPayRate) : null,
           client_id: selectedClientId,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
@@ -373,6 +406,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setUseCustomPayRate(false);
       setCustomPayType("percentage");
       setCustomPayRate("");
+      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayRate("");
       setSelectedClientId(null);
       setSelectedClientName(null);
       setCustomerSearch("");
@@ -748,7 +783,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {/* Assign Technician */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assign Technician</h3>
-            <Select value={assignedWorkerId} onValueChange={setAssignedWorkerId}>
+            <Select value={assignedWorkerId} onValueChange={handleWorkerAssign}>
               <SelectTrigger>
                 <SelectValue placeholder="Select technician" />
               </SelectTrigger>
@@ -760,13 +795,40 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               </SelectContent>
             </Select>
 
-            {/* Pay Rate Override */}
+            {/* Pay Rate - auto-applied from worker profile */}
             {assignedWorkerId !== "unassigned" && (
               <div className="mt-3 space-y-3">
+                {/* Default rate display */}
+                {workerDefaultPayRate && !useCustomPayRate && (
+                  <div className="p-2 bg-muted rounded-md">
+                    <p className="text-xs text-muted-foreground">Default Pay Rate</p>
+                    <p className="text-sm font-semibold">
+                      {workerDefaultPayType === "percentage"
+                        ? `${workerDefaultPayRate}% of job value`
+                        : `$${Number(workerDefaultPayRate).toFixed(2)} flat per job`}
+                    </p>
+                    {workerDefaultPayType === "percentage" && totalPrice > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Worker earns: <span className="font-semibold text-foreground">
+                          ${(totalPrice * (parseFloat(workerDefaultPayRate) / 100)).toFixed(2)}
+                        </span>
+                        {` (${workerDefaultPayRate}% of $${totalPrice})`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={useCustomPayRate}
-                    onCheckedChange={(checked) => setUseCustomPayRate(!!checked)}
+                    onCheckedChange={(checked) => {
+                      const isCustom = !!checked;
+                      setUseCustomPayRate(isCustom);
+                      if (!isCustom && workerDefaultPayRate) {
+                        setCustomPayType(workerDefaultPayType);
+                        setCustomPayRate(workerDefaultPayRate);
+                      }
+                    }}
                   />
                   <span className="text-sm">Custom rate for this job</span>
                 </label>
