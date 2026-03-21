@@ -137,6 +137,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [editUseCustomPayRate, setEditUseCustomPayRate] = useState(false);
   const [editCustomPayType, setEditCustomPayType] = useState<"percentage" | "flat">("percentage");
   const [editCustomPayRate, setEditCustomPayRate] = useState("");
+  const [editTipAmount, setEditTipAmount] = useState("");
 
   // Editable customer fields
   const [editGuestName, setEditGuestName] = useState("");
@@ -208,6 +209,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         setEditCustomPayType("percentage");
         setEditCustomPayRate("");
       }
+
+      // Tip amount
+      setEditTipAmount((booking as any).tip_amount != null ? String((booking as any).tip_amount) : "");
 
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
@@ -344,6 +348,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       assigned_worker_id: newAssignedWorkerId,
       worker_pay_type: editUseCustomPayRate && editCustomPayRate ? editCustomPayType : null,
       worker_pay_rate: editUseCustomPayRate && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
+      tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
     };
     
     const { error } = await supabase
@@ -896,6 +901,29 @@ AV Detailing
                     />
                   </div>
                 </div>
+
+                {/* Tip Amount (non-online payments) */}
+                {paymentMethod !== "online" && paymentMethod !== "stripe" && (
+                  <div className="space-y-2">
+                    <Label>Tip Amount ($)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={editTipAmount}
+                      onChange={e => setEditTipAmount(e.target.value)}
+                      placeholder="0.00"
+                    />
+                    {editTipAmount && parseFloat(editTipAmount) > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Total collected: <span className="font-semibold text-foreground">
+                          ${((parseFloat(editTotalPrice) || booking.total_price || 0) + parseFloat(editTipAmount)).toFixed(2)}
+                        </span>
+                        {' '}(Service ${(parseFloat(editTotalPrice) || booking.total_price || 0).toFixed(2)} + Tip ${parseFloat(editTipAmount).toFixed(2)})
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {paymentStatus !== "paid" && (
                   <div className="space-y-2">

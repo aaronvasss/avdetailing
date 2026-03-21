@@ -49,6 +49,9 @@ interface CreateBookingRequest {
   // Per-booking worker pay rate override
   worker_pay_type?: string | null;
   worker_pay_rate?: number | null;
+
+  // Tip amount for cash/in-person payments
+  tip_amount?: number | null;
 }
 
 function toDbTime(input: string): string {
@@ -207,6 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
       assigned_worker_id: body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
       worker_pay_type: body.worker_pay_type === "percentage" || body.worker_pay_type === "flat" ? body.worker_pay_type : null,
       worker_pay_rate: body.worker_pay_rate != null ? Math.min(Math.max(0, Number(body.worker_pay_rate)), 100000) : null,
+      tip_amount: body.tip_amount != null ? Math.min(Math.max(0, Number(body.tip_amount)), 10000) : null,
     };
 
     const { data: booking, error } = await serviceClient

@@ -33,6 +33,7 @@ export default function WorkerEarningsPage() {
       .from("bookings")
       .select("*, services(name)")
       .eq("status", "completed")
+      .eq("assigned_worker_id", user.id)
       .order("scheduled_date", { ascending: false });
 
     setCompletedBookings(bookings || []);
@@ -69,7 +70,8 @@ export default function WorkerEarningsPage() {
   const calcEarnings = (jobs: any[]) => {
     const totalValue = jobs.reduce((sum, b) => sum + (b.total_price || 0), 0);
     const earnings = jobs.reduce((sum, b) => sum + calcBookingEarnings(b), 0);
-    return { totalValue, earnings };
+    const tips = jobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
+    return { totalValue, earnings, tips };
   };
 
   const getBookingRateLabel = (b: any): string => {
@@ -115,7 +117,8 @@ export default function WorkerEarningsPage() {
               <p className="text-xs text-muted-foreground">jobs</p>
               {workerProfile && (
                 <p className="text-sm font-semibold text-primary mt-1">
-                  ${todayEarnings.earnings.toFixed(2)}
+                  ${(todayEarnings.earnings + todayEarnings.tips).toFixed(2)}
+                  {todayEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${todayEarnings.tips.toFixed(0)} tips)</span>}
                 </p>
               )}
             </CardContent>
@@ -130,7 +133,8 @@ export default function WorkerEarningsPage() {
               <p className="text-xs text-muted-foreground">jobs</p>
               {workerProfile && (
                 <p className="text-sm font-semibold text-primary mt-1">
-                  ${weekEarnings.earnings.toFixed(2)}
+                  ${(weekEarnings.earnings + weekEarnings.tips).toFixed(2)}
+                  {weekEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${weekEarnings.tips.toFixed(0)} tips)</span>}
                 </p>
               )}
             </CardContent>
@@ -145,7 +149,8 @@ export default function WorkerEarningsPage() {
               <p className="text-xs text-muted-foreground">jobs</p>
               {workerProfile && (
                 <p className="text-sm font-semibold text-primary mt-1">
-                  ${monthEarnings.earnings.toFixed(2)}
+                  ${(monthEarnings.earnings + monthEarnings.tips).toFixed(2)}
+                  {monthEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${monthEarnings.tips.toFixed(0)} tips)</span>}
                 </p>
               )}
             </CardContent>
@@ -186,6 +191,7 @@ export default function WorkerEarningsPage() {
               const earnings = calcBookingEarnings(b);
               const rateLabel = getBookingRateLabel(b);
               const hasOverride = b.worker_pay_type && b.worker_pay_rate != null;
+              const tipAmount = Number(b.tip_amount) || 0;
               return (
                 <Card key={b.id}>
                   <CardContent className="py-3 px-4 flex items-center justify-between">
@@ -202,7 +208,15 @@ export default function WorkerEarningsPage() {
                     <div className="text-right">
                       <p className="text-sm font-semibold">${(b.total_price || 0).toFixed(2)}</p>
                       <p className="text-xs text-primary font-medium">
-                        ${earnings.toFixed(2)}
+                        Pay: ${earnings.toFixed(2)}
+                      </p>
+                      {tipAmount > 0 && (
+                        <p className="text-xs text-emerald-600 font-medium">
+                          Tip: ${tipAmount.toFixed(2)}
+                        </p>
+                      )}
+                      <p className="text-xs font-bold mt-0.5">
+                        Total: ${(earnings + tipAmount).toFixed(2)}
                       </p>
                     </div>
                   </CardContent>

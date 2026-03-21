@@ -34,6 +34,7 @@ import {
   Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
@@ -144,6 +145,11 @@ export function BookingDetailsDialog({
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [profileData, setProfileData] = useState<{ full_name: string | null; email: string | null; phone: string | null } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // Tip tracking state
+  const [showTipInput, setShowTipInput] = useState(false);
+  const [tipAmount, setTipAmount] = useState("");
+  const [savingTip, setSavingTip] = useState(false);
 
   // Resend notification states
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -555,9 +561,123 @@ export function BookingDetailsDialog({
                 )}
                 <Separator className="my-2" />
                 <div className="flex justify-between font-semibold text-base">
-                  <span>Total</span>
+                  <span>{(booking as any).tip_amount > 0 ? "Service Total" : "Total"}</span>
                   <span className="text-primary">${totalWithFee.toFixed(2)}</span>
                 </div>
+
+                {/* Tip display / add for non-online payments (admin only) */}
+                {isAdmin && !isOnlinePayment && (
+                  <div className="space-y-2">
+                    {(booking as any).tip_amount > 0 ? (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Tip</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-emerald-600 font-medium">${Number((booking as any).tip_amount).toFixed(2)}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-xs text-muted-foreground"
+                              onClick={() => {
+                                setTipAmount(String((booking as any).tip_amount));
+                                setShowTipInput(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-xs text-destructive"
+                              onClick={async () => {
+                                setSavingTip(true);
+                                await supabase.from("bookings").update({ tip_amount: null } as any).eq("id", booking.id);
+                                await refreshBookingFromDatabase(booking.id);
+                                onStatusChange?.();
+                                setSavingTip(false);
+                                toast.success("Tip removed");
+                              }}
+                              disabled={savingTip}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                        <Separator className="my-1" />
+                        <div className="flex justify-between font-semibold text-base">
+                          <span>Total Collected</span>
+                          <span className="text-primary">${(totalWithFee + Number((booking as any).tip_amount)).toFixed(2)}</span>
+                        </div>
+                      </>
+                    ) : !showTipInput ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={() => setShowTipInput(true)}
+                      >
+                        + Add Tip
+                      </Button>
+                    ) : null}
+
+                    {showTipInput && (
+                      <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={tipAmount}
+                            onChange={(e) => setTipAmount(e.target.value)}
+                            placeholder="Tip amount"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          className="h-8"
+                          disabled={savingTip || !tipAmount || parseFloat(tipAmount) <= 0}
+                          onClick={async () => {
+                            setSavingTip(true);
+                            await supabase.from("bookings").update({ tip_amount: parseFloat(tipAmount) } as any).eq("id", booking.id);
+                            await refreshBookingFromDatabase(booking.id);
+                            onStatusChange?.();
+                            setShowTipInput(false);
+                            setTipAmount("");
+                            setSavingTip(false);
+                            toast.success("Tip saved");
+                          }}
+                        >
+                          {savingTip ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => { setShowTipInput(false); setTipAmount(""); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Online tip display (from payment_records) */}
+                {isOnlinePayment && (booking as any).tip_amount > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tip</span>
+                      <span className="text-emerald-600 font-medium">${Number((booking as any).tip_amount).toFixed(2)}</span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between font-semibold text-base">
+                      <span>Total Collected</span>
+                      <span className="text-primary">${(totalWithFee + Number((booking as any).tip_amount)).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+
                 {booking.deposit_amount && booking.deposit_amount > 0 && (
                   <>
                     <div className="flex justify-between text-emerald-500">

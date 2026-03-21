@@ -167,13 +167,13 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
   };
 
   const fetchTotalTips = async () => {
-    const { data } = await supabase
-      .from("payment_records")
-      .select("amount_cents")
-      .eq("payment_type", "tip")
-      .eq("status", "paid");
-    const total = (data || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0);
-    setTotalTips(total / 100);
+    const [onlineRes, bookingRes] = await Promise.all([
+      supabase.from("payment_records").select("amount_cents").eq("payment_type", "tip").eq("status", "paid"),
+      supabase.from("bookings").select("tip_amount").not("tip_amount", "is", null).gt("tip_amount", 0),
+    ]);
+    const onlineTotal = (onlineRes.data || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0) / 100;
+    const bookingTotal = (bookingRes.data || []).reduce((sum, r) => sum + Number(r.tip_amount || 0), 0);
+    setTotalTips(onlineTotal + bookingTotal);
   };
 
   const updateStatus = async (bookingId: string, newStatus: string) => {
@@ -262,7 +262,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             { value: todaysBookings.length, label: "Today", icon: Calendar, iconColor: "text-primary/50", cardClass: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20", valueColor: "text-primary" },
             { value: thisWeekBookings.length, label: "This Week", icon: Clock, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
             ...(isAdmin ? [
-              { value: `$${monthRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Revenue (MTD)", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
+              { value: `$${(monthRevenue + totalTips).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: `Revenue (MTD)${totalTips > 0 ? ` incl. $${totalTips.toFixed(0)} tips` : ""}`, icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
               { value: activeMemberships, label: "Members", icon: CreditCard, iconColor: "text-blue-500/50", cardClass: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20", valueColor: "text-blue-600" },
             ] : []),
             { value: pendingBookings.length, label: "Pending", icon: AlertCircle, iconColor: "text-yellow-500/50", cardClass: "bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20", valueColor: "text-yellow-600" },

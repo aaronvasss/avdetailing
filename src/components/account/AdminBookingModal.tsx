@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Loader2, CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -137,6 +138,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     paymentMethod: "in_person",
     internalNotes: "",
     customerNotes: "",
+    tipAmount: "",
   });
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
@@ -201,6 +203,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       const selectedAddOnDetails = addOnsList.filter(a => selectedAddOns.includes(a.id));
       const isPastDate = form.scheduledDate ? isBefore(startOfDay(form.scheduledDate), startOfDay(new Date())) : false;
 
+      const tipAmountNum = form.tipAmount ? parseFloat(form.tipAmount) : null;
+
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
           service_id: selectedService.serviceId,
@@ -222,6 +226,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           subtotal: pricingMode === "custom" ? totalPrice : packagePrice,
           add_ons_total: pricingMode === "custom" ? 0 : addOnsTotal,
           total_price: totalPrice,
+          tip_amount: tipAmountNum && tipAmountNum > 0 ? tipAmountNum : null,
           status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
           assigned_worker_id: assignedWorkerId !== "unassigned" ? assignedWorkerId : null,
@@ -276,6 +281,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
         serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
         scheduledDate: undefined, scheduledTime: "",
         paymentMethod: "in_person", internalNotes: "", customerNotes: "",
+        tipAmount: "",
       });
       setSelectedPackageId("");
       setSelectedAddOns([]);
@@ -682,6 +688,39 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 <SelectItem value="online">Charge via Stripe</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Tip Amount for non-online payments */}
+            {form.paymentMethod !== "online" && (
+              <div className="mt-3">
+                <Label>Tip Amount (optional)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.tipAmount || ""}
+                  onChange={e => setForm(prev => ({ ...prev, tipAmount: e.target.value }))}
+                  placeholder="0.00"
+                  className="mt-1"
+                />
+                {form.tipAmount && parseFloat(form.tipAmount) > 0 && totalPrice > 0 && (
+                  <div className="mt-2 rounded-lg border border-border bg-muted/30 p-3 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Service</span>
+                      <span>${totalPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Tip</span>
+                      <span>${parseFloat(form.tipAmount).toFixed(2)}</span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between font-semibold">
+                      <span>Total Collected</span>
+                      <span className="text-primary">${(totalPrice + parseFloat(form.tipAmount)).toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Notes */}
