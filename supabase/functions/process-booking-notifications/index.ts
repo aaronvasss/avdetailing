@@ -129,7 +129,8 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const vehicleTypeNames: Record<string, string> = { car: "Car/SUV/Truck", boat: "Boat", rv: "RV/Motorhome", aircraft: "Aircraft" };
   const vtName = vehicleTypeNames[vehicleType.toLowerCase()] || vehicleType;
 
-  const { googleUrl, icsDataUri, outlookUrl } = buildCalendarLinks(booking, serviceName);
+  const { googleUrl, icsUrl, outlookUrl } = buildCalendarLinks(booking, serviceName);
+  const rescheduleUrl = `${BASE_URL}/booking/manage?token=${booking.manage_token}`;
 
   const isQuote = isQuoteBasedService(vehicleType);
   const hasCeramic = includesCeramic(serviceName, addOns);
