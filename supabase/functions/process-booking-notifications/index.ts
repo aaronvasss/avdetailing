@@ -117,7 +117,10 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || "Not specified";
   const vehicleType = booking.vehicle_type || "car";
   const totalPrice = Number(booking.total_price) || 0;
-  const subtotal = Number(booking.subtotal) || totalPrice;
+  const addOnsTotal = Number(booking.add_ons_total) || 0;
+  const tipAmount = Number(booking.tip_amount) || 0;
+  // Service line = total_price minus add-ons and tip (total_price is source of truth)
+  const serviceLinePrice = Math.max(0, totalPrice - addOnsTotal - tipAmount);
   const deposit = Number(booking.deposit_amount) || 0;
   const paymentMethod = booking.payment_method || "in_person";
   const isOnline = ["online", "stripe", "card"].includes(paymentMethod);
