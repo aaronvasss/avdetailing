@@ -6,7 +6,7 @@ import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock } from "lucide-react";
-import { format, addDays } from "date-fns";
+import { format, addDays, startOfDay } from "date-fns";
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
@@ -22,19 +22,58 @@ const STATUS_BADGE: Record<string, string> = {
   in_progress: "bg-primary/15 text-primary border-primary/30",
 };
 
+const UPCOMING_STATUSES = ["pending", "confirmed", "in_progress"];
+
+const getLocalDateString = (offsetDays = 0) =>
+  format(addDays(startOfDay(new Date()), offsetDays), "yyyy-MM-dd");
+
+const getWorkerIdentity = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const [{ data: profile }, { data: workerProfile }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("worker_profiles")
+      .select("id, user_id")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const identity = {
+    authUserId: user.id,
+    authEmail: user.email ?? null,
+    profileName: profile?.full_name ?? null,
+    profileEmail: profile?.email ?? null,
+    workerProfileId: workerProfile?.id ?? null,
+    workerProfileUserId: workerProfile?.user_id ?? null,
+  };
+
+  console.log("[worker-dashboard] worker identity", identity);
+
+  return identity;
+};
+
 export default function WorkerDashboardPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingUpcoming, setLoadingUpcoming] = useState(true);
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = getLocalDateString();
 
   const fetchTodayBookings = useCallback(async () => {
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const workerIdentity = await getWorkerIdentity();
+    if (!workerIdentity) {
       setMyBookings([]);
       setLoading(false);
       return;
@@ -43,12 +82,23 @@ export default function WorkerDashboardPage() {
     const { data, error } = await supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
-      .eq("assigned_worker_id", user.id)
+      .eq("assigned_worker_id", workerIdentity.authUserId)
       .eq("scheduled_date", today)
       .neq("status", "cancelled")
       .order("scheduled_time", { ascending: true });
 
-    if (!error) {
+    if (error) {
+      console.error("[worker-dashboard] failed to load today's jobs", {
+        error,
+        assignedWorkerId: workerIdentity.authUserId,
+        today,
+      });
+    } else {
+      console.log("[worker-dashboard] today's jobs query", {
+        assignedWorkerId: workerIdentity.authUserId,
+        today,
+        matches: data?.length ?? 0,
+      });
       setMyBookings(data || []);
     }
 
@@ -58,26 +108,38 @@ export default function WorkerDashboardPage() {
   const fetchUpcomingBookings = useCallback(async () => {
     setLoadingUpcoming(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const workerIdentity = await getWorkerIdentity();
+    if (!workerIdentity) {
       setUpcomingBookings([]);
       setLoadingUpcoming(false);
       return;
     }
 
-    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+    const tomorrow = getLocalDateString(1);
 
     const { data, error } = await supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
-      .eq("assigned_worker_id", user.id)
+      .eq("assigned_worker_id", workerIdentity.authUserId)
       .gte("scheduled_date", tomorrow)
-      .neq("status", "cancelled")
-      .neq("status", "completed")
+      .in("status", UPCOMING_STATUSES)
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true });
 
-    if (!error) {
+    if (error) {
+      console.error("[worker-dashboard] failed to load upcoming jobs", {
+        error,
+        assignedWorkerId: workerIdentity.authUserId,
+        tomorrow,
+        statuses: UPCOMING_STATUSES,
+      });
+    } else {
+      console.log("[worker-dashboard] upcoming jobs query", {
+        assignedWorkerId: workerIdentity.authUserId,
+        startDate: tomorrow,
+        statuses: UPCOMING_STATUSES,
+        matches: data?.length ?? 0,
+      });
       setUpcomingBookings(data || []);
     }
 
