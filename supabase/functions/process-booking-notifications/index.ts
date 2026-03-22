@@ -87,36 +87,20 @@ function buildCalendarLinks(booking: any, serviceName: string) {
   startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
   const endDate = new Date(startDate);
-  endDate.setHours(endDate.getHours() + Math.ceil((booking.duration_minutes || 180) / 60));
+  endDate.setMinutes(endDate.getMinutes() + (booking.duration_minutes || 180));
 
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  const fmtICS = (d: Date) => {
-    const p = (n: number) => n.toString().padStart(2, "0");
-    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
-  };
-  const escICS = (t: string) => t.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
   const location = [booking.service_address, booking.service_city, booking.service_state || "LA"].filter(Boolean).join(", ");
 
   const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("AV Detailing - " + serviceName)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent("Mobile detailing service.\nCall " + PHONE + "\nBooking: " + booking.id)}&location=${encodeURIComponent(location)}`;
 
-  const icsContent = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//AV Detailing//Booking//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
-    "BEGIN:VEVENT", `UID:${booking.id}@avdetailing.net`, `DTSTAMP:${fmtICS(new Date())}`,
-    `DTSTART:${fmtICS(startDate)}`, `DTEND:${fmtICS(endDate)}`,
-    `SUMMARY:${escICS("AV Detailing - " + serviceName)}`,
-    `DESCRIPTION:${escICS("Service: " + serviceName + "\\nLocation: " + location + "\\n\\nCall " + PHONE)}`,
-    `LOCATION:${escICS(location)}`, "STATUS:CONFIRMED",
-    "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", "DESCRIPTION:AV Detailing tomorrow", "END:VALARM",
-    "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", "DESCRIPTION:AV Detailing in 2 hours", "END:VALARM",
-    "END:VEVENT", "END:VCALENDAR",
-  ].join("\r\n");
-
-  const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+  // Use hosted edge function URL for ICS download (data: URIs don't work in email clients)
+  const icsUrl = `${SUPABASE_URL}/functions/v1/download-ics?id=${booking.id}`;
 
   const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent("AV Detailing - " + serviceName)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent("Mobile detailing. Call " + PHONE)}`;
 
-  return { googleUrl, icsDataUri, outlookUrl };
+  return { googleUrl, icsUrl, outlookUrl };
 }
 
 // ━━━━ Customer Confirmation HTML ━━━━
