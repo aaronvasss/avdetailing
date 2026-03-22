@@ -4,8 +4,9 @@ import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { WorkerJobCard } from "@/components/worker/WorkerJobCard";
 import { Button } from "@/components/ui/button";
 import { Loader2, ClipboardList, Inbox } from "lucide-react";
-import { format, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 
 type FilterType = "today" | "week" | "upcoming" | "all";
 
@@ -17,18 +18,18 @@ export default function WorkerAllJobsPage() {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const workerIdentity = await getCurrentWorkerIdentity();
+    if (!workerIdentity) {
       setLoading(false);
       return;
     }
 
-    const today = format(new Date(), "yyyy-MM-dd");
+    const today = getBusinessDateString();
 
     let query = supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
-      .eq("assigned_worker_id", user.id)
+      .eq("assigned_worker_id", workerIdentity.authUserId)
       .neq("status", "cancelled")
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true });

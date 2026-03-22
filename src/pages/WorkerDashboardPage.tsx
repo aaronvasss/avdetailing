@@ -6,7 +6,8 @@ import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock } from "lucide-react";
-import { format, addDays, startOfDay } from "date-fns";
+import { format } from "date-fns";
+import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
@@ -24,55 +25,18 @@ const STATUS_BADGE: Record<string, string> = {
 
 const UPCOMING_STATUSES = ["pending", "confirmed", "in_progress"];
 
-const getLocalDateString = (offsetDays = 0) =>
-  format(addDays(startOfDay(new Date()), offsetDays), "yyyy-MM-dd");
-
-const getWorkerIdentity = async () => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const [{ data: profile }, { data: workerProfile }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, email")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("worker_profiles")
-      .select("id, user_id")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-  ]);
-
-  const identity = {
-    authUserId: user.id,
-    authEmail: user.email ?? null,
-    profileName: profile?.full_name ?? null,
-    profileEmail: profile?.email ?? null,
-    workerProfileId: workerProfile?.id ?? null,
-    workerProfileUserId: workerProfile?.user_id ?? null,
-  };
-
-  console.log("[worker-dashboard] worker identity", identity);
-
-  return identity;
-};
-
 export default function WorkerDashboardPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingUpcoming, setLoadingUpcoming] = useState(true);
 
-  const today = getLocalDateString();
+  const today = getBusinessDateString();
 
   const fetchTodayBookings = useCallback(async () => {
     setLoading(true);
 
-    const workerIdentity = await getWorkerIdentity();
+    const workerIdentity = await getCurrentWorkerIdentity();
     if (!workerIdentity) {
       setMyBookings([]);
       setLoading(false);
@@ -94,6 +58,21 @@ export default function WorkerDashboardPage() {
         today,
       });
     } else {
+      const legacyAssignedIds = [workerIdentity.profileId, workerIdentity.workerProfileId].filter(Boolean);
+      if (legacyAssignedIds.length > 0) {
+        const { count: legacyCount } = await supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .in("assigned_worker_id", legacyAssignedIds);
+
+        console.log("[worker-dashboard] assignment id check", {
+          authUserId: workerIdentity.authUserId,
+          profileId: workerIdentity.profileId,
+          workerProfileId: workerIdentity.workerProfileId,
+          legacyAssignmentCount: legacyCount ?? 0,
+        });
+      }
+
       console.log("[worker-dashboard] today's jobs query", {
         assignedWorkerId: workerIdentity.authUserId,
         today,
@@ -108,14 +87,14 @@ export default function WorkerDashboardPage() {
   const fetchUpcomingBookings = useCallback(async () => {
     setLoadingUpcoming(true);
 
-    const workerIdentity = await getWorkerIdentity();
+    const workerIdentity = await getCurrentWorkerIdentity();
     if (!workerIdentity) {
       setUpcomingBookings([]);
       setLoadingUpcoming(false);
       return;
     }
 
-    const tomorrow = getLocalDateString(1);
+    const tomorrow = getBusinessDateString(1);
 
     const { data, error } = await supabase
       .from("bookings")

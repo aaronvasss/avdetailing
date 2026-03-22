@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-interface WorkerOption {
-  user_id: string;
-  display_name: string;
-}
+import type { WorkerOption } from "@/lib/workerAssignments";
 
 export function useWorkersList() {
   const [workers, setWorkers] = useState<WorkerOption[]>([]);
@@ -39,13 +35,23 @@ export function useWorkersList() {
       // Fetch profile names
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, email")
+        .select("id, user_id, full_name, email")
+        .in("user_id", Array.from(allUserIds));
+
+      const { data: workerProfileRows } = await supabase
+        .from("worker_profiles")
+        .select("id, user_id")
         .in("user_id", Array.from(allUserIds));
 
       const adminIds = new Set((adminRoles || []).map((a) => a.user_id));
+      const workerProfileMap = new Map((workerProfileRows || []).map((row) => [row.user_id, row.id]));
 
       const workerOptions: WorkerOption[] = (profiles || []).map((p) => ({
         user_id: p.user_id,
+        email: p.email,
+        profile_id: p.id,
+        worker_profile_id: workerProfileMap.get(p.user_id) || null,
+        is_owner: adminIds.has(p.user_id),
         display_name: `${p.full_name || p.email || "Unknown"}${adminIds.has(p.user_id) ? " (Owner)" : ""}`,
       }));
 

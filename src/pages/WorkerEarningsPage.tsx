@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 
 export default function WorkerEarningsPage() {
   const [loading, setLoading] = useState(true);
@@ -14,8 +15,8 @@ export default function WorkerEarningsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const workerIdentity = await getCurrentWorkerIdentity();
+    if (!workerIdentity) {
       setCompletedBookings([]);
       setWorkerProfile(null);
       setLoading(false);
@@ -25,7 +26,7 @@ export default function WorkerEarningsPage() {
     const { data: wp } = await supabase
       .from("worker_profiles")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", workerIdentity.authUserId)
       .maybeSingle();
 
     setWorkerProfile(wp);
@@ -34,7 +35,7 @@ export default function WorkerEarningsPage() {
       .from("bookings")
       .select("*, services(name)")
       .eq("status", "completed")
-      .eq("assigned_worker_id", user.id)
+      .eq("assigned_worker_id", workerIdentity.authUserId)
       .order("scheduled_date", { ascending: false });
 
     setCompletedBookings(bookings || []);
@@ -60,7 +61,7 @@ export default function WorkerEarningsPage() {
     };
   }, [fetchData]);
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = getBusinessDateString();
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
