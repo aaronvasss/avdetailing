@@ -43,18 +43,6 @@ export default function WorkerDashboardPage() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("*, services(name), booking_add_ons(name, price)")
-      .eq("scheduled_date", today)
-      .neq("status", "cancelled");
-
-    // Admin sees all bookings; staff sees only their assigned ones
-    if (!workerIdentity.isAdmin) {
-      data; // need to restructure query
-    }
-
-    // Rebuild query properly
     let todayQuery = supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
@@ -70,32 +58,18 @@ export default function WorkerDashboardPage() {
 
     if (todayError) {
       console.error("[worker-dashboard] failed to load today's jobs", {
-        error,
+        error: todayError,
         assignedWorkerId: workerIdentity.authUserId,
         today,
       });
     } else {
-      const legacyAssignedIds = [workerIdentity.profileId, workerIdentity.workerProfileId].filter(Boolean);
-      if (legacyAssignedIds.length > 0) {
-        const { count: legacyCount } = await supabase
-          .from("bookings")
-          .select("id", { count: "exact", head: true })
-          .in("assigned_worker_id", legacyAssignedIds);
-
-        console.log("[worker-dashboard] assignment id check", {
-          authUserId: workerIdentity.authUserId,
-          profileId: workerIdentity.profileId,
-          workerProfileId: workerIdentity.workerProfileId,
-          legacyAssignmentCount: legacyCount ?? 0,
-        });
-      }
-
       console.log("[worker-dashboard] today's jobs query", {
         assignedWorkerId: workerIdentity.authUserId,
+        isAdmin: workerIdentity.isAdmin,
         today,
-        matches: data?.length ?? 0,
+        matches: todayData?.length ?? 0,
       });
-      setMyBookings(data || []);
+      setMyBookings(todayData || []);
     }
 
     setLoading(false);
@@ -113,18 +87,23 @@ export default function WorkerDashboardPage() {
 
     const tomorrow = getBusinessDateString(1);
 
-    const { data, error } = await supabase
+    let upcomingQuery = supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
-      .eq("assigned_worker_id", workerIdentity.authUserId)
       .gte("scheduled_date", tomorrow)
       .in("status", UPCOMING_STATUSES)
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true });
 
-    if (error) {
+    if (!workerIdentity.isAdmin) {
+      upcomingQuery = upcomingQuery.eq("assigned_worker_id", workerIdentity.authUserId);
+    }
+
+    const { data: upData, error: upError } = await upcomingQuery;
+
+    if (upError) {
       console.error("[worker-dashboard] failed to load upcoming jobs", {
-        error,
+        error: upError,
         assignedWorkerId: workerIdentity.authUserId,
         tomorrow,
         statuses: UPCOMING_STATUSES,
@@ -132,11 +111,12 @@ export default function WorkerDashboardPage() {
     } else {
       console.log("[worker-dashboard] upcoming jobs query", {
         assignedWorkerId: workerIdentity.authUserId,
+        isAdmin: workerIdentity.isAdmin,
         startDate: tomorrow,
         statuses: UPCOMING_STATUSES,
-        matches: data?.length ?? 0,
+        matches: upData?.length ?? 0,
       });
-      setUpcomingBookings(data || []);
+      setUpcomingBookings(upData || []);
     }
 
     setLoadingUpcoming(false);

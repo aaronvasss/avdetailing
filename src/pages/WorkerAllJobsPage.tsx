@@ -29,10 +29,13 @@ export default function WorkerAllJobsPage() {
     let query = supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
-      .eq("assigned_worker_id", workerIdentity.authUserId)
       .neq("status", "cancelled")
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true });
+
+    if (!workerIdentity.isAdmin) {
+      query = query.eq("assigned_worker_id", workerIdentity.authUserId);
+    }
 
     if (filter === "today") {
       query = query.eq("scheduled_date", today);
