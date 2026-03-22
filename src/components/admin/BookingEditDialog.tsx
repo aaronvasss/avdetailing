@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
 import { useWorkersList } from "@/hooks/useWorkersList";
+import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
 
 interface Booking {
   id: string;
@@ -199,7 +200,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       setEditTotalPrice(booking.total_price != null ? String(booking.total_price) : "");
 
       // Worker assignment
-      setEditAssignedWorkerId(booking.assigned_worker_id || "unassigned");
+      setEditAssignedWorkerId(resolveAssignedWorkerUserId(booking.assigned_worker_id, workers) || "unassigned");
 
       // Pay rate override - only mark as custom if booking has a saved override
       const bAny = booking as any;
@@ -230,7 +231,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       fetchBookingAddOns(booking.id);
       fetchAllAddOns();
     }
-  }, [booking]);
+  }, [booking, workers]);
 
   // Fetch a worker's default pay rate from worker_profiles
   const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
@@ -397,7 +398,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const newSubtotal = totalPrice != null ? Math.max(0, totalPrice - newAddOnsTotal) : booking.subtotal;
     const nameParts = editGuestName.trim().split(" ");
 
-    const newAssignedWorkerId = editAssignedWorkerId !== "unassigned" ? editAssignedWorkerId : null;
+    const newAssignedWorkerId = resolveAssignedWorkerUserId(editAssignedWorkerId, workers);
     const previousWorkerId = booking.assigned_worker_id;
 
     const updates: Record<string, any> = {
