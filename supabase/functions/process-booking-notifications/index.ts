@@ -259,7 +259,7 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
         <div style="display:table;width:100%;"><span style="display:table-cell;color:#737373;font-size:12px;">Package</span><span style="display:table-cell;text-align:right;color:#ef4444;font-size:14px;font-weight:700;">${htmlEncode(serviceName)}</span></div>
       </div>
       <div style="border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px;margin-bottom:12px;">
-        <div style="display:table;width:100%;"><span style="display:table-cell;color:#d4d4d4;font-size:14px;">${htmlEncode(serviceName)}</span><span style="display:table-cell;text-align:right;color:#fff;font-size:14px;">$${subtotal.toFixed(2)}</span></div>
+        <div style="display:table;width:100%;"><span style="display:table-cell;color:#d4d4d4;font-size:14px;">${htmlEncode(serviceName)}</span><span style="display:table-cell;text-align:right;color:#fff;font-size:14px;">$${serviceLinePrice.toFixed(2)}</span></div>
       </div>
       ${addOnsHtml}
       <div style="margin-bottom:8px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">Subtotal</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${totalPrice.toFixed(2)}</span></div></div>
