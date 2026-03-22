@@ -317,6 +317,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     try {
       const selectedAddOnDetails = addOnsList.filter(a => selectedAddOns.includes(a.id));
       const isPastDate = form.scheduledDate ? isBefore(startOfDay(form.scheduledDate), startOfDay(new Date())) : false;
+      const resolvedAssignedWorkerId = resolveAssignedWorkerUserId(assignedWorkerId, workers);
 
       const tipAmountNum = form.tipAmount ? parseFloat(form.tipAmount) : null;
 
@@ -344,9 +345,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           tip_amount: tipAmountNum && tipAmountNum > 0 ? tipAmountNum : null,
           status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
-          assigned_worker_id: resolveAssignedWorkerUserId(assignedWorkerId, workers),
-           worker_pay_type: resolveAssignedWorkerUserId(assignedWorkerId, workers) && customPayRate ? customPayType : null,
-            worker_pay_rate: resolveAssignedWorkerUserId(assignedWorkerId, workers) && customPayRate ? parseFloat(customPayRate) : null,
+          assigned_worker_id: resolvedAssignedWorkerId,
+           worker_pay_type: resolvedAssignedWorkerId && customPayRate ? customPayType : null,
+            worker_pay_rate: resolvedAssignedWorkerId && customPayRate ? parseFloat(customPayRate) : null,
           client_id: selectedClientId,
           add_ons: pricingMode === "package"
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
@@ -367,8 +368,6 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       }
 
       // Notify assigned worker
-        const resolvedAssignedWorkerId = resolveAssignedWorkerUserId(assignedWorkerId, workers);
-
         if (resolvedAssignedWorkerId && bookingId) {
         const formatTime12 = (t: string) => {
           const [h, m] = t.split(":");
