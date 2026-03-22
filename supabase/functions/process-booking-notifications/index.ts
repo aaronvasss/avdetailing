@@ -87,36 +87,20 @@ function buildCalendarLinks(booking: any, serviceName: string) {
   startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
   const endDate = new Date(startDate);
-  endDate.setHours(endDate.getHours() + Math.ceil((booking.duration_minutes || 180) / 60));
+  endDate.setMinutes(endDate.getMinutes() + (booking.duration_minutes || 180));
 
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  const fmtICS = (d: Date) => {
-    const p = (n: number) => n.toString().padStart(2, "0");
-    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
-  };
-  const escICS = (t: string) => t.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
   const location = [booking.service_address, booking.service_city, booking.service_state || "LA"].filter(Boolean).join(", ");
 
   const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("AV Detailing - " + serviceName)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent("Mobile detailing service.\nCall " + PHONE + "\nBooking: " + booking.id)}&location=${encodeURIComponent(location)}`;
 
-  const icsContent = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//AV Detailing//Booking//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
-    "BEGIN:VEVENT", `UID:${booking.id}@avdetailing.net`, `DTSTAMP:${fmtICS(new Date())}`,
-    `DTSTART:${fmtICS(startDate)}`, `DTEND:${fmtICS(endDate)}`,
-    `SUMMARY:${escICS("AV Detailing - " + serviceName)}`,
-    `DESCRIPTION:${escICS("Service: " + serviceName + "\\nLocation: " + location + "\\n\\nCall " + PHONE)}`,
-    `LOCATION:${escICS(location)}`, "STATUS:CONFIRMED",
-    "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", "DESCRIPTION:AV Detailing tomorrow", "END:VALARM",
-    "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", "DESCRIPTION:AV Detailing in 2 hours", "END:VALARM",
-    "END:VEVENT", "END:VCALENDAR",
-  ].join("\r\n");
-
-  const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+  // Use hosted edge function URL for ICS download (data: URIs don't work in email clients)
+  const icsUrl = `${SUPABASE_URL}/functions/v1/download-ics?id=${booking.id}`;
 
   const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent("AV Detailing - " + serviceName)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent("Mobile detailing. Call " + PHONE)}`;
 
-  return { googleUrl, icsDataUri, outlookUrl };
+  return { googleUrl, icsUrl, outlookUrl };
 }
 
 // ━━━━ Customer Confirmation HTML ━━━━
@@ -133,7 +117,10 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || "Not specified";
   const vehicleType = booking.vehicle_type || "car";
   const totalPrice = Number(booking.total_price) || 0;
-  const subtotal = Number(booking.subtotal) || totalPrice;
+  const addOnsTotal = Number(booking.add_ons_total) || 0;
+  const tipAmount = Number(booking.tip_amount) || 0;
+  // Service line = total_price minus add-ons and tip (total_price is source of truth)
+  const serviceLinePrice = Math.max(0, totalPrice - addOnsTotal - tipAmount);
   const deposit = Number(booking.deposit_amount) || 0;
   const paymentMethod = booking.payment_method || "in_person";
   const isOnline = ["online", "stripe", "card"].includes(paymentMethod);
@@ -145,7 +132,8 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const vehicleTypeNames: Record<string, string> = { car: "Car/SUV/Truck", boat: "Boat", rv: "RV/Motorhome", aircraft: "Aircraft" };
   const vtName = vehicleTypeNames[vehicleType.toLowerCase()] || vehicleType;
 
-  const { googleUrl, icsDataUri, outlookUrl } = buildCalendarLinks(booking, serviceName);
+  const { googleUrl, icsUrl, outlookUrl } = buildCalendarLinks(booking, serviceName);
+  const rescheduleUrl = `${BASE_URL}/booking/manage?token=${booking.manage_token}`;
 
   const isQuote = isQuoteBasedService(vehicleType);
   const hasCeramic = includesCeramic(serviceName, addOns);
@@ -218,8 +206,9 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
     <p style="color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 16px;text-align:center;">Manage Your Booking</p>
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
       <tr>
-        <td width="50%" style="padding-right:6px;"><a href="${BASE_URL}/account" style="display:block;background-color:#3b82f6;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:13px;text-align:center;">📅 Manage Appointment</a></td>
-        <td width="50%" style="padding-left:6px;"><a href="${BASE_URL}/cancel/${booking.id}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:13px;text-align:center;">✕ Cancel Appointment</a></td>
+        <td width="33%" style="padding-right:4px;"><a href="${rescheduleUrl}" style="display:block;background-color:#3b82f6;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">📅 Reschedule</a></td>
+        <td width="34%" style="padding:0 4px;"><a href="${BASE_URL}/account" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">👤 My Account</a></td>
+        <td width="33%" style="padding-left:4px;"><a href="${BASE_URL}/cancel/${booking.id}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">✕ Cancel</a></td>
       </tr>
     </table>
     ${!booking.user_id ? '<p style="color:#737373;font-size:11px;text-align:center;margin:0 0 12px;">To manage your appointment, create a free account using the same email you booked with.</p>' : ''}
@@ -234,7 +223,7 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
       <p style="color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 12px;text-align:center;">📅 Add to Your Calendar</p>
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td width="33%" style="padding-right:4px;"><a href="${icsDataUri}" download="av-detailing.ics" style="display:block;background-color:#333;color:#fff;text-decoration:none;padding:10px 4px;border-radius:8px;font-size:12px;text-align:center;">📱 Apple</a></td>
+          <td width="33%" style="padding-right:4px;"><a href="${icsUrl}" style="display:block;background-color:#333;color:#fff;text-decoration:none;padding:10px 4px;border-radius:8px;font-size:12px;text-align:center;">📱 Apple</a></td>
           <td width="34%" style="padding:0 4px;"><a href="${googleUrl}" target="_blank" style="display:block;background-color:#4285f4;color:#fff;text-decoration:none;padding:10px 4px;border-radius:8px;font-size:12px;text-align:center;">📆 Google</a></td>
           <td width="33%" style="padding-left:4px;"><a href="${outlookUrl}" target="_blank" style="display:block;background-color:#0078d4;color:#fff;text-decoration:none;padding:10px 4px;border-radius:8px;font-size:12px;text-align:center;">📧 Outlook</a></td>
         </tr>
@@ -270,7 +259,7 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
         <div style="display:table;width:100%;"><span style="display:table-cell;color:#737373;font-size:12px;">Package</span><span style="display:table-cell;text-align:right;color:#ef4444;font-size:14px;font-weight:700;">${htmlEncode(serviceName)}</span></div>
       </div>
       <div style="border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:12px;margin-bottom:12px;">
-        <div style="display:table;width:100%;"><span style="display:table-cell;color:#d4d4d4;font-size:14px;">${htmlEncode(serviceName)}</span><span style="display:table-cell;text-align:right;color:#fff;font-size:14px;">$${subtotal.toFixed(2)}</span></div>
+        <div style="display:table;width:100%;"><span style="display:table-cell;color:#d4d4d4;font-size:14px;">${htmlEncode(serviceName)}</span><span style="display:table-cell;text-align:right;color:#fff;font-size:14px;">$${serviceLinePrice.toFixed(2)}</span></div>
       </div>
       ${addOnsHtml}
       <div style="margin-bottom:8px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">Subtotal</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${totalPrice.toFixed(2)}</span></div></div>
