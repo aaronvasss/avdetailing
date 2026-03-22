@@ -35,8 +35,12 @@ export default function WorkerEarningsPage() {
       .from("bookings")
       .select("*, services(name)")
       .eq("status", "completed")
-      .eq("assigned_worker_id", workerIdentity.authUserId)
-      .order("scheduled_date", { ascending: false });
+      .order("scheduled_date", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) return { data: null, error };
+        // Admin sees all completed; staff sees only their own
+        return { data: workerIdentity.isAdmin ? data : (data || []).filter(b => b.assigned_worker_id === workerIdentity.authUserId), error: null };
+      });
 
     setCompletedBookings(bookings || []);
     setLoading(false);

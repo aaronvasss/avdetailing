@@ -58,7 +58,7 @@ export const getCurrentWorkerIdentity = async () => {
 
   if (!user) return null;
 
-  const [{ data: profile }, { data: workerProfile }] = await Promise.all([
+  const [{ data: profile }, { data: workerProfile }, { data: roleData }] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, email")
@@ -69,7 +69,15 @@ export const getCurrentWorkerIdentity = async () => {
       .select("id, user_id")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle(),
   ]);
+
+  const isAdmin = !!roleData;
 
   const identity = {
     authUserId: user.id,
@@ -79,6 +87,7 @@ export const getCurrentWorkerIdentity = async () => {
     profileEmail: profile?.email ?? null,
     workerProfileId: workerProfile?.id ?? null,
     workerProfileUserId: workerProfile?.user_id ?? null,
+    isAdmin,
   };
 
   console.log("[worker-identity] resolved authenticated worker", identity);

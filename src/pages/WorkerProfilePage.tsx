@@ -39,9 +39,12 @@ export default function WorkerProfilePage() {
     // Fetch stats only for bookings assigned to this worker
     const { data: completedBookings } = await supabase
       .from("bookings")
-      .select("id, total_price, scheduled_date, worker_pay_rate, worker_pay_type")
+      .select("id, total_price, scheduled_date, worker_pay_rate, worker_pay_type, assigned_worker_id")
       .eq("status", "completed")
-      .eq("assigned_worker_id", workerIdentity.authUserId);
+      .then(({ data, error }) => {
+        if (error) return { data: null, error };
+        return { data: workerIdentity.isAdmin ? data : (data || []).filter(b => b.assigned_worker_id === workerIdentity.authUserId), error: null };
+      });
 
     const totalJobs = completedBookings?.length || 0;
 
