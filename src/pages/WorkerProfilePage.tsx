@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, User, LogOut, Star, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { format, startOfWeek, endOfWeek } from "date-fns";
+import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 
 export default function WorkerProfilePage() {
   const navigate = useNavigate();
@@ -20,17 +21,17 @@ export default function WorkerProfilePage() {
   }, []);
 
   const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const workerIdentity = await getCurrentWorkerIdentity();
+    if (!workerIdentity) return;
 
     const [{ data: p }, { data: wp }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("worker_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("user_id", workerIdentity.authUserId).maybeSingle(),
+      supabase.from("worker_profiles").select("*").eq("user_id", workerIdentity.authUserId).maybeSingle(),
     ]);
 
     setProfile({
       full_name: p?.full_name || "",
-      email: p?.email || user.email || "",
+      email: p?.email || workerIdentity.authEmail || "",
       phone: p?.phone || wp?.phone || "",
     });
     setWorkerProfile(wp);
@@ -40,7 +41,7 @@ export default function WorkerProfilePage() {
       .from("bookings")
       .select("id, total_price, scheduled_date, worker_pay_rate, worker_pay_type")
       .eq("status", "completed")
-      .eq("assigned_worker_id", user.id);
+      .eq("assigned_worker_id", workerIdentity.authUserId);
 
     const totalJobs = completedBookings?.length || 0;
 
@@ -86,7 +87,7 @@ export default function WorkerProfilePage() {
       weekEarnings,
       avgRating,
       ratingCount,
-      memberSince: wp?.created_at ? format(new Date(wp.created_at), "MMMM yyyy") : format(new Date(user.created_at || ""), "MMMM yyyy"),
+      memberSince: wp?.created_at ? format(new Date(wp.created_at), "MMMM yyyy") : format(new Date(), "MMMM yyyy"),
     });
 
     setLoading(false);
