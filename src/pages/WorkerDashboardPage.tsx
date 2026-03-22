@@ -46,12 +46,29 @@ export default function WorkerDashboardPage() {
     const { data, error } = await supabase
       .from("bookings")
       .select("*, services(name), booking_add_ons(name, price)")
-      .eq("assigned_worker_id", workerIdentity.authUserId)
+      .eq("scheduled_date", today)
+      .neq("status", "cancelled");
+
+    // Admin sees all bookings; staff sees only their assigned ones
+    if (!workerIdentity.isAdmin) {
+      data; // need to restructure query
+    }
+
+    // Rebuild query properly
+    let todayQuery = supabase
+      .from("bookings")
+      .select("*, services(name), booking_add_ons(name, price)")
       .eq("scheduled_date", today)
       .neq("status", "cancelled")
       .order("scheduled_time", { ascending: true });
 
-    if (error) {
+    if (!workerIdentity.isAdmin) {
+      todayQuery = todayQuery.eq("assigned_worker_id", workerIdentity.authUserId);
+    }
+
+    const { data: todayData, error: todayError } = await todayQuery;
+
+    if (todayError) {
       console.error("[worker-dashboard] failed to load today's jobs", {
         error,
         assignedWorkerId: workerIdentity.authUserId,
