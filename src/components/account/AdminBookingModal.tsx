@@ -118,6 +118,7 @@ interface DraftData {
     vehicleType: string; vehicleMake: string; vehicleModel: string; vehicleYear: string;
     scheduledDate?: string; scheduledTime: string; paymentMethod: string;
     internalNotes: string; customerNotes: string; tipAmount: string;
+    customServiceDescription?: string;
   };
   pricingMode: "package" | "custom";
   selectedPackageId: string;
