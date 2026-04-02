@@ -347,7 +347,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const isMembership = form.serviceType === "membership";
   const isCustomService = form.serviceType === "custom";
   const needsVehicleType = ["car", "ceramic", "paint", "membership"].includes(form.serviceType);
-
+  const isBoat = form.serviceType === "boat";
+  const isAircraft = form.serviceType === "aircraft";
+  const showCarVehicleFields = needsVehicleType || form.serviceType === "rv";
   // Calculate package price
   const packagePrice = useMemo(() => {
     if (isSpecialty) return 100; // deposit
