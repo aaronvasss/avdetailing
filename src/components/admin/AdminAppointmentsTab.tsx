@@ -519,7 +519,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>{booking.services?.name || "Detailing"}</div>
+                      <div>{booking.custom_service_description || booking.services?.name || "Detailing"}</div>
                       <div className="text-sm text-muted-foreground">
                         {booking.vehicle_type}
                       </div>
