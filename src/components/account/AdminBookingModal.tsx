@@ -468,18 +468,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       }
 
       toast.success("Booking created successfully!");
+      localStorage.removeItem(DRAFT_KEY);
       onOpenChange(false);
       onSuccess();
 
       // Reset
-      setForm({
-        firstName: "", lastName: "", email: "", phone: "",
-        address: "", city: "", zip: "",
-        serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
-        scheduledDate: undefined, scheduledTime: "",
-        paymentMethod: "in_person", internalNotes: "", customerNotes: "",
-        tipAmount: "",
-      });
+      setForm(defaultForm);
       setSelectedPackageId("");
       setSelectedAddOns([]);
       setCustomPrice("");
