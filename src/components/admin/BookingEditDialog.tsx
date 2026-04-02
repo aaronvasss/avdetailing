@@ -554,7 +554,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     if (newAssignedWorkerId && newAssignedWorkerId !== previousWorkerId) {
       const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
       const firstName = customerName.split(" ")[0];
-      const serviceName = booking.services?.name || "Detailing";
+      const serviceName = booking.custom_service_description || booking.services?.name || "Detailing";
       const formatTime12 = (t: string) => {
         const [h, m] = t.split(":");
         const hour = parseInt(h);
