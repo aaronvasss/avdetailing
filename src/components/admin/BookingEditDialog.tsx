@@ -688,12 +688,17 @@ AV Detailing
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2">
             Edit Booking
             <Badge variant="outline" className="ml-2">
               #{booking.id.slice(0, 8).toUpperCase()}
             </Badge>
+            {draftSavedVisible && (
+              <span className="text-xs font-normal text-muted-foreground animate-in fade-in ml-2">
+                Draft saved
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
