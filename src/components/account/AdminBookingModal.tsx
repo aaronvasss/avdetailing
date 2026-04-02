@@ -33,6 +33,7 @@ const serviceTypes = [
   { id: "rv", label: "RV/Motorhome", serviceId: "895a1ea3-4309-4a75-9406-555cf568b370" },
   { id: "aircraft", label: "Aircraft", serviceId: "71c8e20e-4bdf-42b8-ba46-d7565121c9d9" },
   { id: "membership", label: "Membership Service", serviceId: "3763f8d6-9045-45d5-99cd-cb878bdceeb8" },
+  { id: "custom", label: "Custom Service", serviceId: "3763f8d6-9045-45d5-99cd-cb878bdceeb8" },
 ];
 
 const vehicleTypes = [
