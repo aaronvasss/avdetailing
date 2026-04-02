@@ -269,7 +269,11 @@ export type Database = {
           add_ons_total: number | null
           address_id: string | null
           address_notes: string | null
+          aircraft_type: string | null
           assigned_worker_id: string | null
+          boat_brand: string | null
+          boat_length: string | null
+          boat_type: string | null
           client_id: string | null
           created_at: string
           custom_service_description: string | null
@@ -297,6 +301,7 @@ export type Database = {
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
           subtotal: number | null
+          tail_number: string | null
           tip_amount: number | null
           total_price: number | null
           updated_at: string
@@ -314,7 +319,11 @@ export type Database = {
           add_ons_total?: number | null
           address_id?: string | null
           address_notes?: string | null
+          aircraft_type?: string | null
           assigned_worker_id?: string | null
+          boat_brand?: string | null
+          boat_length?: string | null
+          boat_type?: string | null
           client_id?: string | null
           created_at?: string
           custom_service_description?: string | null
@@ -342,6 +351,7 @@ export type Database = {
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number | null
+          tail_number?: string | null
           tip_amount?: number | null
           total_price?: number | null
           updated_at?: string
@@ -359,7 +369,11 @@ export type Database = {
           add_ons_total?: number | null
           address_id?: string | null
           address_notes?: string | null
+          aircraft_type?: string | null
           assigned_worker_id?: string | null
+          boat_brand?: string | null
+          boat_length?: string | null
+          boat_type?: string | null
           client_id?: string | null
           created_at?: string
           custom_service_description?: string | null
@@ -387,6 +401,7 @@ export type Database = {
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number | null
+          tail_number?: string | null
           tip_amount?: number | null
           total_price?: number | null
           updated_at?: string
