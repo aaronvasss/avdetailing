@@ -199,6 +199,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     scheduledDate: undefined as Date | undefined, scheduledTime: "",
     paymentMethod: "in_person", internalNotes: "", customerNotes: "",
     tipAmount: "", customServiceDescription: "",
+    boatType: "", boatLength: "", boatBrand: "",
+    aircraftType: "", tailNumber: "",
   };
 
   const [form, setForm] = useState(defaultForm);
