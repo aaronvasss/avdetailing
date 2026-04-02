@@ -510,7 +510,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 >
                                   <div className="font-medium truncate">{getCustomerName(booking)}</div>
                                   <div className="text-muted-foreground truncate">
-                                    {booking.scheduled_time.slice(0, 5)} • {booking.services?.name}
+                                    {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name}
                                   </div>
                                 </button>
                                 {/* Buffer indicator */}
