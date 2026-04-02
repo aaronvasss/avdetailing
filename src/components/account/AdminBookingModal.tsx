@@ -197,7 +197,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
     scheduledDate: undefined as Date | undefined, scheduledTime: "",
     paymentMethod: "in_person", internalNotes: "", customerNotes: "",
-    tipAmount: "",
+    tipAmount: "", customServiceDescription: "",
   };
 
   const [form, setForm] = useState(defaultForm);
