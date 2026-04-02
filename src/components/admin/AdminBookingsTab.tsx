@@ -558,7 +558,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Service</span>
-                  <span className="font-medium">{selectedBooking.services?.name}</span>
+                  <span className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Vehicle</span>

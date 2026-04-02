@@ -779,7 +779,7 @@ AV Detailing
               <div className="space-y-2">
                 <Label>Service</Label>
                 <Input 
-                  value={`${booking.services?.name || "Detailing"} (${formatDuration(booking.duration_minutes || 120)})`} 
+                  value={`${booking.custom_service_description || booking.services?.name || "Detailing"} (${formatDuration(booking.duration_minutes || 120)})`} 
                   disabled 
                 />
               </div>

@@ -647,7 +647,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-medium">Service</h4>
-                  <div className="text-sm">{selectedBooking.services?.name || "Detailing"}</div>
+                  <div className="text-sm">{selectedBooking.custom_service_description || selectedBooking.services?.name || "Detailing"}</div>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium flex items-center gap-2">
