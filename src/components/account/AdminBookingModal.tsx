@@ -464,7 +464,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           await supabase.from("worker_notifications").insert({
             user_id: resolvedAssignedWorkerId,
             title: "You've been assigned a new job! 🚗",
-            body: `${selectedService.label} for ${form.firstName} on ${format(form.scheduledDate!, "MMM d, yyyy")} at ${formatTime12(form.scheduledTime)}${form.address ? ` — ${form.address}` : ""}`,
+            body: `${form.serviceType === "custom" && form.customServiceDescription ? form.customServiceDescription : selectedService.label} for ${form.firstName} on ${format(form.scheduledDate!, "MMM d, yyyy")} at ${formatTime12(form.scheduledTime)}${form.address ? ` — ${form.address}` : ""}`,
             type: "assignment",
             booking_id: bookingId,
           });
