@@ -50,6 +50,11 @@ interface BookingData {
   custom_service_description?: string | null;
   services?: { name: string } | null;
   booking_add_ons?: { name: string; price: number }[];
+  boat_type?: string | null;
+  boat_length?: string | null;
+  boat_brand?: string | null;
+  aircraft_type?: string | null;
+  tail_number?: string | null;
 }
 
 interface WorkerJobCardProps {

@@ -589,6 +589,13 @@ const BookingPage = () => {
         vehicle_year: customerInfo.vehicleYear ? parseInt(customerInfo.vehicleYear) : null,
         vehicle_make: customerInfo.vehicleMake || null,
         vehicle_model: customerInfo.vehicleModel || null,
+        // Boat-specific fields
+        boat_type: serviceType === "boat" ? (customerInfo.boatType || null) : null,
+        boat_length: serviceType === "boat" ? (customerInfo.boatLength || null) : null,
+        boat_brand: serviceType === "boat" ? (customerInfo.boatBrand || null) : null,
+        // Aircraft-specific fields
+        aircraft_type: serviceType === "aircraft" ? (customerInfo.aircraftType || null) : null,
+        tail_number: serviceType === "aircraft" ? (customerInfo.tailNumber || null) : null,
         service_address: customerInfo.address,
         service_city: customerInfo.city,
         service_zip: customerInfo.zip,
