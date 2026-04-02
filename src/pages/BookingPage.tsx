@@ -269,6 +269,11 @@ const BookingPage = () => {
     vehicleMake: "",
     vehicleModel: "",
     notes: "",
+    boatType: "",
+    boatLength: "",
+    boatBrand: "",
+    aircraftType: "",
+    tailNumber: "",
   });
 
   // Fetch packages from database
