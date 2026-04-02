@@ -369,7 +369,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
       getCustomerName(b),
       getCustomerPhone(b) || "",
       getCustomerEmail(b) || "",
-      b.services?.name || "",
+      b.custom_service_description || b.services?.name || "",
       [b.vehicle_make, b.vehicle_model, b.vehicle_type].filter(Boolean).join(" "),
       [b.service_address, b.service_city].filter(Boolean).join(", "),
       b.status,
