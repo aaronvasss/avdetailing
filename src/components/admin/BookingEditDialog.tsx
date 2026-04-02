@@ -168,6 +168,49 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [allAddOns, setAllAddOns] = useState<ServiceAddOn[]>([]);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
 
+  // Draft persistence
+  const [draftSavedVisible, setDraftSavedVisible] = useState(false);
+  const draftRestoredRef = useRef(false);
+  const EDIT_DRAFT_KEY = booking ? `edit-booking-draft-${booking.id}` : "";
+
+  // Save draft to localStorage
+  const saveDraft = useCallback(() => {
+    if (!booking) return;
+    const draft = {
+      scheduledDate: scheduledDate?.toISOString(),
+      scheduledTime, status, paymentStatus, paymentMethod,
+      editGuestName, editGuestEmail, editGuestPhone,
+      editVehicleMake, editVehicleModel, editVehicleYear, editVehicleType,
+      editAddress, editCity, editState, editZip,
+      editTotalPrice, editAssignedWorkerId,
+      editUseCustomPayRate, editCustomPayType, editCustomPayRate,
+      editTipAmount, selectedAddOnIds, newNote,
+    };
+    localStorage.setItem(EDIT_DRAFT_KEY, JSON.stringify(draft));
+    setDraftSavedVisible(true);
+    setTimeout(() => setDraftSavedVisible(false), 2000);
+  }, [
+    booking, EDIT_DRAFT_KEY, scheduledDate, scheduledTime, status, paymentStatus, paymentMethod,
+    editGuestName, editGuestEmail, editGuestPhone,
+    editVehicleMake, editVehicleModel, editVehicleYear, editVehicleType,
+    editAddress, editCity, editState, editZip,
+    editTotalPrice, editAssignedWorkerId,
+    editUseCustomPayRate, editCustomPayType, editCustomPayRate,
+    editTipAmount, selectedAddOnIds, newNote,
+  ]);
+
+  // Auto-save draft on field changes (debounced)
+  useEffect(() => {
+    if (!booking || !draftRestoredRef.current) return;
+    const timer = setTimeout(saveDraft, 500);
+    return () => clearTimeout(timer);
+  }, [saveDraft, booking]);
+
+  // Clear draft helper
+  const clearDraft = () => {
+    if (EDIT_DRAFT_KEY) localStorage.removeItem(EDIT_DRAFT_KEY);
+  };
+
   // Initialize form when booking changes
   useEffect(() => {
     if (booking) {
