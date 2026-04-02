@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CalendarIcon, Plus, Search, User, X } from "lucide-react";
+import { Loader2, CalendarIcon, Plus, Search, User, X, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -108,6 +108,32 @@ const formatPhone = (value: string): string => {
   return formatted;
 };
 
+const DRAFT_KEY = "admin-booking-draft";
+
+interface DraftData {
+  form: {
+    firstName: string; lastName: string; email: string; phone: string;
+    address: string; city: string; zip: string; serviceType: string;
+    vehicleType: string; vehicleMake: string; vehicleModel: string; vehicleYear: string;
+    scheduledDate?: string; scheduledTime: string; paymentMethod: string;
+    internalNotes: string; customerNotes: string; tipAmount: string;
+  };
+  pricingMode: "package" | "custom";
+  selectedPackageId: string;
+  selectedAddOns: string[];
+  customPrice: string;
+  assignedWorkerId: string;
+  selectedClientId: string | null;
+  selectedClientName: string | null;
+}
+
+function loadDraft(): DraftData | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -121,6 +147,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [customPayRate, setCustomPayRate] = useState("");
   const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
   const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
+  const [draftSavedVisible, setDraftSavedVisible] = useState(false);
   const { workers } = useWorkersList();
 
   // Auto-fetch worker default pay rate when assigned
@@ -163,26 +190,79 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [selectedClientName, setSelectedClientName] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    zip: "",
-    serviceType: "",
-    vehicleType: "",
-    vehicleMake: "",
-    vehicleModel: "",
-    vehicleYear: "",
-    scheduledDate: undefined as Date | undefined,
-    scheduledTime: "",
-    paymentMethod: "in_person",
-    internalNotes: "",
-    customerNotes: "",
+  const defaultForm = {
+    firstName: "", lastName: "", email: "", phone: "",
+    address: "", city: "", zip: "",
+    serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
+    scheduledDate: undefined as Date | undefined, scheduledTime: "",
+    paymentMethod: "in_person", internalNotes: "", customerNotes: "",
     tipAmount: "",
-  });
+  };
+
+  const [form, setForm] = useState(defaultForm);
+  const draftRestoredRef = useRef(false);
+
+  // Restore draft on first open
+  useEffect(() => {
+    if (open && !draftRestoredRef.current) {
+      draftRestoredRef.current = true;
+      const draft = loadDraft();
+      if (draft) {
+        setForm({
+          ...draft.form,
+          scheduledDate: draft.form.scheduledDate ? new Date(draft.form.scheduledDate) : undefined,
+        });
+        setPricingMode(draft.pricingMode);
+        setSelectedPackageId(draft.selectedPackageId);
+        setSelectedAddOns(draft.selectedAddOns);
+        setCustomPrice(draft.customPrice);
+        setAssignedWorkerId(draft.assignedWorkerId);
+        setSelectedClientId(draft.selectedClientId);
+        setSelectedClientName(draft.selectedClientName);
+      }
+    }
+    if (!open) {
+      draftRestoredRef.current = false;
+    }
+  }, [open]);
+
+  // Auto-save draft to localStorage
+  const saveDraft = useCallback(() => {
+    const draft: DraftData = {
+      form: {
+        ...form,
+        scheduledDate: form.scheduledDate ? form.scheduledDate.toISOString() : undefined,
+      },
+      pricingMode, selectedPackageId, selectedAddOns, customPrice,
+      assignedWorkerId, selectedClientId, selectedClientName,
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    setDraftSavedVisible(true);
+    setTimeout(() => setDraftSavedVisible(false), 2000);
+  }, [form, pricingMode, selectedPackageId, selectedAddOns, customPrice, assignedWorkerId, selectedClientId, selectedClientName]);
+
+  useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(saveDraft, 500);
+    return () => clearTimeout(timer);
+  }, [saveDraft, open]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setForm(defaultForm);
+    setPricingMode("package");
+    setSelectedPackageId("");
+    setSelectedAddOns([]);
+    setCustomPrice("");
+    setAssignedWorkerId("unassigned");
+    setUseCustomPayRate(false);
+    setCustomPayType("percentage");
+    setCustomPayRate("");
+    setSelectedClientId(null);
+    setSelectedClientName(null);
+    setCustomerSearch("");
+    toast.info("Form cleared");
+  };
 
   // Search clients as user types
   useEffect(() => {
@@ -388,18 +468,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       }
 
       toast.success("Booking created successfully!");
+      localStorage.removeItem(DRAFT_KEY);
       onOpenChange(false);
       onSuccess();
 
       // Reset
-      setForm({
-        firstName: "", lastName: "", email: "", phone: "",
-        address: "", city: "", zip: "",
-        serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
-        scheduledDate: undefined, scheduledTime: "",
-        paymentMethod: "in_person", internalNotes: "", customerNotes: "",
-        tipAmount: "",
-      });
+      setForm(defaultForm);
       setSelectedPackageId("");
       setSelectedAddOns([]);
       setCustomPrice("");
@@ -425,10 +499,24 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create New Booking
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create New Booking
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              {draftSavedVisible && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1 animate-in fade-in">
+                  <Save className="h-3 w-3" />
+                  Draft saved
+                </span>
+              )}
+              <Button type="button" variant="ghost" size="sm" onClick={clearDraft} className="text-xs h-7 px-2">
+                <Trash2 className="h-3 w-3 mr-1" />
+                Clear
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="space-y-5 mt-2">
