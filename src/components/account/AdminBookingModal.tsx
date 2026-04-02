@@ -382,7 +382,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     if (field === "serviceType") {
       setSelectedPackageId("");
       setSelectedAddOns([]);
-      setForm(prev => ({ ...prev, vehicleType: "" }));
+      setForm(prev => ({
+        ...prev,
+        vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
+        boatType: "", boatLength: "", boatBrand: "",
+        aircraftType: "", tailNumber: "",
+      }));
       if (value === "custom") {
         setPricingMode("custom");
       }
