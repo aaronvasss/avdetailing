@@ -191,7 +191,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     }
 
     // Service filter
-    if (serviceFilter !== "all" && booking.services?.name !== serviceFilter) {
+    if (serviceFilter !== "all" && (booking.custom_service_description || booking.services?.name) !== serviceFilter) {
       return false;
     }
 
