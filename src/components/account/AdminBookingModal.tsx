@@ -623,6 +623,16 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 ))}
               </SelectContent>
             </Select>
+            {isCustomService && (
+              <div className="mt-2">
+                <Label>Service Description *</Label>
+                <Input
+                  value={form.customServiceDescription}
+                  onChange={e => handleChange("customServiceDescription", e.target.value)}
+                  placeholder="e.g. RV Full Detail + Ceramic Coat"
+                />
+              </div>
+            )}
           </div>
 
           {/* Vehicle Type */}
