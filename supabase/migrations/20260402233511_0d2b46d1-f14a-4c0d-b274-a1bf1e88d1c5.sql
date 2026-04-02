@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN custom_service_description text DEFAULT NULL;
