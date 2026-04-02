@@ -271,7 +271,7 @@ function UpcomingJobCard({ booking }: { booking: any }) {
           {vehicle && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Car className="h-3.5 w-3.5 shrink-0" />
-              <span>{vehicle}{booking.vehicle_type ? ` (${booking.vehicle_type})` : ""}</span>
+              <span>{vehicle}{!booking.boat_type && !booking.aircraft_type && booking.vehicle_type ? ` (${booking.vehicle_type})` : ""}</span>
             </div>
           )}
 
