@@ -47,6 +47,7 @@ interface BookingData {
   customer_notes: string | null;
   total_price: number | null;
   user_id: string | null;
+  custom_service_description?: string | null;
   services?: { name: string } | null;
   booking_add_ons?: { name: string; price: number }[];
 }
@@ -80,7 +81,7 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
   const afterGalleryRef = useRef<HTMLInputElement>(null);
   const { uploadMultiple, getBookingPhotos, deletePhoto } = usePhotoUpload();
 
-  const serviceName = (booking.services as any)?.name || "Detailing Service";
+  const serviceName = booking.custom_service_description || (booking.services as any)?.name || "Detailing Service";
   const addOns = (booking.booking_add_ons || []).map((a) => a.name);
   const customerName = booking.guest_name || "Customer";
   const firstName = customerName.split(" ")[0];

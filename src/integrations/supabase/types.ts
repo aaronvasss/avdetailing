@@ -272,6 +272,7 @@ export type Database = {
           assigned_worker_id: string | null
           client_id: string | null
           created_at: string
+          custom_service_description: string | null
           customer_notes: string | null
           deposit_amount: number | null
           duration_minutes: number | null
@@ -316,6 +317,7 @@ export type Database = {
           assigned_worker_id?: string | null
           client_id?: string | null
           created_at?: string
+          custom_service_description?: string | null
           customer_notes?: string | null
           deposit_amount?: number | null
           duration_minutes?: number | null
@@ -360,6 +362,7 @@ export type Database = {
           assigned_worker_id?: string | null
           client_id?: string | null
           created_at?: string
+          custom_service_description?: string | null
           customer_notes?: string | null
           deposit_amount?: number | null
           duration_minutes?: number | null

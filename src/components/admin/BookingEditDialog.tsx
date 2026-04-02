@@ -59,6 +59,7 @@ interface Booking {
   profile_name?: string | null;
   profile_phone?: string | null;
   profile_email?: string | null;
+  custom_service_description?: string | null;
 }
 
 interface InternalNote {
@@ -554,7 +555,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     if (newAssignedWorkerId && newAssignedWorkerId !== previousWorkerId) {
       const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
       const firstName = customerName.split(" ")[0];
-      const serviceName = booking.services?.name || "Detailing";
+      const serviceName = booking.custom_service_description || booking.services?.name || "Detailing";
       const formatTime12 = (t: string) => {
         const [h, m] = t.split(":");
         const hour = parseInt(h);
@@ -633,7 +634,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     if (!booking) return;
     
     const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
-    const serviceName = booking.services?.name || "Detailing Service";
+    const serviceName = booking.custom_service_description || booking.services?.name || "Detailing Service";
     
     const receiptContent = `
 AV DETAILING - RECEIPT
@@ -779,7 +780,7 @@ AV Detailing
               <div className="space-y-2">
                 <Label>Service</Label>
                 <Input 
-                  value={`${booking.services?.name || "Detailing"} (${formatDuration(booking.duration_minutes || 120)})`} 
+                  value={`${booking.custom_service_description || booking.services?.name || "Detailing"} (${formatDuration(booking.duration_minutes || 120)})`} 
                   disabled 
                 />
               </div>

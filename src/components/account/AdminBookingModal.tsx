@@ -33,6 +33,7 @@ const serviceTypes = [
   { id: "rv", label: "RV/Motorhome", serviceId: "895a1ea3-4309-4a75-9406-555cf568b370" },
   { id: "aircraft", label: "Aircraft", serviceId: "71c8e20e-4bdf-42b8-ba46-d7565121c9d9" },
   { id: "membership", label: "Membership Service", serviceId: "3763f8d6-9045-45d5-99cd-cb878bdceeb8" },
+  { id: "custom", label: "Custom Service", serviceId: "3763f8d6-9045-45d5-99cd-cb878bdceeb8" },
 ];
 
 const vehicleTypes = [
@@ -117,6 +118,7 @@ interface DraftData {
     vehicleType: string; vehicleMake: string; vehicleModel: string; vehicleYear: string;
     scheduledDate?: string; scheduledTime: string; paymentMethod: string;
     internalNotes: string; customerNotes: string; tipAmount: string;
+    customServiceDescription?: string;
   };
   pricingMode: "package" | "custom";
   selectedPackageId: string;
@@ -196,7 +198,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
     scheduledDate: undefined as Date | undefined, scheduledTime: "",
     paymentMethod: "in_person", internalNotes: "", customerNotes: "",
-    tipAmount: "",
+    tipAmount: "", customServiceDescription: "",
   };
 
   const [form, setForm] = useState(defaultForm);
@@ -209,7 +211,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       const draft = loadDraft();
       if (draft) {
         setForm({
+          ...defaultForm,
           ...draft.form,
+          customServiceDescription: draft.form.customServiceDescription || "",
           scheduledDate: draft.form.scheduledDate ? new Date(draft.form.scheduledDate) : undefined,
         });
         setPricingMode(draft.pricingMode);
@@ -339,6 +343,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
   const isSpecialty = specialtyServices.includes(form.serviceType);
   const isMembership = form.serviceType === "membership";
+  const isCustomService = form.serviceType === "custom";
   const needsVehicleType = ["car", "ceramic", "paint", "membership"].includes(form.serviceType);
 
   // Calculate package price
@@ -374,6 +379,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setSelectedPackageId("");
       setSelectedAddOns([]);
       setForm(prev => ({ ...prev, vehicleType: "" }));
+      if (value === "custom") {
+        setPricingMode("custom");
+      }
     }
     if (field === "vehicleType") {
       setSelectedPackageId("");
@@ -433,6 +441,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
           skip_notifications: isPastDate,
+          custom_service_description: form.serviceType === "custom" ? (form.customServiceDescription || null) : null,
         },
       });
 
@@ -458,7 +467,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           await supabase.from("worker_notifications").insert({
             user_id: resolvedAssignedWorkerId,
             title: "You've been assigned a new job! 🚗",
-            body: `${selectedService.label} for ${form.firstName} on ${format(form.scheduledDate!, "MMM d, yyyy")} at ${formatTime12(form.scheduledTime)}${form.address ? ` — ${form.address}` : ""}`,
+            body: `${form.serviceType === "custom" && form.customServiceDescription ? form.customServiceDescription : selectedService.label} for ${form.firstName} on ${format(form.scheduledDate!, "MMM d, yyyy")} at ${formatTime12(form.scheduledTime)}${form.address ? ` — ${form.address}` : ""}`,
             type: "assignment",
             booking_id: bookingId,
           });
@@ -618,6 +627,16 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 ))}
               </SelectContent>
             </Select>
+            {isCustomService && (
+              <div className="mt-2">
+                <Label>Service Description *</Label>
+                <Input
+                  value={form.customServiceDescription}
+                  onChange={e => handleChange("customServiceDescription", e.target.value)}
+                  placeholder="e.g. RV Full Detail + Ceramic Coat"
+                />
+              </div>
+            )}
           </div>
 
           {/* Vehicle Type */}

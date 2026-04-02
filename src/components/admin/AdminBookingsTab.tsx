@@ -38,6 +38,7 @@ interface Booking {
   created_at: string;
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; email: string; phone: string } | null;
+  custom_service_description?: string | null;
 }
 
 interface AdminBookingsTabProps {
@@ -169,7 +170,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   };
 
   // Get unique values for filters
-  const serviceTypes = [...new Set(bookings.map(b => b.services?.name).filter(Boolean))];
+  const serviceTypes = [...new Set(bookings.map(b => b.custom_service_description || b.services?.name).filter(Boolean))];
   const vehicleTypes = [...new Set(bookings.map(b => b.vehicle_type).filter(Boolean))];
 
   const filteredBookings = bookings.filter((booking) => {
@@ -190,7 +191,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     }
 
     // Service filter
-    if (serviceFilter !== "all" && booking.services?.name !== serviceFilter) {
+    if (serviceFilter !== "all" && (booking.custom_service_description || booking.services?.name) !== serviceFilter) {
       return false;
     }
 
@@ -446,7 +447,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span>{booking.services?.name || "Detailing"}</span>
+                        <span>{booking.custom_service_description || booking.services?.name || "Detailing"}</span>
                         <span className="text-sm text-muted-foreground">
                           {booking.vehicle_type} {booking.vehicle_make}
                         </span>
@@ -558,7 +559,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Service</span>
-                  <span className="font-medium">{selectedBooking.services?.name}</span>
+                  <span className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Vehicle</span>

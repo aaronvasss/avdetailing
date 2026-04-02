@@ -83,6 +83,7 @@ interface Booking {
   profile_name?: string | null;
   profile_phone?: string | null;
   profile_email?: string | null;
+  custom_service_description?: string | null;
 }
 
 // Service duration mappings (in minutes)
@@ -264,7 +265,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
     const duration = getServiceDuration(booking);
     const endDate = addMinutes(startDate, duration + BUFFER_MINUTES);
     
-    const title = `${booking.services?.name || "Detailing"} - ${getCustomerName(booking)}`;
+     const title = `${booking.custom_service_description || booking.services?.name || "Detailing"} - ${getCustomerName(booking)}`;
     const location = [booking.service_address, booking.service_city, booking.service_state, booking.service_zip]
       .filter(Boolean)
       .join(", ");
@@ -297,7 +298,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
     const duration = getServiceDuration(booking);
     const endDate = addMinutes(startDate, duration + BUFFER_MINUTES);
 
-    const title = `${booking.services?.name || "Detailing"} - ${getCustomerName(booking)}`;
+    const title = `${booking.custom_service_description || booking.services?.name || "Detailing"} - ${getCustomerName(booking)}`;
     const location = [booking.service_address, booking.service_city, booking.service_state, booking.service_zip]
       .filter(Boolean)
       .join(", ");
@@ -368,7 +369,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
       getCustomerName(b),
       getCustomerPhone(b) || "",
       getCustomerEmail(b) || "",
-      b.services?.name || "",
+      b.custom_service_description || b.services?.name || "",
       [b.vehicle_make, b.vehicle_model, b.vehicle_type].filter(Boolean).join(" "),
       [b.service_address, b.service_city].filter(Boolean).join(", "),
       b.status,
@@ -519,7 +520,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>{booking.services?.name || "Detailing"}</div>
+                      <div>{booking.custom_service_description || booking.services?.name || "Detailing"}</div>
                       <div className="text-sm text-muted-foreground">
                         {booking.vehicle_type}
                       </div>
@@ -647,7 +648,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-medium">Service</h4>
-                  <div className="text-sm">{selectedBooking.services?.name || "Detailing"}</div>
+                  <div className="text-sm">{selectedBooking.custom_service_description || selectedBooking.services?.name || "Detailing"}</div>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium flex items-center gap-2">

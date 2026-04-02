@@ -35,6 +35,7 @@ interface Booking {
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; phone: string } | null;
   worker_name?: string | null;
+  custom_service_description?: string | null;
 }
 
 interface AdminCalendarViewProps {
@@ -510,7 +511,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 >
                                   <div className="font-medium truncate">{getCustomerName(booking)}</div>
                                   <div className="text-muted-foreground truncate">
-                                    {booking.scheduled_time.slice(0, 5)} • {booking.services?.name}
+                                    {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name}
                                   </div>
                                 </button>
                                 {/* Buffer indicator */}
@@ -562,7 +563,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 </Badge>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                {booking.scheduled_time.slice(0, 5)} • {booking.services?.name} • {booking.vehicle_type}
+                                {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name} • {booking.vehicle_type}
                                 <span className="ml-2 text-xs">({formatDuration(duration)})</span>
                               </div>
                               <div className="text-sm text-muted-foreground">
@@ -610,7 +611,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 "p-3 rounded-lg border-l-4",
                 getServiceColorClass(selectedBooking.services?.slug)
               )}>
-                <div className="font-medium">{selectedBooking.services?.name}</div>
+                <div className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</div>
                 <div className="text-sm text-muted-foreground">{selectedBooking.vehicle_type}</div>
               </div>
 

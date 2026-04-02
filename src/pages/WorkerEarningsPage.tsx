@@ -221,7 +221,7 @@ export default function WorkerEarningsPage() {
                 <Card key={b.id}>
                   <CardContent className="py-3 px-4 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{(b.services as any)?.name || "Service"}</p>
+                      <p className="text-sm font-medium">{b.custom_service_description || (b.services as any)?.name || "Service"}</p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(b.scheduled_date), "MMM d, yyyy")}
                       </p>
