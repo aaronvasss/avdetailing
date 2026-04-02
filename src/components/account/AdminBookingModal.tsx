@@ -210,7 +210,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       const draft = loadDraft();
       if (draft) {
         setForm({
+          ...defaultForm,
           ...draft.form,
+          customServiceDescription: draft.form.customServiceDescription || "",
           scheduledDate: draft.form.scheduledDate ? new Date(draft.form.scheduledDate) : undefined,
         });
         setPricingMode(draft.pricingMode);
