@@ -1396,21 +1396,52 @@ const BookingPage = () => {
                 <Input id="zip" required maxLength={10} value={customerInfo.zip} onChange={(e) => setCustomerInfo({...customerInfo, zip: e.target.value})} className={formErrors.zip ? "border-destructive" : ""} />
                 {formErrors.zip && <p className="text-sm text-destructive">{formErrors.zip}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicleYear">Year</Label>
-                <Input id="vehicleYear" type="number" placeholder="2024" required maxLength={4} value={customerInfo.vehicleYear} onChange={(e) => setCustomerInfo({...customerInfo, vehicleYear: e.target.value.slice(0, 4)})} className={formErrors.vehicleYear ? "border-destructive" : ""} />
-                {formErrors.vehicleYear && <p className="text-sm text-destructive">{formErrors.vehicleYear}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicleMake">Make</Label>
-                <Input id="vehicleMake" placeholder="Toyota" required maxLength={50} value={customerInfo.vehicleMake} onChange={(e) => setCustomerInfo({...customerInfo, vehicleMake: e.target.value})} className={formErrors.vehicleMake ? "border-destructive" : ""} />
-                {formErrors.vehicleMake && <p className="text-sm text-destructive">{formErrors.vehicleMake}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicleModel">Model</Label>
-                <Input id="vehicleModel" placeholder="Camry" required maxLength={50} value={customerInfo.vehicleModel} onChange={(e) => setCustomerInfo({...customerInfo, vehicleModel: e.target.value})} className={formErrors.vehicleModel ? "border-destructive" : ""} />
-                {formErrors.vehicleModel && <p className="text-sm text-destructive">{formErrors.vehicleModel}</p>}
-              </div>
+              {/* Dynamic vehicle fields based on service type */}
+              {serviceType === "boat" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="boatType">Boat Type *</Label>
+                    <Input id="boatType" required placeholder="e.g. Pontoon, Ski Boat, Bass Boat" value={customerInfo.boatType} onChange={(e) => setCustomerInfo({...customerInfo, boatType: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="boatLength">Boat Length (ft) *</Label>
+                    <Input id="boatLength" type="number" required placeholder="24" value={customerInfo.boatLength} onChange={(e) => setCustomerInfo({...customerInfo, boatLength: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="boatBrand">Boat Make/Brand (optional)</Label>
+                    <Input id="boatBrand" placeholder="e.g. Tracker, Yamaha, Sea Ray" value={customerInfo.boatBrand} onChange={(e) => setCustomerInfo({...customerInfo, boatBrand: e.target.value})} />
+                  </div>
+                </>
+              ) : serviceType === "aircraft" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="aircraftType">Aircraft Type *</Label>
+                    <Input id="aircraftType" required placeholder="e.g. Cessna 172, Piper, Helicopter" value={customerInfo.aircraftType} onChange={(e) => setCustomerInfo({...customerInfo, aircraftType: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tailNumber">Tail Number (optional)</Label>
+                    <Input id="tailNumber" placeholder="N12345" value={customerInfo.tailNumber} onChange={(e) => setCustomerInfo({...customerInfo, tailNumber: e.target.value})} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleYear">Year</Label>
+                    <Input id="vehicleYear" type="number" placeholder="2024" required maxLength={4} value={customerInfo.vehicleYear} onChange={(e) => setCustomerInfo({...customerInfo, vehicleYear: e.target.value.slice(0, 4)})} className={formErrors.vehicleYear ? "border-destructive" : ""} />
+                    {formErrors.vehicleYear && <p className="text-sm text-destructive">{formErrors.vehicleYear}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleMake">Make</Label>
+                    <Input id="vehicleMake" placeholder="Toyota" required maxLength={50} value={customerInfo.vehicleMake} onChange={(e) => setCustomerInfo({...customerInfo, vehicleMake: e.target.value})} className={formErrors.vehicleMake ? "border-destructive" : ""} />
+                    {formErrors.vehicleMake && <p className="text-sm text-destructive">{formErrors.vehicleMake}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleModel">Model</Label>
+                    <Input id="vehicleModel" placeholder="Camry" required maxLength={50} value={customerInfo.vehicleModel} onChange={(e) => setCustomerInfo({...customerInfo, vehicleModel: e.target.value})} className={formErrors.vehicleModel ? "border-destructive" : ""} />
+                    {formErrors.vehicleModel && <p className="text-sm text-destructive">{formErrors.vehicleModel}</p>}
+                  </div>
+                </>
+              )}
                <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="notes">Special Instructions (Optional)</Label>
                 <Textarea id="notes" placeholder="Gate code, parking instructions, areas of concern, etc." maxLength={1000} value={customerInfo.notes} onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} />
