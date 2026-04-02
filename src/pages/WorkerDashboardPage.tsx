@@ -225,7 +225,7 @@ export default function WorkerDashboardPage() {
 }
 
 function UpcomingJobCard({ booking }: { booking: any }) {
-  const serviceName = booking.services?.name || "Detailing Service";
+  const serviceName = booking.custom_service_description || booking.services?.name || "Detailing Service";
   const customerName = booking.guest_name || "Customer";
   const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model]
     .filter(Boolean)

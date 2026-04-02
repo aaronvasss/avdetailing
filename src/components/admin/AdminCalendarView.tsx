@@ -610,7 +610,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 "p-3 rounded-lg border-l-4",
                 getServiceColorClass(selectedBooking.services?.slug)
               )}>
-                <div className="font-medium">{selectedBooking.services?.name}</div>
+                <div className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</div>
                 <div className="text-sm text-muted-foreground">{selectedBooking.vehicle_type}</div>
               </div>
 
