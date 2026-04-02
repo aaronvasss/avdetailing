@@ -438,6 +438,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
             : [],
           skip_notifications: isPastDate,
+          custom_service_description: form.serviceType === "custom" ? (form.customServiceDescription || null) : null,
         },
       });
 
