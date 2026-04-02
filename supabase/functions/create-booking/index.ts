@@ -26,6 +26,15 @@ interface CreateBookingRequest {
   vehicle_make?: string | null;
   vehicle_model?: string | null;
 
+  // Boat-specific fields
+  boat_type?: string | null;
+  boat_length?: string | null;
+  boat_brand?: string | null;
+
+  // Aircraft-specific fields
+  aircraft_type?: string | null;
+  tail_number?: string | null;
+
   service_address?: string | null;
   service_city?: string | null;
   service_zip?: string | null;
