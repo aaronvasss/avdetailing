@@ -343,6 +343,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
   const isSpecialty = specialtyServices.includes(form.serviceType);
   const isMembership = form.serviceType === "membership";
+  const isCustomService = form.serviceType === "custom";
   const needsVehicleType = ["car", "ceramic", "paint", "membership"].includes(form.serviceType);
 
   // Calculate package price
