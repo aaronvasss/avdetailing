@@ -35,6 +35,7 @@ interface Booking {
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; phone: string } | null;
   worker_name?: string | null;
+  custom_service_description?: string | null;
 }
 
 interface AdminCalendarViewProps {

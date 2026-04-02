@@ -47,6 +47,7 @@ interface BookingData {
   customer_notes: string | null;
   total_price: number | null;
   user_id: string | null;
+  custom_service_description?: string | null;
   services?: { name: string } | null;
   booking_add_ons?: { name: string; price: number }[];
 }
