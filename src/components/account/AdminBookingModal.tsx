@@ -451,6 +451,13 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             : [],
           skip_notifications: isPastDate,
           custom_service_description: form.serviceType === "custom" ? (form.customServiceDescription || null) : null,
+          // Boat-specific fields
+          boat_type: isBoat ? (form.boatType || null) : null,
+          boat_length: isBoat ? (form.boatLength || null) : null,
+          boat_brand: isBoat ? (form.boatBrand || null) : null,
+          // Aircraft-specific fields
+          aircraft_type: isAircraft ? (form.aircraftType || null) : null,
+          tail_number: isAircraft ? (form.tailNumber || null) : null,
         },
       });
 
