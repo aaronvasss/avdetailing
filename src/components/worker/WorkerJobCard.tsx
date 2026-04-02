@@ -50,6 +50,11 @@ interface BookingData {
   custom_service_description?: string | null;
   services?: { name: string } | null;
   booking_add_ons?: { name: string; price: number }[];
+  boat_type?: string | null;
+  boat_length?: string | null;
+  boat_brand?: string | null;
+  aircraft_type?: string | null;
+  tail_number?: string | null;
 }
 
 interface WorkerJobCardProps {
@@ -462,14 +467,20 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
             )}
           </div>
 
-          {/* Vehicle info */}
+          {/* Vehicle / Boat / Aircraft info */}
           <div className="flex items-center gap-2 text-sm">
             <Car className="h-4 w-4 text-muted-foreground shrink-0" />
             <span>
-              {[booking.vehicle_year, booking.vehicle_make, booking.vehicle_model]
-                .filter(Boolean)
-                .join(" ") || "Vehicle info not provided"}
-              {booking.vehicle_type && ` (${booking.vehicle_type})`}
+              {booking.boat_type ? (
+                [booking.boat_type, booking.boat_length && `${booking.boat_length}ft`, booking.boat_brand].filter(Boolean).join(" · ")
+              ) : booking.aircraft_type ? (
+                [booking.aircraft_type, booking.tail_number && `Tail: ${booking.tail_number}`].filter(Boolean).join(" · ")
+              ) : (
+                [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model]
+                  .filter(Boolean)
+                  .join(" ") || "Vehicle info not provided"
+              )}
+              {!booking.boat_type && !booking.aircraft_type && booking.vehicle_type && ` (${booking.vehicle_type})`}
             </span>
           </div>
 

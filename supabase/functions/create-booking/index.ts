@@ -26,6 +26,15 @@ interface CreateBookingRequest {
   vehicle_make?: string | null;
   vehicle_model?: string | null;
 
+  // Boat-specific fields
+  boat_type?: string | null;
+  boat_length?: string | null;
+  boat_brand?: string | null;
+
+  // Aircraft-specific fields
+  aircraft_type?: string | null;
+  tail_number?: string | null;
+
   service_address?: string | null;
   service_city?: string | null;
   service_zip?: string | null;
@@ -252,6 +261,15 @@ const handler = async (req: Request): Promise<Response> => {
       worker_pay_rate: body.worker_pay_rate != null ? Math.min(Math.max(0, Number(body.worker_pay_rate)), 100000) : null,
       tip_amount: body.tip_amount != null ? Math.min(Math.max(0, Number(body.tip_amount)), 10000) : null,
       custom_service_description: sanitize(body.custom_service_description, 500),
+
+      // Boat-specific fields
+      boat_type: sanitize(body.boat_type, 100),
+      boat_length: sanitize(body.boat_length, 20),
+      boat_brand: sanitize(body.boat_brand, 100),
+
+      // Aircraft-specific fields
+      aircraft_type: sanitize(body.aircraft_type, 100),
+      tail_number: sanitize(body.tail_number, 20),
     };
 
     // ── Upsert client record ──

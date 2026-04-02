@@ -227,9 +227,11 @@ export default function WorkerDashboardPage() {
 function UpcomingJobCard({ booking }: { booking: any }) {
   const serviceName = booking.custom_service_description || booking.services?.name || "Detailing Service";
   const customerName = booking.guest_name || "Customer";
-  const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model]
-    .filter(Boolean)
-    .join(" ");
+  const vehicle = booking.boat_type
+    ? [booking.boat_type, booking.boat_length && `${booking.boat_length}ft`, booking.boat_brand].filter(Boolean).join(" · ")
+    : booking.aircraft_type
+    ? [booking.aircraft_type, booking.tail_number && `Tail: ${booking.tail_number}`].filter(Boolean).join(" · ")
+    : [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ");
   const address = [booking.service_address, booking.service_city]
     .filter(Boolean)
     .join(", ");
@@ -269,7 +271,7 @@ function UpcomingJobCard({ booking }: { booking: any }) {
           {vehicle && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Car className="h-3.5 w-3.5 shrink-0" />
-              <span>{vehicle}{booking.vehicle_type ? ` (${booking.vehicle_type})` : ""}</span>
+              <span>{vehicle}{!booking.boat_type && !booking.aircraft_type && booking.vehicle_type ? ` (${booking.vehicle_type})` : ""}</span>
             </div>
           )}
 
