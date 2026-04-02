@@ -297,7 +297,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
     const duration = getServiceDuration(booking);
     const endDate = addMinutes(startDate, duration + BUFFER_MINUTES);
 
-    const title = `${booking.services?.name || "Detailing"} - ${getCustomerName(booking)}`;
+    const title = `${booking.custom_service_description || booking.services?.name || "Detailing"} - ${getCustomerName(booking)}`;
     const location = [booking.service_address, booking.service_city, booking.service_state, booking.service_zip]
       .filter(Boolean)
       .join(", ");
