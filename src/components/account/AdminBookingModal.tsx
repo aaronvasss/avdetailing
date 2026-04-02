@@ -655,7 +655,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             )}
           </div>
 
-          {/* Vehicle Type */}
+          {/* Dynamic Vehicle Fields based on service type */}
           {needsVehicleType && (
             <div>
               <Label>Vehicle Type</Label>
@@ -672,21 +672,57 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           )}
 
-          {/* Vehicle Details */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label>Make</Label>
-              <Input value={form.vehicleMake} onChange={e => handleChange("vehicleMake", e.target.value)} placeholder="Toyota" />
+          {/* Car/RV Vehicle Details */}
+          {showCarVehicleFields && !isBoat && !isAircraft && !isCustomService && (
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Make</Label>
+                <Input value={form.vehicleMake} onChange={e => handleChange("vehicleMake", e.target.value)} placeholder="Toyota" />
+              </div>
+              <div>
+                <Label>Model</Label>
+                <Input value={form.vehicleModel} onChange={e => handleChange("vehicleModel", e.target.value)} placeholder="Camry" />
+              </div>
+              <div>
+                <Label>Year</Label>
+                <Input value={form.vehicleYear} onChange={e => handleChange("vehicleYear", e.target.value)} placeholder="2024" maxLength={4} />
+              </div>
             </div>
-            <div>
-              <Label>Model</Label>
-              <Input value={form.vehicleModel} onChange={e => handleChange("vehicleModel", e.target.value)} placeholder="Camry" />
+          )}
+
+          {/* Boat Details */}
+          {isBoat && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Boat Type *</Label>
+                  <Input value={form.boatType} onChange={e => handleChange("boatType", e.target.value)} placeholder="e.g. Pontoon, Ski Boat, Bass Boat" />
+                </div>
+                <div>
+                  <Label>Boat Length (ft) *</Label>
+                  <Input type="number" value={form.boatLength} onChange={e => handleChange("boatLength", e.target.value)} placeholder="24" />
+                </div>
+              </div>
+              <div>
+                <Label>Boat Make/Brand (optional)</Label>
+                <Input value={form.boatBrand} onChange={e => handleChange("boatBrand", e.target.value)} placeholder="e.g. Tracker, Yamaha, Sea Ray" />
+              </div>
             </div>
-            <div>
-              <Label>Year</Label>
-              <Input value={form.vehicleYear} onChange={e => handleChange("vehicleYear", e.target.value)} placeholder="2024" maxLength={4} />
+          )}
+
+          {/* Aircraft Details */}
+          {isAircraft && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Aircraft Type *</Label>
+                <Input value={form.aircraftType} onChange={e => handleChange("aircraftType", e.target.value)} placeholder="e.g. Cessna 172, Piper, Helicopter" />
+              </div>
+              <div>
+                <Label>Tail Number (optional)</Label>
+                <Input value={form.tailNumber} onChange={e => handleChange("tailNumber", e.target.value)} placeholder="N12345" />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Schedule */}
           <div>
