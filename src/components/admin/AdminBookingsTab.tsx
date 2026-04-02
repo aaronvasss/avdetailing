@@ -446,7 +446,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span>{booking.services?.name || "Detailing"}</span>
+                        <span>{booking.custom_service_description || booking.services?.name || "Detailing"}</span>
                         <span className="text-sm text-muted-foreground">
                           {booking.vehicle_type} {booking.vehicle_make}
                         </span>
