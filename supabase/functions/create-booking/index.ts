@@ -55,6 +55,9 @@ interface CreateBookingRequest {
 
   // Tip amount for cash/in-person payments
   tip_amount?: number | null;
+
+  // Custom service description (when "Custom Service" is selected)
+  custom_service_description?: string | null;
 }
 
 function toDbTime(input: string): string {
