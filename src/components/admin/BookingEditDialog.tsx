@@ -633,7 +633,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     if (!booking) return;
     
     const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
-    const serviceName = booking.services?.name || "Detailing Service";
+    const serviceName = booking.custom_service_description || booking.services?.name || "Detailing Service";
     
     const receiptContent = `
 AV DETAILING - RECEIPT
