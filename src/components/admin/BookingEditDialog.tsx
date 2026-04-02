@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,68 +168,149 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [allAddOns, setAllAddOns] = useState<ServiceAddOn[]>([]);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
 
+  // Draft persistence
+  const [draftSavedVisible, setDraftSavedVisible] = useState(false);
+  const draftRestoredRef = useRef(false);
+  const EDIT_DRAFT_KEY = booking ? `edit-booking-draft-${booking.id}` : "";
+
+  // Save draft to localStorage
+  const saveDraft = useCallback(() => {
+    if (!booking) return;
+    const draft = {
+      scheduledDate: scheduledDate?.toISOString(),
+      scheduledTime, status, paymentStatus, paymentMethod,
+      editGuestName, editGuestEmail, editGuestPhone,
+      editVehicleMake, editVehicleModel, editVehicleYear, editVehicleType,
+      editAddress, editCity, editState, editZip,
+      editTotalPrice, editAssignedWorkerId,
+      editUseCustomPayRate, editCustomPayType, editCustomPayRate,
+      editTipAmount, selectedAddOnIds, newNote,
+    };
+    localStorage.setItem(EDIT_DRAFT_KEY, JSON.stringify(draft));
+    setDraftSavedVisible(true);
+    setTimeout(() => setDraftSavedVisible(false), 2000);
+  }, [
+    booking, EDIT_DRAFT_KEY, scheduledDate, scheduledTime, status, paymentStatus, paymentMethod,
+    editGuestName, editGuestEmail, editGuestPhone,
+    editVehicleMake, editVehicleModel, editVehicleYear, editVehicleType,
+    editAddress, editCity, editState, editZip,
+    editTotalPrice, editAssignedWorkerId,
+    editUseCustomPayRate, editCustomPayType, editCustomPayRate,
+    editTipAmount, selectedAddOnIds, newNote,
+  ]);
+
+  // Auto-save draft on field changes (debounced)
+  useEffect(() => {
+    if (!booking || !draftRestoredRef.current) return;
+    const timer = setTimeout(saveDraft, 500);
+    return () => clearTimeout(timer);
+  }, [saveDraft, booking]);
+
+  // Clear draft helper
+  const clearDraft = () => {
+    if (EDIT_DRAFT_KEY) localStorage.removeItem(EDIT_DRAFT_KEY);
+  };
+
   // Initialize form when booking changes
   useEffect(() => {
     if (booking) {
-      setScheduledDate(parseISO(booking.scheduled_date));
-      setScheduledTime(booking.scheduled_time);
-      setStatus(booking.status);
-      setPaymentStatus(booking.payment_status || "unpaid");
-      setPaymentMethod(booking.payment_method || "in_person");
-      setInternalNotes("");
+      // Check for saved draft
+      const draftKey = `edit-booking-draft-${booking.id}`;
+      const savedDraft = localStorage.getItem(draftKey);
 
-      // Customer — prioritize guest fields (actual customer) over profile (may be admin)
-      const name = booking.guest_name || booking.profile_name || "";
-      setEditGuestName(name);
-      setEditGuestEmail(booking.guest_email || booking.profile_email || "");
-      setEditGuestPhone(booking.guest_phone || booking.profile_phone || "");
-
-      // Vehicle
-      setEditVehicleMake(booking.vehicle_make || "");
-      setEditVehicleModel(booking.vehicle_model || "");
-      setEditVehicleYear(booking.vehicle_year ? String(booking.vehicle_year) : "");
-      setEditVehicleType(booking.vehicle_type || "");
-
-      // Address
-      setEditAddress(booking.service_address || "");
-      setEditCity(booking.service_city || "");
-      setEditState(booking.service_state || "LA");
-      setEditZip(booking.service_zip || "");
-
-      // Price
-      setEditTotalPrice(booking.total_price != null ? String(booking.total_price) : "");
-
-      // Worker assignment
-      setEditAssignedWorkerId(resolveAssignedWorkerUserId(booking.assigned_worker_id, workers) || "unassigned");
-
-      // Pay rate override - only mark as custom if booking has a saved override
-      const bAny = booking as any;
-      if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
-        // Check if booking already has a saved rate - we'll determine if it's custom
-        // after fetching the worker's default
-        setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
-        setEditCustomPayRate(String(bAny.worker_pay_rate));
-      } else {
-        setEditCustomPayType("percentage");
-        setEditCustomPayRate("");
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setScheduledDate(draft.scheduledDate ? new Date(draft.scheduledDate) : parseISO(booking.scheduled_date));
+          setScheduledTime(draft.scheduledTime ?? booking.scheduled_time);
+          setStatus(draft.status ?? booking.status);
+          setPaymentStatus(draft.paymentStatus ?? booking.payment_status ?? "unpaid");
+          setPaymentMethod(draft.paymentMethod ?? booking.payment_method ?? "in_person");
+          setInternalNotes("");
+          setEditGuestName(draft.editGuestName ?? booking.guest_name ?? booking.profile_name ?? "");
+          setEditGuestEmail(draft.editGuestEmail ?? booking.guest_email ?? booking.profile_email ?? "");
+          setEditGuestPhone(draft.editGuestPhone ?? booking.guest_phone ?? booking.profile_phone ?? "");
+          setEditVehicleMake(draft.editVehicleMake ?? booking.vehicle_make ?? "");
+          setEditVehicleModel(draft.editVehicleModel ?? booking.vehicle_model ?? "");
+          setEditVehicleYear(draft.editVehicleYear ?? (booking.vehicle_year ? String(booking.vehicle_year) : ""));
+          setEditVehicleType(draft.editVehicleType ?? booking.vehicle_type ?? "");
+          setEditAddress(draft.editAddress ?? booking.service_address ?? "");
+          setEditCity(draft.editCity ?? booking.service_city ?? "");
+          setEditState(draft.editState ?? booking.service_state ?? "LA");
+          setEditZip(draft.editZip ?? booking.service_zip ?? "");
+          setEditTotalPrice(draft.editTotalPrice ?? (booking.total_price != null ? String(booking.total_price) : ""));
+          setEditAssignedWorkerId(draft.editAssignedWorkerId ?? resolveAssignedWorkerUserId(booking.assigned_worker_id, workers) ?? "unassigned");
+          setEditUseCustomPayRate(draft.editUseCustomPayRate ?? false);
+          setEditCustomPayType(draft.editCustomPayType ?? "percentage");
+          setEditCustomPayRate(draft.editCustomPayRate ?? "");
+          setEditTipAmount(draft.editTipAmount ?? "");
+          setNewNote(draft.newNote ?? "");
+          if (draft.selectedAddOnIds) setSelectedAddOnIds(draft.selectedAddOnIds);
+          draftRestoredRef.current = true;
+        } catch {
+          // Invalid draft, fall through to default init
+          localStorage.removeItem(draftKey);
+        }
       }
-      setEditUseCustomPayRate(false); // Will be set properly after worker profile loads
+
+      if (!savedDraft) {
+        // Default initialization from booking data
+        setScheduledDate(parseISO(booking.scheduled_date));
+        setScheduledTime(booking.scheduled_time);
+        setStatus(booking.status);
+        setPaymentStatus(booking.payment_status || "unpaid");
+        setPaymentMethod(booking.payment_method || "in_person");
+        setInternalNotes("");
+
+        const name = booking.guest_name || booking.profile_name || "";
+        setEditGuestName(name);
+        setEditGuestEmail(booking.guest_email || booking.profile_email || "");
+        setEditGuestPhone(booking.guest_phone || booking.profile_phone || "");
+
+        setEditVehicleMake(booking.vehicle_make || "");
+        setEditVehicleModel(booking.vehicle_model || "");
+        setEditVehicleYear(booking.vehicle_year ? String(booking.vehicle_year) : "");
+        setEditVehicleType(booking.vehicle_type || "");
+
+        setEditAddress(booking.service_address || "");
+        setEditCity(booking.service_city || "");
+        setEditState(booking.service_state || "LA");
+        setEditZip(booking.service_zip || "");
+
+        setEditTotalPrice(booking.total_price != null ? String(booking.total_price) : "");
+
+        setEditAssignedWorkerId(resolveAssignedWorkerUserId(booking.assigned_worker_id, workers) || "unassigned");
+
+        const bAny = booking as any;
+        if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
+          setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
+          setEditCustomPayRate(String(bAny.worker_pay_rate));
+        } else {
+          setEditCustomPayType("percentage");
+          setEditCustomPayRate("");
+        }
+        setEditUseCustomPayRate(false);
+
+        setEditTipAmount((booking as any).tip_amount != null ? String((booking as any).tip_amount) : "");
+        // Mark draft as "restored" (fresh init) so auto-save starts
+        draftRestoredRef.current = true;
+      }
 
       // Fetch worker default pay rate if assigned
       if (booking.assigned_worker_id) {
+        const bAny = booking as any;
         fetchWorkerPayRate(booking.assigned_worker_id, bAny.worker_pay_type, bAny.worker_pay_rate);
       } else {
         setWorkerDefaultPayType("percentage");
         setWorkerDefaultPayRate("");
       }
 
-      // Tip amount
-      setEditTipAmount((booking as any).tip_amount != null ? String((booking as any).tip_amount) : "");
-
       fetchInternalNotes(booking.id);
       fetchAvailableSlots(booking.scheduled_date, booking.id);
       fetchBookingAddOns(booking.id);
       fetchAllAddOns();
+    } else {
+      draftRestoredRef.current = false;
     }
   }, [booking, workers]);
 
@@ -515,6 +596,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       }
     }
 
+    clearDraft();
     onSave();
     onOpenChange(false);
     setSaving(false);
@@ -606,12 +688,17 @@ AV Detailing
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2">
             Edit Booking
             <Badge variant="outline" className="ml-2">
               #{booking.id.slice(0, 8).toUpperCase()}
             </Badge>
+            {draftSavedVisible && (
+              <span className="text-xs font-normal text-muted-foreground animate-in fade-in ml-2">
+                Draft saved
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
