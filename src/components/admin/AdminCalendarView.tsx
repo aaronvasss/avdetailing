@@ -562,7 +562,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 </Badge>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                {booking.scheduled_time.slice(0, 5)} • {booking.services?.name} • {booking.vehicle_type}
+                                {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name} • {booking.vehicle_type}
                                 <span className="ml-2 text-xs">({formatDuration(duration)})</span>
                               </div>
                               <div className="text-sm text-muted-foreground">
