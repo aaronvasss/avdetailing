@@ -379,6 +379,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setSelectedPackageId("");
       setSelectedAddOns([]);
       setForm(prev => ({ ...prev, vehicleType: "" }));
+      if (value === "custom") {
+        setPricingMode("custom");
+      }
     }
     if (field === "vehicleType") {
       setSelectedPackageId("");
