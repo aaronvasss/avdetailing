@@ -38,6 +38,7 @@ interface Booking {
   created_at: string;
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; email: string; phone: string } | null;
+  custom_service_description?: string | null;
 }
 
 interface AdminBookingsTabProps {

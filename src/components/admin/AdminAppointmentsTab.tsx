@@ -83,6 +83,7 @@ interface Booking {
   profile_name?: string | null;
   profile_phone?: string | null;
   profile_email?: string | null;
+  custom_service_description?: string | null;
 }
 
 // Service duration mappings (in minutes)
