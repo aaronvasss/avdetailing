@@ -499,10 +499,24 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create New Booking
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create New Booking
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              {draftSavedVisible && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1 animate-in fade-in">
+                  <Save className="h-3 w-3" />
+                  Draft saved
+                </span>
+              )}
+              <Button type="button" variant="ghost" size="sm" onClick={clearDraft} className="text-xs h-7 px-2">
+                <Trash2 className="h-3 w-3 mr-1" />
+                Clear
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="space-y-5 mt-2">
