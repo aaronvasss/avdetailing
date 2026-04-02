@@ -596,6 +596,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       }
     }
 
+    clearDraft();
     onSave();
     onOpenChange(false);
     setSaving(false);
