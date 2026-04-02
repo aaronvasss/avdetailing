@@ -472,6 +472,15 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
             </span>
           </div>
 
+          {/* Charge amount */}
+          {booking.total_price != null && booking.total_price > 0 && (
+            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
+              <span className="text-sm font-bold text-emerald-400">
+                Charge Customer: ${Number(booking.total_price).toFixed(2)}
+              </span>
+            </div>
+          )}
+
           {/* Add-ons */}
           {addOns.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
