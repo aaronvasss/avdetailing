@@ -1,20 +1,22 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar } from "lucide-react";
+import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+
+type TimeFilter = "today" | "week" | "month" | "all";
 
 export default function WorkerEarningsPage() {
   const [loading, setLoading] = useState(true);
   const [completedBookings, setCompletedBookings] = useState<any[]>([]);
   const [workerProfile, setWorkerProfile] = useState<any>(null);
+  const [activeFilter, setActiveFilter] = useState<TimeFilter>("month");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-
     const workerIdentity = await getCurrentWorkerIdentity();
     if (!workerIdentity) {
       setCompletedBookings([]);
@@ -28,7 +30,6 @@ export default function WorkerEarningsPage() {
       .select("*")
       .eq("user_id", workerIdentity.authUserId)
       .maybeSingle();
-
     setWorkerProfile(wp);
 
     const { data: bookings } = await supabase
@@ -38,8 +39,12 @@ export default function WorkerEarningsPage() {
       .order("scheduled_date", { ascending: false })
       .then(({ data, error }) => {
         if (error) return { data: null, error };
-        // Admin sees all completed; staff sees only their own
-        return { data: workerIdentity.isAdmin ? data : (data || []).filter(b => b.assigned_worker_id === workerIdentity.authUserId), error: null };
+        return {
+          data: workerIdentity.isAdmin
+            ? data
+            : (data || []).filter((b) => b.assigned_worker_id === workerIdentity.authUserId),
+          error: null,
+        };
       });
 
     setCompletedBookings(bookings || []);
@@ -48,21 +53,11 @@ export default function WorkerEarningsPage() {
 
   useEffect(() => {
     fetchData();
-
     const channel = supabase
       .channel("worker-earnings")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bookings" },
-        () => {
-          fetchData();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => fetchData())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [fetchData]);
 
   const today = getBusinessDateString();
@@ -71,47 +66,63 @@ export default function WorkerEarningsPage() {
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-  const todayJobs = completedBookings.filter((b) => b.scheduled_date === today);
-  const weekJobs = completedBookings.filter((b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd);
-  const monthJobs = completedBookings.filter((b) => b.scheduled_date >= monthStart && b.scheduled_date <= monthEnd);
+  const todayJobs = useMemo(() => completedBookings.filter((b) => b.scheduled_date === today), [completedBookings, today]);
+  const weekJobs = useMemo(() => completedBookings.filter((b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd), [completedBookings, weekStart, weekEnd]);
+  const monthJobs = useMemo(() => completedBookings.filter((b) => b.scheduled_date >= monthStart && b.scheduled_date <= monthEnd), [completedBookings, monthStart, monthEnd]);
 
-  // Calculate earnings for a single booking using per-booking override or global rate
-  // Calculate earnings for a single booking using per-booking override or global rate
-  const calcBookingEarnings = (b: any): number => {
+  const calcBookingEarnings = useCallback((b: any): number => {
     const jobValue = Number(b.total_price) || 0;
     if (b.worker_pay_type && b.worker_pay_rate != null) {
-      if (b.worker_pay_type === "percentage") {
-        return jobValue * (Number(b.worker_pay_rate) / 100);
-      }
-      return Number(b.worker_pay_rate);
+      return b.worker_pay_type === "percentage" ? jobValue * (Number(b.worker_pay_rate) / 100) : Number(b.worker_pay_rate);
     }
     if (!workerProfile) return 0;
-    if (workerProfile.pay_type === "percentage") {
-      return jobValue * (workerProfile.pay_rate / 100);
-    }
-    return workerProfile.pay_rate;
-  };
+    return workerProfile.pay_type === "percentage" ? jobValue * (workerProfile.pay_rate / 100) : workerProfile.pay_rate;
+  }, [workerProfile]);
 
-  const calcEarnings = (jobs: any[]) => {
+  const calcEarnings = useCallback((jobs: any[]) => {
     const totalValue = jobs.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
     const earnings = jobs.reduce((sum, b) => sum + calcBookingEarnings(b), 0);
     const tips = jobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
     return { totalValue, earnings, tips };
-  };
+  }, [calcBookingEarnings]);
 
   const getBookingRateLabel = (b: any): string => {
     if (b.worker_pay_type && b.worker_pay_rate != null) {
-      if (b.worker_pay_type === "percentage") return `${b.worker_pay_rate}%`;
-      return `$${Number(b.worker_pay_rate).toFixed(2)} flat`;
+      return b.worker_pay_type === "percentage" ? `${b.worker_pay_rate}%` : `$${Number(b.worker_pay_rate).toFixed(2)} flat`;
     }
     if (!workerProfile) return "—";
-    if (workerProfile.pay_type === "percentage") return `${workerProfile.pay_rate}%`;
-    return `$${workerProfile.pay_rate} flat`;
+    return workerProfile.pay_type === "percentage" ? `${workerProfile.pay_rate}%` : `$${workerProfile.pay_rate} flat`;
   };
 
-  const todayEarnings = calcEarnings(todayJobs);
-  const weekEarnings = calcEarnings(weekJobs);
-  const monthEarnings = calcEarnings(monthJobs);
+  const todayEarnings = useMemo(() => calcEarnings(todayJobs), [calcEarnings, todayJobs]);
+  const weekEarnings = useMemo(() => calcEarnings(weekJobs), [calcEarnings, weekJobs]);
+  const monthEarnings = useMemo(() => calcEarnings(monthJobs), [calcEarnings, monthJobs]);
+  const allEarnings = useMemo(() => calcEarnings(completedBookings), [calcEarnings, completedBookings]);
+
+  const filteredJobs = useMemo(() => {
+    switch (activeFilter) {
+      case "today": return todayJobs;
+      case "week": return weekJobs;
+      case "month": return monthJobs;
+      case "all": return completedBookings;
+    }
+  }, [activeFilter, todayJobs, weekJobs, monthJobs, completedBookings]);
+
+  const filteredEarnings = useMemo(() => {
+    switch (activeFilter) {
+      case "today": return todayEarnings;
+      case "week": return weekEarnings;
+      case "month": return monthEarnings;
+      case "all": return allEarnings;
+    }
+  }, [activeFilter, todayEarnings, weekEarnings, monthEarnings, allEarnings]);
+
+  const filterTabs: { key: TimeFilter; label: string }[] = [
+    { key: "today", label: "Today" },
+    { key: "week", label: "This Week" },
+    { key: "month", label: "This Month" },
+    { key: "all", label: "All Time" },
+  ];
 
   if (loading) {
     return (
@@ -123,6 +134,30 @@ export default function WorkerEarningsPage() {
     );
   }
 
+  const StatCard = ({ icon: Icon, label, jobs, earnings }: { icon: any; label: string; jobs: any[]; earnings: { earnings: number; tips: number } }) => (
+    <Card>
+      <CardContent className="pt-4 pb-3 px-4">
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <Icon className="h-3 w-3" /> {label}
+        </div>
+        <p className="text-2xl font-bold mt-1">{jobs.length}</p>
+        <p className="text-xs text-muted-foreground">jobs</p>
+        {workerProfile && (
+          <>
+            <p className="text-sm font-semibold text-primary mt-1">
+              ${earnings.earnings.toFixed(2)}
+            </p>
+            {earnings.tips > 0 && (
+              <p className="text-xs text-emerald-600 font-medium">
+                +${earnings.tips.toFixed(2)} tips
+              </p>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <WorkerLayout>
       <div className="space-y-4">
@@ -133,63 +168,10 @@ export default function WorkerEarningsPage() {
 
         {/* Stats cards */}
         <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="pt-4 pb-3 px-4">
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="h-3 w-3" /> Today
-              </div>
-              <p className="text-2xl font-bold mt-1">{todayJobs.length}</p>
-              <p className="text-xs text-muted-foreground">jobs</p>
-              {workerProfile && (
-                <p className="text-sm font-semibold text-primary mt-1">
-                  ${(todayEarnings.earnings + todayEarnings.tips).toFixed(2)}
-                  {todayEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${todayEarnings.tips.toFixed(0)} tips)</span>}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-3 px-4">
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Briefcase className="h-3 w-3" /> This Week
-              </div>
-              <p className="text-2xl font-bold mt-1">{weekJobs.length}</p>
-              <p className="text-xs text-muted-foreground">jobs</p>
-              {workerProfile && (
-                <p className="text-sm font-semibold text-primary mt-1">
-                  ${(weekEarnings.earnings + weekEarnings.tips).toFixed(2)}
-                  {weekEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${weekEarnings.tips.toFixed(0)} tips)</span>}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-3 px-4">
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> This Month
-              </div>
-              <p className="text-2xl font-bold mt-1">{monthJobs.length}</p>
-              <p className="text-xs text-muted-foreground">jobs</p>
-              {workerProfile && (
-                <p className="text-sm font-semibold text-primary mt-1">
-                  ${(monthEarnings.earnings + monthEarnings.tips).toFixed(2)}
-                  {monthEarnings.tips > 0 && <span className="text-xs text-emerald-600 ml-1">(+${monthEarnings.tips.toFixed(0)} tips)</span>}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4 pb-3 px-4">
-              <div className="text-xs text-muted-foreground">Monthly Value</div>
-              <p className="text-2xl font-bold mt-1">
-                ${monthEarnings.totalValue.toFixed(0)}
-              </p>
-              <p className="text-xs text-muted-foreground">total service value</p>
-            </CardContent>
-          </Card>
+          <StatCard icon={Calendar} label="Today" jobs={todayJobs} earnings={todayEarnings} />
+          <StatCard icon={Briefcase} label="This Week" jobs={weekJobs} earnings={weekEarnings} />
+          <StatCard icon={TrendingUp} label="This Month" jobs={monthJobs} earnings={monthEarnings} />
+          <StatCard icon={Star} label="All Time" jobs={completedBookings} earnings={allEarnings} />
         </div>
 
         {/* Pay rate info */}
@@ -206,13 +188,56 @@ export default function WorkerEarningsPage() {
           </Card>
         )}
 
+        {/* Time filter tabs */}
+        <div className="flex gap-1 bg-card border border-border/50 rounded-lg p-1">
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFilter(tab.key)}
+              className={`flex-1 text-xs font-medium py-2 px-2 rounded-md transition-colors ${
+                activeFilter === tab.key
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Earnings summary bar */}
+        {workerProfile && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="py-3 px-4">
+              <div className="flex items-center justify-between text-sm">
+                <div className="text-center flex-1">
+                  <p className="text-xs text-muted-foreground">Base Pay</p>
+                  <p className="font-bold">${filteredEarnings.earnings.toFixed(2)}</p>
+                </div>
+                <div className="w-px h-8 bg-border" />
+                <div className="text-center flex-1">
+                  <p className="text-xs text-muted-foreground">Tips</p>
+                  <p className="font-bold text-emerald-600">${filteredEarnings.tips.toFixed(2)}</p>
+                </div>
+                <div className="w-px h-8 bg-border" />
+                <div className="text-center flex-1">
+                  <p className="text-xs text-muted-foreground">Total Earned</p>
+                  <p className="font-bold text-primary">${(filteredEarnings.earnings + filteredEarnings.tips).toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Completed jobs list */}
         <div className="space-y-2">
-          <h2 className="font-semibold text-sm text-muted-foreground">Completed Jobs</h2>
-          {completedBookings.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No completed jobs yet</p>
+          <h2 className="font-semibold text-sm text-muted-foreground">
+            {activeFilter === "all" ? "All" : filterTabs.find((t) => t.key === activeFilter)?.label} — {filteredJobs.length} job{filteredJobs.length !== 1 ? "s" : ""}
+          </h2>
+          {filteredJobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No completed jobs for this period</p>
           ) : (
-            completedBookings.slice(0, 50).map((b) => {
+            filteredJobs.slice(0, 50).map((b) => {
               const earnings = calcBookingEarnings(b);
               const rateLabel = getBookingRateLabel(b);
               const hasOverride = b.worker_pay_type && b.worker_pay_rate != null;
@@ -221,28 +246,26 @@ export default function WorkerEarningsPage() {
                 <Card key={b.id}>
                   <CardContent className="py-3 px-4 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">{b.custom_service_description || (b.services as any)?.name || "Service"}</p>
+                      <p className="text-sm font-medium">
+                        {b.custom_service_description || (b.services as any)?.name || "Service"}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(b.scheduled_date), "MMM d, yyyy")}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Rate: {rateLabel}
-                        {hasOverride && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Custom</Badge>}
+                        {hasOverride && (
+                          <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Custom</Badge>
+                        )}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold">${(Number(b.total_price) || 0).toFixed(2)}</p>
-                      <p className="text-xs text-primary font-medium">
-                        Pay: ${earnings.toFixed(2)}
-                      </p>
+                      <p className="text-xs text-primary font-medium">Pay: ${earnings.toFixed(2)}</p>
                       {tipAmount > 0 && (
-                        <p className="text-xs text-emerald-600 font-medium">
-                          Tip: ${tipAmount.toFixed(2)}
-                        </p>
+                        <p className="text-xs text-emerald-600 font-medium">Tip: ${tipAmount.toFixed(2)}</p>
                       )}
-                      <p className="text-xs font-bold mt-0.5">
-                        Total: ${(earnings + tipAmount).toFixed(2)}
-                      </p>
+                      <p className="text-xs font-bold mt-0.5">Total: ${(earnings + tipAmount).toFixed(2)}</p>
                     </div>
                   </CardContent>
                 </Card>
