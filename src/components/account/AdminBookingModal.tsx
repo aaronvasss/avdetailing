@@ -66,7 +66,7 @@ interface PackageDef {
 
 const carPackages: PackageDef[] = [
   { id: "exterior", label: "Exterior Only", prices: { small: 75, large: 85 } },
-  { id: "basic", label: "Basic", prices: { small: 120, large: 130 } },
+  { id: "basic", label: "Basic", prices: { small: 130, large: 130 } },
   { id: "silver", label: "Silver", prices: { small: 190, large: 200 } },
   { id: "gold", label: "Gold", prices: { small: 295, large: 320 } },
 ];

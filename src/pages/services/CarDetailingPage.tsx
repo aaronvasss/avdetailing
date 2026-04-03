@@ -33,7 +33,7 @@ const CarDetailingPage = () => {
         },
         {
           name: "Basic Package",
-          price: "$120+",
+          price: "$130+",
           description: "Perfect for regular maintenance",
           features: [
             "Hand wash & dry",
