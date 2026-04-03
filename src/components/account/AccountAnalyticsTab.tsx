@@ -15,7 +15,7 @@ import {
   AreaChart, Area,
   PieChart as RechartsPieChart, Pie, Cell,
 } from "recharts";
-import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, isAfter } from "date-fns";
+import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, isAfter, isBefore } from "date-fns";
 
 interface Booking {
   id: string;
