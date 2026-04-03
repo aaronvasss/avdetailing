@@ -119,10 +119,10 @@ export function AccountAnalyticsTab() {
     });
   }, [bookings, dateRange]);
 
-  // Helper: is a booking "paid/completed" for revenue purposes
-  const isPaidBooking = (b: Booking) =>
-    b.status !== "cancelled" &&
-    ["paid", "completed"].includes(b.payment_status || "");
+  // Helper: a booking counts for revenue if it's completed or confirmed (not cancelled)
+  // Most bookings have payment_status 'unpaid' even after completion, so we use status field
+  const isRevenueBooking = (b: Booking) =>
+    ["completed", "confirmed"].includes(b.status);
 
   const completed = filtered.filter(isPaidBooking);
 
