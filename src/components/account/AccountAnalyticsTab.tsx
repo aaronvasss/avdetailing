@@ -15,18 +15,20 @@ import {
   AreaChart, Area,
   PieChart as RechartsPieChart, Pie, Cell,
 } from "recharts";
-import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, isAfter } from "date-fns";
+import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, isAfter, isBefore } from "date-fns";
 
 interface Booking {
   id: string;
   scheduled_date: string;
   total_price: number | null;
   status: string;
+  payment_status: string | null;
   payment_method: string | null;
   created_at: string;
   guest_email: string | null;
   guest_name: string | null;
   user_id: string | null;
+  client_id: string | null;
   services: { name: string; category: string } | null;
 }
 
@@ -69,7 +71,7 @@ export function AccountAnalyticsTab() {
       const [bookingsRes, membershipsRes, clientsRes, settingsRes, reviewSmsRes] = await Promise.all([
         supabase
           .from("bookings")
-          .select("id, scheduled_date, total_price, status, payment_method, created_at, guest_email, guest_name, user_id, services (name, category)")
+          .select("id, scheduled_date, total_price, status, payment_status, payment_method, created_at, guest_email, guest_name, user_id, client_id, services (name, category)")
           .order("scheduled_date", { ascending: true }),
         supabase
           .from("customer_memberships")
@@ -117,40 +119,73 @@ export function AccountAnalyticsTab() {
     });
   }, [bookings, dateRange]);
 
-  const completed = filtered.filter(b => b.status === "completed" || b.status === "confirmed");
+  // Helper: is a booking "paid/completed" for revenue purposes
+  const isPaidBooking = (b: Booking) =>
+    b.status !== "cancelled" &&
+    ["paid", "completed"].includes(b.payment_status || "");
+
+  const completed = filtered.filter(isPaidBooking);
 
   // KPIs
   const totalRevenue = completed.reduce((s, b) => s + (b.total_price || 0), 0);
-  const thisMonthStart = startOfMonth(new Date());
-  const thisWeekStart = startOfWeek(new Date());
+  const now = new Date();
+  const thisMonthStart = startOfMonth(now);
+  const thisMonthEnd = endOfMonth(now);
+  const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+  const thisWeekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
+
+  // Revenue This Month: paid bookings with scheduled_date in current calendar month
   const revenueThisMonth = bookings
-    .filter(b => (b.status === "completed" || b.status === "confirmed") && parseISO(b.scheduled_date) >= thisMonthStart)
-    .reduce((s, b) => s + (b.total_price || 0), 0);
-  const revenueThisWeek = bookings
-    .filter(b => (b.status === "completed" || b.status === "confirmed") && parseISO(b.scheduled_date) >= thisWeekStart)
+    .filter(b => {
+      const d = parseISO(b.scheduled_date);
+      return isPaidBooking(b) && d >= thisMonthStart && d <= thisMonthEnd;
+    })
     .reduce((s, b) => s + (b.total_price || 0), 0);
 
-  const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
-  const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
-  const bookingsThisMonth = bookings.filter(b => parseISO(b.scheduled_date) >= thisMonthStart && b.status !== "cancelled").length;
+  // Revenue This Week: paid bookings with scheduled_date in current Mon–Sun
+  const revenueThisWeek = bookings
+    .filter(b => {
+      const d = parseISO(b.scheduled_date);
+      return isPaidBooking(b) && d >= thisWeekStart && d <= thisWeekEnd;
+    })
+    .reduce((s, b) => s + (b.total_price || 0), 0);
+
+  const lastMonthStart = startOfMonth(subMonths(now, 1));
+  const lastMonthEnd = endOfMonth(subMonths(now, 1));
+
+  // Bookings This Month: ALL bookings scheduled this month (any status)
+  const bookingsThisMonth = bookings.filter(b => {
+    const d = parseISO(b.scheduled_date);
+    return d >= thisMonthStart && d <= thisMonthEnd;
+  }).length;
+
   const bookingsLastMonth = bookings.filter(b => {
     const d = parseISO(b.scheduled_date);
-    return d >= lastMonthStart && d <= lastMonthEnd && b.status !== "cancelled";
+    return d >= lastMonthStart && d <= lastMonthEnd;
   }).length;
 
   const activeMemberships = memberships.filter(m => m.status === "active").length;
 
-  // New customers this month
-  const newCustomersThisMonth = bookings.filter(b => {
-    const created = parseISO(b.created_at);
-    return created >= thisMonthStart;
-  }).reduce((acc, b) => {
-    const key = b.guest_email || b.user_id || b.guest_name;
-    if (key && !acc.has(key)) acc.add(key);
-    return acc;
-  }, new Set()).size;
+  // New customers this month: customers whose FIRST-EVER booking scheduled_date is this month
+  const newCustomersThisMonth = useMemo(() => {
+    // Group all bookings by customer identifier, find each customer's earliest booking
+    const customerFirstBooking: Record<string, string> = {};
+    bookings.forEach(b => {
+      const key = b.client_id || b.user_id || b.guest_email || b.guest_name;
+      if (!key) return;
+      const existing = customerFirstBooking[key];
+      if (!existing || b.scheduled_date < existing) {
+        customerFirstBooking[key] = b.scheduled_date;
+      }
+    });
+    // Count customers whose first booking is in this month
+    return Object.values(customerFirstBooking).filter(firstDate => {
+      const d = parseISO(firstDate);
+      return d >= thisMonthStart && d <= thisMonthEnd;
+    }).length;
+  }, [bookings]);
 
-  // Revenue by service type
+  // Revenue by service type — respect date filter
   const serviceRevenue = useMemo(() => {
     const map: Record<string, { revenue: number; count: number }> = {};
     completed.forEach(b => {
@@ -161,10 +196,10 @@ export function AccountAnalyticsTab() {
     });
     return Object.entries(map)
       .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue);
+      .sort((a, b) => b.count - a.count); // sort by count for "most booked"
   }, [completed]);
 
-  // Most booked service
+  // Most booked service (by count, from filtered data)
   const mostBookedService = serviceRevenue[0]?.name || "N/A";
 
   // Most booked day of week
@@ -178,13 +213,13 @@ export function AccountAnalyticsTab() {
     return days[maxIdx] || "N/A";
   }, [filtered]);
 
-  // Revenue chart by day (last 30 days)
+  // Revenue chart by day (last 30 days) — use payment_status
   const dailyRevenue = useMemo(() => {
     const days = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
     return days.map(day => {
       const dayStr = format(day, "yyyy-MM-dd");
       const dayBookings = bookings.filter(b =>
-        b.scheduled_date === dayStr && (b.status === "completed" || b.status === "confirmed")
+        b.scheduled_date === dayStr && isPaidBooking(b)
       );
       return {
         date: format(day, "MMM d"),
