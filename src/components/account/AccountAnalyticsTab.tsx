@@ -22,11 +22,13 @@ interface Booking {
   scheduled_date: string;
   total_price: number | null;
   status: string;
+  payment_status: string | null;
   payment_method: string | null;
   created_at: string;
   guest_email: string | null;
   guest_name: string | null;
   user_id: string | null;
+  client_id: string | null;
   services: { name: string; category: string } | null;
 }
 
