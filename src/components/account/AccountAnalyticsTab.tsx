@@ -71,7 +71,7 @@ export function AccountAnalyticsTab() {
       const [bookingsRes, membershipsRes, clientsRes, settingsRes, reviewSmsRes] = await Promise.all([
         supabase
           .from("bookings")
-          .select("id, scheduled_date, total_price, status, payment_method, created_at, guest_email, guest_name, user_id, services (name, category)")
+          .select("id, scheduled_date, total_price, status, payment_status, payment_method, created_at, guest_email, guest_name, user_id, client_id, services (name, category)")
           .order("scheduled_date", { ascending: true }),
         supabase
           .from("customer_memberships")
