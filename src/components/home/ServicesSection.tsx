@@ -10,49 +10,58 @@ import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 const services = [
   {
     icon: Car,
-    title: "Car Detailing",
+    title: "Mobile Car Detailing",
+    heading: "Mobile Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks.",
     href: "/services/car-detailing",
     image: carDetailingImage,
+    alt: "Mobile car detailing service in Baton Rouge Louisiana",
   },
   {
     icon: Droplets,
     title: "Ceramic Coating",
+    heading: "Ceramic Coating & Paint Protection",
     description: "Long-lasting paint protection with professional-grade ceramic coating.",
     href: "/services/ceramic-coating",
     image: ceramicCoatingImage,
+    alt: "AV Detailing ceramic coating application on vehicle",
   },
   {
     icon: null,
     customIcon: polisherIcon,
     title: "Paint Correction",
+    heading: "Paint Correction",
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/services/paint-correction",
     image: paintCorrectionImage,
+    alt: "Professional paint correction service removing swirls and scratches",
   },
   {
     icon: Ship,
     title: "Boat Detailing",
+    heading: "Boat & Marine Detailing",
     description: "Marine-grade detailing to protect your vessel from the elements.",
     href: "/services/boat-detailing",
-    // Speedboat on water - clean hull and deck visible
     image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=800&auto=format&fit=crop",
+    alt: "Boat detailing service in Louisiana",
   },
   {
     icon: Caravan,
     title: "RV Detailing",
+    heading: "RV Detailing",
     description: "Comprehensive detailing for motorhomes and travel trailers of all sizes.",
     href: "/services/rv-detailing",
-    // User's custom RV photo - Tiffin motorhome
     image: rvDetailingImage,
+    alt: "RV and motorhome detailing service in Louisiana",
   },
   {
     icon: Plane,
     title: "Aircraft Detailing",
+    heading: "Aircraft Detailing",
     description: "Precision detailing for private aircraft with aviation-approved products.",
     href: "/services/aircraft-detailing",
-    // Private jet on ground - aircraft detailing context
     image: "https://images.unsplash.com/photo-1474302770737-173ee21bab63?q=80&w=800&auto=format&fit=crop",
+    alt: "Aircraft detailing service for private planes in Baton Rouge",
   },
 ];
 
@@ -90,8 +99,11 @@ export function ServicesSection() {
               <div className="aspect-[4/3] overflow-hidden">
                 <img
                   src={service.image}
-                  alt={service.title}
+                  alt={service.alt}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                  width={800}
+                  height={600}
                 />
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
@@ -111,7 +123,7 @@ export function ServicesSection() {
                       service.icon && <service.icon className="h-5 w-5 text-primary" />
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold">{service.title}</h3>
+                  <h3 className="text-xl font-semibold">{service.heading}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
                   {service.description}

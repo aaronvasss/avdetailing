@@ -7,11 +7,13 @@ export function HeroSection() {
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=80&w=2000&auto=format&fit=crop')`,
-          }}
+        <img
+          src="https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=80&w=2000&auto=format&fit=crop"
+          alt="Premium mobile car detailing service in Baton Rouge Louisiana"
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+          width={2000}
+          height={1333}
         />
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/60" />
@@ -29,11 +31,11 @@ export function HeroSection() {
             </span>
           </div>
 
-          {/* Headline */}
+          {/* Headline - Single H1 */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6 animate-fade-in-up">
             Premium Mobile
             <span className="block text-primary">Detailing</span>
-            <span className="block">That Comes to You</span>
+            <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2 font-semibold text-muted-foreground">in Baton Rouge, Louisiana</span>
           </h1>
 
           {/* Subheadline */}

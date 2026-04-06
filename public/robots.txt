@@ -19,5 +19,6 @@ Disallow: /booking/manage
 Disallow: /booking/cancel
 Disallow: /booking/canceled
 Disallow: /auth
+Disallow: /unauthorized
 
-Sitemap: https://avdetailing.lovable.app/sitemap.xml
+Sitemap: https://avdetailing.net/sitemap.xml
