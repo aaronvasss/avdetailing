@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE_URL = "https://avdetailing.lovable.app";
+const SITE_URL = "https://avdetailing.net";
 
 interface JsonLdProps {
   data: Record<string, unknown> | Record<string, unknown>[];
@@ -18,15 +18,16 @@ export function JsonLd({ data }: JsonLdProps) {
 export function localBusinessSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "AutoDetailingService",
+    "@type": "LocalBusiness",
     "@id": `${SITE_URL}/#business`,
     name: "AV Detailing",
     description:
-      "Professional mobile auto detailing services in Baton Rouge, Louisiana. Car, boat, RV & aircraft detailing with ceramic coating and paint correction.",
+      "Premium mobile detailing for cars, boats, RVs, and aircraft in Baton Rouge, Louisiana.",
     url: SITE_URL,
-    telephone: "+12255216264",
+    telephone: "+12252284796",
     email: "aaronvasquez@avdetailingg.com",
     areaServed: [
+      { "@type": "State", name: "Louisiana" },
       { "@type": "City", name: "Baton Rouge", addressRegion: "LA" },
       { "@type": "City", name: "Prairieville", addressRegion: "LA" },
       { "@type": "City", name: "Gonzales", addressRegion: "LA" },
@@ -52,6 +53,7 @@ export function localBusinessSchema() {
       bestRating: "5",
     },
     priceRange: "$$",
+    openingHours: "Mo-Sa 08:00-18:00",
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
@@ -60,7 +62,10 @@ export function localBusinessSchema() {
         closes: "18:00",
       },
     ],
-    sameAs: [],
+    sameAs: [
+      "https://www.instagram.com/avdetailing",
+      "https://www.facebook.com/avdetailing",
+    ],
     image: `${SITE_URL}/favicon.png`,
     hasOfferCatalog: {
       "@type": "OfferCatalog",

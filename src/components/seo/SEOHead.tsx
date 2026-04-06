@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE_URL = "https://avdetailing.lovable.app";
-const DEFAULT_OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/Wo38gJlUZqQ8QC7fi8uoXDMCU7g2/social-images/social-1768941027239- av etailing negro .png";
+const SITE_URL = "https://avdetailing.net";
+const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
 
 interface SEOHeadProps {
   title: string;

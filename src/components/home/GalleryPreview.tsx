@@ -14,6 +14,8 @@ const beforeAfterImages = [
     before: carDetailBefore,
     after: carDetailAfter,
     title: "Full Detail - Range Rover Biography",
+    altBefore: "Range Rover before mobile detailing service in Baton Rouge",
+    altAfter: "Range Rover after full detail by AV Detailing Baton Rouge",
   },
   {
     id: 2,
@@ -21,6 +23,8 @@ const beforeAfterImages = [
     before: boatDetailBefore,
     after: boatDetailAfter,
     title: "Marine Detail - Yacht Restoration",
+    altBefore: "Yacht before marine detailing service in Louisiana",
+    altAfter: "Yacht after professional boat detailing by AV Detailing",
   },
   {
     id: 3,
@@ -28,6 +32,8 @@ const beforeAfterImages = [
     before: paintCorrectionBefore,
     after: paintCorrectionAfter,
     title: "Paint Correction - Porsche 911",
+    altBefore: "Porsche 911 paint with swirls before paint correction",
+    altAfter: "Porsche 911 after professional paint correction by AV Detailing",
   },
 ];
 
@@ -78,8 +84,11 @@ export function GalleryPreview() {
               {/* After Image (Full) */}
               <img
                 src={item.after}
-                alt={`${item.title} - After`}
+                alt={item.altAfter}
                 className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                width={800}
+                height={600}
               />
 
               {/* Before Image (Clipped) */}
@@ -91,8 +100,11 @@ export function GalleryPreview() {
               >
                 <img
                   src={item.before}
-                  alt={`${item.title} - Before`}
+                  alt={item.altBefore}
                   className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                  width={800}
+                  height={600}
                 />
               </div>
 
