@@ -39,7 +39,7 @@ import WorkerEarningsPage from "./pages/WorkerEarningsPage";
 import WorkerProfilePage from "./pages/WorkerProfilePage";
 import WorkerChatPage from "./pages/WorkerChatPage";
 import RatingPage from "./pages/RatingPage";
-import { GhlChatWidget } from "./components/GhlChatWidget";
+
 
 const queryClient = new QueryClient();
 
@@ -123,7 +123,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <GhlChatWidget />
+          
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

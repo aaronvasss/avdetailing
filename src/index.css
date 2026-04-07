@@ -190,12 +190,7 @@
   }
 }
 
-/* GHL Chat Widget */
-.ghl-widget-hidden #chat-widget-container,
-.ghl-widget-hidden .chat-widget-container,
-.ghl-widget-hidden [data-widget-id] {
-  display: none !important;
-}
+
 
 #chat-widget-container {
   width: 56px !important;
