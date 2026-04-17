@@ -19,7 +19,18 @@ import {
   MoreVertical,
   DollarSign,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse as parseDate } from "date-fns";
+
+function formatTime12h(time: string): string {
+  if (!time) return "";
+  for (const fmt of ["HH:mm:ss", "HH:mm"]) {
+    try {
+      const d = parseDate(time, fmt, new Date());
+      if (!isNaN(d.getTime())) return format(d, "h:mm a");
+    } catch {}
+  }
+  return time;
+}
 import { downloadICS, createBookingCalendarEvent, generateGoogleCalendarUrl } from "@/lib/calendar";
 import { toast } from "sonner";
 
@@ -183,7 +194,7 @@ export function AppointmentCard({
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {booking.scheduled_time}
+                    {formatTime12h(booking.scheduled_time)}
                   </span>
                   {vehicle && (
                     <span className="flex items-center gap-1 truncate">
@@ -293,7 +304,7 @@ export function AppointmentCard({
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4 text-primary/70" />
-            <span>{booking.scheduled_time}</span>
+            <span>{formatTime12h(booking.scheduled_time)}</span>
           </div>
           {vehicle && (
             <div className="flex items-center gap-2 text-muted-foreground">
