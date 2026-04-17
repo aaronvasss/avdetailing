@@ -10,7 +10,18 @@ import {
   Plus,
   CalendarDays,
 } from "lucide-react";
-import { format, isAfter, startOfToday } from "date-fns";
+import { format, isAfter, startOfToday, parse as parseDate } from "date-fns";
+
+function formatTime12h(time: string): string {
+  if (!time) return "";
+  for (const fmt of ["HH:mm:ss", "HH:mm"]) {
+    try {
+      const d = parseDate(time, fmt, new Date());
+      if (!isNaN(d.getTime())) return format(d, "h:mm a");
+    } catch {}
+  }
+  return time;
+}
 import { AppointmentCard, Booking } from "./AppointmentCard";
 import { AppointmentsCalendarView } from "./AppointmentsCalendarView";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
@@ -171,7 +182,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Clock className="h-4 w-4" />
-                    {nextAppointment.scheduled_time}
+                    {formatTime12h(nextAppointment.scheduled_time)}
                   </span>
                 </div>
               </div>
