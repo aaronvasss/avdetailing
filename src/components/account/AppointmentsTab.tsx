@@ -81,7 +81,8 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         services (name, description),
         booking_add_ons (id, name, price)
       `)
-      .order("scheduled_date", { ascending: true });
+      .order("scheduled_date", { ascending: true })
+      .order("scheduled_time", { ascending: true });
 
     // Admins see ALL bookings, regular users see only their own
     if (!isAdmin) {
