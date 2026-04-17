@@ -61,6 +61,12 @@ export function AppointmentsCalendarView({
       }
       map.get(dateKey)!.push(booking);
     });
+    // Sort each day's bookings chronologically by start time
+    map.forEach((dayBookings) => {
+      dayBookings.sort((a, b) =>
+        (a.scheduled_time || "").localeCompare(b.scheduled_time || "")
+      );
+    });
     return map;
   }, [bookings]);
 
