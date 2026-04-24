@@ -59,10 +59,9 @@ export function Header() {
       <nav className="container-custom">
         <div className="flex items-center justify-between h-16 lg:h-20 gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0">
-            <span className="text-2xl lg:text-3xl font-bold tracking-tight leading-none">
-              <span className="text-foreground">AV</span>
-              <span className="text-primary"> DETAILING</span>
+          <Link to="/" className="flex items-center shrink-0" aria-label="AV Detailing home">
+            <span className="text-2xl lg:text-3xl font-bold tracking-tight leading-none text-primary">
+              AV Detailing
             </span>
           </Link>
 
