@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { sendContactEmail } from "@/lib/email";
 import { contactFormSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
+import { supabase } from "@/integrations/supabase/client";
 
 const services = [
   "Car Detailing",
@@ -72,6 +73,19 @@ const ContactPage = () => {
     setIsSubmitting(true);
 
     try {
+      const { error: contactError } = await supabase
+        .from("contacts" as never)
+        .insert({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          phone: formData.phone,
+          service: formData.service,
+          message: formData.message,
+          source: "contact_form",
+        } as never);
+
+      if (contactError) throw contactError;
+
       await sendContactEmail({
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
