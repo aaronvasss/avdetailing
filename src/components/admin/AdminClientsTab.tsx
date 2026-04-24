@@ -21,7 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FileSpreadsheet, Check, AlertCircle, Users, ArrowRight, Loader2, List } from "lucide-react";
+import { Upload, FileSpreadsheet, Check, AlertCircle, Users, ArrowRight, Loader2, List, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientsListView } from "./ClientsListView";
@@ -93,6 +93,7 @@ export function AdminClientsTab() {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [fieldMapping, setFieldMapping] = useState<FieldMapping>({});
   const [importing, setImporting] = useState(false);
+  const [exportingContacts, setExportingContacts] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -325,6 +326,58 @@ export function AdminClientsTab() {
     setFileName("");
   };
 
+  const escapeCsvValue = (value: string | null | undefined) => {
+    const stringValue = value ?? "";
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  };
+
+  const handleExportContacts = async () => {
+    setExportingContacts(true);
+
+    try {
+      const allContacts: Array<{ name: string | null; email: string | null; phone: string | null }> = [];
+      const pageSize = 1000;
+
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await (supabase as any)
+          .from("contacts")
+          .select("name,email,phone")
+          .order("created_at", { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        allContacts.push(...(data ?? []));
+        if (!data || data.length < pageSize) break;
+      }
+
+      const csvRows = [
+        "Name,Email,Phone",
+        ...allContacts.map((contact) => [
+          escapeCsvValue(contact.name),
+          escapeCsvValue(contact.email),
+          escapeCsvValue(contact.phone),
+        ].join(",")),
+      ];
+
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "av-detailing-contacts.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Contacts exported successfully");
+    } catch (error) {
+      console.error("Contact export error:", error);
+      toast.error("Failed to export contacts");
+    } finally {
+      setExportingContacts(false);
+    }
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
       <TabsList className="grid w-full grid-cols-2 max-w-md">
@@ -339,7 +392,19 @@ export function AdminClientsTab() {
       </TabsList>
 
       <TabsContent value="list">
-        <ClientsListView />
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={handleExportContacts} disabled={exportingContacts}>
+              {exportingContacts ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Export Contacts
+            </Button>
+          </div>
+          <ClientsListView />
+        </div>
       </TabsContent>
 
       <TabsContent value="import">
