@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
-  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye, Phone,
+  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye, Phone, Download,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +70,7 @@ export function ClientsListView() {
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [deleteClient, setDeleteClient] = useState<Client | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
