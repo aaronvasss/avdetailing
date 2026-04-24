@@ -415,10 +415,20 @@ export function ClientsListView() {
                 {totalCount} total customers in your database
               </CardDescription>
             </div>
-            <Button onClick={handleAdd} className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Customer
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button onClick={handleExportCsv} disabled={exporting} className="w-full sm:w-auto">
+                {exporting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Export CSV
+              </Button>
+              <Button onClick={handleAdd} className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Customer
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
