@@ -62,7 +62,7 @@ export function Header() {
           <Link to="/" className="flex items-center shrink-0" aria-label="AV Detailing home">
             <span className="text-2xl lg:text-3xl font-bold tracking-tight leading-none">
               <span className="text-foreground">AV</span>{" "}
-              <span className="text-primary">Detailing</span>
+              <span className="text-primary">DETAILING</span>
             </span>
           </Link>
 
