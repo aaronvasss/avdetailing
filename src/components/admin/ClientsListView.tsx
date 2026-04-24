@@ -322,6 +322,59 @@ export function ClientsListView() {
     }
   };
 
+  const escapeCsvValue = (value: string | number | null | undefined) => {
+    const stringValue = value ?? "";
+    return `"${String(stringValue).replace(/"/g, '""')}"`;
+  };
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const allClients: Client[] = [];
+      const pageSize = 1000;
+
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+          .from("clients")
+          .select("first_name,last_name,full_name,email,phone,notes,created_at")
+          .order("created_at", { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        allClients.push(...((data ?? []) as Client[]));
+        if (!data || data.length < pageSize) break;
+      }
+
+      const csvRows = [
+        "Name,Email,Phone,Vehicle Type,Notes,Created Date",
+        ...allClients.map((client) => [
+          escapeCsvValue(getDisplayName(client)),
+          escapeCsvValue(client.email),
+          escapeCsvValue(client.phone),
+          escapeCsvValue(""),
+          escapeCsvValue(client.notes),
+          escapeCsvValue(client.created_at ? format(new Date(client.created_at), "yyyy-MM-dd") : ""),
+        ].join(",")),
+      ];
+
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "av-detailing-customers.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Customers exported successfully");
+    } catch (error) {
+      console.error("Customer export error:", error);
+      toast.error("Failed to export customers");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const getDisplayName = (client: Client) => {
     return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(" ") || "Unknown";
   };
