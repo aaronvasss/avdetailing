@@ -18,6 +18,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { WORKING_HOURS, BUFFER_MINUTES, formatDuration, PACKAGE_DURATIONS } from "@/lib/scheduling";
 
+interface BookingAddOn {
+  id: string;
+  name: string;
+  price: number;
+}
+
 interface Booking {
   id: string;
   scheduled_date: string;
@@ -25,7 +31,11 @@ interface Booking {
   status: string;
   payment_status: string;
   total_price: number;
+  subtotal: number | null;
+  add_ons_total: number | null;
+  tip_amount: number | null;
   vehicle_type: string;
+  service_id: string | null;
   service_address: string;
   service_city: string;
   guest_name: string | null;
@@ -36,6 +46,9 @@ interface Booking {
   profiles: { full_name: string; phone: string } | null;
   worker_name?: string | null;
   custom_service_description?: string | null;
+  package_name?: string | null;
+  package_price?: number | null;
+  booking_add_ons?: BookingAddOn[];
 }
 
 interface AdminCalendarViewProps {
