@@ -167,6 +167,7 @@ interface ServicePackage {
   sort_order: number | null;
   is_popular: boolean | null;
   service_id: string | null;
+  stripe_price_id: string | null;
 }
 
 interface ServiceAddOn {
