@@ -145,6 +145,7 @@ export function BookingDetailsDialog({
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [profileData, setProfileData] = useState<{ full_name: string | null; email: string | null; phone: string | null } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [packageName, setPackageName] = useState<string | null>(null);
 
   // Tip tracking state
   const [showTipInput, setShowTipInput] = useState(false);
