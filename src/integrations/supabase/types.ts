@@ -1374,6 +1374,7 @@ export type Database = {
           service_id: string | null
           slug: string
           sort_order: number | null
+          stripe_price_id: string | null
           updated_at: string | null
           vehicle_type: string
         }
@@ -1389,6 +1390,7 @@ export type Database = {
           service_id?: string | null
           slug: string
           sort_order?: number | null
+          stripe_price_id?: string | null
           updated_at?: string | null
           vehicle_type: string
         }
@@ -1404,6 +1406,7 @@ export type Database = {
           service_id?: string | null
           slug?: string
           sort_order?: number | null
+          stripe_price_id?: string | null
           updated_at?: string | null
           vehicle_type?: string
         }
