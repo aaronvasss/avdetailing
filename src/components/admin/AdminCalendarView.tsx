@@ -134,14 +134,20 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
         status,
         payment_status,
         total_price,
+        subtotal,
+        add_ons_total,
+        tip_amount,
         vehicle_type,
+        service_id,
         service_address,
         service_city,
         guest_name,
         guest_phone,
         user_id,
         assigned_worker_id,
-        services (name, slug)
+        custom_service_description,
+        services (name, slug),
+        booking_add_ons (id, name, price)
       `)
       .gte("scheduled_date", rangeStart)
       .lte("scheduled_date", rangeEnd)
