@@ -178,6 +178,27 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       });
     }
 
+    // Build lookup of (service_id, vehicle_type) -> package
+    const packageKeys = new Set<string>();
+    const serviceIds = new Set<string>();
+    (data || []).forEach((b: any) => {
+      if (b.service_id && b.vehicle_type) {
+        packageKeys.add(`${b.service_id}|${b.vehicle_type}`);
+        serviceIds.add(b.service_id);
+      }
+    });
+
+    const packageMap: Record<string, { name: string; price: number }> = {};
+    if (serviceIds.size > 0) {
+      const { data: pkgs } = await supabase
+        .from("service_packages")
+        .select("service_id, vehicle_type, name, price")
+        .in("service_id", Array.from(serviceIds));
+      (pkgs || []).forEach((p: any) => {
+        packageMap[`${p.service_id}|${p.vehicle_type}`] = { name: p.name, price: Number(p.price) };
+      });
+    }
+
     const bookingsWithProfiles = await Promise.all(
       (data || []).map(async (booking: any) => {
         let profiles = null;
@@ -189,10 +210,15 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             .maybeSingle();
           profiles = profile;
         }
+        const pkg = booking.service_id && booking.vehicle_type
+          ? packageMap[`${booking.service_id}|${booking.vehicle_type}`]
+          : null;
         return {
           ...booking,
           profiles,
           worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+          package_name: pkg?.name || null,
+          package_price: pkg?.price ?? null,
         };
       })
     );
