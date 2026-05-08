@@ -167,6 +167,7 @@ interface ServicePackage {
   sort_order: number | null;
   is_popular: boolean | null;
   service_id: string | null;
+  stripe_price_id: string | null;
 }
 
 interface ServiceAddOn {
@@ -335,6 +336,7 @@ const BookingPage = () => {
       time: string;
       basePrice: number;
       prices: Record<string, number>;
+      stripePriceIds: Record<string, string | null>;
       is_popular: boolean;
       sort_order: number;
       service_id: string | null;
@@ -354,6 +356,7 @@ const BookingPage = () => {
           time: pkg.duration_estimate || '',
           basePrice: Number(pkg.price),
           prices: {},
+          stripePriceIds: {},
           is_popular: pkg.is_popular || false,
           sort_order: pkg.sort_order || 0,
           service_id: pkg.service_id,
@@ -361,6 +364,7 @@ const BookingPage = () => {
       }
       const existing = packageMap.get(pkg.slug)!;
       existing.prices[pkg.vehicle_type] = Number(pkg.price);
+      existing.stripePriceIds[pkg.vehicle_type] = pkg.stripe_price_id || null;
     });
 
     return Array.from(packageMap.values()).sort((a, b) => a.sort_order - b.sort_order);
@@ -1561,22 +1565,28 @@ const BookingPage = () => {
                   <span className="font-semibold">Total</span>
                   <span className="text-xl font-bold text-primary">
                     ${(() => {
+                      const selectedPkg = packages.find((p: any) => p.id === selectedPackage) as any;
+                      const hasStaticStripePrice = !!selectedPkg?.stripePriceIds?.[vehicleSubType];
                       let total = calculateTotal();
                       if (referralCredit > 0 && useCredit) {
                         total = Math.max(0, total - referralCredit);
                       }
-                      if (paymentMethod === 'online' && total > 0) {
+                      if (paymentMethod === 'online' && total > 0 && !hasStaticStripePrice) {
                         total = total + Math.round(total * 0.035 * 100) / 100;
                       }
                       return total.toFixed(2);
                     })()}
                   </span>
                 </div>
-                {paymentMethod === 'online' && (
-                  <p className="text-xs text-muted-foreground">
-                    Includes 3.5% processing fee
-                  </p>
-                )}
+                {paymentMethod === 'online' && (() => {
+                  const selectedPkg = packages.find((p: any) => p.id === selectedPackage) as any;
+                  const hasStaticStripePrice = !!selectedPkg?.stripePriceIds?.[vehicleSubType];
+                  return !hasStaticStripePrice ? (
+                    <p className="text-xs text-muted-foreground">
+                      Includes 3.5% processing fee
+                    </p>
+                  ) : null;
+                })()}
               </CardContent>
             </Card>
 

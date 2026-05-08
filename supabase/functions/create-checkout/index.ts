@@ -135,13 +135,14 @@ serve(async (req) => {
       const vehicleType = booking.vehicle_type || '';
 
       let serverBasePrice = 0;
+      let packageStripePriceId: string | null = null;
 
       if (packageSlug && (vehicleSubType || vehicleType)) {
         // Look up exact price from service_packages
         const packageVehicleType = vehicleSubType || vehicleType;
         const { data: pkg } = await serviceClient
           .from("service_packages")
-          .select("price")
+          .select("price, stripe_price_id")
           .eq("service_id", booking.service_id)
           .eq("slug", packageSlug)
           .eq("vehicle_type", packageVehicleType)
@@ -150,8 +151,15 @@ serve(async (req) => {
 
         if (pkg) {
           serverBasePrice = Number(pkg.price);
-          logStep("Price validated from service_packages", { serverBasePrice, packageSlug, packageVehicleType });
+          packageStripePriceId = pkg.stripe_price_id || null;
+          logStep("Price validated from service_packages", { serverBasePrice, packageSlug, packageVehicleType, packageStripePriceId });
         }
+      }
+
+      // If service_packages has a stripe_price_id, use it directly (price already finalized in Stripe)
+      if (packageStripePriceId) {
+        price_id = packageStripePriceId;
+        logStep("Using stripe_price_id from service_packages directly", { price_id });
       }
 
       // Fallback to services.base_price if no package match
@@ -167,17 +175,14 @@ serve(async (req) => {
 
       const basePrice = serverBasePrice;
       
-      if (basePrice > 0) {
-        // Add 3.5% processing fee to the base service price
+      if (!price_id && basePrice > 0) {
+        // No static stripe_price_id; create dynamic price including 3.5% processing fee
         const processingFee = Math.round(basePrice * 0.035 * 100) / 100;
         const baseWithFee = basePrice + processingFee;
         const amountCents = Math.round(baseWithFee * 100);
 
         logStep("Creating dynamic price for base service", { basePrice, processingFee, amountCents });
 
-        // Use exact Stripe product name mapping from metadata
-        const packageSlug = metadata?.package_slug || '';
-        const vehicleSubType = metadata?.vehicle_sub_type || '';
         const productName = packageSlug
           ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
           : `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`;

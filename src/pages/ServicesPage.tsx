@@ -11,7 +11,7 @@ const services = [
     title: "Car Detailing",
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks. From quick washes to full restorations.",
     href: "/services/car-detailing",
-    startingPrice: "$120",
+    startingPrice: "$145",
   },
   {
     icon: Droplets,
