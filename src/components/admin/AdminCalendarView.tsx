@@ -613,9 +613,14 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 </Badge>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name} • {booking.vehicle_type}
+                                {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name} • {booking.vehicle_type}
                                 <span className="ml-2 text-xs">({formatDuration(duration)})</span>
                               </div>
+                              {booking.booking_add_ons && booking.booking_add_ons.length > 0 && (
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  Add-ons: {booking.booking_add_ons.map(a => a.name).join(", ")}
+                                </div>
+                              )}
                               <div className="text-sm text-muted-foreground">
                                 {booking.service_address}, {booking.service_city}
                               </div>
@@ -628,7 +633,10 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                               </div>
                               {isAdmin && (
                                 <div className="text-sm font-medium text-primary mt-1">
-                                  ${booking.total_price?.toFixed(0)}
+                                  ${booking.total_price?.toFixed(2)}
+                                  {booking.tip_amount && booking.tip_amount > 0 ? (
+                                    <span className="text-xs text-emerald-500 ml-2">+${Number(booking.tip_amount).toFixed(2)} tip</span>
+                                  ) : null}
                                 </div>
                               )}
                             </button>
