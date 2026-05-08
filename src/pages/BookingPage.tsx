@@ -336,6 +336,7 @@ const BookingPage = () => {
       time: string;
       basePrice: number;
       prices: Record<string, number>;
+      stripePriceIds: Record<string, string | null>;
       is_popular: boolean;
       sort_order: number;
       service_id: string | null;
@@ -355,6 +356,7 @@ const BookingPage = () => {
           time: pkg.duration_estimate || '',
           basePrice: Number(pkg.price),
           prices: {},
+          stripePriceIds: {},
           is_popular: pkg.is_popular || false,
           sort_order: pkg.sort_order || 0,
           service_id: pkg.service_id,
@@ -362,6 +364,7 @@ const BookingPage = () => {
       }
       const existing = packageMap.get(pkg.slug)!;
       existing.prices[pkg.vehicle_type] = Number(pkg.price);
+      existing.stripePriceIds[pkg.vehicle_type] = pkg.stripe_price_id || null;
     });
 
     return Array.from(packageMap.values()).sort((a, b) => a.sort_order - b.sort_order);
