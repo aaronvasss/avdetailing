@@ -423,8 +423,15 @@ export function BookingDetailsDialog({
       <Dialog open={open && !editDialogOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <span>{booking.services?.name || "Detailing Service"}</span>
+            <DialogTitle className="flex items-center gap-3 flex-wrap">
+              <span>
+                {packageName || booking.services?.name || "Detailing Service"}
+                {packageName && booking.services?.name && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({booking.services.name})
+                  </span>
+                )}
+              </span>
               <Badge className={statusColors[booking.status]}>
                 {booking.status.replace("_", " ")}
               </Badge>
