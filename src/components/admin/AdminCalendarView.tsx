@@ -18,6 +18,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { WORKING_HOURS, BUFFER_MINUTES, formatDuration, PACKAGE_DURATIONS } from "@/lib/scheduling";
 
+interface BookingAddOn {
+  id: string;
+  name: string;
+  price: number;
+}
+
 interface Booking {
   id: string;
   scheduled_date: string;
@@ -25,7 +31,11 @@ interface Booking {
   status: string;
   payment_status: string;
   total_price: number;
+  subtotal: number | null;
+  add_ons_total: number | null;
+  tip_amount: number | null;
   vehicle_type: string;
+  service_id: string | null;
   service_address: string;
   service_city: string;
   guest_name: string | null;
@@ -36,6 +46,9 @@ interface Booking {
   profiles: { full_name: string; phone: string } | null;
   worker_name?: string | null;
   custom_service_description?: string | null;
+  package_name?: string | null;
+  package_price?: number | null;
+  booking_add_ons?: BookingAddOn[];
 }
 
 interface AdminCalendarViewProps {
@@ -121,14 +134,20 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
         status,
         payment_status,
         total_price,
+        subtotal,
+        add_ons_total,
+        tip_amount,
         vehicle_type,
+        service_id,
         service_address,
         service_city,
         guest_name,
         guest_phone,
         user_id,
         assigned_worker_id,
-        services (name, slug)
+        custom_service_description,
+        services (name, slug),
+        booking_add_ons (id, name, price)
       `)
       .gte("scheduled_date", rangeStart)
       .lte("scheduled_date", rangeEnd)
@@ -159,6 +178,27 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       });
     }
 
+    // Build lookup of (service_id, vehicle_type) -> package
+    const packageKeys = new Set<string>();
+    const serviceIds = new Set<string>();
+    (data || []).forEach((b: any) => {
+      if (b.service_id && b.vehicle_type) {
+        packageKeys.add(`${b.service_id}|${b.vehicle_type}`);
+        serviceIds.add(b.service_id);
+      }
+    });
+
+    const packageMap: Record<string, { name: string; price: number }> = {};
+    if (serviceIds.size > 0) {
+      const { data: pkgs } = await supabase
+        .from("service_packages")
+        .select("service_id, vehicle_type, name, price")
+        .in("service_id", Array.from(serviceIds));
+      (pkgs || []).forEach((p: any) => {
+        packageMap[`${p.service_id}|${p.vehicle_type}`] = { name: p.name, price: Number(p.price) };
+      });
+    }
+
     const bookingsWithProfiles = await Promise.all(
       (data || []).map(async (booking: any) => {
         let profiles = null;
@@ -170,10 +210,15 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             .maybeSingle();
           profiles = profile;
         }
+        const pkg = booking.service_id && booking.vehicle_type
+          ? packageMap[`${booking.service_id}|${booking.vehicle_type}`]
+          : null;
         return {
           ...booking,
           profiles,
           worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+          package_name: pkg?.name || null,
+          package_price: pkg?.price ?? null,
         };
       })
     );
@@ -511,8 +556,13 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 >
                                   <div className="font-medium truncate">{getCustomerName(booking)}</div>
                                   <div className="text-muted-foreground truncate">
-                                    {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name}
+                                    {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name}
                                   </div>
+                                  {booking.booking_add_ons && booking.booking_add_ons.length > 0 && (
+                                    <div className="text-[10px] text-muted-foreground truncate">
+                                      +{booking.booking_add_ons.length} add-on{booking.booking_add_ons.length > 1 ? "s" : ""}
+                                    </div>
+                                  )}
                                 </button>
                                 {/* Buffer indicator */}
                                 <div 
@@ -563,9 +613,14 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 </Badge>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                {booking.scheduled_time.slice(0, 5)} • {booking.custom_service_description || booking.services?.name} • {booking.vehicle_type}
+                                {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name} • {booking.vehicle_type}
                                 <span className="ml-2 text-xs">({formatDuration(duration)})</span>
                               </div>
+                              {booking.booking_add_ons && booking.booking_add_ons.length > 0 && (
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  Add-ons: {booking.booking_add_ons.map(a => a.name).join(", ")}
+                                </div>
+                              )}
                               <div className="text-sm text-muted-foreground">
                                 {booking.service_address}, {booking.service_city}
                               </div>
@@ -578,7 +633,10 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                               </div>
                               {isAdmin && (
                                 <div className="text-sm font-medium text-primary mt-1">
-                                  ${booking.total_price?.toFixed(0)}
+                                  ${booking.total_price?.toFixed(2)}
+                                  {booking.tip_amount && booking.tip_amount > 0 ? (
+                                    <span className="text-xs text-emerald-500 ml-2">+${Number(booking.tip_amount).toFixed(2)} tip</span>
+                                  ) : null}
                                 </div>
                               )}
                             </button>
@@ -611,8 +669,15 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 "p-3 rounded-lg border-l-4",
                 getServiceColorClass(selectedBooking.services?.slug)
               )}>
-                <div className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</div>
-                <div className="text-sm text-muted-foreground">{selectedBooking.vehicle_type}</div>
+                <div className="font-medium">
+                  {selectedBooking.package_name || selectedBooking.custom_service_description || selectedBooking.services?.name}
+                </div>
+                <div className="text-sm text-muted-foreground capitalize">
+                  {selectedBooking.services?.name && selectedBooking.package_name
+                    ? `${selectedBooking.services.name} • `
+                    : ""}
+                  {selectedBooking.vehicle_type}
+                </div>
               </div>
 
               <div className="space-y-2 text-sm">
@@ -662,10 +727,43 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                     <span className="text-destructive font-medium">Unassigned</span>
                   )}
                 </div>
+
                 {isAdmin && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total</span>
-                    <span className="font-bold">${selectedBooking.total_price?.toFixed(2)}</span>
+                  <div className="pt-2 mt-2 border-t space-y-1">
+                    {selectedBooking.subtotal != null && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>${Number(selectedBooking.subtotal).toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Add-ons</span>
+                      <span>
+                        {selectedBooking.add_ons_total && selectedBooking.add_ons_total > 0
+                          ? `$${Number(selectedBooking.add_ons_total).toFixed(2)}`
+                          : "None"}
+                      </span>
+                    </div>
+                    {selectedBooking.booking_add_ons && selectedBooking.booking_add_ons.length > 0 && (
+                      <div className="pl-4 space-y-0.5">
+                        {selectedBooking.booking_add_ons.map((addon) => (
+                          <div key={addon.id} className="flex justify-between text-xs text-muted-foreground">
+                            <span>+ {addon.name}</span>
+                            <span>${Number(addon.price).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {selectedBooking.tip_amount && selectedBooking.tip_amount > 0 ? (
+                      <div className="flex justify-between text-emerald-500">
+                        <span>Tip</span>
+                        <span>${Number(selectedBooking.tip_amount).toFixed(2)}</span>
+                      </div>
+                    ) : null}
+                    <div className="flex justify-between font-bold pt-1 border-t">
+                      <span>Total</span>
+                      <span className="text-primary">${Number(selectedBooking.total_price || 0).toFixed(2)}</span>
+                    </div>
                   </div>
                 )}
               </div>

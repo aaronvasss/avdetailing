@@ -145,6 +145,7 @@ export function BookingDetailsDialog({
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [profileData, setProfileData] = useState<{ full_name: string | null; email: string | null; phone: string | null } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [packageName, setPackageName] = useState<string | null>(null);
 
   // Tip tracking state
   const [showTipInput, setShowTipInput] = useState(false);
@@ -222,6 +223,23 @@ export function BookingDetailsDialog({
       setProfileData(null);
     }
   }, [activeBooking?.id, activeBooking?.user_id, activeBooking?.guest_name]);
+
+  // Fetch package name from service_packages by service_id + vehicle_type
+  useEffect(() => {
+    const sid = (activeBooking as any)?.service_id;
+    const vt = activeBooking?.vehicle_type;
+    if (sid && vt) {
+      supabase
+        .from("service_packages")
+        .select("name")
+        .eq("service_id", sid)
+        .eq("vehicle_type", vt)
+        .maybeSingle()
+        .then(({ data }) => setPackageName((data as any)?.name || null));
+    } else {
+      setPackageName(null);
+    }
+  }, [(activeBooking as any)?.service_id, activeBooking?.vehicle_type]);
 
   // Fetch notification log for this booking
   useEffect(() => {
@@ -405,8 +423,15 @@ export function BookingDetailsDialog({
       <Dialog open={open && !editDialogOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <span>{booking.services?.name || "Detailing Service"}</span>
+            <DialogTitle className="flex items-center gap-3 flex-wrap">
+              <span>
+                {packageName || booking.services?.name || "Detailing Service"}
+                {packageName && booking.services?.name && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({booking.services.name})
+                  </span>
+                )}
+              </span>
               <Badge className={statusColors[booking.status]}>
                 {booking.status.replace("_", " ")}
               </Badge>
