@@ -175,17 +175,14 @@ serve(async (req) => {
 
       const basePrice = serverBasePrice;
       
-      if (basePrice > 0) {
-        // Add 3.5% processing fee to the base service price
+      if (!price_id && basePrice > 0) {
+        // No static stripe_price_id; create dynamic price including 3.5% processing fee
         const processingFee = Math.round(basePrice * 0.035 * 100) / 100;
         const baseWithFee = basePrice + processingFee;
         const amountCents = Math.round(baseWithFee * 100);
 
         logStep("Creating dynamic price for base service", { basePrice, processingFee, amountCents });
 
-        // Use exact Stripe product name mapping from metadata
-        const packageSlug = metadata?.package_slug || '';
-        const vehicleSubType = metadata?.vehicle_sub_type || '';
         const productName = packageSlug
           ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
           : `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`;
