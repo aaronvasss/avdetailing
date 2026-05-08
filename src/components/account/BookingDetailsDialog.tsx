@@ -224,6 +224,23 @@ export function BookingDetailsDialog({
     }
   }, [activeBooking?.id, activeBooking?.user_id, activeBooking?.guest_name]);
 
+  // Fetch package name from service_packages by service_id + vehicle_type
+  useEffect(() => {
+    const sid = (activeBooking as any)?.service_id;
+    const vt = activeBooking?.vehicle_type;
+    if (sid && vt) {
+      supabase
+        .from("service_packages")
+        .select("name")
+        .eq("service_id", sid)
+        .eq("vehicle_type", vt)
+        .maybeSingle()
+        .then(({ data }) => setPackageName((data as any)?.name || null));
+    } else {
+      setPackageName(null);
+    }
+  }, [(activeBooking as any)?.service_id, activeBooking?.vehicle_type]);
+
   // Fetch notification log for this booking
   useEffect(() => {
     if (activeBooking?.id && isAdmin) {
