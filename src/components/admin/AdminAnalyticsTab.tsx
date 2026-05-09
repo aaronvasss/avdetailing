@@ -213,7 +213,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       setTipCount(onlineTipCount + bookingTips.length);
       setTotalTips(onlineTipTotal + bookingTipTotal);
 
-      // Fetch ratings grouped by booking -> worker
+      // Fetch ratings — group by worker AND attach per-booking rating
       try {
         const bookingIds = (bookingsRes.data || []).map((b: any) => b.id);
         if (bookingIds.length > 0) {
@@ -222,11 +222,13 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             .select("booking_id, rating")
             .in("booking_id", bookingIds);
           const bookingToWorker: Record<string, string> = {};
+          const bookingRating: Record<string, number> = {};
           (bookingsRes.data || []).forEach((b: any) => {
             if (b.assigned_worker_id) bookingToWorker[b.id] = b.assigned_worker_id;
           });
           const acc: Record<string, { sum: number; count: number }> = {};
           (ratings || []).forEach((r: any) => {
+            bookingRating[r.booking_id] = r.rating;
             const wId = bookingToWorker[r.booking_id];
             if (!wId) return;
             if (!acc[wId]) acc[wId] = { sum: 0, count: 0 };
@@ -238,6 +240,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             out[k] = { avg: v.sum / v.count, count: v.count };
           });
           setWorkerRatings(out);
+          // Attach rating to bookings in state
+          setBookings(prev => prev.map(b => ({ ...b, rating: bookingRating[b.id] ?? null })));
         }
       } catch (e) {
         console.warn("ratings unavailable", e);
