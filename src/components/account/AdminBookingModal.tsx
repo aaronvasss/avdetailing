@@ -50,33 +50,21 @@ const timeSlots = [
   "16:00", "16:30", "17:00", "17:30", "18:00",
 ];
 
-// ── Hardcoded package pricing ──
-type VehicleBucket = "small" | "large";
-
-const getVehicleBucket = (vehicleType: string): VehicleBucket => {
-  if (["sedan", "suv-5"].includes(vehicleType)) return "small";
-  return "large"; // suv-8, truck
-};
-
-interface PackageDef {
-  id: string;
-  label: string;
-  prices: Record<VehicleBucket, number>;
+// Package rows fetched from service_packages table
+interface PackageRow {
+  slug: string;
+  name: string;
+  vehicle_type: string;
+  price: number;
+  sort_order: number;
 }
 
-const carPackages: PackageDef[] = [
-  { id: "exterior", label: "Exterior Only", prices: { small: 75, large: 85 } },
-  { id: "basic", label: "Basic", prices: { small: 130, large: 130 } },
-  { id: "silver", label: "Silver", prices: { small: 190, large: 200 } },
-  { id: "gold", label: "Gold", prices: { small: 295, large: 320 } },
-];
-
-// Silver has a special price for sedan vs suv-5
-const getSilverPrice = (vehicleType: string): number => {
-  if (vehicleType === "sedan") return 190;
-  if (vehicleType === "suv-5") return 195;
-  return 200; // large
-};
+interface AddOnRow {
+  id: string;
+  name: string;
+  price: number;
+  stripe_price_id: string | null;
+}
 
 const specialtyServices = ["ceramic", "paint", "boat", "aircraft"];
 
@@ -90,14 +78,6 @@ const membershipPackages: MembershipDef[] = [
   { id: "monthly", label: "Monthly", price: 135 },
   { id: "bi-weekly", label: "Bi-Weekly", price: 130 },
   { id: "weekly", label: "Weekly", price: 130 },
-];
-
-const addOnsList = [
-  { id: "engine-bay", name: "Engine Bay Cleaning", price: 60 },
-  { id: "headlight", name: "Headlight Restoration", price: 70 },
-  { id: "odor", name: "Odor Elimination", price: 65 },
-  { id: "pet-hair", name: "Pet Hair Removal", price: 45 },
-  { id: "clay-bar", name: "Clay Bar Treatment", price: 70 },
 ];
 
 const formatPhone = (value: string): string => {
@@ -151,6 +131,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
   const [draftSavedVisible, setDraftSavedVisible] = useState(false);
   const { workers } = useWorkersList();
+
+  // Dynamic pricing data fetched from DB
+  const [packageRows, setPackageRows] = useState<PackageRow[]>([]);
+  const [addOnsList, setAddOnsList] = useState<AddOnRow[]>([]);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState(false);
 
   // Auto-fetch worker default pay rate when assigned
   const handleWorkerAssign = async (workerId: string) => {
@@ -253,6 +239,48 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     return () => clearTimeout(timer);
   }, [saveDraft, open]);
 
+  // Fetch packages + add-ons for selected service when modal opens
+  useEffect(() => {
+    if (!open) return;
+    const sid = serviceTypes.find(s => s.id === form.serviceType)?.serviceId;
+    if (!sid) {
+      setPackageRows([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setPricingLoading(true);
+      setPricingError(false);
+      try {
+        const [pkgRes, addRes] = await Promise.all([
+          supabase
+            .from("service_packages")
+            .select("slug, name, vehicle_type, price, sort_order")
+            .eq("service_id", sid)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("service_add_ons")
+            .select("id, name, price, stripe_price_id")
+            .eq("is_active", true)
+            .order("price", { ascending: true }),
+        ]);
+        if (cancelled) return;
+        if (pkgRes.error || addRes.error) throw pkgRes.error || addRes.error;
+        setPackageRows((pkgRes.data || []).map(r => ({ ...r, price: Number(r.price) })));
+        setAddOnsList((addRes.data || []).map(r => ({ ...r, price: Number(r.price) })));
+      } catch (err) {
+        console.error("Failed to load pricing:", err);
+        if (!cancelled) setPricingError(true);
+      } finally {
+        if (!cancelled) setPricingLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, form.serviceType]);
+
   const clearDraft = () => {
     localStorage.removeItem(DRAFT_KEY);
     setForm(defaultForm);
@@ -351,6 +379,26 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const isAircraft = form.serviceType === "aircraft";
   const showCarVehicleFields = needsVehicleType || form.serviceType === "rv";
   // Calculate package price
+  // Build unique car packages list (one per slug) for rendering buttons
+  const carPackages = useMemo(() => {
+    const seen = new Map<string, { slug: string; label: string; sort_order: number }>();
+    for (const r of packageRows) {
+      if (!seen.has(r.slug)) {
+        seen.set(r.slug, { slug: r.slug, label: r.name, sort_order: r.sort_order });
+      }
+    }
+    return Array.from(seen.values()).sort((a, b) => a.sort_order - b.sort_order);
+  }, [packageRows]);
+
+  // Get price for a slug given current vehicle type
+  const getPackagePrice = useCallback(
+    (slug: string, vehicleType: string): number | null => {
+      const row = packageRows.find(r => r.slug === slug && r.vehicle_type === vehicleType);
+      return row ? Number(row.price) : null;
+    },
+    [packageRows]
+  );
+
   const packagePrice = useMemo(() => {
     if (isSpecialty) return 100; // deposit
     if (isMembership) {
@@ -358,18 +406,15 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       return mp?.price || 0;
     }
     if (!selectedPackageId || !form.vehicleType) return 0;
-    const pkg = carPackages.find(p => p.id === selectedPackageId);
-    if (!pkg) return 0;
-    if (pkg.id === "silver") return getSilverPrice(form.vehicleType);
-    return pkg.prices[getVehicleBucket(form.vehicleType)];
-  }, [selectedPackageId, form.vehicleType, isSpecialty, isMembership]);
+    return getPackagePrice(selectedPackageId, form.vehicleType) || 0;
+  }, [selectedPackageId, form.vehicleType, isSpecialty, isMembership, getPackagePrice]);
 
   // Calculate add-ons total
   const addOnsTotal = useMemo(() => {
     return addOnsList
       .filter(a => selectedAddOns.includes(a.id))
-      .reduce((sum, a) => sum + a.price, 0);
-  }, [selectedAddOns]);
+      .reduce((sum, a) => sum + Number(a.price), 0);
+  }, [selectedAddOns, addOnsList]);
 
   const totalPrice = pricingMode === "custom"
     ? parseFloat(customPrice) || 0
@@ -832,62 +877,84 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                   {!isSpecialty && !isMembership && (
                     <div>
                       <Label className="mb-2 block">Package</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {carPackages.map(pkg => {
-                          const price = form.vehicleType
-                            ? (pkg.id === "silver" ? getSilverPrice(form.vehicleType) : pkg.prices[getVehicleBucket(form.vehicleType)])
-                            : null;
-                          return (
-                            <button
-                              key={pkg.id}
-                              type="button"
-                              onClick={() => setSelectedPackageId(pkg.id)}
-                              className={cn(
-                                "rounded-lg border-2 p-3 text-left transition-all",
-                                selectedPackageId === pkg.id
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border hover:border-muted-foreground/40"
-                              )}
-                            >
-                              <p className="text-sm font-semibold">{pkg.label}</p>
-                              {price !== null ? (
-                                <p className="text-lg font-bold text-primary">${price}</p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground">Select vehicle type</p>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {pricingLoading ? (
+                        <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading packages...
+                        </div>
+                      ) : pricingError || carPackages.length === 0 ? (
+                        <p className="text-sm text-destructive p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                          Price unavailable — contact admin
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {carPackages.map(pkg => {
+                            const price = form.vehicleType
+                              ? getPackagePrice(pkg.slug, form.vehicleType)
+                              : null;
+                            return (
+                              <button
+                                key={pkg.slug}
+                                type="button"
+                                onClick={() => setSelectedPackageId(pkg.slug)}
+                                className={cn(
+                                  "rounded-lg border-2 p-3 text-left transition-all",
+                                  selectedPackageId === pkg.slug
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border hover:border-muted-foreground/40"
+                                )}
+                              >
+                                <p className="text-sm font-semibold">{pkg.label}</p>
+                                {price !== null ? (
+                                  <p className="text-lg font-bold text-primary">${price.toFixed(2)}</p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">
+                                    {form.vehicleType ? "Price unavailable" : "Select vehicle type"}
+                                  </p>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Add-ons */}
                   <div>
                     <Label className="mb-2 block">Add-ons</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {addOnsList.map(addOn => (
-                        <div
-                          key={addOn.id}
-                          onClick={() => toggleAddOn(addOn.id)}
-                          className={cn(
-                            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                            selectedAddOns.includes(addOn.id)
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-muted-foreground/40"
-                          )}
-                        >
-                          <Checkbox
-                            checked={selectedAddOns.includes(addOn.id)}
-                            onCheckedChange={() => toggleAddOn(addOn.id)}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{addOn.name}</p>
+                    {pricingLoading ? (
+                      <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading add-ons...
+                      </div>
+                    ) : pricingError || addOnsList.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No add-ons available</p>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {addOnsList.map(addOn => (
+                          <div
+                            key={addOn.id}
+                            onClick={() => toggleAddOn(addOn.id)}
+                            className={cn(
+                              "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                              selectedAddOns.includes(addOn.id)
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-muted-foreground/40"
+                            )}
+                          >
+                            <Checkbox
+                              checked={selectedAddOns.includes(addOn.id)}
+                              onCheckedChange={() => toggleAddOn(addOn.id)}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{addOn.name}</p>
+                            </div>
+                            <p className="text-sm font-semibold text-primary">+${Number(addOn.price).toFixed(2)}</p>
                           </div>
-                          <p className="text-sm font-semibold text-primary">+${addOn.price}</p>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Price breakdown */}
@@ -899,7 +966,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                             ? "Specialty Deposit"
                             : isMembership
                               ? `Membership: ${membershipPackages.find(p => p.id === selectedPackageId)?.label || ""}`
-                              : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}
+                              : `Package: ${carPackages.find(p => p.slug === selectedPackageId)?.label || ""}`}
                         </span>
                         <span className="font-medium">${packagePrice}</span>
                       </div>
