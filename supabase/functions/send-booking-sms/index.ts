@@ -162,14 +162,21 @@ const handler = async (req: Request): Promise<Response> => {
     const results: { customer?: any; business?: any[] } = {};
 
     // Customer confirmation SMS
-    const customerMessage = `✅ AV Detailing Confirmed!
+    const firstName = (body.customerName || "there").split(" ")[0];
+    const manageLink = body.manageToken
+      ? `https://avdetailing.net/booking/manage?token=${body.manageToken}`
+      : `https://avdetailing.net/account`;
+    const customerMessage = body.paymentConfirmed
+      ? `Hi ${firstName}! ✅ Payment confirmed! Your ${body.serviceName} is booked for ${formattedDate} at ${body.scheduledTime} at ${body.serviceAddress}. Total paid: $${body.totalPrice.toFixed(2)}. Manage: ${manageLink} — AV Detailing ${publicPhone}`
+      : `✅ AV Detailing Confirmed!
 
 📅 ${formattedDate} at ${body.scheduledTime}
 📍 ${body.serviceAddress}, ${body.serviceCity}
 🚗 ${body.serviceName}
 💰 $${body.totalPrice.toFixed(2)}
 
-We'll text you 24hrs before. Reply HELP for support or call ${publicPhone}.
+Manage: ${manageLink}
+Reply HELP or call ${publicPhone}.
 
 -AV Detailing Team`;
 
