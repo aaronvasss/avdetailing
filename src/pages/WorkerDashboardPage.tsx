@@ -510,7 +510,14 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
   if (stops.length === 0) return null;
 
   const addresses = stops.map(buildAddress);
-  const estDriveMin = Math.max(0, stops.length - 1) * 15;
+  const driveMin = Math.max(0, stops.length - 1) * 12;
+  const serviceMin = stops.reduce((sum, b) => sum + (parseDurationEstimateMin(b.service_packages?.duration_estimate) || Number(b.duration_minutes) || 0), 0);
+  const fmtHm = (m: number) => {
+    const h = Math.floor(m / 60), mm = m % 60;
+    if (h === 0) return `${mm}m`;
+    if (mm === 0) return `${h}h`;
+    return `${h}h ${mm}m`;
+  };
 
   // Single job: just a Navigate button
   if (stops.length === 1) {
@@ -540,10 +547,12 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
     <Card>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <MapIcon className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-bold">Today's Route</h2>
-            <Badge variant="outline" className="text-xs">{stops.length} stops</Badge>
+            <h2 className="text-base font-bold">🗺️ Today's Route</h2>
+            <span className="text-xs text-muted-foreground">
+              · {stops.length} stops · ~{fmtHm(driveMin)} drive · ~{fmtHm(serviceMin)} service
+            </span>
           </div>
           <div className="flex gap-2">
             <Button asChild size="sm" variant="outline">
@@ -558,10 +567,6 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
             </Button>
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground">
-          Estimated route: ~{estDriveMin} min driving between stops
-        </p>
 
         <ol className="space-y-2">
           {stops.map((b, i) => {
