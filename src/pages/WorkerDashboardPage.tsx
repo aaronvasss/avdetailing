@@ -6,10 +6,26 @@ import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown } from "lucide-react";
-import { format } from "date-fns";
+import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown, CheckCircle2, DollarSign, Wallet, Coins } from "lucide-react";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { formatStopwatch } from "@/lib/duration-format";
+
+const fmtMoney = (n: number) => (n > 0 ? `$${n.toFixed(n % 1 === 0 ? 0 : 2)}` : "—");
+const fmtCount = (n: number) => (n > 0 ? String(n) : "—");
+
+function calcWorkerCut(b: any, profile: any): number {
+  const jobValue = Number(b.total_price) || 0;
+  if (b.worker_pay_type && b.worker_pay_rate != null) {
+    return b.worker_pay_type === "percentage"
+      ? jobValue * (Number(b.worker_pay_rate) / 100)
+      : Number(b.worker_pay_rate);
+  }
+  if (!profile) return 0;
+  return profile.pay_type === "percentage"
+    ? jobValue * (Number(profile.pay_rate) / 100)
+    : Number(profile.pay_rate) || 0;
+}
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
