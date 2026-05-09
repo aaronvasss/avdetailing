@@ -1511,21 +1511,36 @@ const BookingPage = () => {
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Package</span>
-                  <span className="font-medium">
-                    {packages.find((p) => p.id === selectedPackage)?.name}
-                  </span>
-                </div>
+                {(() => {
+                  const pkg = packages.find((p) => p.id === selectedPackage);
+                  const pkgPrice = pkg ? getPackagePrice(pkg) : 0;
+                  return (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{pkg?.name || 'Package'}</span>
+                      <span className="font-medium">${pkgPrice.toFixed(2)}</span>
+                    </div>
+                  );
+                })()}
                 {selectedAddOns.length > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Add-ons</span>
-                    <span className="font-medium text-right">
-                      {addOns
-                        .filter((a) => selectedAddOns.includes(a.id))
-                        .map((a) => a.name)
-                        .join(", ")}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground text-sm">Add-ons</div>
+                    {addOns
+                      .filter((a) => selectedAddOns.includes(a.id))
+                      .map((a) => (
+                        <div key={a.id} className="flex justify-between pl-3">
+                          <span className="text-sm">{a.name}</span>
+                          <span className="font-medium">${Number(a.price).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    <div className="flex justify-between pl-3 text-sm text-muted-foreground border-t pt-1">
+                      <span>Add-ons subtotal</span>
+                      <span>
+                        ${selectedAddOns.reduce((sum, id) => {
+                          const a = addOns.find((x) => x.id === id);
+                          return sum + (a ? Number(a.price) : 0);
+                        }, 0).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 )}
                 <div className="flex justify-between">
