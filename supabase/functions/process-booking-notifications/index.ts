@@ -394,12 +394,17 @@ function buildAdminHtml(booking: any, serviceName: string) {
   const email = booking.guest_email ? htmlEncode(booking.guest_email) : "";
   const phone = booking.guest_phone ? htmlEncode(booking.guest_phone) : "";
   const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || "N/A";
+  const vtLabel = htmlEncode(vehicleTypeLabel(booking.vehicle_type));
   const date = formatDate(booking.scheduled_date);
   const time = formatTime12(booking.scheduled_time);
   const addr = [booking.service_address, booking.service_city, booking.service_state || "LA", booking.service_zip].filter(Boolean).join(", ");
   const total = Number(booking.total_price) || 0;
   const payment = (booking.payment_method || "in_person").replace("_", " ");
   const deposit = Number(booking.deposit_amount) || 0;
+  const isPaid = (booking.payment_status || "unpaid").toLowerCase() === "paid";
+  const payBadge = isPaid
+    ? `<span style="display:inline-block;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-left:8px;">PAID</span>`
+    : `<span style="display:inline-block;background:#f59e0b;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-left:8px;">UNPAID</span>`;
 
   return `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#111;color:#fff;border-radius:12px;">
     <h2 style="color:#ef4444;">New Booking Alert 🚗</h2>
@@ -407,12 +412,13 @@ function buildAdminHtml(booking: any, serviceName: string) {
       <tr><td style="padding:8px 0;color:#999;">Customer</td><td style="padding:8px 0;font-weight:bold;">${name}</td></tr>
       ${phone ? `<tr><td style="padding:8px 0;color:#999;">Phone</td><td style="padding:8px 0;"><a href="tel:${phone}" style="color:#ef4444;">${phone}</a></td></tr>` : ""}
       ${email ? `<tr><td style="padding:8px 0;color:#999;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#ef4444;">${email}</a></td></tr>` : ""}
-      <tr><td style="padding:8px 0;color:#999;">Service</td><td style="padding:8px 0;">${htmlEncode(serviceName)}</td></tr>
+      <tr><td style="padding:8px 0;color:#999;">Package</td><td style="padding:8px 0;font-weight:bold;">${htmlEncode(serviceName)}</td></tr>
+      <tr><td style="padding:8px 0;color:#999;">Vehicle Type</td><td style="padding:8px 0;">${vtLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Vehicle</td><td style="padding:8px 0;">${htmlEncode(vehicle)}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Date & Time</td><td style="padding:8px 0;">${date} at ${time}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Address</td><td style="padding:8px 0;">${htmlEncode(addr)}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Total</td><td style="padding:8px 0;font-weight:bold;color:#22c55e;">$${total.toFixed(2)}</td></tr>
-      <tr><td style="padding:8px 0;color:#999;">Payment</td><td style="padding:8px 0;">${payment}${deposit > 0 ? ` — $${deposit.toFixed(2)} deposit paid` : " — unpaid"}</td></tr>
+      <tr><td style="padding:8px 0;color:#999;">Payment</td><td style="padding:8px 0;">${payment}${deposit > 0 ? ` — $${deposit.toFixed(2)} deposit paid` : ""}${payBadge}</td></tr>
     </table>
     <p style="margin-top:16px;"><a href="${BASE_URL}/admin" style="color:#ef4444;font-weight:600;">View in Admin Dashboard →</a></p>
     <p style="margin-top:8px;color:#666;font-size:12px;">Booking ID: ${booking.id}</p>
