@@ -251,6 +251,60 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
     b.status === "completed" && b.payment_status === "unpaid"
   );
 
+  const sendAllPaymentReminders = async () => {
+    if (unpaidCompleted.length === 0) return;
+    if (!window.confirm(`Send payment reminders to ${unpaidCompleted.length} customer${unpaidCompleted.length === 1 ? "" : "s"}?`)) return;
+    setSendingBulk(true);
+    try {
+      const ids = unpaidCompleted.map(b => b.id);
+      const { data: full } = await supabase
+        .from("bookings")
+        .select("id, total_price, scheduled_date, manage_token, guest_name, guest_email, guest_phone, user_id, services(name)")
+        .in("id", ids);
+
+      let sent = 0;
+      let failed = 0;
+      const origin = window.location.origin;
+      for (const b of (full || [])) {
+        const overview = unpaidCompleted.find(x => x.id === b.id);
+        const name = overview ? getCustomerName(overview) : (b.guest_name || "Customer");
+        const phone = overview ? getCustomerPhone(overview) : b.guest_phone;
+        let email = b.guest_email as string | null;
+        if (!email && b.user_id) {
+          const { data: prof } = await supabase.from("profiles").select("email").eq("user_id", b.user_id).maybeSingle();
+          email = prof?.email || null;
+        }
+        if (!phone && !email) { failed++; continue; }
+        const pkg = (b as any).services?.name || "detailing";
+        const dateStr = format(new Date(b.scheduled_date), "MMM d");
+        const amount = Number(b.total_price || 0).toFixed(2);
+        const link = b.manage_token ? `${origin}/booking/manage?token=${b.manage_token}` : `${origin}/booking`;
+        const message = `Hi ${name}! This is AV Detailing. Your ${pkg} service on ${dateStr} has a balance of $${amount} due. Pay now: ${link} or call us at (225) 521-6264. Thank you!`;
+        try {
+          const tasks: Promise<any>[] = [];
+          if (phone) tasks.push(supabase.functions.invoke("send-booking-sms", { body: { to: phone, message } }));
+          if (email) tasks.push(supabase.functions.invoke("send-contact-email", { body: { name: "AV Detailing", email, service: "Payment Reminder", message } }));
+          await Promise.all(tasks);
+          const channels = [phone && "SMS", email && "email"].filter(Boolean).join("+");
+          await supabase.from("booking_internal_notes").insert({
+            booking_id: b.id,
+            note: `Payment reminder sent on ${format(new Date(), "MMM d, yyyy h:mm a")} via ${channels}`,
+          });
+          sent++;
+        } catch (e) {
+          console.error("Bulk reminder failed for", b.id, e);
+          failed++;
+        }
+      }
+      toast.success(`Sent ${sent} reminder${sent === 1 ? "" : "s"}${failed ? ` (${failed} failed)` : ""}`);
+    } catch (err) {
+      console.error("Bulk send error:", err);
+      toast.error("Failed to send reminders");
+    } finally {
+      setSendingBulk(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }> = {
       pending: { variant: "secondary", icon: <AlertCircle className="h-3 w-3" /> },
