@@ -522,6 +522,23 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         )}
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-3">
+          <span className="text-sm font-medium">{selectedIds.size} booking{selectedIds.size > 1 ? "s" : ""} selected</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="default" onClick={downloadBulkReceipts}>
+              <Download className="h-4 w-4 mr-1" />
+              Download Receipts
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              <X className="h-4 w-4 mr-1" />
+              Clear selection
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Bookings Table */}
       <Card>
         <CardHeader className="pb-3">
@@ -538,6 +555,13 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filteredBookings.length > 0 && selectedIds.size === filteredBookings.length}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Date & Time</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Service + Package</TableHead>
@@ -549,7 +573,14 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               </TableHeader>
               <TableBody>
                 {filteredBookings.map((booking) => (
-                  <TableRow key={booking.id}>
+                  <TableRow key={booking.id} data-state={selectedIds.has(booking.id) ? "selected" : undefined}>
+                    <TableCell className="w-10">
+                      <Checkbox
+                        checked={selectedIds.has(booking.id)}
+                        onCheckedChange={() => toggleSelected(booking.id)}
+                        aria-label={`Select booking ${booking.id}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-medium">
