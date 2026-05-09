@@ -54,7 +54,14 @@ interface EnrichedClient extends Client {
 const PAGE_SIZE = 25;
 
 type SortField = "name" | "total_spent" | "last_service" | "date_added";
-type FilterType = "all" | "has_membership" | "imported" | "no_bookings";
+type FilterType = "all" | "vip" | "has_membership" | "imported" | "no_bookings";
+
+const isVip = (totalSpent: number, totalBookings: number) => totalSpent > 500 || totalBookings >= 5;
+const getNoteSubtitle = (notes: string | null) => {
+  if (!notes) return null;
+  const firstLine = notes.split(/\r?\n/)[0]?.trim();
+  return firstLine && firstLine.length > 0 ? firstLine.slice(0, 80) : null;
+};
 
 export function ClientsListView() {
   const isMobile = useIsMobile();
