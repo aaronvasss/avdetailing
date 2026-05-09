@@ -46,9 +46,10 @@ interface AdminOverviewTabProps {
   isAdmin: boolean;
   onViewBooking: (booking: Booking) => void;
   onTextCustomer: (phone: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: AdminOverviewTabProps) {
+export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNavigateTab }: AdminOverviewTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMemberships, setActiveMemberships] = useState(0);
@@ -203,8 +204,9 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
   // Calculate KPIs
   const today = new Date();
-  const weekStart = startOfWeek(today);
-  const weekEnd = endOfWeek(today);
+  const todayStr = format(today, "yyyy-MM-dd");
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
   const todaysBookings = bookings.filter(b => isToday(new Date(b.scheduled_date)));
   const thisWeekBookings = bookings.filter(b => {
@@ -223,9 +225,22 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
     b.status === "cancelled" && new Date(b.scheduled_date) >= addDays(today, -7)
   );
 
-  const weekRevenue = thisWeekBookings
-    .filter(b => b.status !== "cancelled")
+  const todayRevenue = todaysBookings
+    .filter(b => PAID_STATUSES.includes(b.payment_status))
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
+
+  const weekRevenue = thisWeekBookings
+    .filter(b => PAID_STATUSES.includes(b.payment_status))
+    .reduce((sum, b) => sum + (b.total_price || 0), 0);
+
+  const unassignedUpcoming = bookings.filter(b =>
+    b.status === "confirmed" &&
+    !b.assigned_worker_id &&
+    b.scheduled_date >= todayStr
+  );
+  const unpaidCompleted = bookings.filter(b =>
+    b.status === "completed" && b.payment_status === "unpaid"
+  );
 
   const getStatusBadge = (status: string) => {
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }> = {
@@ -255,6 +270,32 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
 
   return (
     <div className="space-y-6">
+      {/* Alert Banners */}
+      {isAdmin && unassignedUpcoming.length > 0 && (
+        <button
+          onClick={() => onNavigateTab?.("calendar")}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-destructive/40 bg-destructive/10 hover:bg-destructive/15 transition-colors text-left"
+        >
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+          <span className="text-sm font-medium text-destructive">
+            ⚠️ {unassignedUpcoming.length} confirmed booking{unassignedUpcoming.length === 1 ? "" : "s"} have no technician assigned — click to assign
+          </span>
+          <ChevronRight className="h-4 w-4 text-destructive ml-auto flex-shrink-0" />
+        </button>
+      )}
+      {isAdmin && unpaidCompleted.length > 0 && (
+        <button
+          onClick={() => onNavigateTab?.("bookings")}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-yellow-500/40 bg-yellow-500/10 hover:bg-yellow-500/15 transition-colors text-left"
+        >
+          <DollarSign className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+          <span className="text-sm font-medium text-yellow-700 dark:text-yellow-500">
+            💰 {unpaidCompleted.length} completed job{unpaidCompleted.length === 1 ? "" : "s"} still unpaid — click to follow up
+          </span>
+          <ChevronRight className="h-4 w-4 text-yellow-600 ml-auto flex-shrink-0" />
+        </button>
+      )}
+
       {/* KPI Cards */}
       <TooltipProvider>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -262,6 +303,8 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
             { value: todaysBookings.length, label: "Today", icon: Calendar, iconColor: "text-primary/50", cardClass: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20", valueColor: "text-primary" },
             { value: thisWeekBookings.length, label: "This Week", icon: Clock, iconColor: "text-muted-foreground/50", cardClass: "", valueColor: "" },
             ...(isAdmin ? [
+              { value: `$${todayRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Today's Revenue", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
+              { value: `$${weekRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "This Week Revenue", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
               { value: `$${(monthRevenue + totalTips).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, label: "Revenue MTD", icon: DollarSign, iconColor: "text-green-500/50", cardClass: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", valueColor: "text-green-600" },
               { value: activeMemberships, label: "Members", icon: CreditCard, iconColor: "text-blue-500/50", cardClass: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20", valueColor: "text-blue-600" },
             ] : []),
@@ -392,6 +435,18 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: Adm
                         onClick={() => onTextCustomer(getCustomerPhone(booking)!)}
                       >
                         <MessageSquare className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    {!booking.assigned_worker_id && isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs border-destructive/40 text-destructive hover:bg-destructive/10"
+                        onClick={() => onNavigateTab?.("calendar")}
+                      >
+                        <UserCheck className="h-3.5 w-3.5 mr-1" />
+                        Assign
                       </Button>
                     )}
 

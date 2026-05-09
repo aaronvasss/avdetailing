@@ -159,6 +159,7 @@ export default function AdminPage() {
             isAdmin={isAdmin} 
             onViewBooking={handleViewBooking}
             onTextCustomer={handleTextCustomer}
+            onNavigateTab={setCurrentTab}
           />
         );
       case "calendar":
