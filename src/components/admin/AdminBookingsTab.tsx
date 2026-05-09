@@ -18,6 +18,11 @@ import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "dat
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { BookingEditDialog } from "./BookingEditDialog";
+import {
+  getPaymentBadge as renderPaymentBadge,
+  getPaymentMethodIcon,
+  PaymentDetailsSection,
+} from "@/lib/payment-display";
 
 interface Booking {
   id: string;
@@ -26,9 +31,13 @@ interface Booking {
   scheduled_time: string;
   status: string;
   payment_status: string;
+  payment_method: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   total_price: number;
   subtotal: number | null;
   add_ons_total: number | null;
+  tip_amount: number | null;
   vehicle_type: string;
   vehicle_make: string;
   vehicle_model: string;
