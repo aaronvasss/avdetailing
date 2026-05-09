@@ -211,6 +211,7 @@ serve(async (req) => {
             .select(`
               id,
               user_id,
+              service_id,
               scheduled_date,
               scheduled_time,
               service_address,
