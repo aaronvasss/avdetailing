@@ -211,6 +211,7 @@ serve(async (req) => {
             .select(`
               id,
               user_id,
+              service_id,
               scheduled_date,
               scheduled_time,
               service_address,
@@ -280,6 +281,23 @@ serve(async (req) => {
                 logStep("Notification trigger failed", { error: emailErr });
               }
 
+              // Resolve package name from service_packages for friendlier messaging
+              let packageName: string | null = null;
+              try {
+                if ((bookingData as any).service_id && bookingData.vehicle_type) {
+                  const { data: pkg } = await supabase
+                    .from("service_packages")
+                    .select("name")
+                    .eq("service_id", (bookingData as any).service_id)
+                    .eq("vehicle_type", bookingData.vehicle_type)
+                    .eq("is_active", true)
+                    .maybeSingle();
+                  packageName = (pkg as any)?.name || null;
+                }
+              } catch (_e) { /* ignore */ }
+
+              const displayService = packageName || (bookingData.services as any)?.name || 'Detailing Service';
+
               // Send SMS notification
               try {
                 if (customerPhone) {
@@ -287,7 +305,7 @@ serve(async (req) => {
                     body: {
                       customerPhone,
                       customerName,
-                      serviceName: (bookingData.services as any)?.name || 'Detailing Service',
+                      serviceName: displayService,
                       scheduledDate: bookingData.scheduled_date,
                       scheduledTime: bookingData.scheduled_time,
                       serviceAddress: bookingData.service_address,
@@ -297,7 +315,7 @@ serve(async (req) => {
                       notifyBusiness: true,
                     },
                   });
-                  logStep("SMS notification triggered");
+                  logStep("SMS notification triggered", { packageName });
                 } else {
                   logStep("No phone number available for SMS", { userId: bookingData.user_id });
                 }

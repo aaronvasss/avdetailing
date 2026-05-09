@@ -718,13 +718,19 @@ export function BookingDetailsDialog({
               </div>
               <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-muted-foreground">Payment:</span>
-                <Badge
-                  className={
-                    paymentStatusColors[booking.payment_status || "unpaid"]
-                  }
-                >
-                  {booking.payment_status || "unpaid"}
-                </Badge>
+                {(() => {
+                  const ps = booking.payment_status || "unpaid";
+                  const labels: Record<string, { text: string; cls: string }> = {
+                    paid: { text: "✅ Paid Online", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+                    unpaid: { text: "💵 Pay at Service", cls: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+                    pending: { text: "⏳ Payment Pending", cls: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+                    failed: { text: "❌ Payment Failed", cls: "bg-destructive/10 text-destructive border-destructive/20" },
+                    partial: { text: "Partial", cls: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+                    refunded: { text: "Refunded", cls: "bg-muted text-muted-foreground border-muted" },
+                  };
+                  const conf = labels[ps] || { text: ps, cls: paymentStatusColors[ps] || "" };
+                  return <Badge className={conf.cls}>{conf.text}</Badge>;
+                })()}
                 {isAdmin && booking.payment_method && (
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <CreditCard className="h-3 w-3" />
