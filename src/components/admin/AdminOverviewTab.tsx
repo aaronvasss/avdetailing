@@ -46,9 +46,10 @@ interface AdminOverviewTabProps {
   isAdmin: boolean;
   onViewBooking: (booking: Booking) => void;
   onTextCustomer: (phone: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer }: AdminOverviewTabProps) {
+export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNavigateTab }: AdminOverviewTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMemberships, setActiveMemberships] = useState(0);
