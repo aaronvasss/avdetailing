@@ -363,9 +363,12 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="pending_payment">Awaiting Payment</SelectItem>
             <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="no_show">No Show</SelectItem>
           </SelectContent>
         </Select>
 
