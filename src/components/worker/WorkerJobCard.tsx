@@ -26,6 +26,7 @@ import {
   StickyNote, Package, Upload, Trash2, ImageIcon, Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatStopwatch, formatHm } from "@/lib/duration-format";
 
 interface BookingData {
   id: string;
