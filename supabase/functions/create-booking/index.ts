@@ -393,9 +393,23 @@ const handler = async (req: Request): Promise<Response> => {
       clientId = body.client_id;
     }
 
+    // Auto-assign owner (admin) as default technician if no worker explicitly assigned
+    let finalAssignedWorkerId = insertPayload.assigned_worker_id;
+    if (!finalAssignedWorkerId) {
+      const { data: adminRole } = await serviceClient
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin")
+        .limit(1)
+        .maybeSingle();
+      if (adminRole?.user_id) {
+        finalAssignedWorkerId = adminRole.user_id;
+      }
+    }
+
     const { data: booking, error } = await serviceClient
       .from("bookings")
-      .insert({ ...insertPayload, client_id: clientId })
+      .insert({ ...insertPayload, assigned_worker_id: finalAssignedWorkerId, client_id: clientId })
       .select("id, manage_token")
       .single();
 
