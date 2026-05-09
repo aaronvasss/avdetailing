@@ -6,10 +6,26 @@ import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown } from "lucide-react";
-import { format } from "date-fns";
+import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown, CheckCircle2, DollarSign, Wallet, Coins } from "lucide-react";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { formatStopwatch } from "@/lib/duration-format";
+
+const fmtMoney = (n: number) => (n > 0 ? `$${n.toFixed(n % 1 === 0 ? 0 : 2)}` : "—");
+const fmtCount = (n: number) => (n > 0 ? String(n) : "—");
+
+function calcWorkerCut(b: any, profile: any): number {
+  const jobValue = Number(b.total_price) || 0;
+  if (b.worker_pay_type && b.worker_pay_rate != null) {
+    return b.worker_pay_type === "percentage"
+      ? jobValue * (Number(b.worker_pay_rate) / 100)
+      : Number(b.worker_pay_rate);
+  }
+  if (!profile) return 0;
+  return profile.pay_type === "percentage"
+    ? jobValue * (Number(profile.pay_rate) / 100)
+    : Number(profile.pay_rate) || 0;
+}
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
@@ -30,10 +46,39 @@ const UPCOMING_STATUSES = ["pending", "confirmed", "in_progress"];
 export default function WorkerDashboardPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
+  const [weekBookings, setWeekBookings] = useState<any[]>([]);
+  const [workerProfile, setWorkerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadingUpcoming, setLoadingUpcoming] = useState(true);
 
   const today = getBusinessDateString();
+  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+  const fetchEarningsData = useCallback(async () => {
+    const workerIdentity = await getCurrentWorkerIdentity();
+    if (!workerIdentity) return;
+
+    const { data: wp } = await supabase
+      .from("worker_profiles")
+      .select("*")
+      .eq("user_id", workerIdentity.authUserId)
+      .maybeSingle();
+    setWorkerProfile(wp);
+
+    let weekQuery = supabase
+      .from("bookings")
+      .select("id, total_price, tip_amount, worker_pay_type, worker_pay_rate, status, scheduled_date, assigned_worker_id")
+      .eq("status", "completed")
+      .gte("scheduled_date", weekStart)
+      .lte("scheduled_date", weekEnd);
+    if (!workerIdentity.isAdmin) {
+      weekQuery = weekQuery.eq("assigned_worker_id", workerIdentity.authUserId);
+    }
+    const { data: weekData } = await weekQuery;
+    setWeekBookings(weekData || []);
+  }, [weekStart, weekEnd]);
+
 
   const fetchTodayBookings = useCallback(async () => {
     setLoading(true);
@@ -127,6 +172,7 @@ export default function WorkerDashboardPage() {
   useEffect(() => {
     fetchTodayBookings();
     fetchUpcomingBookings();
+    fetchEarningsData();
 
     const channel = supabase
       .channel(`worker-dashboard-${today}`)
@@ -136,6 +182,7 @@ export default function WorkerDashboardPage() {
         () => {
           fetchTodayBookings();
           fetchUpcomingBookings();
+          fetchEarningsData();
         }
       )
       .subscribe();
@@ -143,7 +190,33 @@ export default function WorkerDashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchTodayBookings, fetchUpcomingBookings, today]);
+  }, [fetchTodayBookings, fetchUpcomingBookings, fetchEarningsData, today]);
+
+  const todayCompleted = useMemo(
+    () => myBookings.filter((b) => b.status === "completed"),
+    [myBookings]
+  );
+
+  const todayStats = useMemo(() => {
+    const jobs = todayCompleted.length;
+    const revenue = todayCompleted.reduce((s, b) => s + (Number(b.total_price) || 0), 0);
+    const earnings = todayCompleted.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0);
+    const tips = todayCompleted.reduce((s, b) => s + (Number(b.tip_amount) || 0), 0);
+    return { jobs, revenue, earnings, tips };
+  }, [todayCompleted, workerProfile]);
+
+  const weekStats = useMemo(() => {
+    const jobs = weekBookings.length;
+    const earnings = weekBookings.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0);
+    const tips = weekBookings.reduce((s, b) => s + (Number(b.tip_amount) || 0), 0);
+    return { jobs, earnings, tips };
+  }, [weekBookings, workerProfile]);
+
+  const todayEstimated = useMemo(() => {
+    const upcoming = myBookings.filter((b) => ["pending", "confirmed", "in_progress"].includes(b.status));
+    return upcoming.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0) + todayStats.earnings;
+  }, [myBookings, workerProfile, todayStats.earnings]);
+
 
   const activeJob = useMemo(
     () => myBookings.find((b) => b.status === "in_progress" && b.clock_in_at),
@@ -167,18 +240,42 @@ export default function WorkerDashboardPage() {
         )}
         <WeatherWidget />
 
+        {/* Today's Earnings */}
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Today's Earnings</h2>
+              <span className="text-xs text-muted-foreground">{format(new Date(), "EEE, MMM d")}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatBlock icon={<CheckCircle2 className="h-4 w-4" />} label="Jobs Done" value={fmtCount(todayStats.jobs)} />
+              <StatBlock icon={<DollarSign className="h-4 w-4" />} label="Revenue" value={fmtMoney(todayStats.revenue)} />
+              <StatBlock icon={<Wallet className="h-4 w-4" />} label="Your Pay" value={fmtMoney(todayStats.earnings)} accent />
+              <StatBlock icon={<Coins className="h-4 w-4" />} label="Tips" value={fmtMoney(todayStats.tips)} accent />
+            </div>
+            <p className="text-xs text-muted-foreground pt-1 border-t border-border/50">
+              This week: {weekStats.jobs} {weekStats.jobs === 1 ? "job" : "jobs"} · {fmtMoney(weekStats.earnings)} your pay · {fmtMoney(weekStats.tips)} tips
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Today's Jobs */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <CalendarDays className="h-5 w-5 text-primary" />
             <h1 className="text-lg font-bold">Today's Jobs</h1>
             <span className="text-muted-foreground text-sm">
               {format(new Date(), "EEE, MMM d")}
             </span>
             {myBookings.length > 0 && (
-              <Badge variant="outline" className="ml-auto text-xs bg-primary/10 text-primary border-primary/20">
-                {myBookings.length}
-              </Badge>
+              <>
+                <Badge variant="outline" className="ml-auto text-xs bg-primary/10 text-primary border-primary/20">
+                  {myBookings.length}
+                </Badge>
+                {todayEstimated > 0 && (
+                  <span className="text-xs text-green-500 font-medium">· Est. ${todayEstimated.toFixed(todayEstimated % 1 === 0 ? 0 : 2)}</span>
+                )}
+              </>
             )}
           </div>
 
@@ -199,7 +296,7 @@ export default function WorkerDashboardPage() {
                 <div key={booking.id} id={`job-card-${booking.id}`} className="ring-2 ring-primary/30 rounded-lg scroll-mt-20">
                   <WorkerJobCard
                     booking={booking}
-                    onStatusChange={() => { fetchTodayBookings(); fetchUpcomingBookings(); }}
+                    onStatusChange={() => { fetchTodayBookings(); fetchUpcomingBookings(); fetchEarningsData(); }}
                   />
                 </div>
               ))}
@@ -342,5 +439,19 @@ function ActiveJobBanner({ startedAt, customerName, onView }: { startedAt: strin
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+function StatBlock({ icon, label, value, accent = false }: { icon: React.ReactNode; label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="rounded-md border border-border/60 bg-muted/30 p-2.5">
+      <div className={`flex items-center gap-1 text-[11px] uppercase tracking-wide ${accent ? "text-green-500" : "text-muted-foreground"}`}>
+        {icon}
+        <span>{label}</span>
+      </div>
+      <div className={`mt-1 text-lg font-bold tabular-nums ${accent && value !== "—" ? "text-green-500" : ""}`}>
+        {value}
+      </div>
+    </div>
   );
 }
