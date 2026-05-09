@@ -498,9 +498,10 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span>{booking.custom_service_description || booking.services?.name || "Detailing"}</span>
+                        <span className="font-medium">{getDisplayLabel(booking)}</span>
                         <span className="text-sm text-muted-foreground">
                           {booking.vehicle_type} {booking.vehicle_make}
+                          {booking.booking_add_ons?.length > 0 && ` • +${booking.booking_add_ons.length} add-on${booking.booking_add_ons.length > 1 ? "s" : ""}`}
                         </span>
                       </div>
                     </TableCell>
