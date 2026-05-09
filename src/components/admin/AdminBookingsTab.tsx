@@ -657,7 +657,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 ))}
                 {filteredBookings.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 7 : 5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isAdmin ? 8 : 6} className="text-center py-8 text-muted-foreground">
                       No bookings found matching your filters
                     </TableCell>
                   </TableRow>
