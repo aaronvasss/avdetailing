@@ -175,6 +175,36 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
       setTipCount(onlineTipCount + bookingTips.length);
       setTotalTips(onlineTipTotal + bookingTipTotal);
+
+      // Fetch ratings grouped by booking -> worker
+      try {
+        const bookingIds = (bookingsRes.data || []).map((b: any) => b.id);
+        if (bookingIds.length > 0) {
+          const { data: ratings } = await supabase
+            .from("booking_ratings")
+            .select("booking_id, rating")
+            .in("booking_id", bookingIds);
+          const bookingToWorker: Record<string, string> = {};
+          (bookingsRes.data || []).forEach((b: any) => {
+            if (b.assigned_worker_id) bookingToWorker[b.id] = b.assigned_worker_id;
+          });
+          const acc: Record<string, { sum: number; count: number }> = {};
+          (ratings || []).forEach((r: any) => {
+            const wId = bookingToWorker[r.booking_id];
+            if (!wId) return;
+            if (!acc[wId]) acc[wId] = { sum: 0, count: 0 };
+            acc[wId].sum += r.rating;
+            acc[wId].count += 1;
+          });
+          const out: Record<string, { avg: number; count: number }> = {};
+          Object.entries(acc).forEach(([k, v]) => {
+            out[k] = { avg: v.sum / v.count, count: v.count };
+          });
+          setWorkerRatings(out);
+        }
+      } catch (e) {
+        console.warn("ratings unavailable", e);
+      }
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
