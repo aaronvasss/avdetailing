@@ -26,6 +26,14 @@ import {
   PaymentDetailsSection,
 } from "@/lib/payment-display";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
+import {
+  checkRecentNotification,
+  logNotification,
+  formatBlockedToast,
+  fetchLatestPaymentReminders,
+  describeLastReminder,
+  COOLDOWN_HOURS,
+} from "@/lib/notification-log";
 
 interface Booking {
   id: string;
@@ -206,62 +214,124 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       );
       setBookings(bookingsWithProfiles);
 
-      // Load latest "Payment reminder sent" notes for each booking
+      // Load latest payment reminder timestamps from booking_notification_log
       if (bookingIds.length > 0) {
-        const { data: notes } = await supabase
-          .from("booking_internal_notes")
-          .select("booking_id, note, created_at")
-          .in("booking_id", bookingIds)
-          .ilike("note", "Payment reminder sent%")
-          .order("created_at", { ascending: false });
-        const log: Record<string, string> = {};
-        (notes || []).forEach((n: any) => {
-          if (!log[n.booking_id]) log[n.booking_id] = n.created_at;
-        });
+        const log = await fetchLatestPaymentReminders(bookingIds);
         setReminderLog(log);
       }
     }
     setLoading(false);
   };
 
-  const requestPayment = async (booking: Booking): Promise<boolean> => {
+  const requestPayment = async (
+    booking: Booking,
+    channel: "sms" | "email" | "both" = "both"
+  ): Promise<boolean> => {
     const name = getCustomerName(booking);
     const phone = getCustomerPhone(booking);
     const email = getCustomerEmail(booking);
-    if (!phone && !email) {
-      toast.error(`No phone or email on file for ${name}`);
+
+    const wantSms = (channel === "sms" || channel === "both") && !!phone;
+    const wantEmail = (channel === "email" || channel === "both") && !!email;
+
+    if (!wantSms && !wantEmail) {
+      if (channel === "sms") toast.error(`No phone on file for ${name}`);
+      else if (channel === "email") toast.error(`No email on file for ${name}`);
+      else toast.error(`No phone or email on file for ${name}`);
       return false;
     }
+
+    // Duplicate prevention: check both channels we're about to send
+    const dupChecks: Promise<{ type: "payment_reminder_sms" | "payment_reminder_email"; recent: any }>[] = [];
+    if (wantSms) dupChecks.push(checkRecentNotification(booking.id, "payment_reminder_sms").then(r => ({ type: "payment_reminder_sms" as const, recent: r })));
+    if (wantEmail) dupChecks.push(checkRecentNotification(booking.id, "payment_reminder_email").then(r => ({ type: "payment_reminder_email" as const, recent: r })));
+    const dupResults = await Promise.all(dupChecks);
+    const blocking = dupResults.find(r => r.recent);
+    if (blocking) {
+      toast.error(formatBlockedToast(name, blocking.recent, COOLDOWN_HOURS[blocking.type]));
+      return false;
+    }
+
     setRequestingPayment(booking.id);
     try {
       const pkgLabel = getDisplayLabel(booking);
       const dateStr = format(new Date(booking.scheduled_date), "MMM d");
+      const longDate = format(new Date(booking.scheduled_date), "MMM d, yyyy");
       const amount = Number(booking.total_price || 0).toFixed(2);
       const manageLink = booking.manage_token
         ? `${window.location.origin}/booking/manage?token=${booking.manage_token}`
         : `${window.location.origin}/booking`;
-      const message = `Hi ${name}! This is AV Detailing. Your ${pkgLabel} service on ${dateStr} has a balance of $${amount} due. Pay now: ${manageLink} or call us at (225) 521-6264. Thank you!`;
 
-      const tasks: Promise<any>[] = [];
-      if (phone) {
-        tasks.push(supabase.functions.invoke("send-booking-sms", { body: { to: phone, message } }));
+      const smsMessage = `Hi ${name}! AV Detailing here 👋 Your ${pkgLabel} service on ${dateStr} has a balance of $${amount} due. Pay here: ${manageLink} or call (225) 521-6264. Reply STOP to opt out.`;
+      const emailSubject = `Payment Due — AV Detailing Service on ${longDate}`;
+      const emailBody = `Hi ${name},\n\nThis is a friendly reminder that your ${pkgLabel} service on ${longDate} has an outstanding balance of $${amount}.\n\nPay securely here: ${manageLink}\nOr call us at (225) 521-6264.\n\nThank you,\nAV Detailing`;
+
+      // Send SMS
+      let smsOk = false;
+      if (wantSms) {
+        try {
+          const { error } = await supabase.functions.invoke("send-booking-sms", {
+            body: { to: phone, message: smsMessage },
+          });
+          if (error) throw error;
+          smsOk = true;
+          await logNotification({
+            bookingId: booking.id,
+            notificationType: "payment_reminder_sms",
+            recipient: phone!,
+            status: "sent",
+          });
+        } catch (err: any) {
+          await logNotification({
+            bookingId: booking.id,
+            notificationType: "payment_reminder_sms",
+            recipient: phone!,
+            status: "failed",
+            errorMessage: String(err?.message || err),
+          });
+        }
       }
-      if (email) {
-        tasks.push(supabase.functions.invoke("send-contact-email", {
-          body: { name: "AV Detailing", email, service: "Payment Reminder", message },
-        }));
+
+      // Send Email
+      let emailOk = false;
+      if (wantEmail) {
+        try {
+          const { error } = await supabase.functions.invoke("send-contact-email", {
+            body: {
+              name: "AV Detailing",
+              email,
+              service: emailSubject,
+              message: emailBody,
+            },
+          });
+          if (error) throw error;
+          emailOk = true;
+          await logNotification({
+            bookingId: booking.id,
+            notificationType: "payment_reminder_email",
+            recipient: email!,
+            status: "sent",
+          });
+        } catch (err: any) {
+          await logNotification({
+            bookingId: booking.id,
+            notificationType: "payment_reminder_email",
+            recipient: email!,
+            status: "failed",
+            errorMessage: String(err?.message || err),
+          });
+        }
       }
-      await Promise.all(tasks);
 
-      const channels = [phone && "SMS", email && "email"].filter(Boolean).join("+");
-      await supabase.from("booking_internal_notes").insert({
-        booking_id: booking.id,
-        note: `Payment reminder sent on ${format(new Date(), "MMM d, yyyy h:mm a")} via ${channels}`,
-      });
-
-      setReminderLog(prev => ({ ...prev, [booking.id]: new Date().toISOString() }));
-      toast.success(`Payment request sent to ${name}`);
-      return true;
+      if (smsOk || emailOk) {
+        setReminderLog(prev => ({ ...prev, [booking.id]: new Date().toISOString() }));
+        const sentChannels = [smsOk && "SMS", emailOk && "email"].filter(Boolean).join(" + ");
+        toast.success(`Payment reminder sent to ${name} via ${sentChannels}`);
+        return true;
+      } else {
+        toast.error("Failed to send payment reminder");
+        return false;
+      }
     } catch (err) {
       console.error("Payment request error:", err);
       toast.error("Failed to send payment request");
@@ -687,13 +757,20 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     {isAdmin && (
                       <TableCell>
                         {booking.payment_status === "unpaid" && booking.status !== "cancelled" ? (
-                          reminderLog[booking.id] ? (
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(reminderLog[booking.id]), "MMM d, h:mm a")}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">Never</span>
-                          )
+                          (() => {
+                            const desc = describeLastReminder(reminderLog[booking.id]);
+                            if (desc.variant === "amber") {
+                              return (
+                                <Badge variant="outline" className="border-yellow-500/50 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs">
+                                  {desc.text}
+                                </Badge>
+                              );
+                            }
+                            if (desc.variant === "muted") {
+                              return <span className="text-xs text-muted-foreground">{desc.text}</span>;
+                            }
+                            return <span className="text-xs text-muted-foreground italic">No reminder sent</span>;
+                          })()
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
@@ -702,19 +779,40 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     <TableCell>
                       <div className="flex gap-1 justify-end">
                         {isAdmin && booking.payment_status === "unpaid" && booking.status === "completed" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
-                            onClick={() => requestPayment(booking)}
-                            disabled={requestingPayment === booking.id}
-                          >
-                            {requestingPayment === booking.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <><Send className="h-3.5 w-3.5 mr-1" />Request Payment</>
-                            )}
-                          </Button>
+                          <div className="flex items-center gap-0.5 mr-1 rounded-md border border-yellow-500/40 overflow-hidden">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-yellow-700 hover:bg-yellow-500/10 rounded-none"
+                              onClick={() => requestPayment(booking, "sms")}
+                              disabled={requestingPayment === booking.id}
+                              title="Send SMS reminder"
+                            >
+                              {requestingPayment === booking.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>📱 SMS</>}
+                            </Button>
+                            <span className="w-px h-5 bg-yellow-500/30" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-yellow-700 hover:bg-yellow-500/10 rounded-none"
+                              onClick={() => requestPayment(booking, "email")}
+                              disabled={requestingPayment === booking.id}
+                              title="Send Email reminder"
+                            >
+                              📧 Email
+                            </Button>
+                            <span className="w-px h-5 bg-yellow-500/30" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-yellow-700 hover:bg-yellow-500/10 rounded-none"
+                              onClick={() => requestPayment(booking, "both")}
+                              disabled={requestingPayment === booking.id}
+                              title="Send SMS + Email"
+                            >
+                              📱📧 Both
+                            </Button>
+                          </div>
                         )}
                         <Button 
                           variant="ghost" 
@@ -885,25 +983,45 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               {isAdmin && selectedBooking.payment_status === "unpaid" && selectedBooking.status === "completed" && (
                 <div className="border-t pt-4">
                   <div className="text-sm font-medium mb-2">Payment Follow-up</div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
-                    onClick={() => requestPayment(selectedBooking)}
-                    disabled={requestingPayment === selectedBooking.id}
-                  >
-                    {requestingPayment === selectedBooking.id ? (
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4 mr-1" />
-                    )}
-                    Request Payment
-                  </Button>
-                  {reminderLog[selectedBooking.id] && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Last reminder: {format(new Date(reminderLog[selectedBooking.id]), "MMM d, yyyy h:mm a")}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                      onClick={() => requestPayment(selectedBooking, "sms")}
+                      disabled={requestingPayment === selectedBooking.id}
+                    >
+                      {requestingPayment === selectedBooking.id ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <span className="mr-1">📱</span>}
+                      SMS
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                      onClick={() => requestPayment(selectedBooking, "email")}
+                      disabled={requestingPayment === selectedBooking.id}
+                    >
+                      <span className="mr-1">📧</span>Email
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                      onClick={() => requestPayment(selectedBooking, "both")}
+                      disabled={requestingPayment === selectedBooking.id}
+                    >
+                      <span className="mr-1">📱📧</span>Both
+                    </Button>
+                  </div>
+                  {(() => {
+                    const desc = describeLastReminder(reminderLog[selectedBooking.id]);
+                    if (desc.variant === "none") return null;
+                    return (
+                      <p className={cn("text-xs mt-2", desc.variant === "amber" ? "text-yellow-700 dark:text-yellow-400 font-medium" : "text-muted-foreground")}>
+                        {desc.text}
+                      </p>
+                    );
+                  })()}
                 </div>
               )}
 

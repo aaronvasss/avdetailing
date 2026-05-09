@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { format, isToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns";
 import { toast } from "sonner";
+import { checkRecentNotification, logNotification } from "@/lib/notification-log";
 
 const PAID_STATUSES = ["paid", "completed"];
 
@@ -57,6 +58,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
   const [monthRevenue, setMonthRevenue] = useState(0);
   const [totalTips, setTotalTips] = useState(0);
   const [sendingBulk, setSendingBulk] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number; skipped: number } | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -255,6 +257,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
     if (unpaidCompleted.length === 0) return;
     if (!window.confirm(`Send payment reminders to ${unpaidCompleted.length} customer${unpaidCompleted.length === 1 ? "" : "s"}?`)) return;
     setSendingBulk(true);
+    setBulkProgress({ current: 0, total: unpaidCompleted.length, skipped: 0 });
     try {
       const ids = unpaidCompleted.map(b => b.id);
       const { data: full } = await supabase
@@ -264,8 +267,12 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
 
       let sent = 0;
       let failed = 0;
+      let skipped = 0;
       const origin = window.location.origin;
-      for (const b of (full || [])) {
+      const fullList = full || [];
+      for (let i = 0; i < fullList.length; i++) {
+        const b = fullList[i];
+        setBulkProgress({ current: i + 1, total: fullList.length, skipped });
         const overview = unpaidCompleted.find(x => x.id === b.id);
         const name = overview ? getCustomerName(overview) : (b.guest_name || "Customer");
         const phone = overview ? getCustomerPhone(overview) : b.guest_phone;
@@ -275,33 +282,55 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
           email = prof?.email || null;
         }
         if (!phone && !email) { failed++; continue; }
+
+        // Duplicate check — skip if either channel was reminded in last 24h
+        const [recentSms, recentEmail] = await Promise.all([
+          phone ? checkRecentNotification(b.id, "payment_reminder_sms") : Promise.resolve(null),
+          email ? checkRecentNotification(b.id, "payment_reminder_email") : Promise.resolve(null),
+        ]);
+        if (recentSms || recentEmail) { skipped++; setBulkProgress({ current: i + 1, total: fullList.length, skipped }); continue; }
+
         const pkg = (b as any).services?.name || "detailing";
         const dateStr = format(new Date(b.scheduled_date), "MMM d");
+        const longDate = format(new Date(b.scheduled_date), "MMM d, yyyy");
         const amount = Number(b.total_price || 0).toFixed(2);
         const link = b.manage_token ? `${origin}/booking/manage?token=${b.manage_token}` : `${origin}/booking`;
-        const message = `Hi ${name}! This is AV Detailing. Your ${pkg} service on ${dateStr} has a balance of $${amount} due. Pay now: ${link} or call us at (225) 521-6264. Thank you!`;
-        try {
-          const tasks: Promise<any>[] = [];
-          if (phone) tasks.push(supabase.functions.invoke("send-booking-sms", { body: { to: phone, message } }));
-          if (email) tasks.push(supabase.functions.invoke("send-contact-email", { body: { name: "AV Detailing", email, service: "Payment Reminder", message } }));
-          await Promise.all(tasks);
-          const channels = [phone && "SMS", email && "email"].filter(Boolean).join("+");
-          await supabase.from("booking_internal_notes").insert({
-            booking_id: b.id,
-            note: `Payment reminder sent on ${format(new Date(), "MMM d, yyyy h:mm a")} via ${channels}`,
-          });
-          sent++;
-        } catch (e) {
-          console.error("Bulk reminder failed for", b.id, e);
-          failed++;
+        const smsMessage = `Hi ${name}! AV Detailing here 👋 Your ${pkg} service on ${dateStr} has a balance of $${amount} due. Pay here: ${link} or call (225) 521-6264. Reply STOP to opt out.`;
+        const emailSubject = `Payment Due — AV Detailing Service on ${longDate}`;
+
+        let anyOk = false;
+        if (phone) {
+          try {
+            const { error } = await supabase.functions.invoke("send-booking-sms", { body: { to: phone, message: smsMessage } });
+            if (error) throw error;
+            anyOk = true;
+            await logNotification({ bookingId: b.id, notificationType: "payment_reminder_sms", recipient: phone, status: "sent" });
+          } catch (err: any) {
+            await logNotification({ bookingId: b.id, notificationType: "payment_reminder_sms", recipient: phone, status: "failed", errorMessage: String(err?.message || err) });
+          }
         }
+        if (email) {
+          try {
+            const { error } = await supabase.functions.invoke("send-contact-email", { body: { name: "AV Detailing", email, service: emailSubject, message: smsMessage } });
+            if (error) throw error;
+            anyOk = true;
+            await logNotification({ bookingId: b.id, notificationType: "payment_reminder_email", recipient: email, status: "sent" });
+          } catch (err: any) {
+            await logNotification({ bookingId: b.id, notificationType: "payment_reminder_email", recipient: email, status: "failed", errorMessage: String(err?.message || err) });
+          }
+        }
+        if (anyOk) sent++; else failed++;
       }
-      toast.success(`Sent ${sent} reminder${sent === 1 ? "" : "s"}${failed ? ` (${failed} failed)` : ""}`);
+      const parts = [`✅ Sent ${sent} reminder${sent === 1 ? "" : "s"}`];
+      if (skipped > 0) parts.push(`⏭️ Skipped ${skipped} (already sent today)`);
+      if (failed > 0) parts.push(`❌ ${failed} failed`);
+      toast.success(parts.join(" | "));
     } catch (err) {
       console.error("Bulk send error:", err);
       toast.error("Failed to send reminders");
     } finally {
       setSendingBulk(false);
+      setBulkProgress(null);
     }
   };
 
@@ -363,7 +392,9 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
             disabled={sendingBulk}
           >
             {sendingBulk ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <MessageSquare className="h-3.5 w-3.5 mr-1" />}
-            Send All Reminders
+            {sendingBulk && bulkProgress
+              ? `Sending ${bulkProgress.current} of ${bulkProgress.total}${bulkProgress.skipped > 0 ? ` (${bulkProgress.skipped} skipped)` : ""}`
+              : "Send All Reminders"}
           </Button>
         </div>
       )}
