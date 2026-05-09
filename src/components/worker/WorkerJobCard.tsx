@@ -98,7 +98,25 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
   const afterGalleryRef = useRef<HTMLInputElement>(null);
   const { uploadMultiple, getBookingPhotos, deletePhoto } = usePhotoUpload();
 
-  const serviceName = booking.custom_service_description || (booking.services as any)?.name || "Detailing Service";
+  const [packageName, setPackageName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const sid = (booking as any).service_id;
+    const vt = booking.vehicle_size || booking.vehicle_type;
+    if (!sid || !vt) { setPackageName(null); return; }
+    supabase
+      .from("service_packages")
+      .select("name")
+      .eq("service_id", sid)
+      .eq("vehicle_type", vt)
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => { if (!cancelled) setPackageName(data?.name || null); });
+    return () => { cancelled = true; };
+  }, [booking.id]);
+
+  const serviceName = packageName || booking.custom_service_description || (booking.services as any)?.name || "Service";
   const addOns = (booking.booking_add_ons || []).map((a) => a.name);
   const customerName = booking.guest_name || "Customer";
   const firstName = customerName.split(" ")[0];
