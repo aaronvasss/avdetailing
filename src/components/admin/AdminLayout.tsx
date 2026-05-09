@@ -24,6 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getActiveAlertCount } from "./AdminNotificationsTab";
 
 interface AdminLayoutProps {
   children: ReactNode;
