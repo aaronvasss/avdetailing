@@ -404,7 +404,67 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     workerEarningsMap[wId].jobs += 1;
   });
 
-  const revenueTrends = getRevenueTrends();
+  // ===== Team Performance Stats =====
+  const thirtyDaysAgo = subDays(new Date(), 30);
+  const completedBookingsAll = bookings.filter(b => b.status === "completed" && b.assigned_worker_id);
+
+  interface WorkerStats {
+    workerId: string;
+    name: string;
+    initials: string;
+    jobsLast30: number;
+    revenue: number;
+    revenueThisMonth: number;
+    avgTicket: number;
+    tips: number;
+    earnings: number;
+    rating: { avg: number; count: number } | null;
+    jobs: Booking[];
+  }
+
+  const workerStatsMap: Record<string, WorkerStats> = {};
+  completedBookingsAll.forEach(b => {
+    const wId = b.assigned_worker_id!;
+    const date = parseISO(b.scheduled_date);
+    if (!workerStatsMap[wId]) {
+      const name = workerNames[wId] || "Unknown";
+      const initials = name.split(" ").map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "??";
+      workerStatsMap[wId] = {
+        workerId: wId,
+        name,
+        initials,
+        jobsLast30: 0,
+        revenue: 0,
+        revenueThisMonth: 0,
+        avgTicket: 0,
+        tips: 0,
+        earnings: 0,
+        rating: workerRatings[wId] || null,
+        jobs: [],
+      };
+    }
+    const s = workerStatsMap[wId];
+    s.revenue += b.total_price || 0;
+    s.tips += Number(b.tip_amount) || 0;
+    s.earnings += calcBookingLaborCost(b);
+    s.jobs.push(b);
+    if (date >= thirtyDaysAgo) s.jobsLast30 += 1;
+    if (date >= thisMonthStart) s.revenueThisMonth += b.total_price || 0;
+  });
+  Object.values(workerStatsMap).forEach(s => {
+    s.avgTicket = s.jobs.length > 0 ? s.revenue / s.jobs.length : 0;
+    s.jobs.sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
+  });
+
+  const workerStatsArr = Object.values(workerStatsMap).sort((a, b) => b.revenue - a.revenue);
+  const topPerformerId = workerStatsArr.reduce<{ id: string | null; rev: number }>(
+    (acc, w) => (w.revenueThisMonth > acc.rev ? { id: w.workerId, rev: w.revenueThisMonth } : acc),
+    { id: null, rev: 0 }
+  ).id;
+  const workerComparisonData = workerStatsArr
+    .map(w => ({ name: w.name, revenue: w.revenueThisMonth }))
+    .filter(w => w.revenue > 0);
+
   const servicePopularity = getServicePopularity();
   const vehicleDistribution = getVehicleDistribution();
 
