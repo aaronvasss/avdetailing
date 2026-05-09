@@ -27,6 +27,8 @@ interface BookingSmsRequest {
   totalPrice: number;
   bookingId: string;
   notifyBusiness?: boolean;
+  paymentConfirmed?: boolean;
+  manageToken?: string;
 }
 
 // Fetch business settings from database
