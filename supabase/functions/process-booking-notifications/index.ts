@@ -108,13 +108,17 @@ function buildCalendarLinks(booking: any, serviceName: string) {
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
   const location = [booking.service_address, booking.service_city, booking.service_state || "LA"].filter(Boolean).join(", ");
+  const title = `AV Detailing — ${serviceName}`;
+  const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || "Vehicle";
+  const total = Number(booking.total_price) || 0;
+  const description = `Package: ${serviceName}\nVehicle: ${vehicle}\nTotal: $${total.toFixed(2)}\nCall: ${PHONE}\nBooking: ${booking.id}`;
 
-  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("AV Detailing - " + serviceName)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent("Mobile detailing service.\nCall " + PHONE + "\nBooking: " + booking.id)}&location=${encodeURIComponent(location)}`;
+  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
 
   // Use hosted edge function URL for ICS download (data: URIs don't work in email clients)
   const icsUrl = `${SUPABASE_URL}/functions/v1/download-ics?id=${booking.id}`;
 
-  const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent("AV Detailing - " + serviceName)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent("Mobile detailing. Call " + PHONE)}`;
+  const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent(description)}`;
 
   return { googleUrl, icsUrl, outlookUrl };
 }
