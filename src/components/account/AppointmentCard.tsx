@@ -71,6 +71,8 @@ export interface Booking {
   worker_pay_type?: string | null;
   worker_pay_rate?: number | null;
   service_id?: string;
+  custom_service_description?: string | null;
+  package_name?: string | null;
   services: {
     name: string;
     description: string | null;
