@@ -553,7 +553,12 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
 
           {/* Live timer while in_progress */}
           {isInProgress && booking.clock_in_at && (
-            <JobTimer startedAt={booking.clock_in_at} />
+            <>
+              <JobTimer startedAt={booking.clock_in_at} />
+              <p className="text-xs text-muted-foreground pl-1">
+                🕐 Clocked in at {format(new Date(booking.clock_in_at), "h:mm a")}
+              </p>
+            </>
           )}
 
           {/* Actual vs estimated duration when completed */}
@@ -567,6 +572,14 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
                 )}
               </span>
             </div>
+          )}
+
+          {/* Clock in/out times when completed */}
+          {isCompleted && booking.clock_in_at && booking.clock_out_at && (
+            <p className="text-xs text-muted-foreground pl-1">
+              🕐 In: {format(new Date(booking.clock_in_at), "h:mm a")} → Out: {format(new Date(booking.clock_out_at), "h:mm a")}
+              {booking.actual_duration_minutes != null && ` · Duration: ${formatHm(booking.actual_duration_minutes)}`}
+            </p>
           )}
 
           {/* Tip section (completed jobs) */}
