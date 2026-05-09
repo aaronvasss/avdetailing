@@ -1089,106 +1089,245 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       {/* ===== Team Performance ===== */}
       {workerStatsArr.length > 0 && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-bold mb-1">Team Performance</h2>
-            <p className="text-sm text-muted-foreground">Per-worker stats from completed jobs (last 6 months)</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold mb-1">Team Performance</h2>
+              <p className="text-sm text-muted-foreground">
+                Per-worker stats for the selected date range
+              </p>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" /> Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportSummaryCsv}>
+                  Export Summary CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportFullReportCsv}>
+                  Export Full Report CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {workerStatsArr.map(w => (
-              <Card key={w.workerId} className={w.workerId === topPerformerId ? "border-primary" : ""}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{w.initials}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base">{w.name}</CardTitle>
-                        {w.rating && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <span>{w.rating.avg.toFixed(1)} ({w.rating.count})</span>
-                          </div>
-                        )}
-                      </div>
+          {drillStats ? (
+            // ========== DRILL-DOWN PANEL ==========
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDrillWorker(null)}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-1" /> Back
+                    </Button>
+                    <Avatar>
+                      <AvatarFallback>{drillStats.initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg">{drillStats.name}</CardTitle>
+                      <CardDescription>
+                        {dateRange?.from && dateRange?.to
+                          ? `${format(dateRange.from, "MMM d, yyyy")} → ${format(dateRange.to, "MMM d, yyyy")}`
+                          : ""}
+                      </CardDescription>
                     </div>
-                    {w.workerId === topPerformerId && (
+                    {drillStats.workerId === topPerformerId && (
                       <Badge className="bg-yellow-500 text-yellow-50 hover:bg-yellow-600">
                         <Crown className="h-3 w-3 mr-1" /> Top Performer
                       </Badge>
                     )}
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Jobs (30d)</p>
-                      <p className="font-bold">{w.jobsLast30}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Revenue</p>
-                      <p className="font-bold">${w.revenue.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Avg Ticket</p>
-                      <p className="font-bold">${w.avgTicket.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Tips</p>
-                      <p className="font-bold text-emerald-600">${w.tips.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">On-Time Rate</p>
-                      <p className="font-bold text-muted-foreground">N/A</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Star Rating</p>
-                      <p className="font-bold">{w.rating ? `${w.rating.avg.toFixed(1)} ★` : "N/A"}</p>
-                    </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* KPI ROW */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Jobs Completed</p>
+                    <p className="text-xl font-bold">{drillStats.jobs.length}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-2 h-8 text-xs"
-                    onClick={() => setExpandedWorker(expandedWorker === w.workerId ? null : w.workerId)}
-                  >
-                    {expandedWorker === w.workerId ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                    {expandedWorker === w.workerId ? "Hide" : "View"} Last 10 Jobs
-                  </Button>
-                  {expandedWorker === w.workerId && (
-                    <div className="mt-2 overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs">Date</TableHead>
-                            <TableHead className="text-xs">Service</TableHead>
-                            <TableHead className="text-right text-xs">Total</TableHead>
-                            <TableHead className="text-right text-xs">Cut</TableHead>
-                            <TableHead className="text-right text-xs">Tip</TableHead>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Revenue</p>
+                    <p className="text-xl font-bold">${drillStats.revenue.toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                    <p className="text-xl font-bold">${drillStats.avgTicket.toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Tips Earned</p>
+                    <p className="text-xl font-bold text-emerald-600">${drillStats.tips.toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                    <p className={cn("text-xl font-bold", onTimeColor(drillStats.onTimeRate))}>
+                      {onTimeLabel(drillStats.onTimeRate)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Avg Rating</p>
+                    <p className="text-xl font-bold">
+                      {drillStats.rating
+                        ? <>⭐ {drillStats.rating.avg.toFixed(1)} <span className="text-xs text-muted-foreground">({drillStats.rating.count})</span></>
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* CHARTS */}
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm">Jobs per Week</CardTitle></CardHeader>
+                    <CardContent>
+                      <ChartContainer config={chartConfig} className="h-[220px] w-full">
+                        <BarChart data={drillWeekly}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                          <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="jobs" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm">Revenue per Week</CardTitle></CardHeader>
+                    <CardContent>
+                      <ChartContainer config={chartConfig} className="h-[220px] w-full">
+                        <BarChart data={drillWeekly}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                          <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* JOBS TABLE */}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Package</TableHead>
+                        <TableHead>Vehicle</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Their Pay</TableHead>
+                        <TableHead className="text-right">Tip</TableHead>
+                        <TableHead className="text-center">On-Time</TableHead>
+                        <TableHead className="text-center">Rating</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {drillStats.jobs.map(j => {
+                        const diff = getOnTimeDiff(j);
+                        return (
+                          <TableRow key={j.id}>
+                            <TableCell>{format(parseISO(j.scheduled_date), "MMM d, yyyy")}</TableCell>
+                            <TableCell>{j.scheduled_time?.slice(0, 5) || "—"}</TableCell>
+                            <TableCell className="max-w-[140px] truncate">{j.guest_name || "—"}</TableCell>
+                            <TableCell className="max-w-[140px] truncate">{j.services?.name || "—"}</TableCell>
+                            <TableCell>{j.vehicle_type || "—"}</TableCell>
+                            <TableCell className="text-right">${(j.total_price || 0).toFixed(0)}</TableCell>
+                            <TableCell className="text-right">${calcBookingLaborCost(j).toFixed(0)}</TableCell>
+                            <TableCell className="text-right">${(Number(j.tip_amount) || 0).toFixed(0)}</TableCell>
+                            <TableCell className="text-center">{onTimeIcon(diff)}</TableCell>
+                            <TableCell className="text-center">
+                              {j.rating != null ? `⭐ ${j.rating}` : "—"}
+                            </TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{j.status}</Badge></TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {w.jobs.slice(0, 10).map(j => (
-                            <TableRow key={j.id}>
-                              <TableCell className="text-xs">{format(parseISO(j.scheduled_date), "MMM d")}</TableCell>
-                              <TableCell className="text-xs truncate max-w-[120px]">{j.services?.name || "—"}</TableCell>
-                              <TableCell className="text-right text-xs">${(j.total_price || 0).toFixed(0)}</TableCell>
-                              <TableCell className="text-right text-xs">${calcBookingLaborCost(j).toFixed(0)}</TableCell>
-                              <TableCell className="text-right text-xs">${(Number(j.tip_amount) || 0).toFixed(0)}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            // ========== WORKER CARDS GRID ==========
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {workerStatsArr.map(w => (
+                <Card
+                  key={w.workerId}
+                  className={cn("cursor-pointer transition-shadow hover:shadow-md", w.workerId === topPerformerId ? "border-primary" : "")}
+                  onClick={() => setDrillWorker(w.workerId)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>{w.initials}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-base">{w.name}</CardTitle>
+                          {w.rating && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                              <span>{w.rating.avg.toFixed(1)} ({w.rating.count})</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {w.workerId === topPerformerId && (
+                        <Badge className="bg-yellow-500 text-yellow-50 hover:bg-yellow-600">
+                          <Crown className="h-3 w-3 mr-1" /> Top Performer
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Jobs (30d)</p>
+                        <p className="font-bold">{w.jobsLast30}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                        <p className="font-bold">${w.revenue.toFixed(0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                        <p className="font-bold">${w.avgTicket.toFixed(0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Tips</p>
+                        <p className="font-bold text-emerald-600">${w.tips.toFixed(0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                        <p className={cn("font-bold", onTimeColor(w.onTimeRate))}>
+                          {onTimeLabel(w.onTimeRate)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Star Rating</p>
+                        <p className="font-bold">{w.rating ? `${w.rating.avg.toFixed(1)} ★` : "N/A"}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center pt-2 border-t border-border mt-2">
+                      Click for full breakdown →
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Worker Revenue Comparison */}
-          {workerComparisonData.length > 0 && (
+          {!drillStats && workerComparisonData.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Worker Revenue — This Month</CardTitle>
