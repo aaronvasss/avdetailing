@@ -132,6 +132,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [draftSavedVisible, setDraftSavedVisible] = useState(false);
   const { workers } = useWorkersList();
 
+  // Dynamic pricing data fetched from DB
+  const [packageRows, setPackageRows] = useState<PackageRow[]>([]);
+  const [addOnsList, setAddOnsList] = useState<AddOnRow[]>([]);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState(false);
+
   // Auto-fetch worker default pay rate when assigned
   const handleWorkerAssign = async (workerId: string) => {
     setAssignedWorkerId(workerId);
