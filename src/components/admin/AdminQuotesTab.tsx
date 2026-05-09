@@ -55,6 +55,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { checkRecentNotification, logNotification, formatBlockedToast, COOLDOWN_HOURS } from "@/lib/notification-log";
 import { format } from "date-fns";
 import { PhotoGallery } from "@/components/photos/PhotoGallery";
 
