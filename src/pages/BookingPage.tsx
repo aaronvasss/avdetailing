@@ -580,6 +580,8 @@ const BookingPage = () => {
 
       const createPayload = {
         service_id: service.id,
+        package_slug: selectedPackage || null,
+        vehicle_sub_type: vehicleSubType || null,
         scheduled_date: scheduledDateStr,
         scheduled_time: selectedTime, // backend normalizes (also accepts HH:MM:SS)
         duration_minutes: selectedPackageDuration, // Include service duration for scheduling
