@@ -214,18 +214,9 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       );
       setBookings(bookingsWithProfiles);
 
-      // Load latest "Payment reminder sent" notes for each booking
+      // Load latest payment reminder timestamps from booking_notification_log
       if (bookingIds.length > 0) {
-        const { data: notes } = await supabase
-          .from("booking_internal_notes")
-          .select("booking_id, note, created_at")
-          .in("booking_id", bookingIds)
-          .ilike("note", "Payment reminder sent%")
-          .order("created_at", { ascending: false });
-        const log: Record<string, string> = {};
-        (notes || []).forEach((n: any) => {
-          if (!log[n.booking_id]) log[n.booking_id] = n.created_at;
-        });
+        const log = await fetchLatestPaymentReminders(bookingIds);
         setReminderLog(log);
       }
     }
