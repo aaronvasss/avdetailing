@@ -57,6 +57,7 @@ interface PackageRow {
   vehicle_type: string;
   price: number;
   sort_order: number;
+  stripe_price_id: string | null;
 }
 
 interface AddOnRow {
