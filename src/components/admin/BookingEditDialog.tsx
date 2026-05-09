@@ -891,10 +891,17 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                     <SelectContent>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
                       {workers.map((w) => (
-                        <SelectItem key={w.user_id} value={w.user_id}>{w.display_name}</SelectItem>
+                        <SelectItem key={w.user_id} value={w.user_id}>
+                          {w.display_name}{w.is_owner ? " (Owner)" : ""}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {workers.find((w) => w.user_id === editAssignedWorkerId)?.is_owner && (
+                    <p className="text-xs text-muted-foreground">
+                      Auto-assigned to owner by default. Reassign as needed.
+                    </p>
+                  )}
 
                   {/* Pay Rate - shows default rate automatically */}
                   {editAssignedWorkerId !== "unassigned" && (
