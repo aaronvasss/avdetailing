@@ -635,7 +635,10 @@ export function AdminQuotesTab() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[quote.status]}>{quote.status}</Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={statusColors[quote.status]}>{quote.status}</Badge>
+                          {['pending', 'quoted'].includes(quote.status) && <ExpiryBadge q={quote} />}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {quote.quoted_price ? (
