@@ -278,6 +278,7 @@ export type Database = {
           client_id: string | null
           clock_in_at: string | null
           clock_out_at: string | null
+          completed_at: string | null
           created_at: string
           custom_service_description: string | null
           customer_notes: string | null
@@ -332,6 +333,7 @@ export type Database = {
           client_id?: string | null
           clock_in_at?: string | null
           clock_out_at?: string | null
+          completed_at?: string | null
           created_at?: string
           custom_service_description?: string | null
           customer_notes?: string | null
@@ -386,6 +388,7 @@ export type Database = {
           client_id?: string | null
           clock_in_at?: string | null
           clock_out_at?: string | null
+          completed_at?: string | null
           created_at?: string
           custom_service_description?: string | null
           customer_notes?: string | null
