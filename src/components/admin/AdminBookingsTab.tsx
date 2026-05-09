@@ -21,16 +21,21 @@ import { BookingEditDialog } from "./BookingEditDialog";
 
 interface Booking {
   id: string;
+  service_id: string | null;
   scheduled_date: string;
   scheduled_time: string;
   status: string;
   payment_status: string;
   total_price: number;
+  subtotal: number | null;
+  add_ons_total: number | null;
   vehicle_type: string;
   vehicle_make: string;
   vehicle_model: string;
   service_address: string;
   service_city: string;
+  address_notes: string | null;
+  custom_service_description: string | null;
   guest_name: string | null;
   guest_email: string | null;
   guest_phone: string | null;
@@ -38,8 +43,12 @@ interface Booking {
   created_at: string;
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; email: string; phone: string } | null;
-  custom_service_description?: string | null;
+  package_name: string | null;
+  booking_add_ons: { id: string; name: string; price: number }[];
 }
+
+const getDisplayLabel = (b: Pick<Booking, "package_name" | "custom_service_description" | "services">) =>
+  b.package_name || b.custom_service_description || b.services?.name || "Detailing Service";
 
 interface AdminBookingsTabProps {
   isAdmin?: boolean;
@@ -71,22 +80,28 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       .from("bookings")
       .select(`
         id,
+        service_id,
         scheduled_date,
         scheduled_time,
         status,
         payment_status,
         total_price,
+        subtotal,
+        add_ons_total,
         vehicle_type,
         vehicle_make,
         vehicle_model,
         service_address,
         service_city,
+        address_notes,
+        custom_service_description,
         guest_name,
         guest_email,
         guest_phone,
         user_id,
         created_at,
-        services (name, slug)
+        services (name, slug),
+        booking_add_ons (id, name, price)
       `)
       .order("scheduled_date", { ascending: false });
 
@@ -107,8 +122,24 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to load bookings");
     } else {
+      // Lookup package names by (service_id, vehicle_type)
+      const serviceIds = new Set<string>();
+      (data || []).forEach((b: any) => {
+        if (b.service_id) serviceIds.add(b.service_id);
+      });
+      const packageMap: Record<string, string> = {};
+      if (serviceIds.size > 0) {
+        const { data: pkgs } = await supabase
+          .from("service_packages")
+          .select("service_id, vehicle_type, name")
+          .in("service_id", Array.from(serviceIds));
+        (pkgs || []).forEach((p: any) => {
+          packageMap[`${p.service_id}|${p.vehicle_type}`] = p.name;
+        });
+      }
+
       const bookingsWithProfiles = await Promise.all(
-        (data || []).map(async (booking) => {
+        (data || []).map(async (booking: any) => {
           let profiles = null;
           if (booking.user_id) {
             const { data: profile } = await supabase
@@ -118,7 +149,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               .maybeSingle();
             profiles = profile;
           }
-          return { ...booking, profiles };
+          const package_name = booking.service_id && booking.vehicle_type
+            ? packageMap[`${booking.service_id}|${booking.vehicle_type}`] || null
+            : null;
+          return {
+            ...booking,
+            profiles,
+            package_name,
+            booking_add_ons: booking.booking_add_ons || [],
+          } as Booking;
         })
       );
       setBookings(bookingsWithProfiles);
@@ -182,7 +221,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   };
 
   // Get unique values for filters
-  const serviceTypes = [...new Set(bookings.map(b => b.custom_service_description || b.services?.name).filter(Boolean))];
+  const serviceTypes = [...new Set(bookings.map(b => getDisplayLabel(b)).filter(Boolean))];
   const vehicleTypes = [...new Set(bookings.map(b => b.vehicle_type).filter(Boolean))];
 
   const filteredBookings = bookings.filter((booking) => {
@@ -203,7 +242,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     }
 
     // Service filter
-    if (serviceFilter !== "all" && (booking.custom_service_description || booking.services?.name) !== serviceFilter) {
+    if (serviceFilter !== "all" && getDisplayLabel(booking) !== serviceFilter) {
       return false;
     }
 
@@ -459,9 +498,10 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span>{booking.custom_service_description || booking.services?.name || "Detailing"}</span>
+                        <span className="font-medium">{getDisplayLabel(booking)}</span>
                         <span className="text-sm text-muted-foreground">
                           {booking.vehicle_type} {booking.vehicle_make}
+                          {booking.booking_add_ons?.length > 0 && ` • +${booking.booking_add_ons.length} add-on${booking.booking_add_ons.length > 1 ? "s" : ""}`}
                         </span>
                       </div>
                     </TableCell>
@@ -570,9 +610,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                   <span className="font-medium">{getCustomerName(selectedBooking)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Service</span>
-                  <span className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</span>
+                  <span className="text-muted-foreground">Package</span>
+                  <span className="font-medium text-right">{getDisplayLabel(selectedBooking)}</span>
                 </div>
+                {selectedBooking.services?.name && selectedBooking.package_name && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service Type</span>
+                    <span className="text-sm">{selectedBooking.services.name}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Vehicle</span>
                   <span>{selectedBooking.vehicle_type} {selectedBooking.vehicle_make} {selectedBooking.vehicle_model}</span>
@@ -582,18 +628,52 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                   {getStatusBadge(selectedBooking.status)}
                 </div>
                 {isAdmin && (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Payment</span>
-                      {getPaymentBadge(selectedBooking.payment_status)}
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
-                    </div>
-                  </>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment</span>
+                    {getPaymentBadge(selectedBooking.payment_status)}
+                  </div>
                 )}
               </div>
+
+              {selectedBooking.booking_add_ons?.length > 0 && (
+                <div className="border-t pt-4 space-y-1">
+                  <div className="text-sm font-medium mb-2">Add-ons</div>
+                  {selectedBooking.booking_add_ons.map((a) => (
+                    <div key={a.id} className="flex justify-between text-sm">
+                      <span>{a.name}</span>
+                      <span>${Number(a.price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {selectedBooking.address_notes && (
+                <div className="border-t pt-4">
+                  <div className="text-sm font-medium mb-1">Customer Notes / Access Instructions</div>
+                  <div className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedBooking.address_notes}</div>
+                </div>
+              )}
+
+              {isAdmin && (
+                <div className="border-t pt-4 space-y-1">
+                  {selectedBooking.subtotal != null && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>${Number(selectedBooking.subtotal).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedBooking.add_ons_total != null && Number(selectedBooking.add_ons_total) > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Add-ons Total</span>
+                      <span>${Number(selectedBooking.add_ons_total).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-1">
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Send Reminder */}
               <div className="border-t pt-4">
