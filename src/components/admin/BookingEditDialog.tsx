@@ -169,6 +169,14 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [allAddOns, setAllAddOns] = useState<ServiceAddOn[]>([]);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
 
+  // Package info (fetched from service_packages)
+  const [packageInfo, setPackageInfo] = useState<{ name: string; price: number } | null>(null);
+
+  // Reschedule notification toggle + post-save state
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [resending, setResending] = useState(false);
+
   // Draft persistence
   const [draftSavedVisible, setDraftSavedVisible] = useState(false);
   const draftRestoredRef = useRef(false);
@@ -310,10 +318,25 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       fetchAvailableSlots(booking.scheduled_date, booking.id);
       fetchBookingAddOns(booking.id);
       fetchAllAddOns();
+      fetchPackageInfo(booking.service_id, booking.vehicle_type);
+      setLastSavedAt(null);
     } else {
       draftRestoredRef.current = false;
     }
   }, [booking, workers]);
+
+  const fetchPackageInfo = async (serviceId: string, vehicleType: string | null) => {
+    if (!serviceId) return setPackageInfo(null);
+    let q = supabase
+      .from("service_packages")
+      .select("name, price")
+      .eq("service_id", serviceId)
+      .eq("is_active", true);
+    if (vehicleType) q = q.eq("vehicle_type", vehicleType);
+    const { data } = await q.order("sort_order").limit(1);
+    if (data && data[0]) setPackageInfo({ name: data[0].name, price: Number(data[0].price) });
+    else setPackageInfo(null);
+  };
 
   // Fetch a worker's default pay rate from worker_profiles
   const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
@@ -464,6 +487,29 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     );
   };
 
+  const sendRescheduleNotification = async (bookingId: string) => {
+    try {
+      await supabase.functions.invoke("process-booking-notifications", {
+        body: {
+          booking_id: bookingId,
+          mode: "reschedule",
+          subject: "Your AV Detailing Appointment Has Been Updated",
+        },
+      });
+      toast.success("Updated confirmation sent to customer");
+    } catch (err) {
+      console.error("Reschedule notification error:", err);
+      toast.error("Failed to send updated confirmation");
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!booking) return;
+    setResending(true);
+    await sendRescheduleNotification(booking.id);
+    setResending(false);
+  };
+
   const handleSave = async () => {
     if (!booking || !scheduledDate) return;
     
@@ -478,13 +524,15 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const totalPrice = editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price;
     // Keep subtotal in sync: subtotal = total - add-ons
     const newSubtotal = totalPrice != null ? Math.max(0, totalPrice - newAddOnsTotal) : booking.subtotal;
-    const nameParts = editGuestName.trim().split(" ");
 
     const newAssignedWorkerId = resolveAssignedWorkerUserId(editAssignedWorkerId, workers);
     const previousWorkerId = booking.assigned_worker_id;
 
+    const newDateStr = format(scheduledDate, "yyyy-MM-dd");
+    const dateOrTimeChanged = newDateStr !== booking.scheduled_date || scheduledTime !== booking.scheduled_time;
+
     const updates: Record<string, any> = {
-      scheduled_date: format(scheduledDate, "yyyy-MM-dd"),
+      scheduled_date: newDateStr,
       scheduled_time: scheduledTime,
       status,
       payment_status: paymentStatus,
@@ -505,7 +553,6 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
-      // Always save pay rate when a worker is assigned (default or custom)
       worker_pay_type: newAssignedWorkerId && editCustomPayRate ? editCustomPayType : null,
       worker_pay_rate: newAssignedWorkerId && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
       tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
@@ -547,6 +594,17 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         };
       });
       await supabase.from("booking_add_ons").insert(newRecords);
+    }
+
+    // Save quick internal note if provided
+    if (internalNotes.trim()) {
+      const { error: noteErr } = await supabase
+        .from("booking_internal_notes")
+        .insert({ booking_id: booking.id, note: internalNotes.trim() });
+      if (!noteErr) {
+        setInternalNotes("");
+        fetchInternalNotes(booking.id);
+      }
     }
 
     toast.success("Booking updated successfully");
@@ -597,10 +655,16 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       }
     }
 
+    // Auto-send reschedule confirmation if date/time changed and toggle is on
+    if (dateOrTimeChanged && notifyCustomer) {
+      await sendRescheduleNotification(booking.id);
+    }
+
     clearDraft();
+    setLastSavedAt(Date.now());
     onSave();
-    onOpenChange(false);
     setSaving(false);
+    // Keep dialog open so admin can use "Send Updated Confirmation" button
   };
 
   const handleMarkAsPaid = async (method: string) => {
@@ -751,6 +815,20 @@ AV Detailing
                   <Label className="text-xs">Street Address</Label>
                   <Input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="Street address" />
                 </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">City</Label>
+                    <Input value={editCity} onChange={e => setEditCity(e.target.value)} placeholder="Baton Rouge" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">State</Label>
+                    <Input value={editState} onChange={e => setEditState(e.target.value)} placeholder="LA" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">ZIP</Label>
+                    <Input value={editZip} onChange={e => setEditZip(e.target.value)} placeholder="70809" />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -778,11 +856,23 @@ AV Detailing
               </div>
 
               <div className="space-y-2">
-                <Label>Service</Label>
-                <Input 
-                  value={`${booking.custom_service_description || booking.services?.name || "Detailing"} (${formatDuration(booking.duration_minutes || 120)})`} 
-                  disabled 
-                />
+                <Label>Service & Package</Label>
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm space-y-0.5">
+                  <div className="font-medium">
+                    {booking.custom_service_description || booking.services?.name || "Detailing"}
+                  </div>
+                  {packageInfo ? (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">{packageInfo.name}</span>
+                      <span className="font-semibold">${packageInfo.price.toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">No package matched for {booking.vehicle_type || "vehicle type"}</div>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    Duration: {formatDuration(booking.duration_minutes || 120)}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -927,34 +1017,18 @@ AV Detailing
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Type</Label>
-                    <Input value={editVehicleType} onChange={e => setEditVehicleType(e.target.value)} placeholder="SUV (5 seats)" />
+                    <Select value={editVehicleType} onValueChange={setEditVehicleType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["sedan","suv-5","suv-8","truck","boat","rv","aircraft"].map(t => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Add-ons */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Add-ons</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {allAddOns.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No add-ons available</p>
-                ) : (
-                  <div className="space-y-2">
-                    {allAddOns.map(addon => (
-                      <label key={addon.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer">
-                        <Checkbox
-                          checked={selectedAddOnIds.includes(addon.id)}
-                          onCheckedChange={() => toggleAddOn(addon.id)}
-                        />
-                        <span className="flex-1 text-sm">{addon.name}</span>
-                        <span className="text-sm text-muted-foreground">${addon.price.toFixed(2)}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1008,9 +1082,15 @@ AV Detailing
                 Includes 30-minute buffer between appointments. Working hours: 6:30 AM – 7:30 PM.
               </p>
             </div>
-          </TabsContent>
 
-          {/* Payment Tab */}
+            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-md border bg-muted/30">
+              <Checkbox
+                checked={notifyCustomer}
+                onCheckedChange={(c) => setNotifyCustomer(!!c)}
+              />
+              <span className="text-sm">Send reschedule confirmation to customer</span>
+            </label>
+          </TabsContent>
           <TabsContent value="payment" className="space-y-4 mt-4">
             <div className="grid grid-cols-3 gap-4">
               <Card>
@@ -1141,6 +1221,61 @@ AV Detailing
                 </div>
               </>
             )}
+
+            {/* Add-ons (live total updates) */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Add-ons</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allAddOns.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No add-ons available</p>
+                ) : (
+                  <div className="space-y-2">
+                    {allAddOns.map(addon => (
+                      <label key={addon.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer">
+                        <Checkbox
+                          checked={selectedAddOnIds.includes(addon.id)}
+                          onCheckedChange={() => toggleAddOn(addon.id)}
+                        />
+                        <span className="flex-1 text-sm">{addon.name}</span>
+                        <span className="text-sm text-muted-foreground">${addon.price.toFixed(2)}</span>
+                      </label>
+                    ))}
+                    <div className="flex justify-between pt-2 border-t text-sm font-medium">
+                      <span>Add-ons Total</span>
+                      <span>
+                        ${selectedAddOnIds.reduce((s, id) => s + (allAddOns.find(a => a.id === id)?.price || 0), 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Live Price Breakdown */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Price Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1.5 text-sm">
+                {(() => {
+                  const addOnsLive = selectedAddOnIds.reduce((s, id) => s + (allAddOns.find(a => a.id === id)?.price || 0), 0);
+                  const basePkg = packageInfo?.price ?? Math.max(0, (parseFloat(editTotalPrice) || booking.total_price || 0) - addOnsLive);
+                  const tip = parseFloat(editTipAmount) || 0;
+                  const total = basePkg + addOnsLive + tip;
+                  return (
+                    <>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Base package{packageInfo ? ` (${packageInfo.name})` : ""}</span><span>${basePkg.toFixed(2)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Add-ons</span><span>${addOnsLive.toFixed(2)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Tip</span><span>${tip.toFixed(2)}</span></div>
+                      <Separator className="my-1" />
+                      <div className="flex justify-between font-semibold text-base"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                    </>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Notes Tab */}
@@ -1153,6 +1288,7 @@ AV Detailing
                 placeholder="Add internal notes (not visible to customer)..."
                 rows={3}
               />
+              <p className="text-xs text-muted-foreground">Saved with "Save Changes".</p>
             </div>
 
             <Separator />
@@ -1210,12 +1346,24 @@ AV Detailing
             <Save className="h-4 w-4 mr-2" />
             Save Changes
           </Button>
+          {lastSavedAt && (
+            <Button
+              onClick={handleResendConfirmation}
+              disabled={resending}
+              variant="secondary"
+              className="w-full min-h-[44px] text-base"
+            >
+              {resending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              <Mail className="h-4 w-4 mr-2" />
+              Send Updated Confirmation
+            </Button>
+          )}
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
             className="w-full min-h-[44px] text-base"
           >
-            Cancel
+            Close
           </Button>
         </div>
       </DialogContent>
