@@ -101,6 +101,59 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
   const [preferences, setPreferences] = useState(client.preferences || "");
   const [paintSensitivity, setPaintSensitivity] = useState(client.paint_sensitivity || "");
   const [notes, setNotes] = useState(client.notes || "");
+  const [sendingThankYou, setSendingThankYou] = useState(false);
+
+  // Customer value computations
+  const completedBookings = bookings.filter(b => b.status === 'completed');
+  const completedCount = completedBookings.length;
+  const totalBookingsCount = bookings.length;
+  const avgTicket = completedCount > 0 ? lifetimeSpend / completedCount : 0;
+  const sortedByDate = [...bookings].sort((a, b) =>
+    a.scheduled_date.localeCompare(b.scheduled_date)
+  );
+  const memberSince = sortedByDate[0]?.scheduled_date || client.created_at;
+  const vipStatus = lifetimeSpend > 500 || completedCount >= 5;
+
+  const getDisplayName = () => {
+    return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unknown';
+  };
+
+  const handleSendThankYou = async () => {
+    const firstName = client.first_name || getDisplayName().split(' ')[0] || 'there';
+    const bookLink = `${window.location.origin}/booking`;
+    const message = `Hi ${firstName}! Thank you for being a loyal AV Detailing customer. As a valued client, here's 10% off your next booking: ${bookLink}`;
+    setSendingThankYou(true);
+    try {
+      let sent = false;
+      if (client.phone) {
+        const { error: smsError } = await supabase.functions.invoke('send-booking-sms', {
+          body: { to: client.phone, message },
+        });
+        if (!smsError) sent = true;
+      }
+      if (client.email) {
+        const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+          body: {
+            name: 'AV Detailing',
+            email: client.email,
+            service: 'Loyalty Thank You',
+            message,
+          },
+        });
+        if (!emailError) sent = true;
+      }
+      if (!sent) {
+        toast.error('No email or phone on file to send thank you');
+      } else {
+        toast.success(`Thank you sent to ${getDisplayName()}`);
+      }
+    } catch (err) {
+      console.error('Thank you error', err);
+      toast.error('Failed to send thank you');
+    } finally {
+      setSendingThankYou(false);
+    }
+  };
 
   const fetchClientData = useCallback(async () => {
     setLoading(true);
