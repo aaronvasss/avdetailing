@@ -248,9 +248,9 @@ serve(async (req) => {
             logStep("Added add-on line item", { name: addon.name, price_id: addon.stripe_price_id });
           } else {
             // Create dynamic price for add-on without a Stripe price ID (include 3.5% processing fee)
+            // Add-on prices in service_add_ons already include any fee — do NOT add again.
             const addonBasePrice = Number(addon.price);
-            const addonFee = Math.round(addonBasePrice * 0.035 * 100) / 100;
-            const addonTotalCents = Math.round((addonBasePrice + addonFee) * 100);
+            const addonTotalCents = Math.round(addonBasePrice * 100);
             const addonPrice = await stripe.prices.create({
               currency: 'usd',
               unit_amount: addonTotalCents,
