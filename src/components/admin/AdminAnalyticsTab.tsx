@@ -465,6 +465,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     .map(w => ({ name: w.name, revenue: w.revenueThisMonth }))
     .filter(w => w.revenue > 0);
 
+  const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
   const vehicleDistribution = getVehicleDistribution();
 
