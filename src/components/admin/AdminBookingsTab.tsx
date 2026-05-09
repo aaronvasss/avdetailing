@@ -683,25 +683,19 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               )}
 
               {isAdmin && (
-                <div className="border-t pt-4 space-y-1">
-                  {selectedBooking.subtotal != null && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>${Number(selectedBooking.subtotal).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {selectedBooking.add_ons_total != null && Number(selectedBooking.add_ons_total) > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Add-ons Total</span>
-                      <span>${Number(selectedBooking.add_ons_total).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between pt-1">
-                    <span className="text-muted-foreground">Total</span>
-                    <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
-                  </div>
+                <>
+                  <PaymentDetailsSection
+                    payment_method={selectedBooking.payment_method}
+                    payment_status={selectedBooking.payment_status}
+                    stripe_checkout_session_id={selectedBooking.stripe_checkout_session_id}
+                    stripe_payment_intent_id={selectedBooking.stripe_payment_intent_id}
+                    subtotal={selectedBooking.subtotal}
+                    add_ons_total={selectedBooking.add_ons_total}
+                    tip_amount={selectedBooking.tip_amount}
+                    total_price={selectedBooking.total_price}
+                  />
                   {selectedBooking.stripe_amount_cents != null && (
-                    <div className="flex justify-between text-sm pt-1">
+                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Stripe Charged</span>
                       <span className={cn(
                         "font-medium",
@@ -713,7 +707,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                       </span>
                     </div>
                   )}
-                </div>
+                </>
               )}
 
               {/* Send Reminder */}
