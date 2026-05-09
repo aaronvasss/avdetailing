@@ -259,6 +259,11 @@ export default function WorkerDashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Today's Route */}
+        {!loading && myBookings.length > 0 && (
+          <TodaysRoute bookings={myBookings} />
+        )}
+
         {/* Today's Jobs */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
