@@ -721,6 +721,13 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
         </CardContent>
       </Card>
 
+      <Tabs value={analyticsView} onValueChange={(v) => setAnalyticsView(v as "overview" | "audit")}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="audit">Time Audit</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 mt-4">
       {/* KPI Cards - Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
