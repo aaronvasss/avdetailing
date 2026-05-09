@@ -969,20 +969,20 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                               ? `Membership: ${membershipPackages.find(p => p.id === selectedPackageId)?.label || ""}`
                               : `Package: ${carPackages.find(p => p.slug === selectedPackageId)?.label || ""}`}
                         </span>
-                        <span className="font-medium">${packagePrice}</span>
+                        <span className="font-medium">${packagePrice.toFixed(2)}</span>
                       </div>
                       {selectedAddOns.map(id => {
                         const a = addOnsList.find(x => x.id === id)!;
                         return (
                           <div key={id} className="flex justify-between text-sm text-muted-foreground">
                             <span>+ {a.name}</span>
-                            <span>${a.price}</span>
+                            <span>${a.price.toFixed(2)}</span>
                           </div>
                         );
                       })}
                       <div className={cn("flex justify-between text-sm font-bold", selectedAddOns.length > 0 && "border-t border-border pt-1.5 mt-1.5")}>
                         <span>Total</span>
-                        <span className="text-primary">${totalPrice}</span>
+                        <span className="text-primary">${totalPrice.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
