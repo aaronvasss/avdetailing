@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, parseISO } from "date-fns";
-import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench, Crown, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   ChartContainer,
   ChartTooltip,
