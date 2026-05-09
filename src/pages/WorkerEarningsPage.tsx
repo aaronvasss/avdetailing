@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star } from "lucide-react";
+import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star, Clock } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { formatHm } from "@/lib/duration-format";
 
 type TimeFilter = "today" | "week" | "month" | "all";
 
