@@ -627,6 +627,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                   {isAdmin && <TableHead>Total</TableHead>}
                   {isAdmin && <TableHead>Payment</TableHead>}
                   <TableHead>Status</TableHead>
+                  {isAdmin && <TableHead>Last Reminder</TableHead>}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
