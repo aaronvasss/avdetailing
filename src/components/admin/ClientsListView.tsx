@@ -114,7 +114,7 @@ export function ClientsListView() {
       const { count } = await countQuery;
 
       // Get paginated data — for filters needing enrichment, fetch more
-      const needsEnrichmentFilter = filter === "has_membership" || filter === "no_bookings";
+      const needsEnrichmentFilter = filter === "has_membership" || filter === "no_bookings" || filter === "vip";
       if (!needsEnrichmentFilter) {
         dataQuery = dataQuery.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       }
