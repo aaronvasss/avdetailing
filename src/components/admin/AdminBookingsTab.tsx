@@ -221,7 +221,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   };
 
   // Get unique values for filters
-  const serviceTypes = [...new Set(bookings.map(b => b.custom_service_description || b.services?.name).filter(Boolean))];
+  const serviceTypes = [...new Set(bookings.map(b => getDisplayLabel(b)).filter(Boolean))];
   const vehicleTypes = [...new Set(bookings.map(b => b.vehicle_type).filter(Boolean))];
 
   const filteredBookings = bookings.filter((booking) => {
@@ -242,7 +242,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     }
 
     // Service filter
-    if (serviceFilter !== "all" && (booking.custom_service_description || booking.services?.name) !== serviceFilter) {
+    if (serviceFilter !== "all" && getDisplayLabel(booking) !== serviceFilter) {
       return false;
     }
 
