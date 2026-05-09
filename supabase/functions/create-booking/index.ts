@@ -239,8 +239,26 @@ const handler = async (req: Request): Promise<Response> => {
       finalAddOnsTotal = body.add_ons_total != null ? Number(body.add_ons_total) : serverAddOnsTotal;
       finalTotal = Number(body.total_price);
     } else {
-      // Default: calculate from service base_price
-      finalSubtotal = Number(service.base_price);
+      // Non-staff: look up authoritative price from service_packages by (service_id, vehicle_type, slug).
+      // Falls back to services.base_price only if no matching package row exists.
+      let pkgPrice: number | null = null;
+      if (body.package_slug) {
+        const pkgVehicleType = body.vehicle_sub_type || body.vehicle_type;
+        let pkgQuery = serviceClient
+          .from("service_packages")
+          .select("price, vehicle_type")
+          .eq("service_id", body.service_id)
+          .eq("slug", body.package_slug)
+          .eq("is_active", true);
+        if (pkgVehicleType) {
+          pkgQuery = pkgQuery.eq("vehicle_type", pkgVehicleType);
+        }
+        const { data: pkgRows } = await pkgQuery;
+        if (pkgRows && pkgRows.length > 0) {
+          pkgPrice = Number(pkgRows[0].price);
+        }
+      }
+      finalSubtotal = pkgPrice != null ? pkgPrice : Number(service.base_price);
       finalAddOnsTotal = serverAddOnsTotal;
       finalTotal = finalSubtotal + finalAddOnsTotal;
     }
