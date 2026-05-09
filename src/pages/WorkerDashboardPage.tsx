@@ -240,18 +240,42 @@ export default function WorkerDashboardPage() {
         )}
         <WeatherWidget />
 
+        {/* Today's Earnings */}
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Today's Earnings</h2>
+              <span className="text-xs text-muted-foreground">{format(new Date(), "EEE, MMM d")}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatBlock icon={<CheckCircle2 className="h-4 w-4" />} label="Jobs Done" value={fmtCount(todayStats.jobs)} />
+              <StatBlock icon={<DollarSign className="h-4 w-4" />} label="Revenue" value={fmtMoney(todayStats.revenue)} />
+              <StatBlock icon={<Wallet className="h-4 w-4" />} label="Your Pay" value={fmtMoney(todayStats.earnings)} accent />
+              <StatBlock icon={<Coins className="h-4 w-4" />} label="Tips" value={fmtMoney(todayStats.tips)} accent />
+            </div>
+            <p className="text-xs text-muted-foreground pt-1 border-t border-border/50">
+              This week: {weekStats.jobs} {weekStats.jobs === 1 ? "job" : "jobs"} · {fmtMoney(weekStats.earnings)} your pay · {fmtMoney(weekStats.tips)} tips
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Today's Jobs */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <CalendarDays className="h-5 w-5 text-primary" />
             <h1 className="text-lg font-bold">Today's Jobs</h1>
             <span className="text-muted-foreground text-sm">
               {format(new Date(), "EEE, MMM d")}
             </span>
             {myBookings.length > 0 && (
-              <Badge variant="outline" className="ml-auto text-xs bg-primary/10 text-primary border-primary/20">
-                {myBookings.length}
-              </Badge>
+              <>
+                <Badge variant="outline" className="ml-auto text-xs bg-primary/10 text-primary border-primary/20">
+                  {myBookings.length}
+                </Badge>
+                {todayEstimated > 0 && (
+                  <span className="text-xs text-green-500 font-medium">· Est. ${todayEstimated.toFixed(todayEstimated % 1 === 0 ? 0 : 2)}</span>
+                )}
+              </>
             )}
           </div>
 
