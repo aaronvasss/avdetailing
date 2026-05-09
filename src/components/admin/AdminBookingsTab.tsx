@@ -25,6 +25,7 @@ import {
   getPaymentMethodIcon,
   PaymentDetailsSection,
 } from "@/lib/payment-display";
+import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
 
 interface Booking {
   id: string;
