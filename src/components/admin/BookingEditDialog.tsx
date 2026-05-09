@@ -1288,6 +1288,7 @@ AV Detailing
                 placeholder="Add internal notes (not visible to customer)..."
                 rows={3}
               />
+              <p className="text-xs text-muted-foreground">Saved with "Save Changes".</p>
             </div>
 
             <Separator />
