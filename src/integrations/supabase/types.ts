@@ -266,6 +266,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          actual_duration_minutes: number | null
           add_ons_total: number | null
           address_id: string | null
           address_notes: string | null
@@ -275,6 +276,8 @@ export type Database = {
           boat_length: string | null
           boat_type: string | null
           client_id: string | null
+          clock_in_at: string | null
+          clock_out_at: string | null
           created_at: string
           custom_service_description: string | null
           customer_notes: string | null
@@ -317,6 +320,7 @@ export type Database = {
           worker_pay_type: string | null
         }
         Insert: {
+          actual_duration_minutes?: number | null
           add_ons_total?: number | null
           address_id?: string | null
           address_notes?: string | null
@@ -326,6 +330,8 @@ export type Database = {
           boat_length?: string | null
           boat_type?: string | null
           client_id?: string | null
+          clock_in_at?: string | null
+          clock_out_at?: string | null
           created_at?: string
           custom_service_description?: string | null
           customer_notes?: string | null
@@ -368,6 +374,7 @@ export type Database = {
           worker_pay_type?: string | null
         }
         Update: {
+          actual_duration_minutes?: number | null
           add_ons_total?: number | null
           address_id?: string | null
           address_notes?: string | null
@@ -377,6 +384,8 @@ export type Database = {
           boat_length?: string | null
           boat_type?: string | null
           client_id?: string | null
+          clock_in_at?: string | null
+          clock_out_at?: string | null
           created_at?: string
           custom_service_description?: string | null
           customer_notes?: string | null
