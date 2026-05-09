@@ -306,9 +306,24 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
             )}
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-muted-foreground">Lifetime Spend</div>
-          <div className="text-2xl font-bold text-primary">${lifetimeSpend.toFixed(2)}</div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-right">
+            <div className="text-sm text-muted-foreground">Lifetime Spend</div>
+            <div className="text-2xl font-bold text-primary">${lifetimeSpend.toFixed(2)}</div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleSendThankYou}
+            disabled={sendingThankYou || (!client.email && !client.phone)}
+          >
+            {sendingThankYou ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Heart className="h-4 w-4 mr-2 text-red-500" />
+            )}
+            Send Thank You
+          </Button>
         </div>
       </div>
 
