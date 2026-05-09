@@ -223,9 +223,14 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
 
     setStartingService(true);
     try {
+      const nowIso = new Date().toISOString();
       const { error } = await supabase
         .from("bookings")
-        .update({ status: "in_progress", in_progress_at: new Date().toISOString() })
+        .update({
+          status: "in_progress",
+          in_progress_at: nowIso,
+          clock_in_at: nowIso,
+        })
         .eq("id", booking.id);
 
       if (error) throw error;
