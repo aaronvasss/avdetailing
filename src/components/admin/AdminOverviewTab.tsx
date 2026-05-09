@@ -58,6 +58,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
   const [monthRevenue, setMonthRevenue] = useState(0);
   const [totalTips, setTotalTips] = useState(0);
   const [sendingBulk, setSendingBulk] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number; skipped: number } | null>(null);
 
   useEffect(() => {
     fetchBookings();
