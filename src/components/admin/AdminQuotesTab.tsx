@@ -713,13 +713,22 @@ export function AdminQuotesTab() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleSendFollowup(quote)}
+                                onClick={() => handleSendFollowup(quote, "email")}
                                 disabled={sendingFollowup === quote.id}
-                                title={followups[quote.id] ? `Follow-up sent ${format(new Date(followups[quote.id]), 'MMM d')}` : 'Send follow-up'}
+                                title={followups[quote.id] ? `Follow-up sent ${format(new Date(followups[quote.id]), 'MMM d')}` : 'Email follow-up'}
                               >
                                 {sendingFollowup === quote.id
                                   ? <Loader2 className="h-4 w-4 animate-spin" />
                                   : <Mail className="h-4 w-4" />}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSendFollowup(quote, "sms")}
+                                disabled={sendingFollowup === quote.id}
+                                title="SMS follow-up"
+                              >
+                                <MessageSquare className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="sm" onClick={() => openMarkBooked(quote)} title="Mark as booked">
                                 <Link2 className="h-4 w-4" />
