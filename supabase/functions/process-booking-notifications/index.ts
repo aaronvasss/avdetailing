@@ -298,14 +298,13 @@ ${paymentBanner}
         <div style="display:table;width:100%;"><span style="display:table-cell;color:#d4d4d4;font-size:14px;">${htmlEncode(serviceName)}</span><span style="display:table-cell;text-align:right;color:#fff;font-size:14px;">$${serviceLinePrice.toFixed(2)}</span></div>
       </div>
       ${addOnsHtml}
-      <div style="margin-bottom:8px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">Subtotal</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${totalPrice.toFixed(2)}</span></div></div>
-      ${isOnline ? `<div style="margin-bottom:12px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">Processing Fee (3.5%)</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${fee.toFixed(2)}</span></div></div>` : ""}
+      ${tipRowHtml}
       <div style="border-top:2px solid rgba(239,68,68,0.3);padding-top:12px;">
-        <div style="display:table;width:100%;margin-bottom:8px;"><span style="display:table-cell;color:#fff;font-size:16px;font-weight:600;">Total</span><span style="display:table-cell;text-align:right;color:#ef4444;font-size:24px;font-weight:800;">$${totalWithFee.toFixed(2)}</span></div>
+        <div style="display:table;width:100%;margin-bottom:8px;"><span style="display:table-cell;color:#fff;font-size:16px;font-weight:600;">Total${paidBadgeHtml}</span><span style="display:table-cell;text-align:right;color:#ef4444;font-size:24px;font-weight:800;">$${totalPrice.toFixed(2)}</span></div>
         ${deposit > 0 ? `
           <div style="display:table;width:100%;margin-bottom:4px;"><span style="display:table-cell;color:#22c55e;font-size:13px;">✓ Deposit Paid</span><span style="display:table-cell;text-align:right;color:#22c55e;font-size:13px;">-$${deposit.toFixed(2)}</span></div>
           <div style="display:table;width:100%;"><span style="display:table-cell;color:#fbbf24;font-size:14px;font-weight:600;">Balance Due</span><span style="display:table-cell;text-align:right;color:#fbbf24;font-size:16px;font-weight:700;">$${remaining.toFixed(2)}</span></div>
-        ` : `<div style="display:table;width:100%;"><span style="display:table-cell;color:#fbbf24;font-size:13px;">Due at Service</span><span style="display:table-cell;text-align:right;color:#fbbf24;font-size:14px;font-weight:600;">$${totalWithFee.toFixed(2)}</span></div>`}
+        ` : (!isPaid ? `<div style="display:table;width:100%;"><span style="display:table-cell;color:#fbbf24;font-size:13px;">Due at Service</span><span style="display:table-cell;text-align:right;color:#fbbf24;font-size:14px;font-weight:600;">$${totalPrice.toFixed(2)}</span></div>` : "")}
       </div>
     </div>
 
