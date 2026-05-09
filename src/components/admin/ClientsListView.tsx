@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
-  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye, Phone, Download,
+  Search, Plus, Edit, Trash2, Loader2, Users, ChevronLeft, ChevronRight, Eye, Phone, Download, Star,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,7 +54,14 @@ interface EnrichedClient extends Client {
 const PAGE_SIZE = 25;
 
 type SortField = "name" | "total_spent" | "last_service" | "date_added";
-type FilterType = "all" | "has_membership" | "imported" | "no_bookings";
+type FilterType = "all" | "vip" | "has_membership" | "imported" | "no_bookings";
+
+const isVip = (totalSpent: number, totalBookings: number) => totalSpent > 500 || totalBookings >= 5;
+const getNoteSubtitle = (notes: string | null) => {
+  if (!notes) return null;
+  const firstLine = notes.split(/\r?\n/)[0]?.trim();
+  return firstLine && firstLine.length > 0 ? firstLine.slice(0, 80) : null;
+};
 
 export function ClientsListView() {
   const isMobile = useIsMobile();
@@ -107,7 +114,7 @@ export function ClientsListView() {
       const { count } = await countQuery;
 
       // Get paginated data — for filters needing enrichment, fetch more
-      const needsEnrichmentFilter = filter === "has_membership" || filter === "no_bookings";
+      const needsEnrichmentFilter = filter === "has_membership" || filter === "no_bookings" || filter === "vip";
       if (!needsEnrichmentFilter) {
         dataQuery = dataQuery.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       }
@@ -252,6 +259,8 @@ export function ClientsListView() {
         enriched = enriched.filter((c) => c.membershipStatus === "active");
       } else if (filter === "no_bookings") {
         enriched = enriched.filter((c) => c.totalBookings === 0);
+      } else if (filter === "vip") {
+        enriched = enriched.filter((c) => isVip(c.totalSpent, c.totalBookings));
       }
 
       // Sort by last_service if selected (can't do server-side)
@@ -443,12 +452,22 @@ export function ClientsListView() {
                 className="pl-9 w-full"
               />
             </div>
+            <Button
+              variant={filter === "vip" ? "default" : "outline"}
+              onClick={() => setFilter(filter === "vip" ? "all" : "vip")}
+              className="w-full sm:w-auto"
+              title="Show VIP clients only"
+            >
+              <Star className={`h-4 w-4 mr-2 ${filter === "vip" ? "fill-current" : ""}`} />
+              VIP Clients
+            </Button>
             <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
               <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Customers</SelectItem>
+                <SelectItem value="vip">⭐ VIP Clients</SelectItem>
                 <SelectItem value="has_membership">Has Membership</SelectItem>
                 <SelectItem value="imported">Imported</SelectItem>
                 <SelectItem value="no_bookings">No Bookings Yet</SelectItem>
@@ -489,9 +508,19 @@ export function ClientsListView() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm leading-tight break-words">
+                          <div className="font-semibold text-sm leading-tight break-words flex items-center gap-1.5 flex-wrap">
                             {getDisplayName(client)}
+                            {isVip(client.totalSpent, client.totalBookings) && (
+                              <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0 gap-1">
+                                <Star className="h-2.5 w-2.5 fill-current" /> VIP
+                              </Badge>
+                            )}
                           </div>
+                          {getNoteSubtitle(client.notes) && (
+                            <div className="mt-0.5 text-[11px] text-muted-foreground italic truncate">
+                              {getNoteSubtitle(client.notes)}
+                            </div>
+                          )}
                           <div className="mt-1 text-xs text-muted-foreground break-all">
                             {client.email || <span className="italic text-muted-foreground/60">No email on file</span>}
                           </div>
@@ -563,7 +592,19 @@ export function ClientsListView() {
                           onClick={() => handleView(client)}
                         >
                           <TableCell>
-                            <div className="font-medium">{getDisplayName(client)}</div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-medium">{getDisplayName(client)}</span>
+                              {isVip(client.totalSpent, client.totalBookings) && (
+                                <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0 gap-1">
+                                  <Star className="h-2.5 w-2.5 fill-current" /> VIP
+                                </Badge>
+                              )}
+                            </div>
+                            {getNoteSubtitle(client.notes) && (
+                              <div className="text-[11px] text-muted-foreground italic truncate mt-0.5 max-w-[240px]">
+                                {getNoteSubtitle(client.notes)}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell className="text-sm">
                             {client.email || <span className="italic text-muted-foreground/60 text-xs">No email on file</span>}

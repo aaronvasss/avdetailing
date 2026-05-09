@@ -7,15 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { 
-  ArrowLeft, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Car, 
-  Calendar, 
-  CreditCard, 
-  FileText, 
+import {
+  ArrowLeft,
+  Phone,
+  Mail,
+  MapPin,
+  Car,
+  Calendar,
+  CreditCard,
+  FileText,
   DollarSign,
   Loader2,
   Save,
@@ -23,7 +23,9 @@ import {
   Edit,
   Trash2,
   Lock,
-  Star
+  Star,
+  Heart,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -99,6 +101,59 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
   const [preferences, setPreferences] = useState(client.preferences || "");
   const [paintSensitivity, setPaintSensitivity] = useState(client.paint_sensitivity || "");
   const [notes, setNotes] = useState(client.notes || "");
+  const [sendingThankYou, setSendingThankYou] = useState(false);
+
+  // Customer value computations
+  const completedBookings = bookings.filter(b => b.status === 'completed');
+  const completedCount = completedBookings.length;
+  const totalBookingsCount = bookings.length;
+  const avgTicket = completedCount > 0 ? lifetimeSpend / completedCount : 0;
+  const sortedByDate = [...bookings].sort((a, b) =>
+    a.scheduled_date.localeCompare(b.scheduled_date)
+  );
+  const memberSince = sortedByDate[0]?.scheduled_date || client.created_at;
+  const vipStatus = lifetimeSpend > 500 || completedCount >= 5;
+
+  const getDisplayName = () => {
+    return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unknown';
+  };
+
+  const handleSendThankYou = async () => {
+    const firstName = client.first_name || getDisplayName().split(' ')[0] || 'there';
+    const bookLink = `${window.location.origin}/booking`;
+    const message = `Hi ${firstName}! Thank you for being a loyal AV Detailing customer. As a valued client, here's 10% off your next booking: ${bookLink}`;
+    setSendingThankYou(true);
+    try {
+      let sent = false;
+      if (client.phone) {
+        const { error: smsError } = await supabase.functions.invoke('send-booking-sms', {
+          body: { to: client.phone, message },
+        });
+        if (!smsError) sent = true;
+      }
+      if (client.email) {
+        const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+          body: {
+            name: 'AV Detailing',
+            email: client.email,
+            service: 'Loyalty Thank You',
+            message,
+          },
+        });
+        if (!emailError) sent = true;
+      }
+      if (!sent) {
+        toast.error('No email or phone on file to send thank you');
+      } else {
+        toast.success(`Thank you sent to ${getDisplayName()}`);
+      }
+    } catch (err) {
+      console.error('Thank you error', err);
+      toast.error('Failed to send thank you');
+    } finally {
+      setSendingThankYou(false);
+    }
+  };
 
   const fetchClientData = useCallback(async () => {
     setLoading(true);
@@ -217,10 +272,6 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
     }
   };
 
-  const getDisplayName = () => {
-    return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unknown';
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-500/10 text-green-500';
@@ -255,9 +306,24 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
             )}
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-muted-foreground">Lifetime Spend</div>
-          <div className="text-2xl font-bold text-primary">${lifetimeSpend.toFixed(2)}</div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-right">
+            <div className="text-sm text-muted-foreground">Lifetime Spend</div>
+            <div className="text-2xl font-bold text-primary">${lifetimeSpend.toFixed(2)}</div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleSendThankYou}
+            disabled={sendingThankYou || (!client.email && !client.phone)}
+          >
+            {sendingThankYou ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Heart className="h-4 w-4 mr-2 text-red-500" />
+            )}
+            Send Thank You
+          </Button>
         </div>
       </div>
 
@@ -277,6 +343,58 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
+            {/* Customer Value */}
+            <Card className={vipStatus ? "border-amber-500/40 bg-amber-500/5" : ""}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  Customer Value
+                  {vipStatus && (
+                    <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1">
+                      <Star className="h-3 w-3 fill-current" /> VIP
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Lifetime Value</div>
+                    <div className="text-lg font-bold text-primary">${lifetimeSpend.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Bookings Completed</div>
+                    <div className="text-lg font-bold">{completedCount}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Avg. Ticket</div>
+                    <div className="text-lg font-bold">${avgTicket.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Member Since</div>
+                    <div className="text-lg font-bold">
+                      {memberSince ? format(new Date(memberSince), 'MMM yyyy') : '—'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">VIP Status</div>
+                    <div className="text-lg font-bold flex items-center gap-1">
+                      {vipStatus ? (
+                        <span className="text-amber-600 flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-current" /> VIP
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Standard</span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                      VIP at $500+ spend or 5+ bookings
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid md:grid-cols-3 gap-4">
               {/* Contact Card */}
               <Card>
