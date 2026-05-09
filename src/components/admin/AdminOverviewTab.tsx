@@ -56,6 +56,7 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [monthRevenue, setMonthRevenue] = useState(0);
   const [totalTips, setTotalTips] = useState(0);
+  const [sendingBulk, setSendingBulk] = useState(false);
 
   useEffect(() => {
     fetchBookings();
