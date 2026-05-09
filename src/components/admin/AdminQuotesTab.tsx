@@ -930,6 +930,39 @@ export function AdminQuotesTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Mark as Booked Dialog */}
+      <Dialog open={bookedDialogOpen} onOpenChange={setBookedDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark Quote as Booked</DialogTitle>
+            <DialogDescription>
+              Link this quote to an existing booking, or just mark it as converted.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="link_booking_id">Existing Booking ID (optional)</Label>
+              <Input
+                id="link_booking_id"
+                placeholder="Paste booking UUID to link"
+                value={linkBookingId}
+                onChange={(e) => setLinkBookingId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Leave empty to just mark as converted without linking.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBookedDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleMarkBooked} disabled={processing}>
+              {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+              Mark as Converted
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
