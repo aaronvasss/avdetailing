@@ -5,13 +5,15 @@ export type NotificationType =
   | "payment_reminder_sms"
   | "payment_reminder_email"
   | "reschedule_notification"
-  | "quote_followup";
+  | "quote_followup"
+  | "tip_request";
 
 export const COOLDOWN_HOURS: Record<NotificationType, number> = {
   payment_reminder_sms: 24,
   payment_reminder_email: 24,
   reschedule_notification: 1,
   quote_followup: 48,
+  tip_request: 24,
 };
 
 export interface RecentNotification {
