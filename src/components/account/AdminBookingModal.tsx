@@ -337,6 +337,26 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const isAircraft = form.serviceType === "aircraft";
   const showCarVehicleFields = needsVehicleType || form.serviceType === "rv";
   // Calculate package price
+  // Build unique car packages list (one per slug) for rendering buttons
+  const carPackages = useMemo(() => {
+    const seen = new Map<string, { slug: string; label: string; sort_order: number }>();
+    for (const r of packageRows) {
+      if (!seen.has(r.slug)) {
+        seen.set(r.slug, { slug: r.slug, label: r.name, sort_order: r.sort_order });
+      }
+    }
+    return Array.from(seen.values()).sort((a, b) => a.sort_order - b.sort_order);
+  }, [packageRows]);
+
+  // Get price for a slug given current vehicle type
+  const getPackagePrice = useCallback(
+    (slug: string, vehicleType: string): number | null => {
+      const row = packageRows.find(r => r.slug === slug && r.vehicle_type === vehicleType);
+      return row ? Number(row.price) : null;
+    },
+    [packageRows]
+  );
+
   const packagePrice = useMemo(() => {
     if (isSpecialty) return 100; // deposit
     if (isMembership) {
@@ -344,18 +364,15 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       return mp?.price || 0;
     }
     if (!selectedPackageId || !form.vehicleType) return 0;
-    const pkg = carPackages.find(p => p.id === selectedPackageId);
-    if (!pkg) return 0;
-    if (pkg.id === "silver") return getSilverPrice(form.vehicleType);
-    return pkg.prices[getVehicleBucket(form.vehicleType)];
-  }, [selectedPackageId, form.vehicleType, isSpecialty, isMembership]);
+    return getPackagePrice(selectedPackageId, form.vehicleType) || 0;
+  }, [selectedPackageId, form.vehicleType, isSpecialty, isMembership, getPackagePrice]);
 
   // Calculate add-ons total
   const addOnsTotal = useMemo(() => {
     return addOnsList
       .filter(a => selectedAddOns.includes(a.id))
-      .reduce((sum, a) => sum + a.price, 0);
-  }, [selectedAddOns]);
+      .reduce((sum, a) => sum + Number(a.price), 0);
+  }, [selectedAddOns, addOnsList]);
 
   const totalPrice = pricingMode === "custom"
     ? parseFloat(customPrice) || 0
