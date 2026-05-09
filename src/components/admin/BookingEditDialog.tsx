@@ -665,7 +665,6 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     onSave();
     setSaving(false);
     // Keep dialog open so admin can use "Send Updated Confirmation" button
-    setSaving(false);
   };
 
   const handleMarkAsPaid = async (method: string) => {
