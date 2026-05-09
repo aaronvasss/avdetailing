@@ -69,6 +69,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Rate limit: 10 checkout attempts per IP per hour
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`create-checkout:${ip}`, 10, 60 * 60 * 1000)) {
+    return new Response(
+      JSON.stringify({ error: "Too many checkout attempts. Please try again later." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   try {
     logStep("Function started");
 
