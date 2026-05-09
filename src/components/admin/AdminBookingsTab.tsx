@@ -26,6 +26,14 @@ import {
   PaymentDetailsSection,
 } from "@/lib/payment-display";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
+import {
+  checkRecentNotification,
+  logNotification,
+  formatBlockedToast,
+  fetchLatestPaymentReminders,
+  describeLastReminder,
+  COOLDOWN_HOURS,
+} from "@/lib/notification-log";
 
 interface Booking {
   id: string;
