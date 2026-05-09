@@ -93,15 +93,34 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [workerRatings, setWorkerRatings] = useState<Record<string, { avg: number; count: number }>>({});
   const [showLaborBreakdown, setShowLaborBreakdown] = useState(false);
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
+  const [drillWorker, setDrillWorker] = useState<string | null>(null);
+
+  type RangePreset = "week" | "month" | "30d" | "90d" | "year" | "custom";
+  const [rangePreset, setRangePreset] = useState<RangePreset>("month");
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: startOfMonth(new Date()),
+    to: new Date(),
+  });
+
+  const applyPreset = (p: RangePreset) => {
+    setRangePreset(p);
+    const now = new Date();
+    if (p === "week") setDateRange({ from: startOfWeek(now), to: now });
+    else if (p === "month") setDateRange({ from: startOfMonth(now), to: now });
+    else if (p === "30d") setDateRange({ from: subDays(now, 30), to: now });
+    else if (p === "90d") setDateRange({ from: subDays(now, 90), to: now });
+    else if (p === "year") setDateRange({ from: startOfYear(now), to: now });
+  };
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [dateRange?.from, dateRange?.to]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const sixMonthsAgo = subMonths(new Date(), 6);
+      const fromDate = dateRange?.from || subMonths(new Date(), 1);
+      const toDate = dateRange?.to || new Date();
 
       const [bookingsRes, membershipsRes] = await Promise.all([
         supabase
@@ -110,18 +129,25 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             id,
             scheduled_date,
             scheduled_time,
+            in_progress_at,
             total_price,
             tip_amount,
             status,
             payment_status,
             payment_method,
             vehicle_type,
+            vehicle_make,
+            vehicle_model,
+            vehicle_year,
+            guest_name,
             assigned_worker_id,
             worker_pay_type,
             worker_pay_rate,
-            services (name, category)
+            services (name, category),
+            service_packages (name)
           `)
-          .gte("scheduled_date", format(sixMonthsAgo, "yyyy-MM-dd"))
+          .gte("scheduled_date", format(fromDate, "yyyy-MM-dd"))
+          .lte("scheduled_date", format(toDate, "yyyy-MM-dd"))
           .order("scheduled_date", { ascending: true }),
         supabase
           .from("customer_memberships")
