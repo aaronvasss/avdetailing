@@ -24,6 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getActiveAlertCount } from "./AdminNotificationsTab";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -66,7 +67,19 @@ export function AdminLayout({
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quotesAttentionCount, setQuotesAttentionCount] = useState(0);
+  const [alertCount, setAlertCount] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      const c = await getActiveAlertCount();
+      if (!cancelled) setAlertCount(c);
+    };
+    refresh();
+    const interval = setInterval(refresh, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [currentTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -181,6 +194,11 @@ export function AdminLayout({
                 {item.id === "quotes" && quotesAttentionCount > 0 && (
                   <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
                     {quotesAttentionCount}
+                  </Badge>
+                )}
+                {item.id === "notifications" && alertCount > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
+                    {alertCount}
                   </Badge>
                 )}
               </button>
