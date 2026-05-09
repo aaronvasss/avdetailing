@@ -514,7 +514,24 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
             </div>
           )}
 
-          {/* Add-ons */}
+          {/* Live timer while in_progress */}
+          {isInProgress && booking.clock_in_at && (
+            <JobTimer startedAt={booking.clock_in_at} />
+          )}
+
+          {/* Actual vs estimated duration when completed */}
+          {isCompleted && booking.actual_duration_minutes != null && (
+            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 text-sm">
+              <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span>
+                <span className="font-bold">Job took {formatHm(booking.actual_duration_minutes)}</span>
+                {booking.duration_minutes != null && (
+                  <span className="text-muted-foreground"> · Estimated: {formatHm(booking.duration_minutes)}</span>
+                )}
+              </span>
+            </div>
+          )}
+
           {addOns.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
               <Package className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
