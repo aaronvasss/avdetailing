@@ -290,25 +290,10 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       return false;
     }
 
-    // Payment filter
-    if (paymentFilter !== "all" && booking.payment_status !== paymentFilter) {
-      return false;
-    }
-
     return true;
   });
 
-  const getStatusBadge = (status: string) => {
-    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
-      pending: { variant: "secondary" },
-      confirmed: { variant: "default" },
-      completed: { variant: "outline", className: "border-green-500 text-green-600" },
-      cancelled: { variant: "destructive" },
-    };
-    const { variant, className } = config[status] || { variant: "secondary" };
-    return <Badge variant={variant} className={cn("capitalize", className)}>{status}</Badge>;
-  };
-
+  const getStatusBadge = (status: string) => renderStatusBadge(status);
   const getPaymentBadge = (status: string) => renderPaymentBadge(status);
 
   // Stats
