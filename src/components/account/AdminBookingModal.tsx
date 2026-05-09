@@ -239,6 +239,48 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     return () => clearTimeout(timer);
   }, [saveDraft, open]);
 
+  // Fetch packages + add-ons for selected service when modal opens
+  useEffect(() => {
+    if (!open) return;
+    const sid = serviceTypes.find(s => s.id === form.serviceType)?.serviceId;
+    if (!sid) {
+      setPackageRows([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setPricingLoading(true);
+      setPricingError(false);
+      try {
+        const [pkgRes, addRes] = await Promise.all([
+          supabase
+            .from("service_packages")
+            .select("slug, name, vehicle_type, price, sort_order")
+            .eq("service_id", sid)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("service_add_ons")
+            .select("id, name, price, stripe_price_id")
+            .eq("is_active", true)
+            .order("price", { ascending: true }),
+        ]);
+        if (cancelled) return;
+        if (pkgRes.error || addRes.error) throw pkgRes.error || addRes.error;
+        setPackageRows((pkgRes.data || []).map(r => ({ ...r, price: Number(r.price) })));
+        setAddOnsList((addRes.data || []).map(r => ({ ...r, price: Number(r.price) })));
+      } catch (err) {
+        console.error("Failed to load pricing:", err);
+        if (!cancelled) setPricingError(true);
+      } finally {
+        if (!cancelled) setPricingLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, form.serviceType]);
+
   const clearDraft = () => {
     localStorage.removeItem(DRAFT_KEY);
     setForm(defaultForm);
