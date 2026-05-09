@@ -95,6 +95,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [showLaborBreakdown, setShowLaborBreakdown] = useState(false);
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
   const [drillWorker, setDrillWorker] = useState<string | null>(null);
+  const [analyticsView, setAnalyticsView] = useState<"overview" | "audit">("overview");
+  const [auditWorkerFilter, setAuditWorkerFilter] = useState<string>("all");
+  const [auditOnTimeFilter, setAuditOnTimeFilter] = useState<"all" | "ontime" | "late" | "nodata">("all");
 
   type RangePreset = "week" | "month" | "30d" | "90d" | "year" | "custom";
   const [rangePreset, setRangePreset] = useState<RangePreset>("month");
