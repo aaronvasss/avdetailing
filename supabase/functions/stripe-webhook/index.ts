@@ -313,6 +313,8 @@ serve(async (req) => {
                       totalPrice: bookingData.total_price,
                       bookingId: bookingData.id,
                       notifyBusiness: true,
+                      paymentConfirmed: true,
+                      manageToken: (bookingData as any).manage_token || null,
                     },
                   });
                   logStep("SMS notification triggered", { packageName });

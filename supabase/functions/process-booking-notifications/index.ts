@@ -51,6 +51,22 @@ function isQuoteBasedService(vehicleType?: string): boolean {
   return vehicleType ? ["rv", "boat", "aircraft"].includes(vehicleType.toLowerCase()) : false;
 }
 
+function vehicleTypeLabel(vt?: string): string {
+  if (!vt) return "Vehicle";
+  const map: Record<string, string> = {
+    "sedan": "Car (Sedan/Coupe)",
+    "suv-5": "SUV (5 seats)",
+    "suv-8": "SUV (8 seats / 3-row)",
+    "truck": "Truck",
+    "car": "Car",
+    "suv": "SUV",
+    "boat": "Boat",
+    "rv": "RV/Motorhome",
+    "aircraft": "Aircraft",
+  };
+  return map[vt.toLowerCase()] || vt;
+}
+
 function includesCeramic(serviceName: string, addOns?: { name: string }[]): boolean {
   const keywords = ["ceramic", "coating"];
   return keywords.some(k => serviceName.toLowerCase().includes(k)) ||
@@ -92,13 +108,17 @@ function buildCalendarLinks(booking: any, serviceName: string) {
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
   const location = [booking.service_address, booking.service_city, booking.service_state || "LA"].filter(Boolean).join(", ");
+  const title = `AV Detailing — ${serviceName}`;
+  const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || "Vehicle";
+  const total = Number(booking.total_price) || 0;
+  const description = `Package: ${serviceName}\nVehicle: ${vehicle}\nTotal: $${total.toFixed(2)}\nCall: ${PHONE}\nBooking: ${booking.id}`;
 
-  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("AV Detailing - " + serviceName)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent("Mobile detailing service.\nCall " + PHONE + "\nBooking: " + booking.id)}&location=${encodeURIComponent(location)}`;
+  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
 
   // Use hosted edge function URL for ICS download (data: URIs don't work in email clients)
   const icsUrl = `${SUPABASE_URL}/functions/v1/download-ics?id=${booking.id}`;
 
-  const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent("AV Detailing - " + serviceName)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent("Mobile detailing. Call " + PHONE)}`;
+  const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent(description)}`;
 
   return { googleUrl, icsUrl, outlookUrl };
 }
@@ -123,14 +143,13 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const serviceLinePrice = Math.max(0, totalPrice - addOnsTotal - tipAmount);
   const deposit = Number(booking.deposit_amount) || 0;
   const paymentMethod = booking.payment_method || "in_person";
-  const isOnline = ["online", "stripe", "card"].includes(paymentMethod);
-  const fee = isOnline ? totalPrice * 0.035 : 0;
-  const totalWithFee = totalPrice + fee;
-  const remaining = totalWithFee - deposit;
+  const paymentStatus = (booking.payment_status || "unpaid").toLowerCase();
+  const isPaid = paymentStatus === "paid";
+  const isPending = paymentStatus === "pending";
+  const remaining = totalPrice - deposit;
   const duration = booking.duration_minutes || 180;
 
-  const vehicleTypeNames: Record<string, string> = { car: "Car/SUV/Truck", boat: "Boat", rv: "RV/Motorhome", aircraft: "Aircraft" };
-  const vtName = vehicleTypeNames[vehicleType.toLowerCase()] || vehicleType;
+  const vtName = vehicleTypeLabel(vehicleType);
 
   const { googleUrl, icsUrl, outlookUrl } = buildCalendarLinks(booking, serviceName);
   const rescheduleUrl = `${BASE_URL}/booking/manage?token=${booking.manage_token}`;
@@ -143,6 +162,21 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
       <p style="color: #737373; font-size: 11px; text-transform: uppercase; margin: 0 0 8px 0;">Add-Ons Selected</p>
       ${addOns.map(a => `<div style="display:table;width:100%;margin-bottom:6px;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">+ ${htmlEncode(a.name)}</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${a.price.toFixed(2)}</span></div>`).join("")}
     </div>` : "";
+
+  // Payment status banner
+  const paymentBanner = isPaid
+    ? `<div style="background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:center;color:#fff;font-weight:700;font-size:15px;">✅ Payment Confirmed — $${totalPrice.toFixed(2)} paid online</div>`
+    : isPending
+      ? `<div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:center;color:#fff;font-weight:700;font-size:15px;">⏳ Payment Processing...</div>`
+      : `<div style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:center;color:#fff;font-weight:700;font-size:15px;">💵 Pay at Service — $${totalPrice.toFixed(2)} due on ${short}</div>`;
+
+  const tipRowHtml = tipAmount > 0
+    ? `<div style="margin-bottom:8px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#22c55e;font-size:13px;">Tip 🙏</span><span style="display:table-cell;text-align:right;color:#22c55e;font-size:13px;">$${tipAmount.toFixed(2)}</span></div></div>`
+    : "";
+
+  const paidBadgeHtml = isPaid
+    ? `<span style="display:inline-block;background-color:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-left:8px;vertical-align:middle;">✅ PAID</span>`
+    : "";
 
   const photoRequestHtml = isQuote ? `
     <div style="background:linear-gradient(135deg,rgba(59,130,246,0.15) 0%,rgba(59,130,246,0.05) 100%);border-radius:12px;padding:20px;border:1px solid rgba(59,130,246,0.3);margin-top:24px;">
@@ -180,6 +214,8 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   <p style="color:#fff;font-size:28px;font-weight:700;margin:0 0 4px;">${short} at ${time}</p>
   <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">📍 ${city}, ${state}</p>
 </div>
+
+${paymentBanner}
 
 <!-- Main Card -->
 <div style="background:linear-gradient(180deg,#1a1a1a 0%,#0f0f0f 100%);border-radius:16px;overflow:hidden;border:1px solid #262626;">
@@ -262,14 +298,13 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
         <div style="display:table;width:100%;"><span style="display:table-cell;color:#d4d4d4;font-size:14px;">${htmlEncode(serviceName)}</span><span style="display:table-cell;text-align:right;color:#fff;font-size:14px;">$${serviceLinePrice.toFixed(2)}</span></div>
       </div>
       ${addOnsHtml}
-      <div style="margin-bottom:8px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">Subtotal</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${totalPrice.toFixed(2)}</span></div></div>
-      ${isOnline ? `<div style="margin-bottom:12px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">Processing Fee (3.5%)</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${fee.toFixed(2)}</span></div></div>` : ""}
+      ${tipRowHtml}
       <div style="border-top:2px solid rgba(239,68,68,0.3);padding-top:12px;">
-        <div style="display:table;width:100%;margin-bottom:8px;"><span style="display:table-cell;color:#fff;font-size:16px;font-weight:600;">Total</span><span style="display:table-cell;text-align:right;color:#ef4444;font-size:24px;font-weight:800;">$${totalWithFee.toFixed(2)}</span></div>
+        <div style="display:table;width:100%;margin-bottom:8px;"><span style="display:table-cell;color:#fff;font-size:16px;font-weight:600;">Total${paidBadgeHtml}</span><span style="display:table-cell;text-align:right;color:#ef4444;font-size:24px;font-weight:800;">$${totalPrice.toFixed(2)}</span></div>
         ${deposit > 0 ? `
           <div style="display:table;width:100%;margin-bottom:4px;"><span style="display:table-cell;color:#22c55e;font-size:13px;">✓ Deposit Paid</span><span style="display:table-cell;text-align:right;color:#22c55e;font-size:13px;">-$${deposit.toFixed(2)}</span></div>
           <div style="display:table;width:100%;"><span style="display:table-cell;color:#fbbf24;font-size:14px;font-weight:600;">Balance Due</span><span style="display:table-cell;text-align:right;color:#fbbf24;font-size:16px;font-weight:700;">$${remaining.toFixed(2)}</span></div>
-        ` : `<div style="display:table;width:100%;"><span style="display:table-cell;color:#fbbf24;font-size:13px;">Due at Service</span><span style="display:table-cell;text-align:right;color:#fbbf24;font-size:14px;font-weight:600;">$${totalWithFee.toFixed(2)}</span></div>`}
+        ` : (!isPaid ? `<div style="display:table;width:100%;"><span style="display:table-cell;color:#fbbf24;font-size:13px;">Due at Service</span><span style="display:table-cell;text-align:right;color:#fbbf24;font-size:14px;font-weight:600;">$${totalPrice.toFixed(2)}</span></div>` : "")}
       </div>
     </div>
 
@@ -359,12 +394,17 @@ function buildAdminHtml(booking: any, serviceName: string) {
   const email = booking.guest_email ? htmlEncode(booking.guest_email) : "";
   const phone = booking.guest_phone ? htmlEncode(booking.guest_phone) : "";
   const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || "N/A";
+  const vtLabel = htmlEncode(vehicleTypeLabel(booking.vehicle_type));
   const date = formatDate(booking.scheduled_date);
   const time = formatTime12(booking.scheduled_time);
   const addr = [booking.service_address, booking.service_city, booking.service_state || "LA", booking.service_zip].filter(Boolean).join(", ");
   const total = Number(booking.total_price) || 0;
   const payment = (booking.payment_method || "in_person").replace("_", " ");
   const deposit = Number(booking.deposit_amount) || 0;
+  const isPaid = (booking.payment_status || "unpaid").toLowerCase() === "paid";
+  const payBadge = isPaid
+    ? `<span style="display:inline-block;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-left:8px;">PAID</span>`
+    : `<span style="display:inline-block;background:#f59e0b;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-left:8px;">UNPAID</span>`;
 
   return `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#111;color:#fff;border-radius:12px;">
     <h2 style="color:#ef4444;">New Booking Alert 🚗</h2>
@@ -372,12 +412,13 @@ function buildAdminHtml(booking: any, serviceName: string) {
       <tr><td style="padding:8px 0;color:#999;">Customer</td><td style="padding:8px 0;font-weight:bold;">${name}</td></tr>
       ${phone ? `<tr><td style="padding:8px 0;color:#999;">Phone</td><td style="padding:8px 0;"><a href="tel:${phone}" style="color:#ef4444;">${phone}</a></td></tr>` : ""}
       ${email ? `<tr><td style="padding:8px 0;color:#999;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#ef4444;">${email}</a></td></tr>` : ""}
-      <tr><td style="padding:8px 0;color:#999;">Service</td><td style="padding:8px 0;">${htmlEncode(serviceName)}</td></tr>
+      <tr><td style="padding:8px 0;color:#999;">Package</td><td style="padding:8px 0;font-weight:bold;">${htmlEncode(serviceName)}</td></tr>
+      <tr><td style="padding:8px 0;color:#999;">Vehicle Type</td><td style="padding:8px 0;">${vtLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Vehicle</td><td style="padding:8px 0;">${htmlEncode(vehicle)}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Date & Time</td><td style="padding:8px 0;">${date} at ${time}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Address</td><td style="padding:8px 0;">${htmlEncode(addr)}</td></tr>
       <tr><td style="padding:8px 0;color:#999;">Total</td><td style="padding:8px 0;font-weight:bold;color:#22c55e;">$${total.toFixed(2)}</td></tr>
-      <tr><td style="padding:8px 0;color:#999;">Payment</td><td style="padding:8px 0;">${payment}${deposit > 0 ? ` — $${deposit.toFixed(2)} deposit paid` : " — unpaid"}</td></tr>
+      <tr><td style="padding:8px 0;color:#999;">Payment</td><td style="padding:8px 0;">${payment}${deposit > 0 ? ` — $${deposit.toFixed(2)} deposit paid` : ""}${payBadge}</td></tr>
     </table>
     <p style="margin-top:16px;"><a href="${BASE_URL}/admin" style="color:#ef4444;font-weight:600;">View in Admin Dashboard →</a></p>
     <p style="margin-top:8px;color:#666;font-size:12px;">Booking ID: ${booking.id}</p>
@@ -502,7 +543,7 @@ serve(async (req) => {
     // ━━━━ Admin Alert ━━━━
     if (mode === "auto" || mode === "resend_admin") {
       const html = buildAdminHtml(booking, serviceName);
-      const subject = `New Booking 🚗 ${booking.guest_name || "Customer"} — ${serviceName} on ${shortDate(booking.scheduled_date)}`;
+      const subject = `New Booking 🚗 ${booking.guest_name || "Customer"} — ${serviceName} (${vehicleTypeLabel(booking.vehicle_type)}) on ${shortDate(booking.scheduled_date)}`;
 
       results.admin = await sendEmail(ADMIN_EMAIL, ADMIN_FROM_EMAIL, subject, html);
 
