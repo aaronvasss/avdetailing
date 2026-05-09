@@ -175,7 +175,7 @@ export default function AdminPage() {
       case "quotes":
         return <AdminQuotesTab />;
       case "notifications":
-        return <AdminNotificationsTab />;
+        return <AdminNotificationsTab onNavigateTab={setCurrentTab} />;
       case "services":
         return isAdmin ? <AdminServicesTab /> : null;
       case "analytics":
