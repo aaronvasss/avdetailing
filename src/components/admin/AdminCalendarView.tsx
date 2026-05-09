@@ -30,6 +30,9 @@ interface Booking {
   scheduled_time: string;
   status: string;
   payment_status: string;
+  payment_method: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   total_price: number;
   subtotal: number | null;
   add_ons_total: number | null;
