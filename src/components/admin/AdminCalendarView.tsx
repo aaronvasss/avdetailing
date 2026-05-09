@@ -570,6 +570,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                       +{booking.booking_add_ons.length} add-on{booking.booking_add_ons.length > 1 ? "s" : ""}
                                     </div>
                                   )}
+                                  <div className="mt-0.5">
+                                    {getPaymentBadge(booking.payment_status)}
+                                  </div>
                                 </button>
                                 {/* Buffer indicator */}
                                 <div 
