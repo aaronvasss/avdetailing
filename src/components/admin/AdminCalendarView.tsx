@@ -616,11 +616,12 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 getServiceColorClass(booking.services?.slug)
                               )}
                             >
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between gap-2">
                                 <div className="font-medium">{getCustomerName(booking)}</div>
-                                <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
-                                  {booking.status}
-                                </Badge>
+                                <div className="flex items-center gap-1.5">
+                                  {getStatusBadge(booking.status)}
+                                  {getPaymentBadge(booking.payment_status)}
+                                </div>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
                                 {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name || "Detailing Service"} • {booking.vehicle_type}
