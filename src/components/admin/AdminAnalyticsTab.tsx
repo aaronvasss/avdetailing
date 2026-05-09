@@ -659,6 +659,62 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Date Range Filter */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["week", "This Week"],
+                ["month", "This Month"],
+                ["30d", "Last 30 Days"],
+                ["90d", "Last 90 Days"],
+                ["year", "This Year"],
+              ] as [RangePreset, string][]).map(([k, label]) => (
+                <Button
+                  key={k}
+                  size="sm"
+                  variant={rangePreset === k ? "default" : "outline"}
+                  onClick={() => applyPreset(k)}
+                >
+                  {label}
+                </Button>
+              ))}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={rangePreset === "custom" ? "default" : "outline"}
+                  >
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    Custom
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(r) => {
+                      if (r?.from) {
+                        setRangePreset("custom");
+                        setDateRange(r);
+                      }
+                    }}
+                    numberOfMonths={2}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {dateRange?.from && dateRange?.to
+                ? `${format(dateRange.from, "MMM d, yyyy")} → ${format(dateRange.to, "MMM d, yyyy")}`
+                : "Select a date range"}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KPI Cards - Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
