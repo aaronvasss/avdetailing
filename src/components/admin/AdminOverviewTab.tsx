@@ -204,8 +204,9 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
 
   // Calculate KPIs
   const today = new Date();
-  const weekStart = startOfWeek(today);
-  const weekEnd = endOfWeek(today);
+  const todayStr = format(today, "yyyy-MM-dd");
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
   const todaysBookings = bookings.filter(b => isToday(new Date(b.scheduled_date)));
   const thisWeekBookings = bookings.filter(b => {
@@ -224,9 +225,22 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
     b.status === "cancelled" && new Date(b.scheduled_date) >= addDays(today, -7)
   );
 
-  const weekRevenue = thisWeekBookings
-    .filter(b => b.status !== "cancelled")
+  const todayRevenue = todaysBookings
+    .filter(b => PAID_STATUSES.includes(b.payment_status))
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
+
+  const weekRevenue = thisWeekBookings
+    .filter(b => PAID_STATUSES.includes(b.payment_status))
+    .reduce((sum, b) => sum + (b.total_price || 0), 0);
+
+  const unassignedUpcoming = bookings.filter(b =>
+    b.status === "confirmed" &&
+    !b.assigned_worker_id &&
+    b.scheduled_date >= todayStr
+  );
+  const unpaidCompleted = bookings.filter(b =>
+    b.status === "completed" && b.payment_status === "unpaid"
+  );
 
   const getStatusBadge = (status: string) => {
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }> = {
