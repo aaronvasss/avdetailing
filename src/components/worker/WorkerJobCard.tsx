@@ -20,13 +20,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Clock, Phone, MapPin, Navigation, Car, Wrench,
   Play, CheckCircle2, Loader2, Camera, ChevronDown, ChevronUp,
-  StickyNote, Package, Upload, Trash2, ImageIcon, Lock
+  StickyNote, Package, Upload, Trash2, ImageIcon, Lock,
+  DollarSign, MessageSquare, Mail, Copy, PartyPopper
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatStopwatch, formatHm } from "@/lib/duration-format";
+import { checkRecentNotification, logNotification, COOLDOWN_HOURS, type RecentNotification } from "@/lib/notification-log";
+import { format } from "date-fns";
 
 interface BookingData {
   id: string;
