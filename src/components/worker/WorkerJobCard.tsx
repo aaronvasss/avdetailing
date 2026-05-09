@@ -220,7 +220,7 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
     try {
       const { error } = await supabase
         .from("bookings")
-        .update({ status: "in_progress" })
+        .update({ status: "in_progress", in_progress_at: new Date().toISOString() })
         .eq("id", booking.id);
 
       if (error) throw error;
