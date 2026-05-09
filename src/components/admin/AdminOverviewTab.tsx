@@ -347,16 +347,25 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
         </button>
       )}
       {isAdmin && unpaidCompleted.length > 0 && (
-        <button
-          onClick={() => onNavigateTab?.("bookings")}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-yellow-500/40 bg-yellow-500/10 hover:bg-yellow-500/15 transition-colors text-left"
-        >
+        <div className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-yellow-500/40 bg-yellow-500/10">
           <DollarSign className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-          <span className="text-sm font-medium text-yellow-700 dark:text-yellow-500">
+          <button
+            onClick={() => onNavigateTab?.("bookings")}
+            className="flex-1 text-left text-sm font-medium text-yellow-700 dark:text-yellow-500 hover:underline"
+          >
             💰 {unpaidCompleted.length} completed job{unpaidCompleted.length === 1 ? "" : "s"} still unpaid — click to follow up
-          </span>
-          <ChevronRight className="h-4 w-4 text-yellow-600 ml-auto flex-shrink-0" />
-        </button>
+          </button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/20 flex-shrink-0"
+            onClick={sendAllPaymentReminders}
+            disabled={sendingBulk}
+          >
+            {sendingBulk ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <MessageSquare className="h-3.5 w-3.5 mr-1" />}
+            Send All Reminders
+          </Button>
+        </div>
       )}
 
       {/* KPI Cards */}
