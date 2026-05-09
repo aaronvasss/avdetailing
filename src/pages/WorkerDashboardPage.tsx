@@ -196,7 +196,7 @@ export default function WorkerDashboardPage() {
           ) : (
             <div className="space-y-3">
               {myBookings.map((booking) => (
-                <div key={booking.id} className="ring-2 ring-primary/30 rounded-lg">
+                <div key={booking.id} id={`job-card-${booking.id}`} className="ring-2 ring-primary/30 rounded-lg scroll-mt-20">
                   <WorkerJobCard
                     booking={booking}
                     onStatusChange={() => { fetchTodayBookings(); fetchUpcomingBookings(); }}
