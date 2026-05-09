@@ -302,16 +302,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     return <Badge variant={variant} className={cn("capitalize", className)}>{status}</Badge>;
   };
 
-  const getPaymentBadge = (status: string) => {
-    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
-      paid: { variant: "outline", className: "border-green-500 text-green-600" },
-      unpaid: { variant: "destructive" },
-      partial: { variant: "secondary" },
-      refunded: { variant: "outline" },
-    };
-    const { variant, className } = config[status] || { variant: "secondary" };
-    return <Badge variant={variant} className={cn("capitalize", className)}>{status}</Badge>;
-  };
+  const getPaymentBadge = (status: string) => renderPaymentBadge(status);
 
   // Stats
   const stats = {
