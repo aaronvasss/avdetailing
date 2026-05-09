@@ -226,6 +226,34 @@ const handler = async (req: Request): Promise<Response> => {
 
     // RESCHEDULE action
     if (action === "reschedule") {
+      // Auth: require either a valid manage_token (already matched booking above)
+      // OR an authenticated admin/staff caller.
+      const tokenMatchesBooking = !!token && booking.manage_token === token;
+      let callerIsStaff = false;
+      const authHeader = req.headers.get("Authorization");
+      if (!tokenMatchesBooking && authHeader?.startsWith("Bearer ")) {
+        const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data: userData } = await userClient.auth.getUser();
+        const uid = userData?.user?.id;
+        if (uid) {
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", uid)
+            .in("role", ["admin", "staff"]);
+          callerIsStaff = !!(roles && roles.length > 0);
+        }
+      }
+      if (!tokenMatchesBooking && !callerIsStaff) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       if (!newDate || !newTime) {
         return new Response(
           JSON.stringify({ error: "Missing new date or time" }),

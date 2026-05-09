@@ -11,8 +11,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// In-memory rate limiting (best-effort per-isolate)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+function checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(key);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  if (record.count >= maxRequests) return false;
+  record.count++;
+  return true;
+}
+function getClientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
 interface CreateBookingRequest {
   service_id: string;
+  package_slug?: string | null;
+  vehicle_sub_type?: string | null;
   scheduled_date: string;
   scheduled_time: string;
   duration_minutes?: number | null;
@@ -95,6 +116,15 @@ function toDbTime(input: string): string {
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limit: 5 booking attempts per IP per hour
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`create-booking:${ip}`, 5, 60 * 60 * 1000)) {
+    return new Response(
+      JSON.stringify({ error: "Too many booking attempts. Please try again later." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 
   try {
@@ -209,8 +239,26 @@ const handler = async (req: Request): Promise<Response> => {
       finalAddOnsTotal = body.add_ons_total != null ? Number(body.add_ons_total) : serverAddOnsTotal;
       finalTotal = Number(body.total_price);
     } else {
-      // Default: calculate from service base_price
-      finalSubtotal = Number(service.base_price);
+      // Non-staff: look up authoritative price from service_packages by (service_id, vehicle_type, slug).
+      // Falls back to services.base_price only if no matching package row exists.
+      let pkgPrice: number | null = null;
+      if (body.package_slug) {
+        const pkgVehicleType = body.vehicle_sub_type || body.vehicle_type;
+        let pkgQuery = serviceClient
+          .from("service_packages")
+          .select("price, vehicle_type")
+          .eq("service_id", body.service_id)
+          .eq("slug", body.package_slug)
+          .eq("is_active", true);
+        if (pkgVehicleType) {
+          pkgQuery = pkgQuery.eq("vehicle_type", pkgVehicleType);
+        }
+        const { data: pkgRows } = await pkgQuery;
+        if (pkgRows && pkgRows.length > 0) {
+          pkgPrice = Number(pkgRows[0].price);
+        }
+      }
+      finalSubtotal = pkgPrice != null ? pkgPrice : Number(service.base_price);
       finalAddOnsTotal = serverAddOnsTotal;
       finalTotal = finalSubtotal + finalAddOnsTotal;
     }

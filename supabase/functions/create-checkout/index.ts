@@ -12,6 +12,25 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// In-memory rate limiting (best-effort per-isolate)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+function checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(key);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  if (record.count >= maxRequests) return false;
+  record.count++;
+  return true;
+}
+function getClientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
 // Map package slug + vehicle sub-type to exact Stripe product names
 function getStripeProductName(packageSlug: string, vehicleSubType: string, vehicleTypeLabel: string): string {
   const isLarge = vehicleSubType === 'suv-8' || vehicleSubType === 'truck' ||
@@ -48,6 +67,15 @@ interface CheckoutRequest {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limit: 10 checkout attempts per IP per hour
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`create-checkout:${ip}`, 10, 60 * 60 * 1000)) {
+    return new Response(
+      JSON.stringify({ error: "Too many checkout attempts. Please try again later." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 
   try {
