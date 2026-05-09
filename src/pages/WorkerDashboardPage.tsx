@@ -460,3 +460,131 @@ function StatBlock({ icon, label, value, accent = false }: { icon: ReactNode; la
     </div>
   );
 }
+
+const STOP_NUMS = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+const stopNum = (i: number) => STOP_NUMS[i] || `(${i + 1})`;
+
+function buildAddress(b: any): string {
+  return [b.service_address, b.service_city, b.service_state, b.service_zip].filter(Boolean).join(", ");
+}
+function shortName(name?: string): string {
+  if (!name) return "Customer";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+function navUrl(addr: string): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
+}
+function fullRouteUrl(addrs: string[], optimize = false): string {
+  const path = addrs.map((a) => encodeURIComponent(a)).join("/");
+  return `https://www.google.com/maps/dir/${path}${optimize ? "/?waypoints=optimized:true" : ""}`;
+}
+
+function TodaysRoute({ bookings }: { bookings: any[] }) {
+  const stops = bookings
+    .filter((b) => buildAddress(b))
+    .sort((a, b) => (a.scheduled_time || "").localeCompare(b.scheduled_time || ""));
+
+  if (stops.length === 0) return null;
+
+  const addresses = stops.map(buildAddress);
+  const estDriveMin = Math.max(0, stops.length - 1) * 15;
+
+  // Single job: just a Navigate button
+  if (stops.length === 1) {
+    const only = stops[0];
+    const addr = buildAddress(only);
+    return (
+      <Card>
+        <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
+            <MapIcon className="h-5 w-5 text-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold">Today's Job Location</p>
+              <p className="text-xs text-muted-foreground truncate">{addr}</p>
+            </div>
+          </div>
+          <Button asChild size="sm">
+            <a href={navUrl(addr)} target="_blank" rel="noopener noreferrer">
+              <Navigation className="h-4 w-4 mr-1.5" /> Navigate to Job
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <MapIcon className="h-5 w-5 text-primary" />
+            <h2 className="text-base font-bold">Today's Route</h2>
+            <Badge variant="outline" className="text-xs">{stops.length} stops</Badge>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild size="sm" variant="outline">
+              <a href={fullRouteUrl(addresses, true)} target="_blank" rel="noopener noreferrer">
+                <RouteIcon className="h-4 w-4 mr-1.5" /> Optimize Route
+              </a>
+            </Button>
+            <Button asChild size="sm">
+              <a href={fullRouteUrl(addresses, false)} target="_blank" rel="noopener noreferrer">
+                <MapIcon className="h-4 w-4 mr-1.5" /> Open in Maps
+              </a>
+            </Button>
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Estimated route: ~{estDriveMin} min driving between stops
+        </p>
+
+        <ol className="space-y-2">
+          {stops.map((b, i) => {
+            const addr = buildAddress(b);
+            const customer = shortName(b.guest_name);
+            const pkg = b.custom_service_description || b.services?.name || "Service";
+            const status = (b.status || "").replace("_", " ");
+            return (
+              <li key={b.id} className="rounded-md border border-border/60 bg-muted/20 p-3">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl font-bold text-primary leading-none mt-0.5 tabular-nums">
+                    {stopNum(i)}
+                  </span>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold">{formatTime12(b.scheduled_time)}</span>
+                      <span className="text-sm text-muted-foreground">·</span>
+                      <span className="text-sm font-medium truncate">{customer}</span>
+                      <Badge variant="outline" className={`text-[10px] capitalize ${STATUS_BADGE[b.status] || ""}`}>
+                        {status}
+                      </Badge>
+                    </div>
+                    <a
+                      href={navUrl(addr)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                    >
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{addr}</span>
+                    </a>
+                    <p className="text-xs text-muted-foreground truncate">{pkg}</p>
+                  </div>
+                  <Button asChild size="sm" variant="outline" className="shrink-0">
+                    <a href={navUrl(addr)} target="_blank" rel="noopener noreferrer">
+                      <Navigation className="h-3.5 w-3.5 mr-1" /> Navigate
+                    </a>
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </CardContent>
+    </Card>
+  );
+}
