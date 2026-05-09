@@ -449,6 +449,18 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const thirtyDaysAgo = subDays(new Date(), 30);
   const completedBookingsAll = bookings.filter(b => b.status === "completed" && b.assigned_worker_id);
 
+  // Returns minutes late (positive = late, negative = early). null if no in_progress data.
+  const getOnTimeDiff = (b: Booking): number | null => {
+    if (!b.in_progress_at || !b.scheduled_time) return null;
+    try {
+      const scheduled = parseISO(`${b.scheduled_date}T${b.scheduled_time}`);
+      const started = new Date(b.in_progress_at);
+      return differenceInMinutes(started, scheduled);
+    } catch {
+      return null;
+    }
+  };
+
   interface WorkerStats {
     workerId: string;
     name: string;
@@ -460,6 +472,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     tips: number;
     earnings: number;
     rating: { avg: number; count: number } | null;
+    onTimeRate: number | null; // null = no data
+    onTimeJobs: number;
+    onTimeTotal: number;
     jobs: Booking[];
   }
 
@@ -481,6 +496,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
         tips: 0,
         earnings: 0,
         rating: workerRatings[wId] || null,
+        onTimeRate: null,
+        onTimeJobs: 0,
+        onTimeTotal: 0,
         jobs: [],
       };
     }
@@ -491,9 +509,15 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     s.jobs.push(b);
     if (date >= thirtyDaysAgo) s.jobsLast30 += 1;
     if (date >= thisMonthStart) s.revenueThisMonth += b.total_price || 0;
+    const diff = getOnTimeDiff(b);
+    if (diff !== null) {
+      s.onTimeTotal += 1;
+      if (diff <= 15) s.onTimeJobs += 1;
+    }
   });
   Object.values(workerStatsMap).forEach(s => {
     s.avgTicket = s.jobs.length > 0 ? s.revenue / s.jobs.length : 0;
+    s.onTimeRate = s.onTimeTotal > 0 ? (s.onTimeJobs / s.onTimeTotal) * 100 : null;
     s.jobs.sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
   });
 
@@ -505,6 +529,100 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const workerComparisonData = workerStatsArr
     .map(w => ({ name: w.name, revenue: w.revenueThisMonth }))
     .filter(w => w.revenue > 0);
+
+  // ===== On-time helpers for UI =====
+  const onTimeColor = (rate: number | null) => {
+    if (rate === null) return "text-muted-foreground";
+    if (rate >= 80) return "text-green-600";
+    if (rate >= 60) return "text-amber-600";
+    return "text-destructive";
+  };
+  const onTimeLabel = (rate: number | null) => rate === null ? "No data" : `${rate.toFixed(0)}% on-time`;
+  const onTimeIcon = (diff: number | null) => {
+    if (diff === null) return "—";
+    if (diff <= 15) return "✅";
+    if (diff <= 30) return "⚠️";
+    return "❌";
+  };
+
+  // ===== CSV Export =====
+  const downloadCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
+    const escape = (v: any) => {
+      const s = String(v ?? "");
+      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+    const csvContent = [headers.map(escape).join(","), ...rows.map(r => r.map(escape).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSummaryCsv = () => {
+    const headers = ["Worker Name", "Jobs Completed", "Revenue Generated", "Avg Ticket", "Tips", "On-Time Rate", "Avg Rating", "Their Total Pay"];
+    const rows = workerStatsArr.map(w => [
+      w.name,
+      w.jobs.length,
+      w.revenue.toFixed(2),
+      w.avgTicket.toFixed(2),
+      w.tips.toFixed(2),
+      w.onTimeRate === null ? "No data" : `${w.onTimeRate.toFixed(0)}%`,
+      w.rating ? w.rating.avg.toFixed(2) : "",
+      w.earnings.toFixed(2),
+    ]);
+    downloadCsv(`av-detailing-team-summary-${format(new Date(), "yyyy-MM-dd")}.csv`, headers, rows);
+  };
+
+  const exportFullReportCsv = () => {
+    const headers = ["Worker Name", "Date", "Time", "Customer Name", "Package", "Vehicle Type", "Total Price", "Worker Pay", "Tip", "On-Time", "Rating", "Status"];
+    const rows: (string | number)[][] = [];
+    workerStatsArr.forEach(w => {
+      w.jobs.forEach(j => {
+        const diff = getOnTimeDiff(j);
+        const onTime = diff === null ? "No Data" : (diff <= 15 ? "Yes" : "No");
+        rows.push([
+          w.name,
+          j.scheduled_date,
+          j.scheduled_time || "",
+          j.guest_name || "",
+          j.services?.name || "",
+          j.vehicle_type || "",
+          (j.total_price || 0).toFixed(2),
+          calcBookingLaborCost(j).toFixed(2),
+          (Number(j.tip_amount) || 0).toFixed(2),
+          onTime,
+          j.rating != null ? j.rating : "",
+          j.status,
+        ]);
+      });
+    });
+    downloadCsv(`av-detailing-team-full-${format(new Date(), "yyyy-MM-dd")}.csv`, headers, rows);
+  };
+
+  // Drill-down weekly aggregation for selected worker
+  const drillStats = drillWorker ? workerStatsMap[drillWorker] : null;
+  const drillWeekly = useMemo(() => {
+    if (!drillStats || !dateRange?.from || !dateRange?.to) return [];
+    const weeks = eachWeekOfInterval({ start: dateRange.from, end: dateRange.to });
+    return weeks.map(weekStart => {
+      const weekEnd = endOfWeek(weekStart);
+      const weekJobs = drillStats.jobs.filter(j => {
+        const d = parseISO(j.scheduled_date);
+        return d >= weekStart && d <= weekEnd;
+      });
+      return {
+        date: format(weekStart, "MMM d"),
+        jobs: weekJobs.length,
+        revenue: weekJobs.reduce((s, j) => s + (j.total_price || 0), 0),
+      };
+    });
+  }, [drillStats, dateRange?.from, dateRange?.to]);
 
   const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
