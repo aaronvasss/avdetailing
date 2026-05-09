@@ -442,7 +442,24 @@ serve(async (req) => {
       });
     }
 
-    const serviceName = (booking.services as any)?.name || "Detailing Service";
+    const baseServiceName = (booking.services as any)?.name || "Detailing Service";
+
+    // Look up the package name (e.g. "Gold Package") so emails reference the exact package
+    let packageName: string | null = null;
+    try {
+      if ((booking as any).service_id && (booking as any).vehicle_type) {
+        const { data: pkg } = await supabase
+          .from("service_packages")
+          .select("name")
+          .eq("service_id", (booking as any).service_id)
+          .eq("vehicle_type", (booking as any).vehicle_type)
+          .eq("is_active", true)
+          .maybeSingle();
+        packageName = (pkg as any)?.name || null;
+      }
+    } catch (_e) { /* ignore */ }
+
+    const serviceName = packageName || baseServiceName;
 
     // For auto mode, check idempotency
     if (mode === "auto" && booking.sent_confirmation === true) {
@@ -467,7 +484,7 @@ serve(async (req) => {
     // ━━━━ Customer Confirmation ━━━━
     if ((mode === "auto" || mode === "resend_customer") && customerEmail && !isAdminSelf) {
       const html = buildCustomerHtml(booking, serviceName, addOns || []);
-      const subject = `✅ Booking Confirmed - ${serviceName} on ${formatDate(booking.scheduled_date)}`;
+      const subject = `✅ Booking Confirmed — ${serviceName} on ${formatDate(booking.scheduled_date)}`;
 
       results.customer = await sendEmail(customerEmail, FROM_EMAIL, subject, html);
 
