@@ -237,6 +237,19 @@ export default function WorkerEarningsPage() {
           </Card>
         )}
 
+        {/* Avg Job Duration */}
+        <Card>
+          <CardContent className="py-3 px-4 flex items-center gap-3">
+            <Clock className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">Avg Job Duration</p>
+              <p className="font-bold">
+                {avgDurationMinutes != null ? formatHm(avgDurationMinutes) : "No data yet"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Completed jobs list */}
         <div className="space-y-2">
           <h2 className="font-semibold text-sm text-muted-foreground">
