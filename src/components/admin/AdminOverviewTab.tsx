@@ -438,6 +438,18 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
                       </Button>
                     )}
 
+                    {!booking.assigned_worker_id && isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs border-destructive/40 text-destructive hover:bg-destructive/10"
+                        onClick={() => onNavigateTab?.("calendar")}
+                      >
+                        <UserCheck className="h-3.5 w-3.5 mr-1" />
+                        Assign
+                      </Button>
+                    )}
+
                     {booking.status === "confirmed" && (
                       <Button 
                         size="sm" 
