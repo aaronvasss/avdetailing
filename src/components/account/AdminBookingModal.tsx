@@ -256,7 +256,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
         const [pkgRes, addRes] = await Promise.all([
           supabase
             .from("service_packages")
-            .select("slug, name, vehicle_type, price, sort_order")
+            .select("slug, name, vehicle_type, price, sort_order, stripe_price_id")
             .eq("service_id", sid)
             .eq("is_active", true)
             .order("sort_order", { ascending: true }),
