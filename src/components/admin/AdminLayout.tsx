@@ -196,6 +196,11 @@ export function AdminLayout({
                     {quotesAttentionCount}
                   </Badge>
                 )}
+                {item.id === "notifications" && alertCount > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
+                    {alertCount}
+                  </Badge>
+                )}
               </button>
             ))}
 
