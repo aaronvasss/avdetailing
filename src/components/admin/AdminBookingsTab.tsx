@@ -610,9 +610,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                   <span className="font-medium">{getCustomerName(selectedBooking)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Service</span>
-                  <span className="font-medium">{selectedBooking.custom_service_description || selectedBooking.services?.name}</span>
+                  <span className="text-muted-foreground">Package</span>
+                  <span className="font-medium text-right">{getDisplayLabel(selectedBooking)}</span>
                 </div>
+                {selectedBooking.services?.name && selectedBooking.package_name && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service Type</span>
+                    <span className="text-sm">{selectedBooking.services.name}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Vehicle</span>
                   <span>{selectedBooking.vehicle_type} {selectedBooking.vehicle_make} {selectedBooking.vehicle_model}</span>
@@ -622,18 +628,52 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                   {getStatusBadge(selectedBooking.status)}
                 </div>
                 {isAdmin && (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Payment</span>
-                      {getPaymentBadge(selectedBooking.payment_status)}
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
-                    </div>
-                  </>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment</span>
+                    {getPaymentBadge(selectedBooking.payment_status)}
+                  </div>
                 )}
               </div>
+
+              {selectedBooking.booking_add_ons?.length > 0 && (
+                <div className="border-t pt-4 space-y-1">
+                  <div className="text-sm font-medium mb-2">Add-ons</div>
+                  {selectedBooking.booking_add_ons.map((a) => (
+                    <div key={a.id} className="flex justify-between text-sm">
+                      <span>{a.name}</span>
+                      <span>${Number(a.price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {selectedBooking.address_notes && (
+                <div className="border-t pt-4">
+                  <div className="text-sm font-medium mb-1">Customer Notes / Access Instructions</div>
+                  <div className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedBooking.address_notes}</div>
+                </div>
+              )}
+
+              {isAdmin && (
+                <div className="border-t pt-4 space-y-1">
+                  {selectedBooking.subtotal != null && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>${Number(selectedBooking.subtotal).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedBooking.add_ons_total != null && Number(selectedBooking.add_ons_total) > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Add-ons Total</span>
+                      <span>${Number(selectedBooking.add_ons_total).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-1">
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Send Reminder */}
               <div className="border-t pt-4">
