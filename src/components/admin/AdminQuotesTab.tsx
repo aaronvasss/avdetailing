@@ -437,8 +437,56 @@ export function AdminQuotesTab() {
 
   return (
     <div className="space-y-6">
+      {/* Quotes Needing Attention */}
+      {attentionQuotes.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Quotes Needing Attention
+              <Badge variant="destructive" className="ml-1">{attentionQuotes.length}</Badge>
+            </CardTitle>
+            <CardDescription>
+              Pending 3+ days without follow-up, or expiring within 2 days
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {attentionQuotes.slice(0, 5).map(q => (
+              <div key={q.id} className="flex items-center justify-between gap-2 p-2 rounded-md bg-background border">
+                <div className="flex items-center gap-2 min-w-0">
+                  {serviceIcons[q.service_type]}
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{getCustomerName(q)}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {q.status === 'pending' ? 'Pending review' : 'Quoted'} · submitted {format(new Date(q.created_at), 'MMM d')}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <ExpiryBadge q={q} />
+                  <Button size="sm" variant="outline" onClick={() => openQuoteDetail(q)}>
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                  {q.status === 'quoted' && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleSendFollowup(q)}
+                      disabled={sendingFollowup === q.id}
+                    >
+                      {sendingFollowup === q.id
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <Mail className="h-3 w-3" />}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -470,9 +518,21 @@ export function AdminQuotesTab() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <ArrowRight className="h-4 w-4" />
-              Converted to Booking
+              Converted
             </div>
             <div className="text-2xl font-bold text-primary">{stats.converted}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <TrendingUp className="h-4 w-4" />
+              Conversion Rate
+            </div>
+            <div className="text-2xl font-bold text-green-500">{conversionRate}%</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {convertedCount}/{conversionDenominator || 0} closed
+            </div>
           </CardContent>
         </Card>
       </div>
