@@ -442,7 +442,7 @@ function ActiveJobBanner({ startedAt, customerName, onView }: { startedAt: strin
   );
 }
 
-function StatBlock({ icon, label, value, accent = false }: { icon: React.ReactNode; label: string; value: string; accent?: boolean }) {
+function StatBlock({ icon, label, value, accent = false }: { icon: ReactNode; label: string; value: string; accent?: boolean }) {
   return (
     <div className="rounded-md border border-border/60 bg-muted/30 p-2.5">
       <div className={`flex items-center gap-1 text-[11px] uppercase tracking-wide ${accent ? "text-green-500" : "text-muted-foreground"}`}>
