@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Phone, Mail, Bell, 
-  Loader2, Search, Filter, Eye, RotateCcw, X, CheckCircle2, DollarSign, Pencil
+  Loader2, Search, Filter, Eye, RotateCcw, X, CheckCircle2, DollarSign, Pencil, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
@@ -20,6 +21,7 @@ import { DateRange } from "react-day-picker";
 import { BookingEditDialog } from "./BookingEditDialog";
 import {
   getPaymentBadge as renderPaymentBadge,
+  getStatusBadge as renderStatusBadge,
   getPaymentMethodIcon,
   PaymentDetailsSection,
 } from "@/lib/payment-display";
@@ -79,10 +81,11 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchBookings();
-  }, [statusFilter, dateRange]);
+  }, [statusFilter, paymentFilter, dateRange]);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -121,6 +124,10 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
 
     if (statusFilter !== "all") {
       query = query.eq("status", statusFilter);
+    }
+
+    if (paymentFilter !== "all") {
+      query = query.eq("payment_status", paymentFilter);
     }
 
     if (dateRange?.from) {
@@ -283,26 +290,63 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       return false;
     }
 
-    // Payment filter
-    if (paymentFilter !== "all" && booking.payment_status !== paymentFilter) {
-      return false;
-    }
-
     return true;
   });
 
-  const getStatusBadge = (status: string) => {
-    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
-      pending: { variant: "secondary" },
-      confirmed: { variant: "default" },
-      completed: { variant: "outline", className: "border-green-500 text-green-600" },
-      cancelled: { variant: "destructive" },
-    };
-    const { variant, className } = config[status] || { variant: "secondary" };
-    return <Badge variant={variant} className={cn("capitalize", className)}>{status}</Badge>;
+  const getStatusBadge = (status: string) => renderStatusBadge(status);
+  const getPaymentBadge = (status: string) => renderPaymentBadge(status);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
-  const getPaymentBadge = (status: string) => renderPaymentBadge(status);
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredBookings.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredBookings.map(b => b.id)));
+    }
+  };
+
+  const downloadBulkReceipts = () => {
+    const selected = filteredBookings.filter(b => selectedIds.has(b.id));
+    if (selected.length === 0) return;
+    const divider = "=".repeat(60);
+    const content = selected.map(b => {
+      const addons = (b.booking_add_ons || []).map(a => `  - ${a.name}: $${Number(a.price).toFixed(2)}`).join("\n") || "  (none)";
+      return [
+        `AV DETAILING - RECEIPT`,
+        divider,
+        `Booking ID:      ${b.id}`,
+        `Customer:        ${getCustomerName(b)}`,
+        `Date:            ${format(new Date(b.scheduled_date), "MMM d, yyyy")}`,
+        `Time:            ${b.scheduled_time}`,
+        `Service/Package: ${getDisplayLabel(b)}`,
+        `Vehicle:         ${b.vehicle_type || ""} ${b.vehicle_make || ""} ${b.vehicle_model || ""}`.trim(),
+        `Add-ons:`,
+        addons,
+        `Total Price:     $${Number(b.total_price || 0).toFixed(2)}`,
+        `Payment Method:  ${b.payment_method || "N/A"}`,
+        `Payment Status:  ${b.payment_status || "N/A"}`,
+        `Stripe Session:  ${b.stripe_checkout_session_id || "N/A"}`,
+      ].join("\n");
+    }).join("\n\n" + divider + "\n\n");
+
+    const blob = new Blob([content + "\n"], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `receipts-${format(new Date(), "yyyy-MM-dd-HHmm")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${selected.length} receipt${selected.length > 1 ? "s" : ""}`);
+  };
 
   // Stats
   const stats = {
@@ -371,9 +415,12 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="pending_payment">Awaiting Payment</SelectItem>
             <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="no_show">No Show</SelectItem>
           </SelectContent>
         </Select>
 
@@ -411,7 +458,11 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               <SelectItem value="all">All Payments</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="unpaid">Unpaid</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="partial">Partial</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
+              <SelectItem value="refunded">Refunded</SelectItem>
+              <SelectItem value="expired">Expired</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -471,6 +522,23 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         )}
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/40 p-3">
+          <span className="text-sm font-medium">{selectedIds.size} booking{selectedIds.size > 1 ? "s" : ""} selected</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="default" onClick={downloadBulkReceipts}>
+              <Download className="h-4 w-4 mr-1" />
+              Download Receipts
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              <X className="h-4 w-4 mr-1" />
+              Clear selection
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Bookings Table */}
       <Card>
         <CardHeader className="pb-3">
@@ -487,6 +555,13 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filteredBookings.length > 0 && selectedIds.size === filteredBookings.length}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Date & Time</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Service + Package</TableHead>
@@ -498,7 +573,14 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               </TableHeader>
               <TableBody>
                 {filteredBookings.map((booking) => (
-                  <TableRow key={booking.id}>
+                  <TableRow key={booking.id} data-state={selectedIds.has(booking.id) ? "selected" : undefined}>
+                    <TableCell className="w-10">
+                      <Checkbox
+                        checked={selectedIds.has(booking.id)}
+                        onCheckedChange={() => toggleSelected(booking.id)}
+                        aria-label={`Select booking ${booking.id}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-medium">
@@ -575,7 +657,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 ))}
                 {filteredBookings.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 7 : 5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isAdmin ? 8 : 6} className="text-center py-8 text-muted-foreground">
                       No bookings found matching your filters
                     </TableCell>
                   </TableRow>

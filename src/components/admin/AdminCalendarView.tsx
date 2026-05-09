@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { WORKING_HOURS, BUFFER_MINUTES, formatDuration, PACKAGE_DURATIONS } from "@/lib/scheduling";
-import { PaymentDetailsSection } from "@/lib/payment-display";
+import { PaymentDetailsSection, getPaymentBadge, getStatusBadge, getPaymentMethodIcon, formatPaymentMethod } from "@/lib/payment-display";
 
 interface BookingAddOn {
   id: string;
@@ -570,6 +570,9 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                       +{booking.booking_add_ons.length} add-on{booking.booking_add_ons.length > 1 ? "s" : ""}
                                     </div>
                                   )}
+                                  <div className="mt-0.5">
+                                    {getPaymentBadge(booking.payment_status)}
+                                  </div>
                                 </button>
                                 {/* Buffer indicator */}
                                 <div 
@@ -613,11 +616,12 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 getServiceColorClass(booking.services?.slug)
                               )}
                             >
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between gap-2">
                                 <div className="font-medium">{getCustomerName(booking)}</div>
-                                <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
-                                  {booking.status}
-                                </Badge>
+                                <div className="flex items-center gap-1.5">
+                                  {getStatusBadge(booking.status)}
+                                  {getPaymentBadge(booking.payment_status)}
+                                </div>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
                                 {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name || "Detailing Service"} • {booking.vehicle_type}
@@ -720,11 +724,17 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                     📍 {selectedBooking.service_address}, {selectedBooking.service_city}
                   </a>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Status</span>
-                  <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
-                    {selectedBooking.status}
-                  </Badge>
+                  {getStatusBadge(selectedBooking.status)}
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Payment</span>
+                  <div className="flex items-center gap-2">
+                    {getPaymentMethodIcon(selectedBooking.payment_method)}
+                    <span className="text-sm">{formatPaymentMethod(selectedBooking.payment_method)}</span>
+                    {getPaymentBadge(selectedBooking.payment_status)}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Technician</span>

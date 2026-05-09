@@ -11,21 +11,42 @@ import {
 export const getPaymentBadge = (status: string | null | undefined) => {
   const s = (status || "unpaid").toLowerCase();
   const map: Record<string, { className: string; icon?: React.ReactNode; label?: string }> = {
-    paid: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" /> },
-    completed: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "paid" },
-    succeeded: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "paid" },
-    unpaid: { className: "border-amber-500 bg-amber-500/10 text-amber-600", icon: <AlertCircle className="h-3 w-3" /> },
-    pending: { className: "border-blue-500 bg-blue-500/10 text-blue-600", icon: <Clock className="h-3 w-3" /> },
-    failed: { className: "border-red-500 bg-red-500/10 text-red-600", icon: <XCircle className="h-3 w-3" /> },
-    refunded: { className: "border-purple-500 bg-purple-500/10 text-purple-600", icon: <RotateCcw className="h-3 w-3" /> },
-    expired: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" /> },
-    cancelled: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" /> },
+    paid: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "Paid" },
+    completed: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "Paid" },
+    succeeded: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "Paid" },
+    unpaid: { className: "border-amber-500 bg-amber-500/10 text-amber-600", icon: <AlertCircle className="h-3 w-3" />, label: "Unpaid" },
+    pending: { className: "border-blue-500 bg-blue-500/10 text-blue-600", icon: <Clock className="h-3 w-3" />, label: "Pending" },
+    partial: { className: "border-yellow-500 bg-yellow-500/10 text-yellow-600", icon: <Clock className="h-3 w-3" />, label: "Partial" },
+    failed: { className: "border-red-500 bg-red-500/10 text-red-600", icon: <XCircle className="h-3 w-3" />, label: "Failed" },
+    refunded: { className: "border-purple-500 bg-purple-500/10 text-purple-600", icon: <RotateCcw className="h-3 w-3" />, label: "Refunded" },
+    expired: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" />, label: "Expired" },
+    cancelled: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" />, label: "Cancelled" },
   };
-  const cfg = map[s] || { className: "border-gray-400 bg-gray-400/10 text-gray-500" };
+  const cfg = map[s] || { className: "border-gray-400 bg-gray-400/10 text-gray-500", label: s };
   return (
-    <Badge variant="outline" className={cn("capitalize gap-1", cfg.className)}>
+    <Badge variant="outline" className={cn("gap-1", cfg.className)}>
       {cfg.icon}
       {cfg.label || s}
+    </Badge>
+  );
+};
+
+export const getStatusBadge = (status: string | null | undefined) => {
+  const s = (status || "pending").toLowerCase();
+  const map: Record<string, { className: string; icon?: React.ReactNode; label: string }> = {
+    pending: { className: "border-amber-500 bg-amber-500/10 text-amber-600", icon: <AlertCircle className="h-3 w-3" />, label: "Pending" },
+    pending_payment: { className: "border-orange-500 bg-orange-500/10 text-orange-600", icon: <Clock className="h-3 w-3" />, label: "Awaiting Payment" },
+    confirmed: { className: "border-blue-500 bg-blue-500/10 text-blue-600", icon: <Check className="h-3 w-3" />, label: "Confirmed" },
+    in_progress: { className: "border-purple-500 bg-purple-500/10 text-purple-600", icon: <Clock className="h-3 w-3" />, label: "In Progress" },
+    completed: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "Completed" },
+    cancelled: { className: "border-red-500 bg-red-500/10 text-red-600", icon: <XCircle className="h-3 w-3" />, label: "Cancelled" },
+    no_show: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" />, label: "No Show" },
+  };
+  const cfg = map[s] || { className: "border-gray-400 bg-gray-400/10 text-gray-500", label: s };
+  return (
+    <Badge variant="outline" className={cn("gap-1", cfg.className)}>
+      {cfg.icon}
+      {cfg.label}
     </Badge>
   );
 };
