@@ -313,3 +313,34 @@ function UpcomingJobCard({ booking }: { booking: any }) {
     </Card>
   );
 }
+
+function ActiveJobBanner({ startedAt, customerName, onView }: { startedAt: string; customerName: string; onView: () => void }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = now - new Date(startedAt).getTime();
+  const startedLabel = format(new Date(startedAt), "h:mm a");
+  return (
+    <Card className="border-red-500/40 bg-red-500/10">
+      <CardContent className="py-3 px-4 flex flex-wrap items-center gap-3">
+        <span className="relative flex h-3 w-3 shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+        </span>
+        <div className="flex-1 min-w-[180px]">
+          <p className="text-sm font-bold text-red-500">
+            Job in progress since {startedLabel} · {customerName}
+          </p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            Time on Job: <span className="font-semibold">{formatStopwatch(elapsed)}</span>
+          </p>
+        </div>
+        <Button size="sm" variant="default" onClick={onView}>
+          <ArrowDown className="h-4 w-4 mr-1" /> View Job
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
