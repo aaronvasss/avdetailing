@@ -107,12 +107,20 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
 
     const workerNameMap: Record<string, string> = {};
     if (workerIds.size > 0) {
-      const { data: workerProfiles } = await supabase
-        .from("profiles")
-        .select("user_id, full_name")
-        .in("user_id", Array.from(workerIds));
+      const [{ data: workerProfiles }, { data: adminRoles }] = await Promise.all([
+        supabase.from("profiles").select("user_id, full_name").in("user_id", Array.from(workerIds)),
+        supabase.from("user_roles").select("user_id").eq("role", "admin").in("user_id", Array.from(workerIds)),
+      ]);
       (workerProfiles || []).forEach((p) => {
         workerNameMap[p.user_id] = p.full_name || "Unknown";
+      });
+      const ownerIds = new Set((adminRoles || []).map((r: any) => r.user_id));
+      ownerIds.forEach((uid) => {
+        const name = workerNameMap[uid as string] || "Owner";
+        const parts = name.split(" ");
+        const first = (parts[0] || "").replace(/^./, (c) => c.toUpperCase());
+        const lastInitial = parts[1] ? `${parts[1].charAt(0).toUpperCase()}.` : "";
+        workerNameMap[uid as string] = `${first}${lastInitial ? " " + lastInitial : ""} (Owner)`;
       });
     }
 
