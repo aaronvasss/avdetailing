@@ -1374,6 +1374,22 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           )}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4 mt-4">
+          <TimeAuditPanel
+            bookings={bookings}
+            workerNames={workerNames}
+            workerOptions={workerStatsArr.map(w => ({ id: w.workerId, name: w.name }))}
+            workerFilter={auditWorkerFilter}
+            setWorkerFilter={setAuditWorkerFilter}
+            onTimeFilter={auditOnTimeFilter}
+            setOnTimeFilter={setAuditOnTimeFilter}
+            dateRange={dateRange}
+            getOnTimeDiff={getOnTimeDiff}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
