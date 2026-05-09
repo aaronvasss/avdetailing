@@ -169,6 +169,14 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [allAddOns, setAllAddOns] = useState<ServiceAddOn[]>([]);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
 
+  // Package info (fetched from service_packages)
+  const [packageInfo, setPackageInfo] = useState<{ name: string; price: number } | null>(null);
+
+  // Reschedule notification toggle + post-save state
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [resending, setResending] = useState(false);
+
   // Draft persistence
   const [draftSavedVisible, setDraftSavedVisible] = useState(false);
   const draftRestoredRef = useRef(false);
