@@ -263,9 +263,20 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
   const handleMarkComplete = async () => {
     setLoading(true);
     try {
+      const nowIso = new Date().toISOString();
+      const update: Record<string, any> = {
+        status: "completed",
+        clock_out_at: nowIso,
+        completed_at: nowIso,
+      };
+      if (booking.clock_in_at) {
+        const startedMs = new Date(booking.clock_in_at).getTime();
+        const endedMs = new Date(nowIso).getTime();
+        update.actual_duration_minutes = Math.max(1, Math.round((endedMs - startedMs) / 60000));
+      }
       const { error } = await supabase
         .from("bookings")
-        .update({ status: "completed" })
+        .update(update)
         .eq("id", booking.id);
 
       if (error) throw error;
