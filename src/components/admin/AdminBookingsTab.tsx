@@ -121,6 +121,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         guest_phone,
         user_id,
         created_at,
+        manage_token,
         services (name, slug),
         booking_add_ons (id, name, price)
       `)
