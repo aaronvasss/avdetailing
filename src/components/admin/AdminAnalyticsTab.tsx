@@ -586,16 +586,40 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             {completedWithWorker.length} jobs with assigned workers • Profit margin: {totalRevenue > 0 ? ((1 - totalLaborCost / totalRevenue) * 100).toFixed(1) : "N/A"}%
           </p>
           {Object.keys(workerEarningsMap).length > 0 && (
-            <div className="space-y-2 border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Per-Worker Breakdown</p>
-              {Object.entries(workerEarningsMap)
-                .sort((a, b) => b[1].earnings - a[1].earnings)
-                .map(([wId, data]) => (
-                  <div key={wId} className="flex items-center justify-between text-sm">
-                    <span>{workerNames[wId] || "Unknown"}</span>
-                    <span className="font-medium">${data.earnings.toFixed(2)} <span className="text-xs text-muted-foreground">({data.jobs} jobs)</span></span>
-                  </div>
-                ))}
+            <div className="border-t border-border pt-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() => setShowLaborBreakdown(v => !v)}
+              >
+                {showLaborBreakdown ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                {showLaborBreakdown ? "Hide" : "View"} Breakdown
+              </Button>
+              {showLaborBreakdown && (
+                <div className="mt-3 overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Worker</TableHead>
+                        <TableHead className="text-right">Jobs</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Earnings</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {workerStatsArr.map(w => (
+                        <TableRow key={w.workerId}>
+                          <TableCell>{w.name}</TableCell>
+                          <TableCell className="text-right">{w.jobs.length}</TableCell>
+                          <TableCell className="text-right">${w.revenue.toFixed(2)}</TableCell>
+                          <TableCell className="text-right font-medium">${w.earnings.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
