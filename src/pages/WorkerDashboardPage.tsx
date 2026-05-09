@@ -145,9 +145,26 @@ export default function WorkerDashboardPage() {
     };
   }, [fetchTodayBookings, fetchUpcomingBookings, today]);
 
+  const activeJob = useMemo(
+    () => myBookings.find((b) => b.status === "in_progress" && b.clock_in_at),
+    [myBookings]
+  );
+
+  const scrollToActiveJob = () => {
+    const el = document.getElementById(`job-card-${activeJob?.id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <WorkerLayout>
       <div className="space-y-6">
+        {activeJob && (
+          <ActiveJobBanner
+            startedAt={activeJob.clock_in_at}
+            customerName={activeJob.guest_name || "Customer"}
+            onView={scrollToActiveJob}
+          />
+        )}
         <WeatherWidget />
 
         {/* Today's Jobs */}
