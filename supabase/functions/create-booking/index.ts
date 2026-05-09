@@ -118,6 +118,15 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Rate limit: 5 booking attempts per IP per hour
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`create-booking:${ip}`, 5, 60 * 60 * 1000)) {
+    return new Response(
+      JSON.stringify({ error: "Too many booking attempts. Please try again later." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   try {
     const body: CreateBookingRequest = await req.json();
 
