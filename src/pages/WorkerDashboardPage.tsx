@@ -46,10 +46,39 @@ const UPCOMING_STATUSES = ["pending", "confirmed", "in_progress"];
 export default function WorkerDashboardPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
+  const [weekBookings, setWeekBookings] = useState<any[]>([]);
+  const [workerProfile, setWorkerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadingUpcoming, setLoadingUpcoming] = useState(true);
 
   const today = getBusinessDateString();
+  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+  const fetchEarningsData = useCallback(async () => {
+    const workerIdentity = await getCurrentWorkerIdentity();
+    if (!workerIdentity) return;
+
+    const { data: wp } = await supabase
+      .from("worker_profiles")
+      .select("*")
+      .eq("user_id", workerIdentity.authUserId)
+      .maybeSingle();
+    setWorkerProfile(wp);
+
+    let weekQuery = supabase
+      .from("bookings")
+      .select("id, total_price, tip_amount, worker_pay_type, worker_pay_rate, status, scheduled_date, assigned_worker_id")
+      .eq("status", "completed")
+      .gte("scheduled_date", weekStart)
+      .lte("scheduled_date", weekEnd);
+    if (!workerIdentity.isAdmin) {
+      weekQuery = weekQuery.eq("assigned_worker_id", workerIdentity.authUserId);
+    }
+    const { data: weekData } = await weekQuery;
+    setWeekBookings(weekData || []);
+  }, [weekStart, weekEnd]);
+
 
   const fetchTodayBookings = useCallback(async () => {
     setLoading(true);
