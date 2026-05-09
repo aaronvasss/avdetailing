@@ -453,10 +453,11 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
   // Returns minutes late (positive = late, negative = early). null if no in_progress data.
   const getOnTimeDiff = (b: Booking): number | null => {
-    if (!b.in_progress_at || !b.scheduled_time) return null;
+    const startedAt = b.clock_in_at || b.in_progress_at;
+    if (!startedAt || !b.scheduled_time) return null;
     try {
       const scheduled = parseISO(`${b.scheduled_date}T${b.scheduled_time}`);
-      const started = new Date(b.in_progress_at);
+      const started = new Date(startedAt);
       return differenceInMinutes(started, scheduled);
     } catch {
       return null;
