@@ -35,6 +35,8 @@ interface Booking {
   id: string;
   scheduled_date: string;
   scheduled_time: string | null;
+  in_progress_at: string | null;
+  completed_at?: string | null;
   total_price: number | null;
   tip_amount: number | null;
   status: string;
@@ -42,10 +44,15 @@ interface Booking {
   payment_method: string | null;
   services: { name: string; category: string } | null;
   vehicle_type: string | null;
+  vehicle_make?: string | null;
+  vehicle_model?: string | null;
+  vehicle_year?: number | null;
+  guest_name?: string | null;
   assigned_worker_id: string | null;
   worker_pay_type: string | null;
   worker_pay_rate: number | null;
   service_packages?: { name: string } | null;
+  rating?: number | null;
 }
 
 interface Membership {
