@@ -684,8 +684,38 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                       </TableCell>
                     )}
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        {booking.payment_status === "unpaid" && booking.status !== "cancelled" ? (
+                          reminderLog[booking.id] ? (
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(reminderLog[booking.id]), "MMM d, h:mm a")}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Never</span>
+                          )
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <div className="flex gap-1 justify-end">
+                        {isAdmin && booking.payment_status === "unpaid" && booking.status === "completed" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                            onClick={() => requestPayment(booking)}
+                            disabled={requestingPayment === booking.id}
+                          >
+                            {requestingPayment === booking.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <><Send className="h-3.5 w-3.5 mr-1" />Request Payment</>
+                            )}
+                          </Button>
+                        )}
                         <Button 
                           variant="ghost" 
                           size="sm"
@@ -717,7 +747,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 ))}
                 {filteredBookings.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 8 : 6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isAdmin ? 9 : 6} className="text-center py-8 text-muted-foreground">
                       No bookings found matching your filters
                     </TableCell>
                   </TableRow>
