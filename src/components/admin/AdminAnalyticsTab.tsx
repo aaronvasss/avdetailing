@@ -289,6 +289,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const allBookings = bookings;
   const paidBookings = bookings.filter(isPaidBooking);
   const noShowBookings = bookings.filter(b => b.status === "no_show");
+  const cancelledBookings = bookings.filter(b => b.status === "cancelled");
+  const cancelledLostRevenue = cancelledBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
   const totalRevenue = paidBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
   const totalBookings = paidBookings.length;
   const avgTicketValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
