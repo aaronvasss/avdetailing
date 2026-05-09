@@ -172,6 +172,7 @@ export default function WorkerDashboardPage() {
   useEffect(() => {
     fetchTodayBookings();
     fetchUpcomingBookings();
+    fetchEarningsData();
 
     const channel = supabase
       .channel(`worker-dashboard-${today}`)
@@ -181,6 +182,7 @@ export default function WorkerDashboardPage() {
         () => {
           fetchTodayBookings();
           fetchUpcomingBookings();
+          fetchEarningsData();
         }
       )
       .subscribe();
@@ -188,7 +190,33 @@ export default function WorkerDashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchTodayBookings, fetchUpcomingBookings, today]);
+  }, [fetchTodayBookings, fetchUpcomingBookings, fetchEarningsData, today]);
+
+  const todayCompleted = useMemo(
+    () => myBookings.filter((b) => b.status === "completed"),
+    [myBookings]
+  );
+
+  const todayStats = useMemo(() => {
+    const jobs = todayCompleted.length;
+    const revenue = todayCompleted.reduce((s, b) => s + (Number(b.total_price) || 0), 0);
+    const earnings = todayCompleted.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0);
+    const tips = todayCompleted.reduce((s, b) => s + (Number(b.tip_amount) || 0), 0);
+    return { jobs, revenue, earnings, tips };
+  }, [todayCompleted, workerProfile]);
+
+  const weekStats = useMemo(() => {
+    const jobs = weekBookings.length;
+    const earnings = weekBookings.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0);
+    const tips = weekBookings.reduce((s, b) => s + (Number(b.tip_amount) || 0), 0);
+    return { jobs, earnings, tips };
+  }, [weekBookings, workerProfile]);
+
+  const todayEstimated = useMemo(() => {
+    const upcoming = myBookings.filter((b) => ["pending", "confirmed", "in_progress"].includes(b.status));
+    return upcoming.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0) + todayStats.earnings;
+  }, [myBookings, workerProfile, todayStats.earnings]);
+
 
   const activeJob = useMemo(
     () => myBookings.find((b) => b.status === "in_progress" && b.clock_in_at),
