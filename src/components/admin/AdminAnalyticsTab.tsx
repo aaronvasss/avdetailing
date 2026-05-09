@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, parseISO } from "date-fns";
-import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench, Crown, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   ChartContainer,
   ChartTooltip,
@@ -30,6 +34,7 @@ import {
 interface Booking {
   id: string;
   scheduled_date: string;
+  scheduled_time: string | null;
   total_price: number | null;
   tip_amount: number | null;
   status: string;
@@ -40,6 +45,7 @@ interface Booking {
   assigned_worker_id: string | null;
   worker_pay_type: string | null;
   worker_pay_rate: number | null;
+  service_packages?: { name: string } | null;
 }
 
 interface Membership {
@@ -72,6 +78,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("daily");
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
   const [workerNames, setWorkerNames] = useState<Record<string, string>>({});
+  const [workerRatings, setWorkerRatings] = useState<Record<string, { avg: number; count: number }>>({});
+  const [showLaborBreakdown, setShowLaborBreakdown] = useState(false);
+  const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -88,6 +97,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           .select(`
             id,
             scheduled_date,
+            scheduled_time,
             total_price,
             tip_amount,
             status,
@@ -165,6 +175,36 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
       setTipCount(onlineTipCount + bookingTips.length);
       setTotalTips(onlineTipTotal + bookingTipTotal);
+
+      // Fetch ratings grouped by booking -> worker
+      try {
+        const bookingIds = (bookingsRes.data || []).map((b: any) => b.id);
+        if (bookingIds.length > 0) {
+          const { data: ratings } = await supabase
+            .from("booking_ratings")
+            .select("booking_id, rating")
+            .in("booking_id", bookingIds);
+          const bookingToWorker: Record<string, string> = {};
+          (bookingsRes.data || []).forEach((b: any) => {
+            if (b.assigned_worker_id) bookingToWorker[b.id] = b.assigned_worker_id;
+          });
+          const acc: Record<string, { sum: number; count: number }> = {};
+          (ratings || []).forEach((r: any) => {
+            const wId = bookingToWorker[r.booking_id];
+            if (!wId) return;
+            if (!acc[wId]) acc[wId] = { sum: 0, count: 0 };
+            acc[wId].sum += r.rating;
+            acc[wId].count += 1;
+          });
+          const out: Record<string, { avg: number; count: number }> = {};
+          Object.entries(acc).forEach(([k, v]) => {
+            out[k] = { avg: v.sum / v.count, count: v.count };
+          });
+          setWorkerRatings(out);
+        }
+      } catch (e) {
+        console.warn("ratings unavailable", e);
+      }
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -364,6 +404,67 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     workerEarningsMap[wId].jobs += 1;
   });
 
+  // ===== Team Performance Stats =====
+  const thirtyDaysAgo = subDays(new Date(), 30);
+  const completedBookingsAll = bookings.filter(b => b.status === "completed" && b.assigned_worker_id);
+
+  interface WorkerStats {
+    workerId: string;
+    name: string;
+    initials: string;
+    jobsLast30: number;
+    revenue: number;
+    revenueThisMonth: number;
+    avgTicket: number;
+    tips: number;
+    earnings: number;
+    rating: { avg: number; count: number } | null;
+    jobs: Booking[];
+  }
+
+  const workerStatsMap: Record<string, WorkerStats> = {};
+  completedBookingsAll.forEach(b => {
+    const wId = b.assigned_worker_id!;
+    const date = parseISO(b.scheduled_date);
+    if (!workerStatsMap[wId]) {
+      const name = workerNames[wId] || "Unknown";
+      const initials = name.split(" ").map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "??";
+      workerStatsMap[wId] = {
+        workerId: wId,
+        name,
+        initials,
+        jobsLast30: 0,
+        revenue: 0,
+        revenueThisMonth: 0,
+        avgTicket: 0,
+        tips: 0,
+        earnings: 0,
+        rating: workerRatings[wId] || null,
+        jobs: [],
+      };
+    }
+    const s = workerStatsMap[wId];
+    s.revenue += b.total_price || 0;
+    s.tips += Number(b.tip_amount) || 0;
+    s.earnings += calcBookingLaborCost(b);
+    s.jobs.push(b);
+    if (date >= thirtyDaysAgo) s.jobsLast30 += 1;
+    if (date >= thisMonthStart) s.revenueThisMonth += b.total_price || 0;
+  });
+  Object.values(workerStatsMap).forEach(s => {
+    s.avgTicket = s.jobs.length > 0 ? s.revenue / s.jobs.length : 0;
+    s.jobs.sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
+  });
+
+  const workerStatsArr = Object.values(workerStatsMap).sort((a, b) => b.revenue - a.revenue);
+  const topPerformerId = workerStatsArr.reduce<{ id: string | null; rev: number }>(
+    (acc, w) => (w.revenueThisMonth > acc.rev ? { id: w.workerId, rev: w.revenueThisMonth } : acc),
+    { id: null, rev: 0 }
+  ).id;
+  const workerComparisonData = workerStatsArr
+    .map(w => ({ name: w.name, revenue: w.revenueThisMonth }))
+    .filter(w => w.revenue > 0);
+
   const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
   const vehicleDistribution = getVehicleDistribution();
@@ -485,16 +586,40 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             {completedWithWorker.length} jobs with assigned workers • Profit margin: {totalRevenue > 0 ? ((1 - totalLaborCost / totalRevenue) * 100).toFixed(1) : "N/A"}%
           </p>
           {Object.keys(workerEarningsMap).length > 0 && (
-            <div className="space-y-2 border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Per-Worker Breakdown</p>
-              {Object.entries(workerEarningsMap)
-                .sort((a, b) => b[1].earnings - a[1].earnings)
-                .map(([wId, data]) => (
-                  <div key={wId} className="flex items-center justify-between text-sm">
-                    <span>{workerNames[wId] || "Unknown"}</span>
-                    <span className="font-medium">${data.earnings.toFixed(2)} <span className="text-xs text-muted-foreground">({data.jobs} jobs)</span></span>
-                  </div>
-                ))}
+            <div className="border-t border-border pt-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() => setShowLaborBreakdown(v => !v)}
+              >
+                {showLaborBreakdown ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                {showLaborBreakdown ? "Hide" : "View"} Breakdown
+              </Button>
+              {showLaborBreakdown && (
+                <div className="mt-3 overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Worker</TableHead>
+                        <TableHead className="text-right">Jobs</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Earnings</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {workerStatsArr.map(w => (
+                        <TableRow key={w.workerId}>
+                          <TableCell>{w.name}</TableCell>
+                          <TableCell className="text-right">{w.jobs.length}</TableCell>
+                          <TableCell className="text-right">${w.revenue.toFixed(2)}</TableCell>
+                          <TableCell className="text-right font-medium">${w.earnings.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -745,6 +870,143 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           </ChartContainer>
         </CardContent>
       </Card>
+
+      {/* ===== Team Performance ===== */}
+      {workerStatsArr.length > 0 && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold mb-1">Team Performance</h2>
+            <p className="text-sm text-muted-foreground">Per-worker stats from completed jobs (last 6 months)</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {workerStatsArr.map(w => (
+              <Card key={w.workerId} className={w.workerId === topPerformerId ? "border-primary" : ""}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{w.initials}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-base">{w.name}</CardTitle>
+                        {w.rating && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            <span>{w.rating.avg.toFixed(1)} ({w.rating.count})</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {w.workerId === topPerformerId && (
+                      <Badge className="bg-yellow-500 text-yellow-50 hover:bg-yellow-600">
+                        <Crown className="h-3 w-3 mr-1" /> Top Performer
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Jobs (30d)</p>
+                      <p className="font-bold">{w.jobsLast30}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Revenue</p>
+                      <p className="font-bold">${w.revenue.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                      <p className="font-bold">${w.avgTicket.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Tips</p>
+                      <p className="font-bold text-emerald-600">${w.tips.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                      <p className="font-bold text-muted-foreground">N/A</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Star Rating</p>
+                      <p className="font-bold">{w.rating ? `${w.rating.avg.toFixed(1)} ★` : "N/A"}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2 h-8 text-xs"
+                    onClick={() => setExpandedWorker(expandedWorker === w.workerId ? null : w.workerId)}
+                  >
+                    {expandedWorker === w.workerId ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                    {expandedWorker === w.workerId ? "Hide" : "View"} Last 10 Jobs
+                  </Button>
+                  {expandedWorker === w.workerId && (
+                    <div className="mt-2 overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Date</TableHead>
+                            <TableHead className="text-xs">Service</TableHead>
+                            <TableHead className="text-right text-xs">Total</TableHead>
+                            <TableHead className="text-right text-xs">Cut</TableHead>
+                            <TableHead className="text-right text-xs">Tip</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {w.jobs.slice(0, 10).map(j => (
+                            <TableRow key={j.id}>
+                              <TableCell className="text-xs">{format(parseISO(j.scheduled_date), "MMM d")}</TableCell>
+                              <TableCell className="text-xs truncate max-w-[120px]">{j.services?.name || "—"}</TableCell>
+                              <TableCell className="text-right text-xs">${(j.total_price || 0).toFixed(0)}</TableCell>
+                              <TableCell className="text-right text-xs">${calcBookingLaborCost(j).toFixed(0)}</TableCell>
+                              <TableCell className="text-right text-xs">${(Number(j.tip_amount) || 0).toFixed(0)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Worker Revenue Comparison */}
+          {workerComparisonData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Worker Revenue — This Month</CardTitle>
+                <CardDescription>Revenue generated per technician (current month)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                  <BarChart data={workerComparisonData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={120} />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="rounded-lg border bg-background p-3 shadow-md">
+                              <p className="font-medium">{data.name}</p>
+                              <p className="text-sm text-primary">Revenue: ${data.revenue.toLocaleString()}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }
