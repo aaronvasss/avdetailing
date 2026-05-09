@@ -29,12 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Search, 
-  Eye, 
-  Send, 
-  DollarSign, 
-  ArrowRight, 
+import {
+  Search,
+  Eye,
+  Send,
+  DollarSign,
+  ArrowRight,
   Loader2,
   Ship,
   Truck,
@@ -48,7 +48,10 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  TrendingUp,
+  Link2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
