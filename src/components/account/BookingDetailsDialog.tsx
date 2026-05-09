@@ -425,8 +425,8 @@ export function BookingDetailsDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 flex-wrap">
               <span>
-                {packageName || booking.services?.name || "Detailing Service"}
-                {packageName && booking.services?.name && (
+                {packageName || (booking as any).package_name || (booking as any).custom_service_description || booking.services?.name || "Detailing Service"}
+                {(packageName || (booking as any).package_name || (booking as any).custom_service_description) && booking.services?.name && (
                   <span className="text-sm font-normal text-muted-foreground ml-2">
                     ({booking.services.name})
                   </span>
