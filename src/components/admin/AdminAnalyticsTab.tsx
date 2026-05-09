@@ -78,6 +78,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("daily");
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
   const [workerNames, setWorkerNames] = useState<Record<string, string>>({});
+  const [workerRatings, setWorkerRatings] = useState<Record<string, { avg: number; count: number }>>({});
+  const [showLaborBreakdown, setShowLaborBreakdown] = useState(false);
+  const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
