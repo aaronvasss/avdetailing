@@ -296,6 +296,58 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   const getStatusBadge = (status: string) => renderStatusBadge(status);
   const getPaymentBadge = (status: string) => renderPaymentBadge(status);
 
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredBookings.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredBookings.map(b => b.id)));
+    }
+  };
+
+  const downloadBulkReceipts = () => {
+    const selected = filteredBookings.filter(b => selectedIds.has(b.id));
+    if (selected.length === 0) return;
+    const divider = "=".repeat(60);
+    const content = selected.map(b => {
+      const addons = (b.booking_add_ons || []).map(a => `  - ${a.name}: $${Number(a.price).toFixed(2)}`).join("\n") || "  (none)";
+      return [
+        `AV DETAILING - RECEIPT`,
+        divider,
+        `Booking ID:      ${b.id}`,
+        `Customer:        ${getCustomerName(b)}`,
+        `Date:            ${format(new Date(b.scheduled_date), "MMM d, yyyy")}`,
+        `Time:            ${b.scheduled_time}`,
+        `Service/Package: ${getDisplayLabel(b)}`,
+        `Vehicle:         ${b.vehicle_type || ""} ${b.vehicle_make || ""} ${b.vehicle_model || ""}`.trim(),
+        `Add-ons:`,
+        addons,
+        `Total Price:     $${Number(b.total_price || 0).toFixed(2)}`,
+        `Payment Method:  ${b.payment_method || "N/A"}`,
+        `Payment Status:  ${b.payment_status || "N/A"}`,
+        `Stripe Session:  ${b.stripe_checkout_session_id || "N/A"}`,
+      ].join("\n");
+    }).join("\n\n" + divider + "\n\n");
+
+    const blob = new Blob([content + "\n"], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `receipts-${format(new Date(), "yyyy-MM-dd-HHmm")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${selected.length} receipt${selected.length > 1 ? "s" : ""}`);
+  };
+
   // Stats
   const stats = {
     pending: bookings.filter(b => b.status === "pending").length,
