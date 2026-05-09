@@ -143,9 +143,21 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   };
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
+    const updates: { status: string; payment_status?: string } = { status: newStatus };
+
+    if (newStatus === "cancelled") {
+      const current = bookings.find(b => b.id === bookingId);
+      const prevPayment = current?.payment_status;
+      if (prevPayment === "paid" || prevPayment === "completed") {
+        updates.payment_status = "refunded";
+      } else if (!prevPayment || prevPayment === "pending" || prevPayment === "unpaid") {
+        updates.payment_status = "cancelled";
+      }
+    }
+
     const { error } = await supabase
       .from("bookings")
-      .update({ status: newStatus })
+      .update(updates)
       .eq("id", bookingId);
 
     if (error) {
@@ -235,7 +247,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     pending: bookings.filter(b => b.status === "pending").length,
     confirmed: bookings.filter(b => b.status === "confirmed").length,
     completed: bookings.filter(b => b.status === "completed").length,
-    revenue: bookings.filter(b => b.status !== "cancelled").reduce((sum, b) => sum + (b.total_price || 0), 0),
+    revenue: bookings.filter(b => b.status !== "cancelled" && ["paid", "completed"].includes(b.payment_status)).reduce((sum, b) => sum + (b.total_price || 0), 0),
     unpaid: bookings.filter(b => b.payment_status === "unpaid" && b.status !== "cancelled").length,
   };
 
