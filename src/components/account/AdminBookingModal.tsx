@@ -966,7 +966,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                             ? "Specialty Deposit"
                             : isMembership
                               ? `Membership: ${membershipPackages.find(p => p.id === selectedPackageId)?.label || ""}`
-                              : `Package: ${carPackages.find(p => p.id === selectedPackageId)?.label || ""}`}
+                              : `Package: ${carPackages.find(p => p.slug === selectedPackageId)?.label || ""}`}
                         </span>
                         <span className="font-medium">${packagePrice}</span>
                       </div>
