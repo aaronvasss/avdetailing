@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar as CalendarIcon, Clock, MapPin, Phone, Mail, Bell, 
-  Loader2, Search, Filter, Eye, RotateCcw, X, CheckCircle2, DollarSign, Pencil
+  Loader2, Search, Filter, Eye, RotateCcw, X, CheckCircle2, DollarSign, Pencil, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
@@ -20,6 +21,7 @@ import { DateRange } from "react-day-picker";
 import { BookingEditDialog } from "./BookingEditDialog";
 import {
   getPaymentBadge as renderPaymentBadge,
+  getStatusBadge as renderStatusBadge,
   getPaymentMethodIcon,
   PaymentDetailsSection,
 } from "@/lib/payment-display";
