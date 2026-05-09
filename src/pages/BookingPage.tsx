@@ -129,8 +129,8 @@ const fallbackPackages = [
   { 
     id: "basic", 
     name: "Basic Package", 
-    basePrice: 120,
-    prices: { sedan: 120, "suv-5": 120, "suv-8": 130, truck: 130 },
+    basePrice: 145.18,
+    prices: { sedan: 145.18, "suv-5": 145.18, "suv-8": 155.54, truck: 155.54 },
     time: "1-2 hours",
     description: bookingFlowDescriptions["basic"],
     service_id: null,
@@ -138,8 +138,8 @@ const fallbackPackages = [
   { 
     id: "silver", 
     name: "Silver Package", 
-    basePrice: 190,
-    prices: { sedan: 190, "suv-5": 195, "suv-8": 200, truck: 200 },
+    basePrice: 259.17,
+    prices: { sedan: 259.17, "suv-5": 259.17, "suv-8": 274.72, truck: 274.72 },
     time: "3-5 hours",
     description: bookingFlowDescriptions["silver"],
     service_id: null,
@@ -148,8 +148,8 @@ const fallbackPackages = [
   { 
     id: "gold", 
     name: "Gold Package", 
-    basePrice: 295,
-    prices: { sedan: 295, "suv-5": 295, "suv-8": 320, truck: 320 },
+    basePrice: 362.80,
+    prices: { sedan: 362.80, "suv-5": 362.80, "suv-8": 378.34, truck: 378.34 },
     time: "5-6 hours",
     description: bookingFlowDescriptions["gold"],
     service_id: null,
@@ -374,11 +374,11 @@ const BookingPage = () => {
   const addOns = useMemo(() => {
     if (!dbAddOns || dbAddOns.length === 0) {
       return [
-        { id: "pet", name: "Pet Hair Removal", price: 35, description: "Deep extraction of pet hair from all surfaces" },
-        { id: "headlight", name: "Headlight Restoration", price: 65, description: "Restore clarity to foggy headlights" },
-        { id: "engine", name: "Engine Bay Cleaning", price: 55, description: "Detailed cleaning of engine compartment" },
-        { id: "odor", name: "Odor Treatment", price: 45, description: "Eliminate stubborn odors with ozone treatment" },
-        { id: "interior-extra", name: "Extra Interior Attention", price: 40, description: "Additional deep cleaning for heavily soiled interiors" },
+        { id: "pet", name: "Pet Hair Removal", price: 46.63, description: "Deep extraction of pet hair from all surfaces" },
+        { id: "engine", name: "Engine Bay Cleaning", price: 62.18, description: "Detailed cleaning of engine compartment" },
+        { id: "odor", name: "Odor Elimination", price: 67.36, description: "Eliminate stubborn odors with ozone treatment" },
+        { id: "headlight", name: "Headlight Restoration", price: 72.59, description: "Restore clarity to foggy headlights" },
+        { id: "clay", name: "Clay Bar Treatment", price: 72.59, description: "Removes embedded contaminants for a smooth finish" },
       ];
     }
     return dbAddOns.map(addon => ({
