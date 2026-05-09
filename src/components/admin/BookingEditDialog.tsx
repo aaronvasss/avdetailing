@@ -318,10 +318,25 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       fetchAvailableSlots(booking.scheduled_date, booking.id);
       fetchBookingAddOns(booking.id);
       fetchAllAddOns();
+      fetchPackageInfo(booking.service_id, booking.vehicle_type);
+      setLastSavedAt(null);
     } else {
       draftRestoredRef.current = false;
     }
   }, [booking, workers]);
+
+  const fetchPackageInfo = async (serviceId: string, vehicleType: string | null) => {
+    if (!serviceId) return setPackageInfo(null);
+    let q = supabase
+      .from("service_packages")
+      .select("name, price")
+      .eq("service_id", serviceId)
+      .eq("is_active", true);
+    if (vehicleType) q = q.eq("vehicle_type", vehicleType);
+    const { data } = await q.order("sort_order").limit(1);
+    if (data && data[0]) setPackageInfo({ name: data[0].name, price: Number(data[0].price) });
+    else setPackageInfo(null);
+  };
 
   // Fetch a worker's default pay rate from worker_profiles
   const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
