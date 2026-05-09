@@ -55,6 +55,10 @@ interface BookingData {
   boat_brand?: string | null;
   aircraft_type?: string | null;
   tail_number?: string | null;
+  clock_in_at?: string | null;
+  clock_out_at?: string | null;
+  actual_duration_minutes?: number | null;
+  duration_minutes?: number | null;
 }
 
 interface WorkerJobCardProps {
