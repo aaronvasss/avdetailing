@@ -452,12 +452,22 @@ export function ClientsListView() {
                 className="pl-9 w-full"
               />
             </div>
+            <Button
+              variant={filter === "vip" ? "default" : "outline"}
+              onClick={() => setFilter(filter === "vip" ? "all" : "vip")}
+              className="w-full sm:w-auto"
+              title="Show VIP clients only"
+            >
+              <Star className={`h-4 w-4 mr-2 ${filter === "vip" ? "fill-current" : ""}`} />
+              VIP Clients
+            </Button>
             <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
               <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Customers</SelectItem>
+                <SelectItem value="vip">⭐ VIP Clients</SelectItem>
                 <SelectItem value="has_membership">Has Membership</SelectItem>
                 <SelectItem value="imported">Imported</SelectItem>
                 <SelectItem value="no_bookings">No Bookings Yet</SelectItem>
