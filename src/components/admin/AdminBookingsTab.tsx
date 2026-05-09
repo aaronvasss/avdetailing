@@ -406,7 +406,11 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               <SelectItem value="all">All Payments</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="unpaid">Unpaid</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="partial">Partial</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
+              <SelectItem value="refunded">Refunded</SelectItem>
+              <SelectItem value="expired">Expired</SelectItem>
             </SelectContent>
           </Select>
         )}
