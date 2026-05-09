@@ -666,3 +666,23 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
     </>
   );
 }
+
+function JobTimer({ startedAt, className }: { startedAt: string; className?: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = now - new Date(startedAt).getTime();
+  return (
+    <div className={cn("flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2", className)}>
+      <span className="relative flex h-2.5 w-2.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+      </span>
+      <span className="text-sm font-bold text-primary tabular-nums">
+        Time on Job: {formatStopwatch(elapsed)}
+      </span>
+    </div>
+  );
+}
