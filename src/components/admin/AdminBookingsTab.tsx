@@ -21,16 +21,21 @@ import { BookingEditDialog } from "./BookingEditDialog";
 
 interface Booking {
   id: string;
+  service_id: string | null;
   scheduled_date: string;
   scheduled_time: string;
   status: string;
   payment_status: string;
   total_price: number;
+  subtotal: number | null;
+  add_ons_total: number | null;
   vehicle_type: string;
   vehicle_make: string;
   vehicle_model: string;
   service_address: string;
   service_city: string;
+  address_notes: string | null;
+  custom_service_description: string | null;
   guest_name: string | null;
   guest_email: string | null;
   guest_phone: string | null;
@@ -38,8 +43,12 @@ interface Booking {
   created_at: string;
   services: { name: string; slug: string } | null;
   profiles: { full_name: string; email: string; phone: string } | null;
-  custom_service_description?: string | null;
+  package_name: string | null;
+  booking_add_ons: { id: string; name: string; price: number }[];
 }
+
+const getDisplayLabel = (b: Pick<Booking, "package_name" | "custom_service_description" | "services">) =>
+  b.package_name || b.custom_service_description || b.services?.name || "Detailing Service";
 
 interface AdminBookingsTabProps {
   isAdmin?: boolean;
