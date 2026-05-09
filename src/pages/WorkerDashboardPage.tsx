@@ -6,7 +6,7 @@ import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown, CheckCircle2, DollarSign, Wallet, Coins } from "lucide-react";
+import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown, CheckCircle2, DollarSign, Wallet, Coins, Map as MapIcon, Navigation, Route as RouteIcon } from "lucide-react";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { formatStopwatch } from "@/lib/duration-format";
