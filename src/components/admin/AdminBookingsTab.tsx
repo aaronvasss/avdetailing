@@ -126,6 +126,10 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       query = query.eq("status", statusFilter);
     }
 
+    if (paymentFilter !== "all") {
+      query = query.eq("payment_status", paymentFilter);
+    }
+
     if (dateRange?.from) {
       query = query.gte("scheduled_date", format(dateRange.from, "yyyy-MM-dd"));
     }
