@@ -80,14 +80,6 @@ const membershipPackages: MembershipDef[] = [
   { id: "weekly", label: "Weekly", price: 130 },
 ];
 
-const addOnsList = [
-  { id: "engine-bay", name: "Engine Bay Cleaning", price: 60 },
-  { id: "headlight", name: "Headlight Restoration", price: 70 },
-  { id: "odor", name: "Odor Elimination", price: 65 },
-  { id: "pet-hair", name: "Pet Hair Removal", price: 45 },
-  { id: "clay-bar", name: "Clay Bar Treatment", price: 70 },
-];
-
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
   let formatted = "";
