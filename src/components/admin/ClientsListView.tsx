@@ -592,7 +592,19 @@ export function ClientsListView() {
                           onClick={() => handleView(client)}
                         >
                           <TableCell>
-                            <div className="font-medium">{getDisplayName(client)}</div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-medium">{getDisplayName(client)}</span>
+                              {isVip(client.totalSpent, client.totalBookings) && (
+                                <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0 gap-1">
+                                  <Star className="h-2.5 w-2.5 fill-current" /> VIP
+                                </Badge>
+                              )}
+                            </div>
+                            {getNoteSubtitle(client.notes) && (
+                              <div className="text-[11px] text-muted-foreground italic truncate mt-0.5 max-w-[240px]">
+                                {getNoteSubtitle(client.notes)}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell className="text-sm">
                             {client.email || <span className="italic text-muted-foreground/60 text-xs">No email on file</span>}
