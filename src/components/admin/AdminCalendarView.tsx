@@ -724,11 +724,17 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                     📍 {selectedBooking.service_address}, {selectedBooking.service_city}
                   </a>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Status</span>
-                  <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
-                    {selectedBooking.status}
-                  </Badge>
+                  {getStatusBadge(selectedBooking.status)}
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Payment</span>
+                  <div className="flex items-center gap-2">
+                    {getPaymentMethodIcon(selectedBooking.payment_method)}
+                    <span className="text-sm">{formatPaymentMethod(selectedBooking.payment_method)}</span>
+                    {getPaymentBadge(selectedBooking.payment_status)}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Technician</span>
