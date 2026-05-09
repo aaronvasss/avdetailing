@@ -651,22 +651,32 @@ export function AdminQuotesTab() {
                         {format(new Date(quote.created_at), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => openQuoteDetail(quote)}
-                          >
+                        <div className="flex items-center justify-end gap-1 flex-wrap">
+                          <Button variant="ghost" size="sm" onClick={() => openQuoteDetail(quote)} title="View">
                             <Eye className="h-4 w-4" />
                           </Button>
                           {quote.status === 'pending' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => openQuoteForm(quote)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => openQuoteForm(quote)} title="Create quote">
                               <DollarSign className="h-4 w-4" />
                             </Button>
+                          )}
+                          {['pending', 'quoted'].includes(quote.status) && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSendFollowup(quote)}
+                                disabled={sendingFollowup === quote.id}
+                                title={followups[quote.id] ? `Follow-up sent ${format(new Date(followups[quote.id]), 'MMM d')}` : 'Send follow-up'}
+                              >
+                                {sendingFollowup === quote.id
+                                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                                  : <Mail className="h-4 w-4" />}
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => openMarkBooked(quote)} title="Mark as booked">
+                                <Link2 className="h-4 w-4" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </TableCell>
