@@ -94,6 +94,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           .select(`
             id,
             scheduled_date,
+            scheduled_time,
             total_price,
             tip_amount,
             status,
