@@ -81,10 +81,11 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchBookings();
-  }, [statusFilter, dateRange]);
+  }, [statusFilter, paymentFilter, dateRange]);
 
   const fetchBookings = async () => {
     setLoading(true);
