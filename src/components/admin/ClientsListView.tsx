@@ -259,6 +259,8 @@ export function ClientsListView() {
         enriched = enriched.filter((c) => c.membershipStatus === "active");
       } else if (filter === "no_bookings") {
         enriched = enriched.filter((c) => c.totalBookings === 0);
+      } else if (filter === "vip") {
+        enriched = enriched.filter((c) => isVip(c.totalSpent, c.totalBookings));
       }
 
       // Sort by last_service if selected (can't do server-side)
