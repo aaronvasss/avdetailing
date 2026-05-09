@@ -231,7 +231,7 @@ export default function AdminPage() {
             {currentTab === "clients" && "Full client CRM with contact info, vehicles, booking history, and notes"}
             {currentTab === "memberships" && "Manage subscriptions, pause/cancel memberships, view renewals"}
             {currentTab === "quotes" && "Boat, RV, and Aircraft quote requests with manual pricing"}
-            {currentTab === "notifications" && "Send confirmations, on-the-way alerts, and review requests"}
+            {currentTab === "notifications" && "Smart alerts for jobs, payments, quotes, and revenue"}
             {currentTab === "services" && "Edit service prices, durations, and enable/disable services"}
             {currentTab === "analytics" && "Revenue trends, service popularity, and performance metrics"}
             {currentTab === "messages" && "View and respond to customer SMS messages"}
