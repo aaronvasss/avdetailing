@@ -735,45 +735,33 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                   )}
                 </div>
 
-                {isAdmin && (
-                  <div className="pt-2 mt-2 border-t space-y-1">
-                    {selectedBooking.subtotal != null && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>${Number(selectedBooking.subtotal).toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Add-ons</span>
-                      <span>
-                        {selectedBooking.add_ons_total && selectedBooking.add_ons_total > 0
-                          ? `$${Number(selectedBooking.add_ons_total).toFixed(2)}`
-                          : "None"}
-                      </span>
-                    </div>
-                    {selectedBooking.booking_add_ons && selectedBooking.booking_add_ons.length > 0 && (
-                      <div className="pl-4 space-y-0.5">
-                        {selectedBooking.booking_add_ons.map((addon) => (
-                          <div key={addon.id} className="flex justify-between text-xs text-muted-foreground">
-                            <span>+ {addon.name}</span>
-                            <span>${Number(addon.price).toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {selectedBooking.tip_amount && selectedBooking.tip_amount > 0 ? (
-                      <div className="flex justify-between text-emerald-500">
-                        <span>Tip</span>
-                        <span>${Number(selectedBooking.tip_amount).toFixed(2)}</span>
-                      </div>
-                    ) : null}
-                    <div className="flex justify-between font-bold pt-1 border-t">
-                      <span>Total</span>
-                      <span className="text-primary">${Number(selectedBooking.total_price || 0).toFixed(2)}</span>
-                    </div>
-                  </div>
-                )}
               </div>
+
+              {isAdmin && (
+                <>
+                  {selectedBooking.booking_add_ons && selectedBooking.booking_add_ons.length > 0 && (
+                    <div className="border-t pt-3 space-y-1">
+                      <div className="text-sm font-medium mb-1">Add-ons</div>
+                      {selectedBooking.booking_add_ons.map((addon) => (
+                        <div key={addon.id} className="flex justify-between text-xs text-muted-foreground">
+                          <span>+ {addon.name}</span>
+                          <span>${Number(addon.price).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <PaymentDetailsSection
+                    payment_method={selectedBooking.payment_method}
+                    payment_status={selectedBooking.payment_status}
+                    stripe_checkout_session_id={selectedBooking.stripe_checkout_session_id}
+                    stripe_payment_intent_id={selectedBooking.stripe_payment_intent_id}
+                    subtotal={selectedBooking.subtotal}
+                    add_ons_total={selectedBooking.add_ons_total}
+                    tip_amount={selectedBooking.tip_amount}
+                    total_price={selectedBooking.total_price}
+                  />
+                </>
+              )}
 
               <div className="flex gap-2 pt-2">
                 {selectedBooking.status === "pending" && (
