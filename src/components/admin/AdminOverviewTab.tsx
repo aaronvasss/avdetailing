@@ -392,7 +392,9 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
             disabled={sendingBulk}
           >
             {sendingBulk ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <MessageSquare className="h-3.5 w-3.5 mr-1" />}
-            Send All Reminders
+            {sendingBulk && bulkProgress
+              ? `Sending ${bulkProgress.current} of ${bulkProgress.total}${bulkProgress.skipped > 0 ? ` (${bulkProgress.skipped} skipped)` : ""}`
+              : "Send All Reminders"}
           </Button>
         </div>
       )}
