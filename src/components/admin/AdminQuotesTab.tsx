@@ -29,12 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Search, 
-  Eye, 
-  Send, 
-  DollarSign, 
-  ArrowRight, 
+import {
+  Search,
+  Eye,
+  Send,
+  DollarSign,
+  ArrowRight,
   Loader2,
   Ship,
   Truck,
@@ -48,7 +48,10 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  TrendingUp,
+  Link2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -118,6 +121,13 @@ export function AdminQuotesTab() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [quoteFormOpen, setQuoteFormOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [followups, setFollowups] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("quote_followups") || "{}"); } catch { return {}; }
+  });
+  const [sendingFollowup, setSendingFollowup] = useState<string | null>(null);
+  const [bookedDialogOpen, setBookedDialogOpen] = useState(false);
+  const [bookedQuote, setBookedQuote] = useState<Quote | null>(null);
+  const [linkBookingId, setLinkBookingId] = useState("");
 
   // Quote form state
   const [quotedPrice, setQuotedPrice] = useState("");
@@ -312,10 +322,171 @@ export function AdminQuotesTab() {
     converted: quotes.filter(q => q.status === 'converted').length,
   };
 
+  // Conversion rate
+  const convertedCount = quotes.filter(q => q.status === 'converted').length;
+  const declinedCount = quotes.filter(q => q.status === 'declined').length;
+  const expiredCount = quotes.filter(q => q.status === 'expired').length;
+  const conversionDenominator = convertedCount + declinedCount + expiredCount;
+  const conversionRate = conversionDenominator > 0
+    ? Math.round((convertedCount / conversionDenominator) * 100)
+    : 0;
+
+  // Expiration helpers
+  const getExpiry = (q: Quote) => {
+    if (!q.expires_at) return null;
+    const ms = new Date(q.expires_at).getTime() - Date.now();
+    const days = Math.ceil(ms / 86400000);
+    return { days, expired: ms < 0 };
+  };
+
+  const ExpiryBadge = ({ q }: { q: Quote }) => {
+    const e = getExpiry(q);
+    if (!e) return null;
+    if (e.expired) {
+      return <Badge className="bg-red-500/10 text-red-500 border-red-500/20">Expired</Badge>;
+    }
+    if (e.days <= 3) {
+      return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">Expires in {e.days}d</Badge>;
+    }
+    return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Expires in {e.days}d</Badge>;
+  };
+
+  // Quotes needing attention
+  const attentionQuotes = quotes.filter(q => {
+    if (!['pending', 'quoted'].includes(q.status)) return false;
+    const ageDays = (Date.now() - new Date(q.created_at).getTime()) / 86400000;
+    const e = getExpiry(q);
+    const stalePending = q.status === 'pending' && ageDays >= 3 && !followups[q.id];
+    const expiringSoon = e && !e.expired && e.days <= 2;
+    return stalePending || expiringSoon;
+  });
+
+  const handleSendFollowup = async (quote: Quote) => {
+    const email = quote.profiles?.email || quote.guest_email;
+    if (!email) {
+      toast.error("No email on file for this customer");
+      return;
+    }
+    setSendingFollowup(quote.id);
+    try {
+      const name = getCustomerName(quote).split(' ')[0] || 'there';
+      const expiryStr = quote.expires_at
+        ? format(new Date(quote.expires_at), 'MMM d, yyyy')
+        : 'soon';
+      const bookingLink = `${window.location.origin}/booking`;
+      const message = `Hi ${name}, just checking in on the quote we sent you for ${quote.service_type} detailing. It's valid until ${expiryStr}. Ready to book? Reply to this email or click here: ${bookingLink}`;
+
+      const { error } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: 'AV Detailing',
+          email,
+          service: quote.service_type,
+          message,
+        },
+      });
+      if (error) throw error;
+
+      const next = { ...followups, [quote.id]: new Date().toISOString() };
+      setFollowups(next);
+      localStorage.setItem("quote_followups", JSON.stringify(next));
+      toast.success(`Follow-up sent to ${email}`);
+    } catch (err: any) {
+      console.error('Follow-up error', err);
+      toast.error("Failed to send follow-up");
+    } finally {
+      setSendingFollowup(null);
+    }
+  };
+
+  const openMarkBooked = (quote: Quote) => {
+    setBookedQuote(quote);
+    setLinkBookingId("");
+    setBookedDialogOpen(true);
+  };
+
+  const handleMarkBooked = async () => {
+    if (!bookedQuote) return;
+    setProcessing(true);
+    try {
+      const updates: any = { status: 'converted' };
+      if (linkBookingId.trim()) {
+        const { data: bk } = await supabase
+          .from('bookings')
+          .select('id')
+          .eq('id', linkBookingId.trim())
+          .maybeSingle();
+        if (!bk) {
+          toast.error("Booking ID not found");
+          setProcessing(false);
+          return;
+        }
+        updates.booking_id = bk.id;
+      }
+      const { error } = await supabase.from('quotes').update(updates).eq('id', bookedQuote.id);
+      if (error) throw error;
+      toast.success("Quote marked as converted");
+      setBookedDialogOpen(false);
+      fetchQuotes();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to mark as booked");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Quotes Needing Attention */}
+      {attentionQuotes.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Quotes Needing Attention
+              <Badge variant="destructive" className="ml-1">{attentionQuotes.length}</Badge>
+            </CardTitle>
+            <CardDescription>
+              Pending 3+ days without follow-up, or expiring within 2 days
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {attentionQuotes.slice(0, 5).map(q => (
+              <div key={q.id} className="flex items-center justify-between gap-2 p-2 rounded-md bg-background border">
+                <div className="flex items-center gap-2 min-w-0">
+                  {serviceIcons[q.service_type]}
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{getCustomerName(q)}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {q.status === 'pending' ? 'Pending review' : 'Quoted'} · submitted {format(new Date(q.created_at), 'MMM d')}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <ExpiryBadge q={q} />
+                  <Button size="sm" variant="outline" onClick={() => openQuoteDetail(q)}>
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                  {q.status === 'quoted' && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleSendFollowup(q)}
+                      disabled={sendingFollowup === q.id}
+                    >
+                      {sendingFollowup === q.id
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <Mail className="h-3 w-3" />}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -347,9 +518,21 @@ export function AdminQuotesTab() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <ArrowRight className="h-4 w-4" />
-              Converted to Booking
+              Converted
             </div>
             <div className="text-2xl font-bold text-primary">{stats.converted}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <TrendingUp className="h-4 w-4" />
+              Conversion Rate
+            </div>
+            <div className="text-2xl font-bold text-green-500">{conversionRate}%</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {convertedCount}/{conversionDenominator || 0} closed
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -452,7 +635,10 @@ export function AdminQuotesTab() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[quote.status]}>{quote.status}</Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={statusColors[quote.status]}>{quote.status}</Badge>
+                          {['pending', 'quoted'].includes(quote.status) && <ExpiryBadge q={quote} />}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {quote.quoted_price ? (
@@ -465,22 +651,32 @@ export function AdminQuotesTab() {
                         {format(new Date(quote.created_at), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => openQuoteDetail(quote)}
-                          >
+                        <div className="flex items-center justify-end gap-1 flex-wrap">
+                          <Button variant="ghost" size="sm" onClick={() => openQuoteDetail(quote)} title="View">
                             <Eye className="h-4 w-4" />
                           </Button>
                           {quote.status === 'pending' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => openQuoteForm(quote)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => openQuoteForm(quote)} title="Create quote">
                               <DollarSign className="h-4 w-4" />
                             </Button>
+                          )}
+                          {['pending', 'quoted'].includes(quote.status) && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSendFollowup(quote)}
+                                disabled={sendingFollowup === quote.id}
+                                title={followups[quote.id] ? `Follow-up sent ${format(new Date(followups[quote.id]), 'MMM d')}` : 'Send follow-up'}
+                              >
+                                {sendingFollowup === quote.id
+                                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                                  : <Mail className="h-4 w-4" />}
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => openMarkBooked(quote)} title="Mark as booked">
+                                <Link2 className="h-4 w-4" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </TableCell>
@@ -730,6 +926,39 @@ export function AdminQuotesTab() {
             <Button onClick={handleSendQuote} disabled={processing || !quotedPrice}>
               {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
               Send Quote
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mark as Booked Dialog */}
+      <Dialog open={bookedDialogOpen} onOpenChange={setBookedDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark Quote as Booked</DialogTitle>
+            <DialogDescription>
+              Link this quote to an existing booking, or just mark it as converted.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="link_booking_id">Existing Booking ID (optional)</Label>
+              <Input
+                id="link_booking_id"
+                placeholder="Paste booking UUID to link"
+                value={linkBookingId}
+                onChange={(e) => setLinkBookingId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Leave empty to just mark as converted without linking.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBookedDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleMarkBooked} disabled={processing}>
+              {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+              Mark as Converted
             </Button>
           </DialogFooter>
         </DialogContent>

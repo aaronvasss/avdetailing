@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,35 @@ export function AdminLayout({
   userName 
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [quotesAttentionCount, setQuotesAttentionCount] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchAttention = async () => {
+      const { data } = await supabase
+        .from("quotes")
+        .select("id, status, created_at, expires_at")
+        .in("status", ["pending", "quoted"]);
+      if (cancelled || !data) return;
+      const now = Date.now();
+      const followups = JSON.parse(localStorage.getItem("quote_followups") || "{}");
+      const count = data.filter((q: any) => {
+        const ageDays = (now - new Date(q.created_at).getTime()) / 86400000;
+        const expiresInDays = q.expires_at
+          ? (new Date(q.expires_at).getTime() - now) / 86400000
+          : null;
+        const noFollowup = !followups[q.id];
+        const stalePending = q.status === "pending" && ageDays >= 3 && noFollowup;
+        const expiringSoon = expiresInDays !== null && expiresInDays <= 2 && expiresInDays >= 0;
+        return stalePending || expiringSoon;
+      }).length;
+      setQuotesAttentionCount(count);
+    };
+    fetchAttention();
+    const interval = setInterval(fetchAttention, 60_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [currentTab]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -149,7 +177,12 @@ export function AdminLayout({
                 )}
               >
                 {item.icon}
-                {item.label}
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.id === "quotes" && quotesAttentionCount > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
+                    {quotesAttentionCount}
+                  </Badge>
+                )}
               </button>
             ))}
 
