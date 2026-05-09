@@ -362,37 +362,84 @@ export function AdminQuotesTab() {
     return stalePending || expiringSoon;
   });
 
-  const handleSendFollowup = async (quote: Quote) => {
+  const handleSendFollowup = async (quote: Quote, channel: "email" | "sms" = "email") => {
     const email = quote.profiles?.email || quote.guest_email;
-    if (!email) {
+    const phone = quote.profiles?.phone || quote.guest_phone;
+    if (channel === "email" && !email) {
       toast.error("No email on file for this customer");
       return;
     }
+    if (channel === "sms" && !phone) {
+      toast.error("No phone on file for this customer");
+      return;
+    }
+
+    const customerName = getCustomerName(quote);
+
+    // Duplicate check — only when quote has a linked booking_id
+    if (quote.booking_id) {
+      const recent = await checkRecentNotification(quote.booking_id, "quote_followup");
+      if (recent) {
+        toast.error(formatBlockedToast(customerName, recent, COOLDOWN_HOURS.quote_followup));
+        return;
+      }
+    }
+
     setSendingFollowup(quote.id);
     try {
-      const name = getCustomerName(quote).split(' ')[0] || 'there';
+      const firstName = customerName.split(' ')[0] || 'there';
       const expiryStr = quote.expires_at
         ? format(new Date(quote.expires_at), 'MMM d, yyyy')
         : 'soon';
       const bookingLink = `${window.location.origin}/booking`;
-      const message = `Hi ${name}, just checking in on the quote we sent you for ${quote.service_type} detailing. It's valid until ${expiryStr}. Ready to book? Reply to this email or click here: ${bookingLink}`;
 
-      const { error } = await supabase.functions.invoke('send-contact-email', {
-        body: {
-          name: 'AV Detailing',
-          email,
-          service: quote.service_type,
-          message,
-        },
-      });
-      if (error) throw error;
+      let recipient = "";
+      let invokeErr: any = null;
+
+      if (channel === "email") {
+        recipient = email!;
+        const message = `Hi ${firstName}, just checking in on the quote we sent you for ${quote.service_type} detailing. It's valid until ${expiryStr}. Ready to book? Reply to this email or click here: ${bookingLink}`;
+        const { error } = await supabase.functions.invoke('send-contact-email', {
+          body: { name: 'AV Detailing', email, service: quote.service_type, message },
+        });
+        invokeErr = error;
+      } else {
+        recipient = phone!;
+        const smsMessage = `Hi ${firstName}! AV Detailing here — just following up on your quote for ${quote.service_type}. Valid until ${expiryStr}. Book now: avdetailing.net/book or reply here. 🚗✨`;
+        const { error } = await supabase.functions.invoke('send-booking-sms', {
+          body: { to: phone, message: smsMessage },
+        });
+        invokeErr = error;
+      }
+
+      if (invokeErr) throw invokeErr;
+
+      // Log to booking_notification_log if linked to a booking
+      if (quote.booking_id) {
+        await logNotification({
+          bookingId: quote.booking_id,
+          notificationType: "quote_followup",
+          recipient,
+          status: "sent",
+        });
+      }
 
       const next = { ...followups, [quote.id]: new Date().toISOString() };
       setFollowups(next);
       localStorage.setItem("quote_followups", JSON.stringify(next));
-      toast.success(`Follow-up sent to ${email}`);
+      toast.success(`Follow-up ${channel === "sms" ? "SMS" : "email"} sent to ${recipient}`);
     } catch (err: any) {
       console.error('Follow-up error', err);
+      if (quote.booking_id) {
+        const recipient = channel === "email" ? (email || "") : (phone || "");
+        await logNotification({
+          bookingId: quote.booking_id,
+          notificationType: "quote_followup",
+          recipient,
+          status: "failed",
+          errorMessage: String(err?.message || err),
+        });
+      }
       toast.error("Failed to send follow-up");
     } finally {
       setSendingFollowup(null);
