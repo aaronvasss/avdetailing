@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
+import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
 
 interface Booking {
   id: string;
