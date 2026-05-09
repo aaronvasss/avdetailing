@@ -487,6 +487,29 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     );
   };
 
+  const sendRescheduleNotification = async (bookingId: string) => {
+    try {
+      await supabase.functions.invoke("process-booking-notifications", {
+        body: {
+          booking_id: bookingId,
+          mode: "reschedule",
+          subject: "Your AV Detailing Appointment Has Been Updated",
+        },
+      });
+      toast.success("Updated confirmation sent to customer");
+    } catch (err) {
+      console.error("Reschedule notification error:", err);
+      toast.error("Failed to send updated confirmation");
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!booking) return;
+    setResending(true);
+    await sendRescheduleNotification(booking.id);
+    setResending(false);
+  };
+
   const handleSave = async () => {
     if (!booking || !scheduledDate) return;
     
@@ -501,13 +524,15 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const totalPrice = editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price;
     // Keep subtotal in sync: subtotal = total - add-ons
     const newSubtotal = totalPrice != null ? Math.max(0, totalPrice - newAddOnsTotal) : booking.subtotal;
-    const nameParts = editGuestName.trim().split(" ");
 
     const newAssignedWorkerId = resolveAssignedWorkerUserId(editAssignedWorkerId, workers);
     const previousWorkerId = booking.assigned_worker_id;
 
+    const newDateStr = format(scheduledDate, "yyyy-MM-dd");
+    const dateOrTimeChanged = newDateStr !== booking.scheduled_date || scheduledTime !== booking.scheduled_time;
+
     const updates: Record<string, any> = {
-      scheduled_date: format(scheduledDate, "yyyy-MM-dd"),
+      scheduled_date: newDateStr,
       scheduled_time: scheduledTime,
       status,
       payment_status: paymentStatus,
@@ -528,7 +553,6 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
-      // Always save pay rate when a worker is assigned (default or custom)
       worker_pay_type: newAssignedWorkerId && editCustomPayRate ? editCustomPayType : null,
       worker_pay_rate: newAssignedWorkerId && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
       tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
@@ -570,6 +594,17 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         };
       });
       await supabase.from("booking_add_ons").insert(newRecords);
+    }
+
+    // Save quick internal note if provided
+    if (internalNotes.trim()) {
+      const { error: noteErr } = await supabase
+        .from("booking_internal_notes")
+        .insert({ booking_id: booking.id, note: internalNotes.trim() });
+      if (!noteErr) {
+        setInternalNotes("");
+        fetchInternalNotes(booking.id);
+      }
     }
 
     toast.success("Booking updated successfully");
@@ -620,9 +655,16 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       }
     }
 
+    // Auto-send reschedule confirmation if date/time changed and toggle is on
+    if (dateOrTimeChanged && notifyCustomer) {
+      await sendRescheduleNotification(booking.id);
+    }
+
     clearDraft();
+    setLastSavedAt(Date.now());
     onSave();
-    onOpenChange(false);
+    setSaving(false);
+    // Keep dialog open so admin can use "Send Updated Confirmation" button
     setSaving(false);
   };
 
