@@ -343,6 +343,58 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
+            {/* Customer Value */}
+            <Card className={vipStatus ? "border-amber-500/40 bg-amber-500/5" : ""}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  Customer Value
+                  {vipStatus && (
+                    <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1">
+                      <Star className="h-3 w-3 fill-current" /> VIP
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Lifetime Value</div>
+                    <div className="text-lg font-bold text-primary">${lifetimeSpend.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Bookings Completed</div>
+                    <div className="text-lg font-bold">{completedCount}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Avg. Ticket</div>
+                    <div className="text-lg font-bold">${avgTicket.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Member Since</div>
+                    <div className="text-lg font-bold">
+                      {memberSince ? format(new Date(memberSince), 'MMM yyyy') : '—'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">VIP Status</div>
+                    <div className="text-lg font-bold flex items-center gap-1">
+                      {vipStatus ? (
+                        <span className="text-amber-600 flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-current" /> VIP
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Standard</span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                      VIP at $500+ spend or 5+ bookings
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid md:grid-cols-3 gap-4">
               {/* Contact Card */}
               <Card>
