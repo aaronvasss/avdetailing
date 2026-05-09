@@ -50,33 +50,21 @@ const timeSlots = [
   "16:00", "16:30", "17:00", "17:30", "18:00",
 ];
 
-// ── Hardcoded package pricing ──
-type VehicleBucket = "small" | "large";
-
-const getVehicleBucket = (vehicleType: string): VehicleBucket => {
-  if (["sedan", "suv-5"].includes(vehicleType)) return "small";
-  return "large"; // suv-8, truck
-};
-
-interface PackageDef {
-  id: string;
-  label: string;
-  prices: Record<VehicleBucket, number>;
+// Package rows fetched from service_packages table
+interface PackageRow {
+  slug: string;
+  name: string;
+  vehicle_type: string;
+  price: number;
+  sort_order: number;
 }
 
-const carPackages: PackageDef[] = [
-  { id: "exterior", label: "Exterior Only", prices: { small: 75, large: 85 } },
-  { id: "basic", label: "Basic", prices: { small: 130, large: 130 } },
-  { id: "silver", label: "Silver", prices: { small: 190, large: 200 } },
-  { id: "gold", label: "Gold", prices: { small: 295, large: 320 } },
-];
-
-// Silver has a special price for sedan vs suv-5
-const getSilverPrice = (vehicleType: string): number => {
-  if (vehicleType === "sedan") return 190;
-  if (vehicleType === "suv-5") return 195;
-  return 200; // large
-};
+interface AddOnRow {
+  id: string;
+  name: string;
+  price: number;
+  stripe_price_id: string | null;
+}
 
 const specialtyServices = ["ceramic", "paint", "boat", "aircraft"];
 
