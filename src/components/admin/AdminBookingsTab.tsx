@@ -80,22 +80,28 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       .from("bookings")
       .select(`
         id,
+        service_id,
         scheduled_date,
         scheduled_time,
         status,
         payment_status,
         total_price,
+        subtotal,
+        add_ons_total,
         vehicle_type,
         vehicle_make,
         vehicle_model,
         service_address,
         service_city,
+        address_notes,
+        custom_service_description,
         guest_name,
         guest_email,
         guest_phone,
         user_id,
         created_at,
-        services (name, slug)
+        services (name, slug),
+        booking_add_ons (id, name, price)
       `)
       .order("scheduled_date", { ascending: false });
 
@@ -116,8 +122,24 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to load bookings");
     } else {
+      // Lookup package names by (service_id, vehicle_type)
+      const serviceIds = new Set<string>();
+      (data || []).forEach((b: any) => {
+        if (b.service_id) serviceIds.add(b.service_id);
+      });
+      const packageMap: Record<string, string> = {};
+      if (serviceIds.size > 0) {
+        const { data: pkgs } = await supabase
+          .from("service_packages")
+          .select("service_id, vehicle_type, name")
+          .in("service_id", Array.from(serviceIds));
+        (pkgs || []).forEach((p: any) => {
+          packageMap[`${p.service_id}|${p.vehicle_type}`] = p.name;
+        });
+      }
+
       const bookingsWithProfiles = await Promise.all(
-        (data || []).map(async (booking) => {
+        (data || []).map(async (booking: any) => {
           let profiles = null;
           if (booking.user_id) {
             const { data: profile } = await supabase
@@ -127,7 +149,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               .maybeSingle();
             profiles = profile;
           }
-          return { ...booking, profiles };
+          const package_name = booking.service_id && booking.vehicle_type
+            ? packageMap[`${booking.service_id}|${booking.vehicle_type}`] || null
+            : null;
+          return {
+            ...booking,
+            profiles,
+            package_name,
+            booking_add_ons: booking.booking_add_ons || [],
+          } as Booking;
         })
       );
       setBookings(bookingsWithProfiles);
