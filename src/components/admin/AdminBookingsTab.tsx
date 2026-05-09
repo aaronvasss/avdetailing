@@ -534,7 +534,12 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                       </TableCell>
                     )}
                     {isAdmin && (
-                      <TableCell>{getPaymentBadge(booking.payment_status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {getPaymentMethodIcon(booking.payment_method)}
+                          {getPaymentBadge(booking.payment_status)}
+                        </div>
+                      </TableCell>
                     )}
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
                     <TableCell>
