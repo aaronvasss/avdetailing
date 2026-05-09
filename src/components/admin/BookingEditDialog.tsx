@@ -1017,34 +1017,18 @@ AV Detailing
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Type</Label>
-                    <Input value={editVehicleType} onChange={e => setEditVehicleType(e.target.value)} placeholder="SUV (5 seats)" />
+                    <Select value={editVehicleType} onValueChange={setEditVehicleType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["sedan","suv-5","suv-8","truck","boat","rv","aircraft"].map(t => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Add-ons */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Add-ons</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {allAddOns.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No add-ons available</p>
-                ) : (
-                  <div className="space-y-2">
-                    {allAddOns.map(addon => (
-                      <label key={addon.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer">
-                        <Checkbox
-                          checked={selectedAddOnIds.includes(addon.id)}
-                          onCheckedChange={() => toggleAddOn(addon.id)}
-                        />
-                        <span className="flex-1 text-sm">{addon.name}</span>
-                        <span className="text-sm text-muted-foreground">${addon.price.toFixed(2)}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
