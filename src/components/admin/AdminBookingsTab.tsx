@@ -882,6 +882,31 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 </>
               )}
 
+              {isAdmin && selectedBooking.payment_status === "unpaid" && selectedBooking.status === "completed" && (
+                <div className="border-t pt-4">
+                  <div className="text-sm font-medium mb-2">Payment Follow-up</div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                    onClick={() => requestPayment(selectedBooking)}
+                    disabled={requestingPayment === selectedBooking.id}
+                  >
+                    {requestingPayment === selectedBooking.id ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-1" />
+                    )}
+                    Request Payment
+                  </Button>
+                  {reminderLog[selectedBooking.id] && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Last reminder: {format(new Date(reminderLog[selectedBooking.id]), "MMM d, yyyy h:mm a")}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Send Reminder */}
               <div className="border-t pt-4">
                 <div className="text-sm font-medium mb-2">Send Reminder</div>
