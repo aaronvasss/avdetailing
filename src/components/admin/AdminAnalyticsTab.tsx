@@ -143,8 +143,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             assigned_worker_id,
             worker_pay_type,
             worker_pay_rate,
-            services (name, category),
-            service_packages (name)
+            services (name, category)
           `)
           .gte("scheduled_date", format(fromDate, "yyyy-MM-dd"))
           .lte("scheduled_date", format(toDate, "yyyy-MM-dd"))
