@@ -757,13 +757,20 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     {isAdmin && (
                       <TableCell>
                         {booking.payment_status === "unpaid" && booking.status !== "cancelled" ? (
-                          reminderLog[booking.id] ? (
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(reminderLog[booking.id]), "MMM d, h:mm a")}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">Never</span>
-                          )
+                          (() => {
+                            const desc = describeLastReminder(reminderLog[booking.id]);
+                            if (desc.variant === "amber") {
+                              return (
+                                <Badge variant="outline" className="border-yellow-500/50 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs">
+                                  {desc.text}
+                                </Badge>
+                              );
+                            }
+                            if (desc.variant === "muted") {
+                              return <span className="text-xs text-muted-foreground">{desc.text}</span>;
+                            }
+                            return <span className="text-xs text-muted-foreground italic">No reminder sent</span>;
+                          })()
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
@@ -772,19 +779,40 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     <TableCell>
                       <div className="flex gap-1 justify-end">
                         {isAdmin && booking.payment_status === "unpaid" && booking.status === "completed" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
-                            onClick={() => requestPayment(booking)}
-                            disabled={requestingPayment === booking.id}
-                          >
-                            {requestingPayment === booking.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <><Send className="h-3.5 w-3.5 mr-1" />Request Payment</>
-                            )}
-                          </Button>
+                          <div className="flex items-center gap-0.5 mr-1 rounded-md border border-yellow-500/40 overflow-hidden">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-yellow-700 hover:bg-yellow-500/10 rounded-none"
+                              onClick={() => requestPayment(booking, "sms")}
+                              disabled={requestingPayment === booking.id}
+                              title="Send SMS reminder"
+                            >
+                              {requestingPayment === booking.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>📱 SMS</>}
+                            </Button>
+                            <span className="w-px h-5 bg-yellow-500/30" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-yellow-700 hover:bg-yellow-500/10 rounded-none"
+                              onClick={() => requestPayment(booking, "email")}
+                              disabled={requestingPayment === booking.id}
+                              title="Send Email reminder"
+                            >
+                              📧 Email
+                            </Button>
+                            <span className="w-px h-5 bg-yellow-500/30" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-xs text-yellow-700 hover:bg-yellow-500/10 rounded-none"
+                              onClick={() => requestPayment(booking, "both")}
+                              disabled={requestingPayment === booking.id}
+                              title="Send SMS + Email"
+                            >
+                              📱📧 Both
+                            </Button>
+                          </div>
                         )}
                         <Button 
                           variant="ghost" 
