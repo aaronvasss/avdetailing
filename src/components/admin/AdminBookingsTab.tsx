@@ -45,6 +45,7 @@ interface Booking {
   profiles: { full_name: string; email: string; phone: string } | null;
   package_name: string | null;
   booking_add_ons: { id: string; name: string; price: number }[];
+  stripe_amount_cents: number | null;
 }
 
 const getDisplayLabel = (b: Pick<Booking, "package_name" | "custom_service_description" | "services">) =>
@@ -138,6 +139,23 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         });
       }
 
+      // Lookup Stripe payment amounts (succeeded payments) for these bookings
+      const bookingIds = (data || []).map((b: any) => b.id);
+      const paymentMap: Record<string, number> = {};
+      if (bookingIds.length > 0) {
+        const { data: payments } = await supabase
+          .from("payment_records")
+          .select("booking_id, amount_cents, status")
+          .in("booking_id", bookingIds)
+          .in("status", ["succeeded", "paid", "completed"]);
+        (payments || []).forEach((p: any) => {
+          if (p.booking_id && p.amount_cents != null) {
+            // Keep the largest amount if multiple records exist
+            paymentMap[p.booking_id] = Math.max(paymentMap[p.booking_id] || 0, p.amount_cents);
+          }
+        });
+      }
+
       const bookingsWithProfiles = await Promise.all(
         (data || []).map(async (booking: any) => {
           let profiles = null;
@@ -157,6 +175,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
             profiles,
             package_name,
             booking_add_ons: booking.booking_add_ons || [],
+            stripe_amount_cents: paymentMap[booking.id] ?? null,
           } as Booking;
         })
       );
@@ -672,6 +691,19 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     <span className="text-muted-foreground">Total</span>
                     <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
                   </div>
+                  {selectedBooking.stripe_amount_cents != null && (
+                    <div className="flex justify-between text-sm pt-1">
+                      <span className="text-muted-foreground">Stripe Charged</span>
+                      <span className={cn(
+                        "font-medium",
+                        Math.abs((selectedBooking.stripe_amount_cents / 100) - (selectedBooking.total_price || 0)) < 0.01
+                          ? "text-green-500"
+                          : "text-yellow-500"
+                      )}>
+                        ${(selectedBooking.stripe_amount_cents / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 

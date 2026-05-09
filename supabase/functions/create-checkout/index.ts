@@ -176,12 +176,11 @@ serve(async (req) => {
       const basePrice = serverBasePrice;
       
       if (!price_id && basePrice > 0) {
-        // No static stripe_price_id; create dynamic price including 3.5% processing fee
-        const processingFee = Math.round(basePrice * 0.035 * 100) / 100;
-        const baseWithFee = basePrice + processingFee;
-        const amountCents = Math.round(baseWithFee * 100);
+        // No static stripe_price_id; create dynamic price.
+        // Prices in service_packages already include any processing fee — do NOT add again.
+        const amountCents = Math.round(basePrice * 100);
 
-        logStep("Creating dynamic price for base service", { basePrice, processingFee, amountCents });
+        logStep("Creating dynamic price for base service", { basePrice, amountCents });
 
         const productName = packageSlug
           ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
@@ -249,9 +248,9 @@ serve(async (req) => {
             logStep("Added add-on line item", { name: addon.name, price_id: addon.stripe_price_id });
           } else {
             // Create dynamic price for add-on without a Stripe price ID (include 3.5% processing fee)
+            // Add-on prices in service_add_ons already include any fee — do NOT add again.
             const addonBasePrice = Number(addon.price);
-            const addonFee = Math.round(addonBasePrice * 0.035 * 100) / 100;
-            const addonTotalCents = Math.round((addonBasePrice + addonFee) * 100);
+            const addonTotalCents = Math.round(addonBasePrice * 100);
             const addonPrice = await stripe.prices.create({
               currency: 'usd',
               unit_amount: addonTotalCents,
