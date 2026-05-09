@@ -67,7 +67,19 @@ export function AdminLayout({
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quotesAttentionCount, setQuotesAttentionCount] = useState(0);
+  const [alertCount, setAlertCount] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      const c = await getActiveAlertCount();
+      if (!cancelled) setAlertCount(c);
+    };
+    refresh();
+    const interval = setInterval(refresh, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [currentTab]);
 
   useEffect(() => {
     let cancelled = false;
