@@ -34,6 +34,7 @@ import {
 interface Booking {
   id: string;
   scheduled_date: string;
+  scheduled_time: string | null;
   total_price: number | null;
   tip_amount: number | null;
   status: string;
@@ -44,6 +45,7 @@ interface Booking {
   assigned_worker_id: string | null;
   worker_pay_type: string | null;
   worker_pay_rate: number | null;
+  service_packages?: { name: string } | null;
 }
 
 interface Membership {
