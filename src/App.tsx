@@ -37,6 +37,7 @@ import WorkerLoginPage from "./pages/WorkerLoginPage";
 import WorkerDashboardPage from "./pages/WorkerDashboardPage";
 import WorkerAllJobsPage from "./pages/WorkerAllJobsPage";
 import WorkerEarningsPage from "./pages/WorkerEarningsPage";
+import WorkerTimesheetPage from "./pages/WorkerTimesheetPage";
 import WorkerProfilePage from "./pages/WorkerProfilePage";
 import WorkerChatPage from "./pages/WorkerChatPage";
 import RatingPage from "./pages/RatingPage";
