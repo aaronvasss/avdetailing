@@ -458,6 +458,19 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Cancelled Bookings</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{cancelledBookings.length}</div>
+            <p className="text-xs text-muted-foreground">
+              ${cancelledLostRevenue.toLocaleString()} lost revenue (6mo)
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Labor Cost Section */}
