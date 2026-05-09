@@ -84,6 +84,8 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [reminderLog, setReminderLog] = useState<Record<string, string>>({});
+  const [requestingPayment, setRequestingPayment] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBookings();
