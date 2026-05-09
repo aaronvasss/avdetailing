@@ -205,8 +205,70 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         })
       );
       setBookings(bookingsWithProfiles);
+
+      // Load latest "Payment reminder sent" notes for each booking
+      if (bookingIds.length > 0) {
+        const { data: notes } = await supabase
+          .from("booking_internal_notes")
+          .select("booking_id, note, created_at")
+          .in("booking_id", bookingIds)
+          .ilike("note", "Payment reminder sent%")
+          .order("created_at", { ascending: false });
+        const log: Record<string, string> = {};
+        (notes || []).forEach((n: any) => {
+          if (!log[n.booking_id]) log[n.booking_id] = n.created_at;
+        });
+        setReminderLog(log);
+      }
     }
     setLoading(false);
+  };
+
+  const requestPayment = async (booking: Booking): Promise<boolean> => {
+    const name = getCustomerName(booking);
+    const phone = getCustomerPhone(booking);
+    const email = getCustomerEmail(booking);
+    if (!phone && !email) {
+      toast.error(`No phone or email on file for ${name}`);
+      return false;
+    }
+    setRequestingPayment(booking.id);
+    try {
+      const pkgLabel = getDisplayLabel(booking);
+      const dateStr = format(new Date(booking.scheduled_date), "MMM d");
+      const amount = Number(booking.total_price || 0).toFixed(2);
+      const manageLink = booking.manage_token
+        ? `${window.location.origin}/booking/manage?token=${booking.manage_token}`
+        : `${window.location.origin}/booking`;
+      const message = `Hi ${name}! This is AV Detailing. Your ${pkgLabel} service on ${dateStr} has a balance of $${amount} due. Pay now: ${manageLink} or call us at (225) 521-6264. Thank you!`;
+
+      const tasks: Promise<any>[] = [];
+      if (phone) {
+        tasks.push(supabase.functions.invoke("send-booking-sms", { body: { to: phone, message } }));
+      }
+      if (email) {
+        tasks.push(supabase.functions.invoke("send-contact-email", {
+          body: { name: "AV Detailing", email, service: "Payment Reminder", message },
+        }));
+      }
+      await Promise.all(tasks);
+
+      const channels = [phone && "SMS", email && "email"].filter(Boolean).join("+");
+      await supabase.from("booking_internal_notes").insert({
+        booking_id: booking.id,
+        note: `Payment reminder sent on ${format(new Date(), "MMM d, yyyy h:mm a")} via ${channels}`,
+      });
+
+      setReminderLog(prev => ({ ...prev, [booking.id]: new Date().toISOString() }));
+      toast.success(`Payment request sent to ${name}`);
+      return true;
+    } catch (err) {
+      console.error("Payment request error:", err);
+      toast.error("Failed to send payment request");
+      return false;
+    } finally {
+      setRequestingPayment(null);
+    }
   };
 
   const sendReminder = async (booking: Booking, reminderType: "24h" | "2h") => {
