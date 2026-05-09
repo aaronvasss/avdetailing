@@ -493,8 +493,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             worker_pay_rate: resolvedAssignedWorkerId && customPayRate ? parseFloat(customPayRate) : null,
           client_id: selectedClientId,
           add_ons: pricingMode === "package"
-            ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
+            ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price, stripe_price_id: a.stripe_price_id }))
             : [],
+          package_slug: pricingMode === "package" && !isSpecialty && !isMembership ? selectedPackageId : null,
+          package_stripe_price_id: pricingMode === "package" && !isSpecialty && !isMembership && form.vehicleType
+            ? (packageRows.find(r => r.slug === selectedPackageId && r.vehicle_type === form.vehicleType)?.stripe_price_id || null)
+            : null,
           skip_notifications: isPastDate,
           custom_service_description: form.serviceType === "custom" ? (form.customServiceDescription || null) : null,
           // Boat-specific fields
