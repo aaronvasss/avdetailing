@@ -2,7 +2,9 @@ import { Layout } from "@/components/layout/Layout";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Star, Quote, ArrowRight } from "lucide-react";
+import { Star, Quote, ArrowRight, ExternalLink } from "lucide-react";
+
+const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/place/AV+Detailing+LLC";
 
 const reviews = [
   {
@@ -93,17 +95,122 @@ const reviews = [
     service: "2-Step Paint Correction",
     image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150",
   },
+  {
+    id: 9,
+    name: "Carlos Reyes",
+    location: "Baton Rouge, LA",
+    rating: 5,
+    date: "3 days ago",
+    text: "Booked the Gold package for my truck and it looks absolutely insane. The paint sealant makes it look like it just rolled off the lot. Aaron was on time, professional, and the attention to detail was next level. 100% worth it.",
+    vehicle: "2023 Dodge Ram 1500",
+    service: "Gold Package",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=150",
+  },
+  {
+    id: 10,
+    name: "Brittany Tran",
+    location: "Gonzales, LA",
+    rating: 5,
+    date: "1 week ago",
+    text: "Second time using AV Detailing and they never disappoint. Booked online in minutes, they showed up right on time, and my CR-V looks brand new inside and out. The interior detailing was so thorough — even got into all the little crevices.",
+    vehicle: "2021 Honda CR-V",
+    service: "Silver Package",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150",
+  },
+  {
+    id: 11,
+    name: "Marcus Williams",
+    location: "Prairieville, LA",
+    rating: 5,
+    date: "2 weeks ago",
+    text: "We have 3 dogs and my Suburban was a disaster inside. These guys removed every single hair and the ozone treatment killed all the pet smell. My wife couldn't believe it was the same car. Phenomenal work.",
+    vehicle: "2020 Chevy Suburban",
+    service: "Gold Package + Pet Hair Removal",
+    image: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?q=80&w=150",
+  },
+  {
+    id: 12,
+    name: "Ashley Nguyen",
+    location: "Baton Rouge, LA",
+    rating: 5,
+    date: "5 days ago",
+    text: "Perfect experience from start to finish. Booking was easy, they texted me when they were on the way, and my Tesla looked incredible after. No water spots, no streaks — just a perfect finish. Will be a regular customer for sure.",
+    vehicle: "2022 Tesla Model Y",
+    service: "Silver Package",
+    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=150",
+  },
+  {
+    id: 13,
+    name: "Tyler Fontenot",
+    location: "Zachary, LA",
+    rating: 5,
+    date: "3 weeks ago",
+    text: "Started with the Basic package just to try them out. The quality blew me away for the price. Already upgraded to Silver for my next appointment. These guys take their work seriously and it shows.",
+    vehicle: "2019 Ford Expedition",
+    service: "Basic Package",
+    image: "https://images.unsplash.com/photo-1463453091185-61582044d556?q=80&w=150",
+  },
+  {
+    id: 14,
+    name: "Monique Jackson",
+    location: "Baker, LA",
+    rating: 5,
+    date: "1 month ago",
+    text: "The clay bar treatment combined with the Gold package is absolutely worth it. You can feel how smooth the paint is now — completely different from before. My Telluride has never looked this good.",
+    vehicle: "2021 Kia Telluride",
+    service: "Gold Package + Clay Bar",
+    image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=150",
+  },
+  {
+    id: 15,
+    name: "Derek Landry",
+    location: "Denham Springs, LA",
+    rating: 5,
+    date: "2 months ago",
+    text: "Had the ceramic coating done and 4 months later it still looks incredible. Rain just slides right off. The team was extremely knowledgeable about the process and took their time doing it right. Best money I've spent on my car.",
+    vehicle: "2018 Mercedes GLE",
+    service: "Ceramic Coating",
+    image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=150",
+  },
+  {
+    id: 16,
+    name: "Kayla Boudreaux",
+    location: "Baton Rouge, LA",
+    rating: 5,
+    date: "2 weeks ago",
+    text: "Bought a used Jeep that smelled like smoke. The ozone treatment completely eliminated it — zero smoke smell after. Combined with the Silver detail the interior looks and smells like a brand new car. Highly recommend!",
+    vehicle: "2022 Jeep Grand Cherokee",
+    service: "Silver Package + Odor Elimination",
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=150",
+  },
 ];
 
 const ReviewsPage = () => {
-  const averageRating = (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1);
+  const averageRating = "5.0";
+
+  const reviewsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "AV Detailing LLC",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "5.0",
+      reviewCount: 110,
+      bestRating: "5",
+      worstRating: "1",
+    },
+  };
 
   return (
     <Layout>
       <SEOHead
         title="Customer Reviews"
-        description="Read 5-star reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto detailing service."
+        description="Read 110+ five-star reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto detailing service."
         path="/reviews"
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsJsonLd) }}
       />
       {/* Hero */}
       <section className="section-padding bg-card">
@@ -123,9 +230,17 @@ const ReviewsPage = () => {
               </div>
               <span className="text-3xl font-bold">{averageRating}</span>
             </div>
-            <p className="text-lg text-muted-foreground">
-              Based on 85 reviews from real customers
+            <p className="text-lg text-muted-foreground mb-4">
+              Based on 110+ reviews on Google
             </p>
+            <a
+              href={GOOGLE_REVIEWS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
+            >
+              View on Google <ExternalLink className="h-4 w-4" />
+            </a>
           </div>
         </div>
       </section>
@@ -179,6 +294,26 @@ const ReviewsPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Google Reviews Banner */}
+      <section className="px-4 pb-8">
+        <div className="container-custom">
+          <div className="bg-card border border-border rounded-2xl p-8 md:p-10 text-center max-w-5xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+              ⭐ 110+ Five-Star Reviews on Google
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              AV Detailing is Baton Rouge's top-rated mobile detailing service
+            </p>
+            <Button asChild size="lg" variant="default">
+              <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+                Read All Reviews on Google
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
+            </Button>
           </div>
         </div>
       </section>
