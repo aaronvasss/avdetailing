@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star } from "lucide-react";
+import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star, Clock } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { formatHm } from "@/lib/duration-format";
 
 type TimeFilter = "today" | "week" | "month" | "all";
 
@@ -116,6 +117,13 @@ export default function WorkerEarningsPage() {
       case "all": return allEarnings;
     }
   }, [activeFilter, todayEarnings, weekEarnings, monthEarnings, allEarnings]);
+
+  const avgDurationMinutes = useMemo(() => {
+    const withDur = filteredJobs.filter((b) => b.actual_duration_minutes != null && b.actual_duration_minutes > 0);
+    if (withDur.length === 0) return null;
+    const total = withDur.reduce((sum, b) => sum + Number(b.actual_duration_minutes), 0);
+    return total / withDur.length;
+  }, [filteredJobs]);
 
   const filterTabs: { key: TimeFilter; label: string }[] = [
     { key: "today", label: "Today" },
@@ -228,6 +236,19 @@ export default function WorkerEarningsPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Avg Job Duration */}
+        <Card>
+          <CardContent className="py-3 px-4 flex items-center gap-3">
+            <Clock className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">Avg Job Duration</p>
+              <p className="font-bold">
+                {avgDurationMinutes != null ? formatHm(avgDurationMinutes) : "No data yet"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Completed jobs list */}
         <div className="space-y-2">

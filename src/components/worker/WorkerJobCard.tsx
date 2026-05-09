@@ -26,6 +26,7 @@ import {
   StickyNote, Package, Upload, Trash2, ImageIcon, Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatStopwatch, formatHm } from "@/lib/duration-format";
 
 interface BookingData {
   id: string;
@@ -55,6 +56,10 @@ interface BookingData {
   boat_brand?: string | null;
   aircraft_type?: string | null;
   tail_number?: string | null;
+  clock_in_at?: string | null;
+  clock_out_at?: string | null;
+  actual_duration_minutes?: number | null;
+  duration_minutes?: number | null;
 }
 
 interface WorkerJobCardProps {
@@ -218,9 +223,14 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
 
     setStartingService(true);
     try {
+      const nowIso = new Date().toISOString();
       const { error } = await supabase
         .from("bookings")
-        .update({ status: "in_progress", in_progress_at: new Date().toISOString() })
+        .update({
+          status: "in_progress",
+          in_progress_at: nowIso,
+          clock_in_at: nowIso,
+        })
         .eq("id", booking.id);
 
       if (error) throw error;
@@ -253,9 +263,20 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
   const handleMarkComplete = async () => {
     setLoading(true);
     try {
+      const nowIso = new Date().toISOString();
+      const update: Record<string, any> = {
+        status: "completed",
+        clock_out_at: nowIso,
+        completed_at: nowIso,
+      };
+      if (booking.clock_in_at) {
+        const startedMs = new Date(booking.clock_in_at).getTime();
+        const endedMs = new Date(nowIso).getTime();
+        update.actual_duration_minutes = Math.max(1, Math.round((endedMs - startedMs) / 60000));
+      }
       const { error } = await supabase
         .from("bookings")
-        .update({ status: "completed" })
+        .update(update)
         .eq("id", booking.id);
 
       if (error) throw error;
@@ -493,7 +514,24 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
             </div>
           )}
 
-          {/* Add-ons */}
+          {/* Live timer while in_progress */}
+          {isInProgress && booking.clock_in_at && (
+            <JobTimer startedAt={booking.clock_in_at} />
+          )}
+
+          {/* Actual vs estimated duration when completed */}
+          {isCompleted && booking.actual_duration_minutes != null && (
+            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 text-sm">
+              <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span>
+                <span className="font-bold">Job took {formatHm(booking.actual_duration_minutes)}</span>
+                {booking.duration_minutes != null && (
+                  <span className="text-muted-foreground"> · Estimated: {formatHm(booking.duration_minutes)}</span>
+                )}
+              </span>
+            </div>
+          )}
+
           {addOns.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
               <Package className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -643,5 +681,25 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function JobTimer({ startedAt, className }: { startedAt: string; className?: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = now - new Date(startedAt).getTime();
+  return (
+    <div className={cn("flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2", className)}>
+      <span className="relative flex h-2.5 w-2.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+      </span>
+      <span className="text-sm font-bold text-primary tabular-nums">
+        Time on Job: {formatStopwatch(elapsed)}
+      </span>
+    </div>
   );
 }

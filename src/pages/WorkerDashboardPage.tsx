@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { WorkerJobCard } from "@/components/worker/WorkerJobCard";
 import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { formatStopwatch } from "@/lib/duration-format";
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
@@ -143,9 +145,26 @@ export default function WorkerDashboardPage() {
     };
   }, [fetchTodayBookings, fetchUpcomingBookings, today]);
 
+  const activeJob = useMemo(
+    () => myBookings.find((b) => b.status === "in_progress" && b.clock_in_at),
+    [myBookings]
+  );
+
+  const scrollToActiveJob = () => {
+    const el = document.getElementById(`job-card-${activeJob?.id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <WorkerLayout>
       <div className="space-y-6">
+        {activeJob && (
+          <ActiveJobBanner
+            startedAt={activeJob.clock_in_at}
+            customerName={activeJob.guest_name || "Customer"}
+            onView={scrollToActiveJob}
+          />
+        )}
         <WeatherWidget />
 
         {/* Today's Jobs */}
@@ -177,7 +196,7 @@ export default function WorkerDashboardPage() {
           ) : (
             <div className="space-y-3">
               {myBookings.map((booking) => (
-                <div key={booking.id} className="ring-2 ring-primary/30 rounded-lg">
+                <div key={booking.id} id={`job-card-${booking.id}`} className="ring-2 ring-primary/30 rounded-lg scroll-mt-20">
                   <WorkerJobCard
                     booking={booking}
                     onStatusChange={() => { fetchTodayBookings(); fetchUpcomingBookings(); }}
@@ -290,6 +309,37 @@ function UpcomingJobCard({ booking }: { booking: any }) {
             </a>
           )}
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ActiveJobBanner({ startedAt, customerName, onView }: { startedAt: string; customerName: string; onView: () => void }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = now - new Date(startedAt).getTime();
+  const startedLabel = format(new Date(startedAt), "h:mm a");
+  return (
+    <Card className="border-red-500/40 bg-red-500/10">
+      <CardContent className="py-3 px-4 flex flex-wrap items-center gap-3">
+        <span className="relative flex h-3 w-3 shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+        </span>
+        <div className="flex-1 min-w-[180px]">
+          <p className="text-sm font-bold text-red-500">
+            Job in progress since {startedLabel} · {customerName}
+          </p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            Time on Job: <span className="font-semibold">{formatStopwatch(elapsed)}</span>
+          </p>
+        </div>
+        <Button size="sm" variant="default" onClick={onView}>
+          <ArrowDown className="h-4 w-4 mr-1" /> View Job
+        </Button>
       </CardContent>
     </Card>
   );
