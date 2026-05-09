@@ -1082,9 +1082,15 @@ AV Detailing
                 Includes 30-minute buffer between appointments. Working hours: 6:30 AM – 7:30 PM.
               </p>
             </div>
-          </TabsContent>
 
-          {/* Payment Tab */}
+            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-md border bg-muted/30">
+              <Checkbox
+                checked={notifyCustomer}
+                onCheckedChange={(c) => setNotifyCustomer(!!c)}
+              />
+              <span className="text-sm">Send reschedule confirmation to customer</span>
+            </label>
+          </TabsContent>
           <TabsContent value="payment" className="space-y-4 mt-4">
             <div className="grid grid-cols-3 gap-4">
               <Card>
