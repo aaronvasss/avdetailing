@@ -143,14 +143,13 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const serviceLinePrice = Math.max(0, totalPrice - addOnsTotal - tipAmount);
   const deposit = Number(booking.deposit_amount) || 0;
   const paymentMethod = booking.payment_method || "in_person";
-  const isOnline = ["online", "stripe", "card"].includes(paymentMethod);
-  const fee = isOnline ? totalPrice * 0.035 : 0;
-  const totalWithFee = totalPrice + fee;
-  const remaining = totalWithFee - deposit;
+  const paymentStatus = (booking.payment_status || "unpaid").toLowerCase();
+  const isPaid = paymentStatus === "paid";
+  const isPending = paymentStatus === "pending";
+  const remaining = totalPrice - deposit;
   const duration = booking.duration_minutes || 180;
 
-  const vehicleTypeNames: Record<string, string> = { car: "Car/SUV/Truck", boat: "Boat", rv: "RV/Motorhome", aircraft: "Aircraft" };
-  const vtName = vehicleTypeNames[vehicleType.toLowerCase()] || vehicleType;
+  const vtName = vehicleTypeLabel(vehicleType);
 
   const { googleUrl, icsUrl, outlookUrl } = buildCalendarLinks(booking, serviceName);
   const rescheduleUrl = `${BASE_URL}/booking/manage?token=${booking.manage_token}`;
