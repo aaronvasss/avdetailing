@@ -121,6 +121,13 @@ export function AdminQuotesTab() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [quoteFormOpen, setQuoteFormOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [followups, setFollowups] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("quote_followups") || "{}"); } catch { return {}; }
+  });
+  const [sendingFollowup, setSendingFollowup] = useState<string | null>(null);
+  const [bookedDialogOpen, setBookedDialogOpen] = useState(false);
+  const [bookedQuote, setBookedQuote] = useState<Quote | null>(null);
+  const [linkBookingId, setLinkBookingId] = useState("");
 
   // Quote form state
   const [quotedPrice, setQuotedPrice] = useState("");
