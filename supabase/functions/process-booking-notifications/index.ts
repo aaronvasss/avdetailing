@@ -163,6 +163,21 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
       ${addOns.map(a => `<div style="display:table;width:100%;margin-bottom:6px;"><span style="display:table-cell;color:#a3a3a3;font-size:13px;">+ ${htmlEncode(a.name)}</span><span style="display:table-cell;text-align:right;color:#d4d4d4;font-size:13px;">$${a.price.toFixed(2)}</span></div>`).join("")}
     </div>` : "";
 
+  // Payment status banner
+  const paymentBanner = isPaid
+    ? `<div style="background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:center;color:#fff;font-weight:700;font-size:15px;">✅ Payment Confirmed — $${totalPrice.toFixed(2)} paid online</div>`
+    : isPending
+      ? `<div style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:center;color:#fff;font-weight:700;font-size:15px;">⏳ Payment Processing...</div>`
+      : `<div style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:center;color:#fff;font-weight:700;font-size:15px;">💵 Pay at Service — $${totalPrice.toFixed(2)} due on ${short}</div>`;
+
+  const tipRowHtml = tipAmount > 0
+    ? `<div style="margin-bottom:8px;"><div style="display:table;width:100%;"><span style="display:table-cell;color:#22c55e;font-size:13px;">Tip 🙏</span><span style="display:table-cell;text-align:right;color:#22c55e;font-size:13px;">$${tipAmount.toFixed(2)}</span></div></div>`
+    : "";
+
+  const paidBadgeHtml = isPaid
+    ? `<span style="display:inline-block;background-color:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;margin-left:8px;vertical-align:middle;">✅ PAID</span>`
+    : "";
+
   const photoRequestHtml = isQuote ? `
     <div style="background:linear-gradient(135deg,rgba(59,130,246,0.15) 0%,rgba(59,130,246,0.05) 100%);border-radius:12px;padding:20px;border:1px solid rgba(59,130,246,0.3);margin-top:24px;">
       <h4 style="color:#3b82f6;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 12px 0;">📸 Help Us Quote Accurately</h4>
