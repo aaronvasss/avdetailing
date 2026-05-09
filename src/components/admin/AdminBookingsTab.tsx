@@ -983,25 +983,45 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               {isAdmin && selectedBooking.payment_status === "unpaid" && selectedBooking.status === "completed" && (
                 <div className="border-t pt-4">
                   <div className="text-sm font-medium mb-2">Payment Follow-up</div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
-                    onClick={() => requestPayment(selectedBooking)}
-                    disabled={requestingPayment === selectedBooking.id}
-                  >
-                    {requestingPayment === selectedBooking.id ? (
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4 mr-1" />
-                    )}
-                    Request Payment
-                  </Button>
-                  {reminderLog[selectedBooking.id] && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Last reminder: {format(new Date(reminderLog[selectedBooking.id]), "MMM d, yyyy h:mm a")}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                      onClick={() => requestPayment(selectedBooking, "sms")}
+                      disabled={requestingPayment === selectedBooking.id}
+                    >
+                      {requestingPayment === selectedBooking.id ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <span className="mr-1">📱</span>}
+                      SMS
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                      onClick={() => requestPayment(selectedBooking, "email")}
+                      disabled={requestingPayment === selectedBooking.id}
+                    >
+                      <span className="mr-1">📧</span>Email
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                      onClick={() => requestPayment(selectedBooking, "both")}
+                      disabled={requestingPayment === selectedBooking.id}
+                    >
+                      <span className="mr-1">📱📧</span>Both
+                    </Button>
+                  </div>
+                  {(() => {
+                    const desc = describeLastReminder(reminderLog[selectedBooking.id]);
+                    if (desc.variant === "none") return null;
+                    return (
+                      <p className={cn("text-xs mt-2", desc.variant === "amber" ? "text-yellow-700 dark:text-yellow-400 font-medium" : "text-muted-foreground")}>
+                        {desc.text}
+                      </p>
+                    );
+                  })()}
                 </div>
               )}
 
