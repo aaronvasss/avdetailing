@@ -7,15 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { 
-  ArrowLeft, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Car, 
-  Calendar, 
-  CreditCard, 
-  FileText, 
+import {
+  ArrowLeft,
+  Phone,
+  Mail,
+  MapPin,
+  Car,
+  Calendar,
+  CreditCard,
+  FileText,
   DollarSign,
   Loader2,
   Save,
@@ -23,7 +23,9 @@ import {
   Edit,
   Trash2,
   Lock,
-  Star
+  Star,
+  Heart,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
