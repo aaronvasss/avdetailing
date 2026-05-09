@@ -117,6 +117,11 @@ const App = () => (
                   <WorkerEarningsPage />
                 </ProtectedRoute>
               } />
+              <Route path="/worker/timesheet" element={
+                <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <WorkerTimesheetPage />
+                </ProtectedRoute>
+              } />
               <Route path="/worker/profile" element={
                 <ProtectedRoute requiredRole={["staff", "admin"]}>
                   <WorkerProfilePage />
