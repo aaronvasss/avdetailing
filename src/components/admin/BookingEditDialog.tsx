@@ -856,11 +856,23 @@ AV Detailing
               </div>
 
               <div className="space-y-2">
-                <Label>Service</Label>
-                <Input 
-                  value={`${booking.custom_service_description || booking.services?.name || "Detailing"} (${formatDuration(booking.duration_minutes || 120)})`} 
-                  disabled 
-                />
+                <Label>Service & Package</Label>
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm space-y-0.5">
+                  <div className="font-medium">
+                    {booking.custom_service_description || booking.services?.name || "Detailing"}
+                  </div>
+                  {packageInfo ? (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">{packageInfo.name}</span>
+                      <span className="font-semibold">${packageInfo.price.toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">No package matched for {booking.vehicle_type || "vehicle type"}</div>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    Duration: {formatDuration(booking.duration_minutes || 120)}
+                  </div>
+                </div>
               </div>
             </div>
 
