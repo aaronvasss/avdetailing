@@ -64,6 +64,8 @@ interface BookingData {
   clock_out_at?: string | null;
   actual_duration_minutes?: number | null;
   duration_minutes?: number | null;
+  tip_amount?: number | null;
+  manage_token?: string | null;
 }
 
 interface WorkerJobCardProps {
