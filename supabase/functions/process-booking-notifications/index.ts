@@ -543,7 +543,7 @@ serve(async (req) => {
     // ━━━━ Admin Alert ━━━━
     if (mode === "auto" || mode === "resend_admin") {
       const html = buildAdminHtml(booking, serviceName);
-      const subject = `New Booking 🚗 ${booking.guest_name || "Customer"} — ${serviceName} on ${shortDate(booking.scheduled_date)}`;
+      const subject = `New Booking 🚗 ${booking.guest_name || "Customer"} — ${serviceName} (${vehicleTypeLabel(booking.vehicle_type)}) on ${shortDate(booking.scheduled_date)}`;
 
       results.admin = await sendEmail(ADMIN_EMAIL, ADMIN_FROM_EMAIL, subject, html);
 
