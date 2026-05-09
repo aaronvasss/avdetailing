@@ -538,7 +538,12 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
             </div>
           )}
 
-          {addOns.length > 0 && (
+          {/* Tip section (completed jobs) */}
+          {isCompleted && (
+            <TipSection booking={booking} customerName={customerName} firstName={firstName} serviceName={serviceName} />
+          )}
+
+
             <div className="flex items-start gap-2 text-sm">
               <Package className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <div className="flex flex-wrap gap-1">
