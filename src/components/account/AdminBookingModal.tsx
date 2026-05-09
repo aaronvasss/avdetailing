@@ -1187,7 +1187,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Booking {totalPrice > 0 ? `— $${totalPrice}` : ""}
+                Create Booking {totalPrice > 0 ? `— $${totalPrice.toFixed(2)}` : ""}
               </>
             )}
           </Button>
