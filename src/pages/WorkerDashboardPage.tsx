@@ -296,7 +296,7 @@ export default function WorkerDashboardPage() {
                 <div key={booking.id} id={`job-card-${booking.id}`} className="ring-2 ring-primary/30 rounded-lg scroll-mt-20">
                   <WorkerJobCard
                     booking={booking}
-                    onStatusChange={() => { fetchTodayBookings(); fetchUpcomingBookings(); }}
+                    onStatusChange={() => { fetchTodayBookings(); fetchUpcomingBookings(); fetchEarningsData(); }}
                   />
                 </div>
               ))}
