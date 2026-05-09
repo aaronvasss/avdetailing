@@ -131,6 +131,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             scheduled_date,
             scheduled_time,
             in_progress_at,
+            clock_in_at,
             total_price,
             tip_amount,
             status,
