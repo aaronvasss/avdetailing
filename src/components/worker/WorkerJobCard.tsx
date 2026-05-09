@@ -20,13 +20,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Clock, Phone, MapPin, Navigation, Car, Wrench,
   Play, CheckCircle2, Loader2, Camera, ChevronDown, ChevronUp,
-  StickyNote, Package, Upload, Trash2, ImageIcon, Lock
+  StickyNote, Package, Upload, Trash2, ImageIcon, Lock,
+  DollarSign, MessageSquare, Mail, Copy, PartyPopper
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatStopwatch, formatHm } from "@/lib/duration-format";
+import { checkRecentNotification, logNotification, COOLDOWN_HOURS, type RecentNotification } from "@/lib/notification-log";
+import { format } from "date-fns";
 
 interface BookingData {
   id: string;
@@ -60,6 +64,8 @@ interface BookingData {
   clock_out_at?: string | null;
   actual_duration_minutes?: number | null;
   duration_minutes?: number | null;
+  tip_amount?: number | null;
+  manage_token?: string | null;
 }
 
 interface WorkerJobCardProps {
@@ -532,6 +538,11 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
             </div>
           )}
 
+          {/* Tip section (completed jobs) */}
+          {isCompleted && (
+            <TipSection booking={booking} customerName={customerName} firstName={firstName} serviceName={serviceName} />
+          )}
+
           {addOns.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
               <Package className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -701,5 +712,192 @@ function JobTimer({ startedAt, className }: { startedAt: string; className?: str
         Time on Job: {formatStopwatch(elapsed)}
       </span>
     </div>
+  );
+}
+
+function TipSection({
+  booking,
+  customerName,
+  firstName,
+  serviceName,
+}: {
+  booking: BookingData;
+  customerName: string;
+  firstName: string;
+  serviceName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [recent, setRecent] = useState<RecentNotification | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [sending, setSending] = useState<"sms" | "email" | null>(null);
+  const [justSent, setJustSent] = useState(false);
+
+  const tipAmount = Number(booking.tip_amount || 0);
+  const hasTip = tipAmount > 0;
+
+  const manageLink = booking.manage_token
+    ? `${window.location.origin}/booking/manage?token=${booking.manage_token}`
+    : `${window.location.origin}/booking`;
+
+  const smsMessage = `Hi ${firstName}! 🚗✨ This is AV Detailing — your ${serviceName} detail is complete! If you loved the service, a tip for your tech means the world: ${manageLink} Thank you! 🙏`;
+  const emailSubject = `Thank you from AV Detailing! 🚗✨`;
+  const emailBody = `Hi ${firstName}!\n\nThank you for choosing AV Detailing. Your ${serviceName} is complete and we hope you love the result!\n\nIf you're happy with your service today, we'd love a tip for your technician — every bit means the world to them.\n\nLeave a tip here: ${manageLink}\n\nThank you so much! 🙏\nAV Detailing`;
+
+  const refreshRecent = async () => {
+    setChecking(true);
+    const r = await checkRecentNotification(booking.id, "tip_request");
+    setRecent(r);
+    setChecking(false);
+  };
+
+  useEffect(() => {
+    if (!hasTip) refreshRecent();
+    else setChecking(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking.id, hasTip]);
+
+  // Tip received — celebrate
+  if (hasTip) {
+    return (
+      <div className="flex items-center gap-2 bg-green-500/15 border border-green-500/40 rounded-lg px-3 py-2.5">
+        <PartyPopper className="h-4 w-4 text-green-500 shrink-0" />
+        <span className="text-sm font-bold text-green-500">
+          💰 ${tipAmount.toFixed(2)} tip received!
+        </span>
+      </div>
+    );
+  }
+
+  if (checking) return null;
+
+  // Already requested
+  if (recent) {
+    const sentAt = new Date(recent.created_at);
+    return (
+      <div className="flex items-center justify-between gap-2 bg-muted/50 border border-border/60 rounded-lg px-3 py-2 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <DollarSign className="h-4 w-4 shrink-0" />
+          <span>Tip requested {format(sentAt, "MMM d 'at' h:mm a")}</span>
+        </div>
+        <Badge variant="outline" className="text-[10px]">Pending</Badge>
+      </div>
+    );
+  }
+
+  const sendTipRequest = async (channel: "sms" | "email") => {
+    const recipient = channel === "sms" ? booking.guest_phone : booking.guest_email;
+    if (!recipient) {
+      toast.error(`No ${channel === "sms" ? "phone" : "email"} on file for this customer`);
+      return;
+    }
+    setSending(channel);
+    try {
+      if (channel === "sms") {
+        const { error } = await supabase.functions.invoke("send-booking-sms", {
+          body: { to: recipient, message: smsMessage },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.functions.invoke("send-contact-email", {
+          body: {
+            name: "AV Detailing",
+            email: recipient,
+            service: emailSubject,
+            message: emailBody,
+          },
+        });
+        if (error) throw error;
+      }
+      await logNotification({
+        bookingId: booking.id,
+        notificationType: "tip_request",
+        recipient,
+        status: "sent",
+      });
+      toast.success(`Tip request sent to ${customerName}! 🙏`);
+      setJustSent(true);
+      setOpen(false);
+      await refreshRecent();
+    } catch (err: any) {
+      console.error("Tip request error:", err);
+      await logNotification({
+        bookingId: booking.id,
+        notificationType: "tip_request",
+        recipient,
+        status: "failed",
+        errorMessage: String(err?.message || err),
+      });
+      toast.error(`Failed to send tip request: ${err?.message || "Unknown error"}`);
+    } finally {
+      setSending(null);
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(manageLink);
+      toast.success("Link copied to clipboard");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        className="w-full border-green-500/40 text-green-500 hover:bg-green-500/10 hover:text-green-500"
+        onClick={() => setOpen(true)}
+        disabled={justSent}
+      >
+        <DollarSign className="h-4 w-4 mr-1.5" />
+        Request Tip 💰
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request a Tip</DialogTitle>
+            <DialogDescription>
+              Send {firstName} a friendly tip request for today's service.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-md border border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground whitespace-pre-wrap">
+            {smsMessage}
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={() => sendTipRequest("sms")}
+              disabled={!booking.guest_phone || sending !== null}
+            >
+              {sending === "sms" ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <MessageSquare className="h-4 w-4 mr-1.5" />
+              )}
+              Send via SMS
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => sendTipRequest("email")}
+              disabled={!booking.guest_email || sending !== null}
+            >
+              {sending === "email" ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4 mr-1.5" />
+              )}
+              Send via Email
+            </Button>
+            <Button variant="outline" onClick={copyLink} disabled={sending !== null}>
+              <Copy className="h-4 w-4 mr-1.5" />
+              Copy Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
