@@ -1,13 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, parseISO } from "date-fns";
-import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench, Crown, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { format, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, parseISO, startOfYear, differenceInMinutes, differenceInDays } from "date-fns";
+import { Loader2, TrendingUp, DollarSign, BarChart3, PieChart, CreditCard, Banknote, Users, AlertTriangle, Wrench, Crown, Star, ChevronDown, ChevronUp, Calendar as CalendarIcon, Download, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 import {
   ChartContainer,
   ChartTooltip,
@@ -35,6 +40,8 @@ interface Booking {
   id: string;
   scheduled_date: string;
   scheduled_time: string | null;
+  in_progress_at: string | null;
+  completed_at?: string | null;
   total_price: number | null;
   tip_amount: number | null;
   status: string;
@@ -42,10 +49,15 @@ interface Booking {
   payment_method: string | null;
   services: { name: string; category: string } | null;
   vehicle_type: string | null;
+  vehicle_make?: string | null;
+  vehicle_model?: string | null;
+  vehicle_year?: number | null;
+  guest_name?: string | null;
   assigned_worker_id: string | null;
   worker_pay_type: string | null;
   worker_pay_rate: number | null;
   service_packages?: { name: string } | null;
+  rating?: number | null;
 }
 
 interface Membership {
@@ -81,15 +93,34 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [workerRatings, setWorkerRatings] = useState<Record<string, { avg: number; count: number }>>({});
   const [showLaborBreakdown, setShowLaborBreakdown] = useState(false);
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
+  const [drillWorker, setDrillWorker] = useState<string | null>(null);
+
+  type RangePreset = "week" | "month" | "30d" | "90d" | "year" | "custom";
+  const [rangePreset, setRangePreset] = useState<RangePreset>("month");
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: startOfMonth(new Date()),
+    to: new Date(),
+  });
+
+  const applyPreset = (p: RangePreset) => {
+    setRangePreset(p);
+    const now = new Date();
+    if (p === "week") setDateRange({ from: startOfWeek(now), to: now });
+    else if (p === "month") setDateRange({ from: startOfMonth(now), to: now });
+    else if (p === "30d") setDateRange({ from: subDays(now, 30), to: now });
+    else if (p === "90d") setDateRange({ from: subDays(now, 90), to: now });
+    else if (p === "year") setDateRange({ from: startOfYear(now), to: now });
+  };
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [dateRange?.from, dateRange?.to]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const sixMonthsAgo = subMonths(new Date(), 6);
+      const fromDate = dateRange?.from || subMonths(new Date(), 1);
+      const toDate = dateRange?.to || new Date();
 
       const [bookingsRes, membershipsRes] = await Promise.all([
         supabase
@@ -98,18 +129,24 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             id,
             scheduled_date,
             scheduled_time,
+            in_progress_at,
             total_price,
             tip_amount,
             status,
             payment_status,
             payment_method,
             vehicle_type,
+            vehicle_make,
+            vehicle_model,
+            vehicle_year,
+            guest_name,
             assigned_worker_id,
             worker_pay_type,
             worker_pay_rate,
             services (name, category)
           `)
-          .gte("scheduled_date", format(sixMonthsAgo, "yyyy-MM-dd"))
+          .gte("scheduled_date", format(fromDate, "yyyy-MM-dd"))
+          .lte("scheduled_date", format(toDate, "yyyy-MM-dd"))
           .order("scheduled_date", { ascending: true }),
         supabase
           .from("customer_memberships")
@@ -123,7 +160,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       if (bookingsRes.error) throw bookingsRes.error;
       if (membershipsRes.error) throw membershipsRes.error;
 
-      setBookings(bookingsRes.data || []);
+      setBookings((bookingsRes.data as any[]) || []);
       setMemberships((membershipsRes.data as any[]) || []);
 
       // Resilient: worker_profiles may not exist
@@ -176,7 +213,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       setTipCount(onlineTipCount + bookingTips.length);
       setTotalTips(onlineTipTotal + bookingTipTotal);
 
-      // Fetch ratings grouped by booking -> worker
+      // Fetch ratings — group by worker AND attach per-booking rating
       try {
         const bookingIds = (bookingsRes.data || []).map((b: any) => b.id);
         if (bookingIds.length > 0) {
@@ -185,11 +222,13 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             .select("booking_id, rating")
             .in("booking_id", bookingIds);
           const bookingToWorker: Record<string, string> = {};
+          const bookingRating: Record<string, number> = {};
           (bookingsRes.data || []).forEach((b: any) => {
             if (b.assigned_worker_id) bookingToWorker[b.id] = b.assigned_worker_id;
           });
           const acc: Record<string, { sum: number; count: number }> = {};
           (ratings || []).forEach((r: any) => {
+            bookingRating[r.booking_id] = r.rating;
             const wId = bookingToWorker[r.booking_id];
             if (!wId) return;
             if (!acc[wId]) acc[wId] = { sum: 0, count: 0 };
@@ -201,6 +240,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             out[k] = { avg: v.sum / v.count, count: v.count };
           });
           setWorkerRatings(out);
+          // Attach rating to bookings in state
+          setBookings(prev => prev.map(b => ({ ...b, rating: bookingRating[b.id] ?? null })));
         }
       } catch (e) {
         console.warn("ratings unavailable", e);
@@ -408,6 +449,18 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const thirtyDaysAgo = subDays(new Date(), 30);
   const completedBookingsAll = bookings.filter(b => b.status === "completed" && b.assigned_worker_id);
 
+  // Returns minutes late (positive = late, negative = early). null if no in_progress data.
+  const getOnTimeDiff = (b: Booking): number | null => {
+    if (!b.in_progress_at || !b.scheduled_time) return null;
+    try {
+      const scheduled = parseISO(`${b.scheduled_date}T${b.scheduled_time}`);
+      const started = new Date(b.in_progress_at);
+      return differenceInMinutes(started, scheduled);
+    } catch {
+      return null;
+    }
+  };
+
   interface WorkerStats {
     workerId: string;
     name: string;
@@ -419,6 +472,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     tips: number;
     earnings: number;
     rating: { avg: number; count: number } | null;
+    onTimeRate: number | null; // null = no data
+    onTimeJobs: number;
+    onTimeTotal: number;
     jobs: Booking[];
   }
 
@@ -440,6 +496,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
         tips: 0,
         earnings: 0,
         rating: workerRatings[wId] || null,
+        onTimeRate: null,
+        onTimeJobs: 0,
+        onTimeTotal: 0,
         jobs: [],
       };
     }
@@ -450,9 +509,15 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     s.jobs.push(b);
     if (date >= thirtyDaysAgo) s.jobsLast30 += 1;
     if (date >= thisMonthStart) s.revenueThisMonth += b.total_price || 0;
+    const diff = getOnTimeDiff(b);
+    if (diff !== null) {
+      s.onTimeTotal += 1;
+      if (diff <= 15) s.onTimeJobs += 1;
+    }
   });
   Object.values(workerStatsMap).forEach(s => {
     s.avgTicket = s.jobs.length > 0 ? s.revenue / s.jobs.length : 0;
+    s.onTimeRate = s.onTimeTotal > 0 ? (s.onTimeJobs / s.onTimeTotal) * 100 : null;
     s.jobs.sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
   });
 
@@ -464,6 +529,100 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const workerComparisonData = workerStatsArr
     .map(w => ({ name: w.name, revenue: w.revenueThisMonth }))
     .filter(w => w.revenue > 0);
+
+  // ===== On-time helpers for UI =====
+  const onTimeColor = (rate: number | null) => {
+    if (rate === null) return "text-muted-foreground";
+    if (rate >= 80) return "text-green-600";
+    if (rate >= 60) return "text-amber-600";
+    return "text-destructive";
+  };
+  const onTimeLabel = (rate: number | null) => rate === null ? "No data" : `${rate.toFixed(0)}% on-time`;
+  const onTimeIcon = (diff: number | null) => {
+    if (diff === null) return "—";
+    if (diff <= 15) return "✅";
+    if (diff <= 30) return "⚠️";
+    return "❌";
+  };
+
+  // ===== CSV Export =====
+  const downloadCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
+    const escape = (v: any) => {
+      const s = String(v ?? "");
+      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+    const csvContent = [headers.map(escape).join(","), ...rows.map(r => r.map(escape).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSummaryCsv = () => {
+    const headers = ["Worker Name", "Jobs Completed", "Revenue Generated", "Avg Ticket", "Tips", "On-Time Rate", "Avg Rating", "Their Total Pay"];
+    const rows = workerStatsArr.map(w => [
+      w.name,
+      w.jobs.length,
+      w.revenue.toFixed(2),
+      w.avgTicket.toFixed(2),
+      w.tips.toFixed(2),
+      w.onTimeRate === null ? "No data" : `${w.onTimeRate.toFixed(0)}%`,
+      w.rating ? w.rating.avg.toFixed(2) : "",
+      w.earnings.toFixed(2),
+    ]);
+    downloadCsv(`av-detailing-team-summary-${format(new Date(), "yyyy-MM-dd")}.csv`, headers, rows);
+  };
+
+  const exportFullReportCsv = () => {
+    const headers = ["Worker Name", "Date", "Time", "Customer Name", "Package", "Vehicle Type", "Total Price", "Worker Pay", "Tip", "On-Time", "Rating", "Status"];
+    const rows: (string | number)[][] = [];
+    workerStatsArr.forEach(w => {
+      w.jobs.forEach(j => {
+        const diff = getOnTimeDiff(j);
+        const onTime = diff === null ? "No Data" : (diff <= 15 ? "Yes" : "No");
+        rows.push([
+          w.name,
+          j.scheduled_date,
+          j.scheduled_time || "",
+          j.guest_name || "",
+          j.services?.name || "",
+          j.vehicle_type || "",
+          (j.total_price || 0).toFixed(2),
+          calcBookingLaborCost(j).toFixed(2),
+          (Number(j.tip_amount) || 0).toFixed(2),
+          onTime,
+          j.rating != null ? j.rating : "",
+          j.status,
+        ]);
+      });
+    });
+    downloadCsv(`av-detailing-team-full-${format(new Date(), "yyyy-MM-dd")}.csv`, headers, rows);
+  };
+
+  // Drill-down weekly aggregation for selected worker
+  const drillStats = drillWorker ? workerStatsMap[drillWorker] : null;
+  const drillWeekly = useMemo(() => {
+    if (!drillStats || !dateRange?.from || !dateRange?.to) return [];
+    const weeks = eachWeekOfInterval({ start: dateRange.from, end: dateRange.to });
+    return weeks.map(weekStart => {
+      const weekEnd = endOfWeek(weekStart);
+      const weekJobs = drillStats.jobs.filter(j => {
+        const d = parseISO(j.scheduled_date);
+        return d >= weekStart && d <= weekEnd;
+      });
+      return {
+        date: format(weekStart, "MMM d"),
+        jobs: weekJobs.length,
+        revenue: weekJobs.reduce((s, j) => s + (j.total_price || 0), 0),
+      };
+    });
+  }, [drillStats, dateRange?.from, dateRange?.to]);
 
   const revenueTrends = getRevenueTrends();
   const servicePopularity = getServicePopularity();
@@ -500,6 +659,62 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Date Range Filter */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["week", "This Week"],
+                ["month", "This Month"],
+                ["30d", "Last 30 Days"],
+                ["90d", "Last 90 Days"],
+                ["year", "This Year"],
+              ] as [RangePreset, string][]).map(([k, label]) => (
+                <Button
+                  key={k}
+                  size="sm"
+                  variant={rangePreset === k ? "default" : "outline"}
+                  onClick={() => applyPreset(k)}
+                >
+                  {label}
+                </Button>
+              ))}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={rangePreset === "custom" ? "default" : "outline"}
+                  >
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    Custom
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(r) => {
+                      if (r?.from) {
+                        setRangePreset("custom");
+                        setDateRange(r);
+                      }
+                    }}
+                    numberOfMonths={2}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {dateRange?.from && dateRange?.to
+                ? `${format(dateRange.from, "MMM d, yyyy")} → ${format(dateRange.to, "MMM d, yyyy")}`
+                : "Select a date range"}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KPI Cards - Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -874,106 +1089,245 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       {/* ===== Team Performance ===== */}
       {workerStatsArr.length > 0 && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-bold mb-1">Team Performance</h2>
-            <p className="text-sm text-muted-foreground">Per-worker stats from completed jobs (last 6 months)</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold mb-1">Team Performance</h2>
+              <p className="text-sm text-muted-foreground">
+                Per-worker stats for the selected date range
+              </p>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" /> Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportSummaryCsv}>
+                  Export Summary CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportFullReportCsv}>
+                  Export Full Report CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {workerStatsArr.map(w => (
-              <Card key={w.workerId} className={w.workerId === topPerformerId ? "border-primary" : ""}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{w.initials}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base">{w.name}</CardTitle>
-                        {w.rating && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <span>{w.rating.avg.toFixed(1)} ({w.rating.count})</span>
-                          </div>
-                        )}
-                      </div>
+          {drillStats ? (
+            // ========== DRILL-DOWN PANEL ==========
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDrillWorker(null)}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-1" /> Back
+                    </Button>
+                    <Avatar>
+                      <AvatarFallback>{drillStats.initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg">{drillStats.name}</CardTitle>
+                      <CardDescription>
+                        {dateRange?.from && dateRange?.to
+                          ? `${format(dateRange.from, "MMM d, yyyy")} → ${format(dateRange.to, "MMM d, yyyy")}`
+                          : ""}
+                      </CardDescription>
                     </div>
-                    {w.workerId === topPerformerId && (
+                    {drillStats.workerId === topPerformerId && (
                       <Badge className="bg-yellow-500 text-yellow-50 hover:bg-yellow-600">
                         <Crown className="h-3 w-3 mr-1" /> Top Performer
                       </Badge>
                     )}
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Jobs (30d)</p>
-                      <p className="font-bold">{w.jobsLast30}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Revenue</p>
-                      <p className="font-bold">${w.revenue.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Avg Ticket</p>
-                      <p className="font-bold">${w.avgTicket.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Tips</p>
-                      <p className="font-bold text-emerald-600">${w.tips.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">On-Time Rate</p>
-                      <p className="font-bold text-muted-foreground">N/A</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Star Rating</p>
-                      <p className="font-bold">{w.rating ? `${w.rating.avg.toFixed(1)} ★` : "N/A"}</p>
-                    </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* KPI ROW */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Jobs Completed</p>
+                    <p className="text-xl font-bold">{drillStats.jobs.length}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-2 h-8 text-xs"
-                    onClick={() => setExpandedWorker(expandedWorker === w.workerId ? null : w.workerId)}
-                  >
-                    {expandedWorker === w.workerId ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                    {expandedWorker === w.workerId ? "Hide" : "View"} Last 10 Jobs
-                  </Button>
-                  {expandedWorker === w.workerId && (
-                    <div className="mt-2 overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs">Date</TableHead>
-                            <TableHead className="text-xs">Service</TableHead>
-                            <TableHead className="text-right text-xs">Total</TableHead>
-                            <TableHead className="text-right text-xs">Cut</TableHead>
-                            <TableHead className="text-right text-xs">Tip</TableHead>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Revenue</p>
+                    <p className="text-xl font-bold">${drillStats.revenue.toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                    <p className="text-xl font-bold">${drillStats.avgTicket.toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Tips Earned</p>
+                    <p className="text-xl font-bold text-emerald-600">${drillStats.tips.toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                    <p className={cn("text-xl font-bold", onTimeColor(drillStats.onTimeRate))}>
+                      {onTimeLabel(drillStats.onTimeRate)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Avg Rating</p>
+                    <p className="text-xl font-bold">
+                      {drillStats.rating
+                        ? <>⭐ {drillStats.rating.avg.toFixed(1)} <span className="text-xs text-muted-foreground">({drillStats.rating.count})</span></>
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* CHARTS */}
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm">Jobs per Week</CardTitle></CardHeader>
+                    <CardContent>
+                      <ChartContainer config={chartConfig} className="h-[220px] w-full">
+                        <BarChart data={drillWeekly}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                          <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="jobs" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm">Revenue per Week</CardTitle></CardHeader>
+                    <CardContent>
+                      <ChartContainer config={chartConfig} className="h-[220px] w-full">
+                        <BarChart data={drillWeekly}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                          <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* JOBS TABLE */}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Package</TableHead>
+                        <TableHead>Vehicle</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Their Pay</TableHead>
+                        <TableHead className="text-right">Tip</TableHead>
+                        <TableHead className="text-center">On-Time</TableHead>
+                        <TableHead className="text-center">Rating</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {drillStats.jobs.map(j => {
+                        const diff = getOnTimeDiff(j);
+                        return (
+                          <TableRow key={j.id}>
+                            <TableCell>{format(parseISO(j.scheduled_date), "MMM d, yyyy")}</TableCell>
+                            <TableCell>{j.scheduled_time?.slice(0, 5) || "—"}</TableCell>
+                            <TableCell className="max-w-[140px] truncate">{j.guest_name || "—"}</TableCell>
+                            <TableCell className="max-w-[140px] truncate">{j.services?.name || "—"}</TableCell>
+                            <TableCell>{j.vehicle_type || "—"}</TableCell>
+                            <TableCell className="text-right">${(j.total_price || 0).toFixed(0)}</TableCell>
+                            <TableCell className="text-right">${calcBookingLaborCost(j).toFixed(0)}</TableCell>
+                            <TableCell className="text-right">${(Number(j.tip_amount) || 0).toFixed(0)}</TableCell>
+                            <TableCell className="text-center">{onTimeIcon(diff)}</TableCell>
+                            <TableCell className="text-center">
+                              {j.rating != null ? `⭐ ${j.rating}` : "—"}
+                            </TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{j.status}</Badge></TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {w.jobs.slice(0, 10).map(j => (
-                            <TableRow key={j.id}>
-                              <TableCell className="text-xs">{format(parseISO(j.scheduled_date), "MMM d")}</TableCell>
-                              <TableCell className="text-xs truncate max-w-[120px]">{j.services?.name || "—"}</TableCell>
-                              <TableCell className="text-right text-xs">${(j.total_price || 0).toFixed(0)}</TableCell>
-                              <TableCell className="text-right text-xs">${calcBookingLaborCost(j).toFixed(0)}</TableCell>
-                              <TableCell className="text-right text-xs">${(Number(j.tip_amount) || 0).toFixed(0)}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            // ========== WORKER CARDS GRID ==========
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {workerStatsArr.map(w => (
+                <Card
+                  key={w.workerId}
+                  className={cn("cursor-pointer transition-shadow hover:shadow-md", w.workerId === topPerformerId ? "border-primary" : "")}
+                  onClick={() => setDrillWorker(w.workerId)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>{w.initials}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-base">{w.name}</CardTitle>
+                          {w.rating && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                              <span>{w.rating.avg.toFixed(1)} ({w.rating.count})</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {w.workerId === topPerformerId && (
+                        <Badge className="bg-yellow-500 text-yellow-50 hover:bg-yellow-600">
+                          <Crown className="h-3 w-3 mr-1" /> Top Performer
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Jobs (30d)</p>
+                        <p className="font-bold">{w.jobsLast30}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                        <p className="font-bold">${w.revenue.toFixed(0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                        <p className="font-bold">${w.avgTicket.toFixed(0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Tips</p>
+                        <p className="font-bold text-emerald-600">${w.tips.toFixed(0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                        <p className={cn("font-bold", onTimeColor(w.onTimeRate))}>
+                          {onTimeLabel(w.onTimeRate)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Star Rating</p>
+                        <p className="font-bold">{w.rating ? `${w.rating.avg.toFixed(1)} ★` : "N/A"}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center pt-2 border-t border-border mt-2">
+                      Click for full breakdown →
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Worker Revenue Comparison */}
-          {workerComparisonData.length > 0 && (
+          {!drillStats && workerComparisonData.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Worker Revenue — This Month</CardTitle>
