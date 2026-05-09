@@ -118,6 +118,13 @@ export default function WorkerEarningsPage() {
     }
   }, [activeFilter, todayEarnings, weekEarnings, monthEarnings, allEarnings]);
 
+  const avgDurationMinutes = useMemo(() => {
+    const withDur = filteredJobs.filter((b) => b.actual_duration_minutes != null && b.actual_duration_minutes > 0);
+    if (withDur.length === 0) return null;
+    const total = withDur.reduce((sum, b) => sum + Number(b.actual_duration_minutes), 0);
+    return total / withDur.length;
+  }, [filteredJobs]);
+
   const filterTabs: { key: TimeFilter; label: string }[] = [
     { key: "today", label: "Today" },
     { key: "week", label: "This Week" },
