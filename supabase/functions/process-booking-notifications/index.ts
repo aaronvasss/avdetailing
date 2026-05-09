@@ -215,6 +215,8 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">📍 ${city}, ${state}</p>
 </div>
 
+${paymentBanner}
+
 <!-- Main Card -->
 <div style="background:linear-gradient(180deg,#1a1a1a 0%,#0f0f0f 100%);border-radius:16px;overflow:hidden;border:1px solid #262626;">
 
