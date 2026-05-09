@@ -177,7 +177,12 @@ export function AdminLayout({
                 )}
               >
                 {item.icon}
-                {item.label}
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.id === "quotes" && quotesAttentionCount > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px]">
+                    {quotesAttentionCount}
+                  </Badge>
+                )}
               </button>
             ))}
 
