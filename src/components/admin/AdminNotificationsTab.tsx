@@ -1,217 +1,248 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { 
-  Send, 
-  MessageSquare, 
-  Mail, 
-  Phone, 
-  RefreshCw, 
-  Loader2,
-  CheckCircle,
-  Car,
-  Star,
-  Calendar
+import {
+  AlertTriangle, AlertCircle, Info, TrendingUp, CheckCircle2,
+  Loader2, RefreshCw, Bell,
 } from "lucide-react";
-import { toast } from "sonner";
-import { format, isToday, isTomorrow } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths, addHours, subHours, subDays } from "date-fns";
+import { cn } from "@/lib/utils";
 
-interface Booking {
+type Severity = "critical" | "warning" | "info" | "success";
+
+export interface AdminAlert {
   id: string;
-  scheduled_date: string;
-  scheduled_time: string;
-  status: string;
-  guest_name: string | null;
-  guest_phone: string | null;
-  guest_email: string | null;
-  user_id: string | null;
-  profiles?: { full_name: string | null; phone: string | null; email: string | null } | null;
-  services?: { name: string } | null;
+  severity: Severity;
+  title: string;
+  description: string;
+  actionLabel: string;
+  targetTab?: string;
 }
 
-type NotificationType = "confirmation" | "on_the_way" | "review_request" | "custom";
+const ACK_KEY = "admin_alert_ack_v1";
+const ACK_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-export function AdminNotificationsTab() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+const readAcks = (): Record<string, number> => {
+  try { return JSON.parse(localStorage.getItem(ACK_KEY) || "{}"); } catch { return {}; }
+};
+const writeAck = (id: string) => {
+  const acks = readAcks();
+  acks[id] = Date.now();
+  localStorage.setItem(ACK_KEY, JSON.stringify(acks));
+};
+const isAcked = (id: string, acks: Record<string, number>) =>
+  !!acks[id] && Date.now() - acks[id] < ACK_TTL_MS;
+
+export async function computeAdminAlerts(): Promise<AdminAlert[]> {
+  const now = new Date();
+  const todayStr = format(now, "yyyy-MM-dd");
+  const in2hStr = addHours(now, 2).toISOString();
+  const last24hStr = subHours(now, 24).toISOString();
+  const last7dStr = format(subDays(now, 7), "yyyy-MM-dd");
+
+  const [
+    todaysConfirmed,
+    upcoming2h,
+    unpaidCompleted,
+    expiringQuotes,
+    stalePending,
+    newBookings,
+    noShows,
+    thisMonth,
+    lastMonth,
+  ] = await Promise.all([
+    supabase.from("bookings")
+      .select("id, scheduled_time, assigned_worker_id, status")
+      .eq("scheduled_date", todayStr)
+      .eq("status", "confirmed")
+      .is("assigned_worker_id", null),
+    supabase.from("bookings")
+      .select("id, scheduled_date, scheduled_time, assigned_worker_id, status")
+      .eq("scheduled_date", todayStr)
+      .in("status", ["confirmed", "pending"])
+      .is("assigned_worker_id", null),
+    supabase.from("bookings")
+      .select("id")
+      .eq("status", "completed")
+      .eq("payment_status", "unpaid"),
+    supabase.from("quotes")
+      .select("id, expires_at, status")
+      .in("status", ["pending", "quoted"])
+      .not("expires_at", "is", null)
+      .lte("expires_at", addHours(now, 48).toISOString())
+      .gte("expires_at", now.toISOString()),
+    supabase.from("bookings")
+      .select("id, created_at, status")
+      .eq("status", "pending")
+      .lte("created_at", last24hStr),
+    supabase.from("bookings")
+      .select("id, created_at")
+      .gte("created_at", last24hStr),
+    supabase.from("bookings")
+      .select("id, scheduled_date, status")
+      .eq("status", "no_show")
+      .gte("scheduled_date", last7dStr),
+    supabase.from("bookings")
+      .select("total_price, payment_status")
+      .gte("scheduled_date", format(startOfMonth(now), "yyyy-MM-dd"))
+      .lte("scheduled_date", format(endOfMonth(now), "yyyy-MM-dd"))
+      .in("payment_status", ["paid", "completed"]),
+    supabase.from("bookings")
+      .select("total_price, payment_status")
+      .gte("scheduled_date", format(startOfMonth(subMonths(now, 1)), "yyyy-MM-dd"))
+      .lte("scheduled_date", format(endOfMonth(subMonths(now, 1)), "yyyy-MM-dd"))
+      .in("payment_status", ["paid", "completed"]),
+  ]);
+
+  const alerts: AdminAlert[] = [];
+
+  // Filter the upcoming-2h list client-side to "next 2 hours" only
+  const soonUnassigned = (upcoming2h.data || []).filter((b: any) => {
+    const dt = new Date(`${b.scheduled_date}T${b.scheduled_time}`);
+    return dt >= now && dt.toISOString() <= in2hStr;
+  });
+
+  if (soonUnassigned.length > 0) {
+    const first = soonUnassigned[0];
+    const t = (first.scheduled_time || "").slice(0, 5);
+    alerts.push({
+      id: "urgent_unassigned_2h",
+      severity: "critical",
+      title: soonUnassigned.length === 1 ? `Urgent: job at ${t} has no technician` : `${soonUnassigned.length} jobs in next 2h need a technician`,
+      description: "Assign a worker immediately to avoid a missed appointment.",
+      actionLabel: "Assign Now",
+      targetTab: "calendar",
+    });
+  }
+
+  if ((todaysConfirmed.data?.length || 0) > 0) {
+    alerts.push({
+      id: "today_unassigned",
+      severity: "critical",
+      title: `${todaysConfirmed.data!.length} job${todaysConfirmed.data!.length === 1 ? "" : "s"} today need a technician`,
+      description: "Confirmed bookings scheduled for today have no assigned worker.",
+      actionLabel: "Assign Now",
+      targetTab: "calendar",
+    });
+  }
+
+  if ((unpaidCompleted.data?.length || 0) > 0) {
+    alerts.push({
+      id: "unpaid_completed",
+      severity: "warning",
+      title: `${unpaidCompleted.data!.length} completed job${unpaidCompleted.data!.length === 1 ? "" : "s"} awaiting payment`,
+      description: "Send payment reminders to customers with outstanding balances.",
+      actionLabel: "Send Reminders",
+      targetTab: "bookings",
+    });
+  }
+
+  if ((expiringQuotes.data?.length || 0) > 0) {
+    alerts.push({
+      id: "quotes_expiring",
+      severity: "warning",
+      title: `${expiringQuotes.data!.length} quote${expiringQuotes.data!.length === 1 ? "" : "s"} expire soon`,
+      description: "These quotes expire in the next 48 hours — follow up with the customer.",
+      actionLabel: "View Quotes",
+      targetTab: "quotes",
+    });
+  }
+
+  if ((stalePending.data?.length || 0) > 0) {
+    alerts.push({
+      id: "stale_pending",
+      severity: "warning",
+      title: `${stalePending.data!.length} booking${stalePending.data!.length === 1 ? "" : "s"} waiting for confirmation`,
+      description: "Pending more than 24 hours without confirm or deny.",
+      actionLabel: "Review Bookings",
+      targetTab: "bookings",
+    });
+  }
+
+  if ((newBookings.data?.length || 0) > 0) {
+    alerts.push({
+      id: "new_bookings_24h",
+      severity: "info",
+      title: `${newBookings.data!.length} new booking${newBookings.data!.length === 1 ? "" : "s"} today`,
+      description: "Fresh bookings received in the last 24 hours.",
+      actionLabel: "View Bookings",
+      targetTab: "bookings",
+    });
+  }
+
+  if ((noShows.data?.length || 0) > 0) {
+    alerts.push({
+      id: "no_shows_7d",
+      severity: "info",
+      title: `${noShows.data!.length} no-show${noShows.data!.length === 1 ? "" : "s"} this week`,
+      description: "Review no-show bookings from the past 7 days.",
+      actionLabel: "View Bookings",
+      targetTab: "bookings",
+    });
+  }
+
+  const sumRev = (rows: any[] | null) => (rows || []).reduce((s, r) => s + Number(r.total_price || 0), 0);
+  const tm = sumRev(thisMonth.data);
+  const lm = sumRev(lastMonth.data);
+  if (lm > 0 && tm > lm) {
+    const pct = Math.round(((tm - lm) / lm) * 100);
+    alerts.push({
+      id: `revenue_up_${format(now, "yyyy-MM")}`,
+      severity: "success",
+      title: `📈 Revenue is up ${pct}% vs last month`,
+      description: `This month: $${tm.toFixed(0)} • Last month: $${lm.toFixed(0)}`,
+      actionLabel: "View Analytics",
+      targetTab: "analytics",
+    });
+  }
+
+  return alerts;
+}
+
+export async function getActiveAlertCount(): Promise<number> {
+  try {
+    const alerts = await computeAdminAlerts();
+    const acks = readAcks();
+    return alerts.filter(a => (a.severity === "critical" || a.severity === "warning") && !isAcked(a.id, acks)).length;
+  } catch {
+    return 0;
+  }
+}
+
+const SEVERITY_STYLES: Record<Severity, { border: string; bg: string; icon: React.ElementType; iconColor: string; emoji: string }> = {
+  critical: { border: "border-l-destructive", bg: "bg-destructive/5", icon: AlertCircle, iconColor: "text-destructive", emoji: "🔴" },
+  warning:  { border: "border-l-yellow-500", bg: "bg-yellow-500/5", icon: AlertTriangle, iconColor: "text-yellow-600", emoji: "🟡" },
+  info:     { border: "border-l-blue-500", bg: "bg-blue-500/5", icon: Info, iconColor: "text-blue-600", emoji: "🔵" },
+  success:  { border: "border-l-green-500", bg: "bg-green-500/5", icon: TrendingUp, iconColor: "text-green-600", emoji: "🟢" },
+};
+
+interface Props {
+  onNavigateTab?: (tab: string) => void;
+}
+
+export function AdminNotificationsTab({ onNavigateTab }: Props = {}) {
+  const [alerts, setAlerts] = useState<AdminAlert[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState<string | null>(null);
-  const [customDialogOpen, setCustomDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [customMessage, setCustomMessage] = useState("");
-  const [messageType, setMessageType] = useState<"sms" | "email">("sms");
-  const [manualPhone, setManualPhone] = useState("");
-  const [manualEmail, setManualEmail] = useState("");
-  const [manualMessage, setManualMessage] = useState("");
-  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [acks, setAcks] = useState<Record<string, number>>(readAcks());
 
-  useEffect(() => {
-    fetchBookings();
+  const load = useCallback(async () => {
+    setLoading(true);
+    const a = await computeAdminAlerts();
+    setAlerts(a);
+    setAcks(readAcks());
+    setLoading(false);
   }, []);
 
-  const fetchBookings = async () => {
-    setLoading(true);
-    try {
-      const today = format(new Date(), "yyyy-MM-dd");
-      const { data, error } = await supabase
-        .from("bookings")
-        .select(`
-          id,
-          scheduled_date,
-          scheduled_time,
-          status,
-          guest_name,
-          guest_phone,
-          guest_email,
-          user_id,
-          profiles!bookings_user_id_fkey (full_name, phone, email),
-          services (name)
-        `)
-        .gte("scheduled_date", today)
-        .in("status", ["confirmed", "pending", "completed"])
-        .order("scheduled_date", { ascending: true })
-        .order("scheduled_time", { ascending: true })
-        .limit(50);
+  useEffect(() => { load(); }, [load]);
 
-      if (error) throw error;
-      setBookings((data as any[]) || []);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-    } finally {
-      setLoading(false);
-    }
+  const visibleAlerts = alerts.filter(a => !isAcked(a.id, acks));
+
+  const handleAction = (alert: AdminAlert) => {
+    writeAck(alert.id);
+    setAcks(readAcks());
+    if (alert.targetTab) onNavigateTab?.(alert.targetTab);
   };
-
-  const getCustomerInfo = (booking: Booking) => {
-    if (booking.user_id && booking.profiles) {
-      return {
-        name: booking.profiles.full_name || "Customer",
-        phone: booking.profiles.phone,
-        email: booking.profiles.email,
-      };
-    }
-    return {
-      name: booking.guest_name || "Guest",
-      phone: booking.guest_phone,
-      email: booking.guest_email,
-    };
-  };
-
-  const sendNotification = async (booking: Booking, type: NotificationType, customMsg?: string) => {
-    const customer = getCustomerInfo(booking);
-    const sendingKey = `${booking.id}-${type}`;
-    setSending(sendingKey);
-
-    try {
-      let message = "";
-      const serviceName = booking.services?.name || "your service";
-      const dateStr = format(new Date(booking.scheduled_date), "EEEE, MMMM d");
-      
-      switch (type) {
-        case "confirmation":
-          message = `Hi ${customer.name}! Your ${serviceName} appointment is confirmed for ${dateStr} at ${booking.scheduled_time}. Reply STOP to opt out.`;
-          break;
-        case "on_the_way":
-          message = `Hi ${customer.name}! AV Detailing is on the way for your ${serviceName} appointment. We'll be there shortly! 🚗`;
-          break;
-        case "review_request":
-          message = `Hi ${customer.name}! Thank you for choosing AV Detailing! We'd love to hear about your experience. Please leave us a review: [Review Link]. Thank you! ⭐`;
-          break;
-        case "custom":
-          message = customMsg || "";
-          break;
-      }
-
-      if (!message) {
-        toast.error("No message to send");
-        return;
-      }
-
-      if (!customer.phone) {
-        toast.error("No phone number available for this customer");
-        return;
-      }
-
-      const { error } = await supabase.functions.invoke("send-sms", {
-        body: { 
-          to: customer.phone, 
-          message,
-          bookingId: booking.id 
-        },
-      });
-
-      if (error) throw error;
-      toast.success(`${type === "on_the_way" ? "On the way" : type.charAt(0).toUpperCase() + type.slice(1)} notification sent!`);
-      
-      // Clear custom message if applicable
-      if (type === "custom") {
-        setCustomMessage("");
-        setCustomDialogOpen(false);
-      }
-    } catch (error) {
-      console.error("Error sending notification:", error);
-      toast.error("Failed to send notification");
-    } finally {
-      setSending(null);
-    }
-  };
-
-  const sendManualMessage = async () => {
-    if (messageType === "sms" && !manualPhone) {
-      toast.error("Phone number is required");
-      return;
-    }
-    if (messageType === "email" && !manualEmail) {
-      toast.error("Email address is required");
-      return;
-    }
-    if (!manualMessage.trim()) {
-      toast.error("Message is required");
-      return;
-    }
-
-    setSending("manual");
-
-    try {
-      if (messageType === "sms") {
-        const { error } = await supabase.functions.invoke("send-sms", {
-          body: { to: manualPhone, message: manualMessage },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.functions.invoke("send-contact-email", {
-          body: {
-            to: manualEmail,
-            subject: "Message from AV Detailing",
-            message: manualMessage,
-            isAdmin: true,
-          },
-        });
-        if (error) throw error;
-      }
-
-      toast.success(`${messageType.toUpperCase()} sent successfully!`);
-      setManualPhone("");
-      setManualEmail("");
-      setManualMessage("");
-      setManualDialogOpen(false);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message");
-    } finally {
-      setSending(null);
-    }
-  };
-
-  const todaysBookings = bookings.filter(b => isToday(new Date(b.scheduled_date)));
-  const tomorrowsBookings = bookings.filter(b => isTomorrow(new Date(b.scheduled_date)));
-  const completedBookings = bookings.filter(b => b.status === "completed");
 
   if (loading) {
     return (
@@ -222,303 +253,56 @@ export function AdminNotificationsTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Quick Actions Header */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
-        <div>
-          <h2 className="text-xl font-semibold">Notifications Center</h2>
-          <p className="text-sm text-muted-foreground">Send confirmations, on-the-way alerts, and review requests</p>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Bell className="h-4 w-4" />
+          <span>{visibleAlerts.length} active alert{visibleAlerts.length === 1 ? "" : "s"}</span>
         </div>
-        <div className="flex gap-2">
-          <Dialog open={manualDialogOpen} onOpenChange={setManualDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Send className="h-4 w-4 mr-2" />
-                Manual Message
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Send Manual Message</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Message Type</Label>
-                  <Select value={messageType} onValueChange={(v: "sms" | "email") => setMessageType(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sms">SMS</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {messageType === "sms" ? (
-                  <div className="space-y-2">
-                    <Label>Phone Number</Label>
-                    <Input
-                      placeholder="+1 (555) 000-0000"
-                      value={manualPhone}
-                      onChange={(e) => setManualPhone(e.target.value)}
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label>Email Address</Label>
-                    <Input
-                      type="email"
-                      placeholder="customer@example.com"
-                      value={manualEmail}
-                      onChange={(e) => setManualEmail(e.target.value)}
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Message</Label>
-                  <Textarea
-                    placeholder="Type your message..."
-                    value={manualMessage}
-                    onChange={(e) => setManualMessage(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setManualDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={sendManualMessage} disabled={sending === "manual"}>
-                  {sending === "manual" ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : messageType === "sms" ? (
-                    <Phone className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Mail className="h-4 w-4 mr-2" />
-                  )}
-                  Send
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Button variant="outline" size="icon" onClick={fetchBookings}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={load}>
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+        </Button>
       </div>
 
-      {/* Today's Bookings - On The Way */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Car className="h-5 w-5 text-primary" />
-            Today's Appointments
-          </CardTitle>
-          <CardDescription>Send "On the Way" notifications to today's customers</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {todaysBookings.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No appointments today</p>
-          ) : (
-            <div className="space-y-3">
-              {todaysBookings.map((booking) => {
-                const customer = getCustomerInfo(booking);
-                const sendingKey = `${booking.id}-on_the_way`;
-                return (
-                  <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">{customer.name}</span>
-                        <Badge variant="secondary">{booking.scheduled_time}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {booking.services?.name} • {customer.phone || "No phone"}
-                      </p>
+      {visibleAlerts.length === 0 ? (
+        <Card className="border-green-500/30 bg-green-500/5">
+          <CardContent className="py-12 flex flex-col items-center text-center">
+            <div className="rounded-full bg-green-500/10 p-4 mb-4">
+              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-green-700 dark:text-green-500">All Clear</h3>
+            <p className="text-sm text-muted-foreground mt-1">Everything looks good! No issues found.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-3">
+          {visibleAlerts.map((alert) => {
+            const s = SEVERITY_STYLES[alert.severity];
+            const Icon = s.icon;
+            return (
+              <Card key={alert.id} className={cn("border-l-4", s.border, s.bg)}>
+                <CardContent className="p-4 flex items-start gap-3">
+                  <Icon className={cn("h-5 w-5 mt-0.5 flex-shrink-0", s.iconColor)} />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-foreground">
+                      {s.emoji} {alert.title}
                     </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => sendNotification(booking, "confirmation")}
-                        disabled={sending === `${booking.id}-confirmation`}
-                      >
-                        {sending === `${booking.id}-confirmation` ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => sendNotification(booking, "on_the_way")}
-                        disabled={sending === sendingKey}
-                      >
-                        {sending === sendingKey ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Car className="h-4 w-4 mr-1" />
-                            On the Way
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">{alert.description}</div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Tomorrow's Bookings - Confirmation Reminders */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Tomorrow's Appointments
-          </CardTitle>
-          <CardDescription>Send confirmation reminders for tomorrow</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {tomorrowsBookings.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No appointments tomorrow</p>
-          ) : (
-            <div className="space-y-3">
-              {tomorrowsBookings.map((booking) => {
-                const customer = getCustomerInfo(booking);
-                const sendingKey = `${booking.id}-confirmation`;
-                return (
-                  <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">{customer.name}</span>
-                        <Badge variant="secondary">{booking.scheduled_time}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {booking.services?.name} • {customer.phone || "No phone"}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => sendNotification(booking, "confirmation")}
-                      disabled={sending === sendingKey}
-                    >
-                      {sending === sendingKey ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          Resend Confirmation
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Completed - Review Requests */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-            Request Reviews
-          </CardTitle>
-          <CardDescription>Send review requests to completed bookings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {completedBookings.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No completed bookings to request reviews from</p>
-          ) : (
-            <div className="space-y-3">
-              {completedBookings.slice(0, 10).map((booking) => {
-                const customer = getCustomerInfo(booking);
-                const sendingKey = `${booking.id}-review_request`;
-                return (
-                  <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">{customer.name}</span>
-                        <Badge variant="outline">
-                          {format(new Date(booking.scheduled_date), "MMM d")}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {booking.services?.name}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => sendNotification(booking, "review_request")}
-                      disabled={sending === sendingKey}
-                    >
-                      {sending === sendingKey ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Star className="h-4 w-4 mr-1" />
-                          Request Review
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Custom Message Dialog */}
-      <Dialog open={customDialogOpen} onOpenChange={setCustomDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send Custom Message</DialogTitle>
-          </DialogHeader>
-          {selectedBooking && (
-            <div className="space-y-4">
-              <div className="p-3 rounded-lg bg-muted">
-                <p className="font-medium">{getCustomerInfo(selectedBooking).name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {getCustomerInfo(selectedBooking).phone}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Message</Label>
-                <Textarea
-                  placeholder="Type your custom message..."
-                  value={customMessage}
-                  onChange={(e) => setCustomMessage(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCustomDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => selectedBooking && sendNotification(selectedBooking, "custom", customMessage)}
-              disabled={sending === `${selectedBooking?.id}-custom` || !customMessage.trim()}
-            >
-              {sending === `${selectedBooking?.id}-custom` ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Send
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                  <Button
+                    size="sm"
+                    variant={alert.severity === "critical" ? "destructive" : "default"}
+                    onClick={() => handleAction(alert)}
+                    className="flex-shrink-0"
+                  >
+                    {alert.actionLabel}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
