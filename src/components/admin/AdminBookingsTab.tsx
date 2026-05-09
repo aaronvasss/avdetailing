@@ -45,6 +45,7 @@ interface Booking {
   profiles: { full_name: string; email: string; phone: string } | null;
   package_name: string | null;
   booking_add_ons: { id: string; name: string; price: number }[];
+  stripe_amount_cents: number | null;
 }
 
 const getDisplayLabel = (b: Pick<Booking, "package_name" | "custom_service_description" | "services">) =>
