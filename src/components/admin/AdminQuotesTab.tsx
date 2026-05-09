@@ -322,6 +322,119 @@ export function AdminQuotesTab() {
     converted: quotes.filter(q => q.status === 'converted').length,
   };
 
+  // Conversion rate
+  const convertedCount = quotes.filter(q => q.status === 'converted').length;
+  const declinedCount = quotes.filter(q => q.status === 'declined').length;
+  const expiredCount = quotes.filter(q => q.status === 'expired').length;
+  const conversionDenominator = convertedCount + declinedCount + expiredCount;
+  const conversionRate = conversionDenominator > 0
+    ? Math.round((convertedCount / conversionDenominator) * 100)
+    : 0;
+
+  // Expiration helpers
+  const getExpiry = (q: Quote) => {
+    if (!q.expires_at) return null;
+    const ms = new Date(q.expires_at).getTime() - Date.now();
+    const days = Math.ceil(ms / 86400000);
+    return { days, expired: ms < 0 };
+  };
+
+  const ExpiryBadge = ({ q }: { q: Quote }) => {
+    const e = getExpiry(q);
+    if (!e) return null;
+    if (e.expired) {
+      return <Badge className="bg-red-500/10 text-red-500 border-red-500/20">Expired</Badge>;
+    }
+    if (e.days <= 3) {
+      return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">Expires in {e.days}d</Badge>;
+    }
+    return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Expires in {e.days}d</Badge>;
+  };
+
+  // Quotes needing attention
+  const attentionQuotes = quotes.filter(q => {
+    if (!['pending', 'quoted'].includes(q.status)) return false;
+    const ageDays = (Date.now() - new Date(q.created_at).getTime()) / 86400000;
+    const e = getExpiry(q);
+    const stalePending = q.status === 'pending' && ageDays >= 3 && !followups[q.id];
+    const expiringSoon = e && !e.expired && e.days <= 2;
+    return stalePending || expiringSoon;
+  });
+
+  const handleSendFollowup = async (quote: Quote) => {
+    const email = quote.profiles?.email || quote.guest_email;
+    if (!email) {
+      toast.error("No email on file for this customer");
+      return;
+    }
+    setSendingFollowup(quote.id);
+    try {
+      const name = getCustomerName(quote).split(' ')[0] || 'there';
+      const expiryStr = quote.expires_at
+        ? format(new Date(quote.expires_at), 'MMM d, yyyy')
+        : 'soon';
+      const bookingLink = `${window.location.origin}/booking`;
+      const message = `Hi ${name}, just checking in on the quote we sent you for ${quote.service_type} detailing. It's valid until ${expiryStr}. Ready to book? Reply to this email or click here: ${bookingLink}`;
+
+      const { error } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: 'AV Detailing',
+          email,
+          service: quote.service_type,
+          message,
+        },
+      });
+      if (error) throw error;
+
+      const next = { ...followups, [quote.id]: new Date().toISOString() };
+      setFollowups(next);
+      localStorage.setItem("quote_followups", JSON.stringify(next));
+      toast.success(`Follow-up sent to ${email}`);
+    } catch (err: any) {
+      console.error('Follow-up error', err);
+      toast.error("Failed to send follow-up");
+    } finally {
+      setSendingFollowup(null);
+    }
+  };
+
+  const openMarkBooked = (quote: Quote) => {
+    setBookedQuote(quote);
+    setLinkBookingId("");
+    setBookedDialogOpen(true);
+  };
+
+  const handleMarkBooked = async () => {
+    if (!bookedQuote) return;
+    setProcessing(true);
+    try {
+      const updates: any = { status: 'converted' };
+      if (linkBookingId.trim()) {
+        const { data: bk } = await supabase
+          .from('bookings')
+          .select('id')
+          .eq('id', linkBookingId.trim())
+          .maybeSingle();
+        if (!bk) {
+          toast.error("Booking ID not found");
+          setProcessing(false);
+          return;
+        }
+        updates.booking_id = bk.id;
+      }
+      const { error } = await supabase.from('quotes').update(updates).eq('id', bookedQuote.id);
+      if (error) throw error;
+      toast.success("Quote marked as converted");
+      setBookedDialogOpen(false);
+      fetchQuotes();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to mark as booked");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats */}
