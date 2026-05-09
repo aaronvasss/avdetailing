@@ -57,6 +57,7 @@ interface PackageRow {
   vehicle_type: string;
   price: number;
   sort_order: number;
+  stripe_price_id: string | null;
 }
 
 interface AddOnRow {
@@ -255,7 +256,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
         const [pkgRes, addRes] = await Promise.all([
           supabase
             .from("service_packages")
-            .select("slug, name, vehicle_type, price, sort_order")
+            .select("slug, name, vehicle_type, price, sort_order, stripe_price_id")
             .eq("service_id", sid)
             .eq("is_active", true)
             .order("sort_order", { ascending: true }),
@@ -492,8 +493,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             worker_pay_rate: resolvedAssignedWorkerId && customPayRate ? parseFloat(customPayRate) : null,
           client_id: selectedClientId,
           add_ons: pricingMode === "package"
-            ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price }))
+            ? selectedAddOnDetails.map(a => ({ add_on_id: a.id, name: a.name, price: a.price, stripe_price_id: a.stripe_price_id }))
             : [],
+          package_slug: pricingMode === "package" && !isSpecialty && !isMembership ? selectedPackageId : null,
+          package_stripe_price_id: pricingMode === "package" && !isSpecialty && !isMembership && form.vehicleType
+            ? (packageRows.find(r => r.slug === selectedPackageId && r.vehicle_type === form.vehicleType)?.stripe_price_id || null)
+            : null,
           skip_notifications: isPastDate,
           custom_service_description: form.serviceType === "custom" ? (form.customServiceDescription || null) : null,
           // Boat-specific fields
@@ -968,20 +973,20 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                               ? `Membership: ${membershipPackages.find(p => p.id === selectedPackageId)?.label || ""}`
                               : `Package: ${carPackages.find(p => p.slug === selectedPackageId)?.label || ""}`}
                         </span>
-                        <span className="font-medium">${packagePrice}</span>
+                        <span className="font-medium">${packagePrice.toFixed(2)}</span>
                       </div>
                       {selectedAddOns.map(id => {
                         const a = addOnsList.find(x => x.id === id)!;
                         return (
                           <div key={id} className="flex justify-between text-sm text-muted-foreground">
                             <span>+ {a.name}</span>
-                            <span>${a.price}</span>
+                            <span>${a.price.toFixed(2)}</span>
                           </div>
                         );
                       })}
                       <div className={cn("flex justify-between text-sm font-bold", selectedAddOns.length > 0 && "border-t border-border pt-1.5 mt-1.5")}>
                         <span>Total</span>
-                        <span className="text-primary">${totalPrice}</span>
+                        <span className="text-primary">${totalPrice.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
@@ -1182,7 +1187,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             ) : (
               <>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Booking {totalPrice > 0 ? `— $${totalPrice}` : ""}
+                Create Booking {totalPrice > 0 ? `— $${totalPrice.toFixed(2)}` : ""}
               </>
             )}
           </Button>
