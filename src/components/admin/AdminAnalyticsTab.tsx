@@ -41,6 +41,7 @@ interface Booking {
   scheduled_date: string;
   scheduled_time: string | null;
   in_progress_at: string | null;
+  clock_in_at?: string | null;
   completed_at?: string | null;
   total_price: number | null;
   tip_amount: number | null;
