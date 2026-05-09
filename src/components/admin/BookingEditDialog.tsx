@@ -1346,12 +1346,24 @@ AV Detailing
             <Save className="h-4 w-4 mr-2" />
             Save Changes
           </Button>
+          {lastSavedAt && (
+            <Button
+              onClick={handleResendConfirmation}
+              disabled={resending}
+              variant="secondary"
+              className="w-full min-h-[44px] text-base"
+            >
+              {resending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              <Mail className="h-4 w-4 mr-2" />
+              Send Updated Confirmation
+            </Button>
+          )}
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
             className="w-full min-h-[44px] text-base"
           >
-            Cancel
+            Close
           </Button>
         </div>
       </DialogContent>
