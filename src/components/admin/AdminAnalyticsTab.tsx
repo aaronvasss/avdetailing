@@ -870,6 +870,143 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           </ChartContainer>
         </CardContent>
       </Card>
+
+      {/* ===== Team Performance ===== */}
+      {workerStatsArr.length > 0 && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold mb-1">Team Performance</h2>
+            <p className="text-sm text-muted-foreground">Per-worker stats from completed jobs (last 6 months)</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {workerStatsArr.map(w => (
+              <Card key={w.workerId} className={w.workerId === topPerformerId ? "border-primary" : ""}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{w.initials}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-base">{w.name}</CardTitle>
+                        {w.rating && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            <span>{w.rating.avg.toFixed(1)} ({w.rating.count})</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {w.workerId === topPerformerId && (
+                      <Badge className="bg-yellow-500 text-yellow-50 hover:bg-yellow-600">
+                        <Crown className="h-3 w-3 mr-1" /> Top Performer
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Jobs (30d)</p>
+                      <p className="font-bold">{w.jobsLast30}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Revenue</p>
+                      <p className="font-bold">${w.revenue.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                      <p className="font-bold">${w.avgTicket.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Tips</p>
+                      <p className="font-bold text-emerald-600">${w.tips.toFixed(0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                      <p className="font-bold text-muted-foreground">N/A</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Star Rating</p>
+                      <p className="font-bold">{w.rating ? `${w.rating.avg.toFixed(1)} ★` : "N/A"}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2 h-8 text-xs"
+                    onClick={() => setExpandedWorker(expandedWorker === w.workerId ? null : w.workerId)}
+                  >
+                    {expandedWorker === w.workerId ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                    {expandedWorker === w.workerId ? "Hide" : "View"} Last 10 Jobs
+                  </Button>
+                  {expandedWorker === w.workerId && (
+                    <div className="mt-2 overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Date</TableHead>
+                            <TableHead className="text-xs">Service</TableHead>
+                            <TableHead className="text-right text-xs">Total</TableHead>
+                            <TableHead className="text-right text-xs">Cut</TableHead>
+                            <TableHead className="text-right text-xs">Tip</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {w.jobs.slice(0, 10).map(j => (
+                            <TableRow key={j.id}>
+                              <TableCell className="text-xs">{format(parseISO(j.scheduled_date), "MMM d")}</TableCell>
+                              <TableCell className="text-xs truncate max-w-[120px]">{j.services?.name || "—"}</TableCell>
+                              <TableCell className="text-right text-xs">${(j.total_price || 0).toFixed(0)}</TableCell>
+                              <TableCell className="text-right text-xs">${calcBookingLaborCost(j).toFixed(0)}</TableCell>
+                              <TableCell className="text-right text-xs">${(Number(j.tip_amount) || 0).toFixed(0)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Worker Revenue Comparison */}
+          {workerComparisonData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Worker Revenue — This Month</CardTitle>
+                <CardDescription>Revenue generated per technician (current month)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                  <BarChart data={workerComparisonData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={120} />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="rounded-lg border bg-background p-3 shadow-md">
+                              <p className="font-medium">{data.name}</p>
+                              <p className="text-sm text-primary">Revenue: ${data.revenue.toLocaleString()}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }
