@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { WorkerJobCard } from "@/components/worker/WorkerJobCard";
 import { WeatherWidget } from "@/components/worker/WeatherWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wrench, Clock, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { formatStopwatch } from "@/lib/duration-format";
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
