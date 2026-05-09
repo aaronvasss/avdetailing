@@ -877,62 +877,84 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                   {!isSpecialty && !isMembership && (
                     <div>
                       <Label className="mb-2 block">Package</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {carPackages.map(pkg => {
-                          const price = form.vehicleType
-                            ? (pkg.id === "silver" ? getSilverPrice(form.vehicleType) : pkg.prices[getVehicleBucket(form.vehicleType)])
-                            : null;
-                          return (
-                            <button
-                              key={pkg.id}
-                              type="button"
-                              onClick={() => setSelectedPackageId(pkg.id)}
-                              className={cn(
-                                "rounded-lg border-2 p-3 text-left transition-all",
-                                selectedPackageId === pkg.id
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border hover:border-muted-foreground/40"
-                              )}
-                            >
-                              <p className="text-sm font-semibold">{pkg.label}</p>
-                              {price !== null ? (
-                                <p className="text-lg font-bold text-primary">${price}</p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground">Select vehicle type</p>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {pricingLoading ? (
+                        <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading packages...
+                        </div>
+                      ) : pricingError || carPackages.length === 0 ? (
+                        <p className="text-sm text-destructive p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                          Price unavailable — contact admin
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {carPackages.map(pkg => {
+                            const price = form.vehicleType
+                              ? getPackagePrice(pkg.slug, form.vehicleType)
+                              : null;
+                            return (
+                              <button
+                                key={pkg.slug}
+                                type="button"
+                                onClick={() => setSelectedPackageId(pkg.slug)}
+                                className={cn(
+                                  "rounded-lg border-2 p-3 text-left transition-all",
+                                  selectedPackageId === pkg.slug
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border hover:border-muted-foreground/40"
+                                )}
+                              >
+                                <p className="text-sm font-semibold">{pkg.label}</p>
+                                {price !== null ? (
+                                  <p className="text-lg font-bold text-primary">${price.toFixed(2)}</p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">
+                                    {form.vehicleType ? "Price unavailable" : "Select vehicle type"}
+                                  </p>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Add-ons */}
                   <div>
                     <Label className="mb-2 block">Add-ons</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {addOnsList.map(addOn => (
-                        <div
-                          key={addOn.id}
-                          onClick={() => toggleAddOn(addOn.id)}
-                          className={cn(
-                            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                            selectedAddOns.includes(addOn.id)
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-muted-foreground/40"
-                          )}
-                        >
-                          <Checkbox
-                            checked={selectedAddOns.includes(addOn.id)}
-                            onCheckedChange={() => toggleAddOn(addOn.id)}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{addOn.name}</p>
+                    {pricingLoading ? (
+                      <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading add-ons...
+                      </div>
+                    ) : pricingError || addOnsList.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No add-ons available</p>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {addOnsList.map(addOn => (
+                          <div
+                            key={addOn.id}
+                            onClick={() => toggleAddOn(addOn.id)}
+                            className={cn(
+                              "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                              selectedAddOns.includes(addOn.id)
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-muted-foreground/40"
+                            )}
+                          >
+                            <Checkbox
+                              checked={selectedAddOns.includes(addOn.id)}
+                              onCheckedChange={() => toggleAddOn(addOn.id)}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{addOn.name}</p>
+                            </div>
+                            <p className="text-sm font-semibold text-primary">+${Number(addOn.price).toFixed(2)}</p>
                           </div>
-                          <p className="text-sm font-semibold text-primary">+${addOn.price}</p>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Price breakdown */}
