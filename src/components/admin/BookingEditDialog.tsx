@@ -1221,6 +1221,61 @@ AV Detailing
                 </div>
               </>
             )}
+
+            {/* Add-ons (live total updates) */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Add-ons</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allAddOns.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No add-ons available</p>
+                ) : (
+                  <div className="space-y-2">
+                    {allAddOns.map(addon => (
+                      <label key={addon.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer">
+                        <Checkbox
+                          checked={selectedAddOnIds.includes(addon.id)}
+                          onCheckedChange={() => toggleAddOn(addon.id)}
+                        />
+                        <span className="flex-1 text-sm">{addon.name}</span>
+                        <span className="text-sm text-muted-foreground">${addon.price.toFixed(2)}</span>
+                      </label>
+                    ))}
+                    <div className="flex justify-between pt-2 border-t text-sm font-medium">
+                      <span>Add-ons Total</span>
+                      <span>
+                        ${selectedAddOnIds.reduce((s, id) => s + (allAddOns.find(a => a.id === id)?.price || 0), 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Live Price Breakdown */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Price Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1.5 text-sm">
+                {(() => {
+                  const addOnsLive = selectedAddOnIds.reduce((s, id) => s + (allAddOns.find(a => a.id === id)?.price || 0), 0);
+                  const basePkg = packageInfo?.price ?? Math.max(0, (parseFloat(editTotalPrice) || booking.total_price || 0) - addOnsLive);
+                  const tip = parseFloat(editTipAmount) || 0;
+                  const total = basePkg + addOnsLive + tip;
+                  return (
+                    <>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Base package{packageInfo ? ` (${packageInfo.name})` : ""}</span><span>${basePkg.toFixed(2)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Add-ons</span><span>${addOnsLive.toFixed(2)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Tip</span><span>${tip.toFixed(2)}</span></div>
+                      <Separator className="my-1" />
+                      <div className="flex justify-between font-semibold text-base"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                    </>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Notes Tab */}
