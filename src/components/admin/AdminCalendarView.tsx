@@ -175,13 +175,22 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
     });
 
     const workerNameMap: Record<string, string> = {};
+    const ownerIds = new Set<string>();
     if (workerIds.size > 0) {
-      const { data: workerProfiles } = await supabase
-        .from("profiles")
-        .select("user_id, full_name")
-        .in("user_id", Array.from(workerIds));
+      const [{ data: workerProfiles }, { data: adminRoles }] = await Promise.all([
+        supabase.from("profiles").select("user_id, full_name").in("user_id", Array.from(workerIds)),
+        supabase.from("user_roles").select("user_id").eq("role", "admin").in("user_id", Array.from(workerIds)),
+      ]);
       (workerProfiles || []).forEach((p) => {
         workerNameMap[p.user_id] = p.full_name || "Unknown";
+      });
+      (adminRoles || []).forEach((r: any) => ownerIds.add(r.user_id));
+      ownerIds.forEach((uid) => {
+        const name = workerNameMap[uid] || "Owner";
+        const first = name.split(" ")[0] || name;
+        const last = name.split(" ").slice(1).join(" ");
+        const display = last ? `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase()}.` : first;
+        workerNameMap[uid] = `${display} (Owner)`;
       });
     }
 
