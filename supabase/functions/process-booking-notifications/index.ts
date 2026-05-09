@@ -51,6 +51,22 @@ function isQuoteBasedService(vehicleType?: string): boolean {
   return vehicleType ? ["rv", "boat", "aircraft"].includes(vehicleType.toLowerCase()) : false;
 }
 
+function vehicleTypeLabel(vt?: string): string {
+  if (!vt) return "Vehicle";
+  const map: Record<string, string> = {
+    "sedan": "Car (Sedan/Coupe)",
+    "suv-5": "SUV (5 seats)",
+    "suv-8": "SUV (8 seats / 3-row)",
+    "truck": "Truck",
+    "car": "Car",
+    "suv": "SUV",
+    "boat": "Boat",
+    "rv": "RV/Motorhome",
+    "aircraft": "Aircraft",
+  };
+  return map[vt.toLowerCase()] || vt;
+}
+
 function includesCeramic(serviceName: string, addOns?: { name: string }[]): boolean {
   const keywords = ["ceramic", "coating"];
   return keywords.some(k => serviceName.toLowerCase().includes(k)) ||
