@@ -272,10 +272,6 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
     }
   };
 
-  const getDisplayName = () => {
-    return client.full_name || [client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unknown';
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-500/10 text-green-500';
