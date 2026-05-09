@@ -227,6 +227,37 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
       return;
     }
 
+    // Already clocked in? Confirm overwrite.
+    if (booking.clock_in_at) {
+      const prev = format(new Date(booking.clock_in_at), "h:mm a");
+      const ok = window.confirm(`You already clocked in at ${prev}. Reset the clock to now?`);
+      if (!ok) return;
+    } else {
+      // Block if another job is already in progress for this worker today
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const today = booking.scheduled_date;
+          const { data: others } = await supabase
+            .from("bookings")
+            .select("id, guest_name, scheduled_time, clock_in_at")
+            .eq("status", "in_progress")
+            .eq("assigned_worker_id", user.id)
+            .eq("scheduled_date", today)
+            .neq("id", booking.id)
+            .limit(1);
+          if (others && others.length > 0) {
+            const o = others[0] as any;
+            const t = o.scheduled_time ? formatTime(o.scheduled_time) : "earlier";
+            toast.error(`⚠️ You have another job in progress: ${o.guest_name || "Customer"} at ${t}. Clock out of that job first.`, { duration: 6000 });
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("in-progress check failed", err);
+      }
+    }
+
     setStartingService(true);
     try {
       const nowIso = new Date().toISOString();
@@ -522,7 +553,12 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
 
           {/* Live timer while in_progress */}
           {isInProgress && booking.clock_in_at && (
-            <JobTimer startedAt={booking.clock_in_at} />
+            <>
+              <JobTimer startedAt={booking.clock_in_at} />
+              <p className="text-xs text-muted-foreground pl-1">
+                🕐 Clocked in at {format(new Date(booking.clock_in_at), "h:mm a")}
+              </p>
+            </>
           )}
 
           {/* Actual vs estimated duration when completed */}
@@ -536,6 +572,14 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
                 )}
               </span>
             </div>
+          )}
+
+          {/* Clock in/out times when completed */}
+          {isCompleted && booking.clock_in_at && booking.clock_out_at && (
+            <p className="text-xs text-muted-foreground pl-1">
+              🕐 In: {format(new Date(booking.clock_in_at), "h:mm a")} → Out: {format(new Date(booking.clock_out_at), "h:mm a")}
+              {booking.actual_duration_minutes != null && ` · Duration: ${formatHm(booking.actual_duration_minutes)}`}
+            </p>
           )}
 
           {/* Tip section (completed jobs) */}

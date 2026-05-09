@@ -477,8 +477,29 @@ function navUrl(addr: string): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
 }
 function fullRouteUrl(addrs: string[], optimize = false): string {
-  const path = addrs.map((a) => encodeURIComponent(a)).join("/");
-  return `https://www.google.com/maps/dir/${path}${optimize ? "/?waypoints=optimized:true" : ""}`;
+  if (addrs.length === 0) return "https://www.google.com/maps";
+  if (addrs.length === 1) return navUrl(addrs[0]);
+  const origin = encodeURIComponent(addrs[0]);
+  const destination = encodeURIComponent(addrs[addrs.length - 1]);
+  const middle = addrs.slice(1, -1).map((a) => encodeURIComponent(a)).join("|");
+  const waypoints = middle
+    ? `&waypoints=${optimize ? "optimize:true|" : ""}${middle}`
+    : "";
+  return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints}&travelmode=driving`;
+}
+function parseDurationEstimateMin(s?: string | null): number {
+  if (!s) return 0;
+  const t = s.toLowerCase();
+  const hMatch = t.match(/(\d+(?:\.\d+)?)\s*h/);
+  const mMatch = t.match(/(\d+)\s*m/);
+  let mins = 0;
+  if (hMatch) mins += parseFloat(hMatch[1]) * 60;
+  if (mMatch) mins += parseInt(mMatch[1]);
+  if (!hMatch && !mMatch) {
+    const range = t.match(/(\d+)\s*-\s*(\d+)/);
+    if (range) mins = (parseInt(range[1]) + parseInt(range[2])) / 2 * 60;
+  }
+  return Math.round(mins);
 }
 
 function TodaysRoute({ bookings }: { bookings: any[] }) {
@@ -489,7 +510,14 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
   if (stops.length === 0) return null;
 
   const addresses = stops.map(buildAddress);
-  const estDriveMin = Math.max(0, stops.length - 1) * 15;
+  const driveMin = Math.max(0, stops.length - 1) * 12;
+  const serviceMin = stops.reduce((sum, b) => sum + (parseDurationEstimateMin(b.service_packages?.duration_estimate) || Number(b.duration_minutes) || 0), 0);
+  const fmtHm = (m: number) => {
+    const h = Math.floor(m / 60), mm = m % 60;
+    if (h === 0) return `${mm}m`;
+    if (mm === 0) return `${h}h`;
+    return `${h}h ${mm}m`;
+  };
 
   // Single job: just a Navigate button
   if (stops.length === 1) {
@@ -519,10 +547,12 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
     <Card>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <MapIcon className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-bold">Today's Route</h2>
-            <Badge variant="outline" className="text-xs">{stops.length} stops</Badge>
+            <h2 className="text-base font-bold">🗺️ Today's Route</h2>
+            <span className="text-xs text-muted-foreground">
+              · {stops.length} stops · ~{fmtHm(driveMin)} drive · ~{fmtHm(serviceMin)} service
+            </span>
           </div>
           <div className="flex gap-2">
             <Button asChild size="sm" variant="outline">
@@ -537,10 +567,6 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
             </Button>
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground">
-          Estimated route: ~{estDriveMin} min driving between stops
-        </p>
 
         <ol className="space-y-2">
           {stops.map((b, i) => {

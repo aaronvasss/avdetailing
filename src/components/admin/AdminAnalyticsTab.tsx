@@ -95,6 +95,9 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [showLaborBreakdown, setShowLaborBreakdown] = useState(false);
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
   const [drillWorker, setDrillWorker] = useState<string | null>(null);
+  const [analyticsView, setAnalyticsView] = useState<"overview" | "audit">("overview");
+  const [auditWorkerFilter, setAuditWorkerFilter] = useState<string>("all");
+  const [auditOnTimeFilter, setAuditOnTimeFilter] = useState<"all" | "ontime" | "late" | "nodata">("all");
 
   type RangePreset = "week" | "month" | "30d" | "90d" | "year" | "custom";
   const [rangePreset, setRangePreset] = useState<RangePreset>("month");
@@ -718,6 +721,13 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
         </CardContent>
       </Card>
 
+      <Tabs value={analyticsView} onValueChange={(v) => setAnalyticsView(v as "overview" | "audit")}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="audit">Time Audit</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 mt-4">
       {/* KPI Cards - Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -1364,6 +1374,204 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           )}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4 mt-4">
+          <TimeAuditPanel
+            bookings={bookings}
+            workerNames={workerNames}
+            workerOptions={workerStatsArr.map(w => ({ id: w.workerId, name: w.name }))}
+            workerFilter={auditWorkerFilter}
+            setWorkerFilter={setAuditWorkerFilter}
+            onTimeFilter={auditOnTimeFilter}
+            setOnTimeFilter={setAuditOnTimeFilter}
+            dateRange={dateRange}
+            getOnTimeDiff={getOnTimeDiff}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
+}
+
+interface TimeAuditPanelProps {
+  bookings: Booking[];
+  workerNames: Record<string, string>;
+  workerOptions: { id: string; name: string }[];
+  workerFilter: string;
+  setWorkerFilter: (v: string) => void;
+  onTimeFilter: "all" | "ontime" | "late" | "nodata";
+  setOnTimeFilter: (v: "all" | "ontime" | "late" | "nodata") => void;
+  dateRange: DateRange | undefined;
+  getOnTimeDiff: (b: Booking) => number | null;
+}
+
+function TimeAuditPanel({
+  bookings, workerNames, workerOptions, workerFilter, setWorkerFilter,
+  onTimeFilter, setOnTimeFilter, dateRange, getOnTimeDiff,
+}: TimeAuditPanelProps) {
+  const filtered = useMemo(() => {
+    return bookings
+      .filter(b => b.status === "completed" && b.assigned_worker_id)
+      .filter(b => {
+        if (!dateRange?.from || !dateRange?.to) return true;
+        try {
+          const d = parseISO(b.scheduled_date);
+          return d >= dateRange.from! && d <= dateRange.to!;
+        } catch { return true; }
+      })
+      .filter(b => workerFilter === "all" || b.assigned_worker_id === workerFilter)
+      .filter(b => {
+        if (onTimeFilter === "all") return true;
+        const diff = getOnTimeDiff(b);
+        if (onTimeFilter === "nodata") return diff === null;
+        if (onTimeFilter === "ontime") return diff !== null && diff <= 15;
+        if (onTimeFilter === "late") return diff !== null && diff > 15;
+        return true;
+      })
+      .sort((a, b) => `${b.scheduled_date} ${b.scheduled_time || ""}`.localeCompare(`${a.scheduled_date} ${a.scheduled_time || ""}`));
+  }, [bookings, dateRange, workerFilter, onTimeFilter, getOnTimeDiff]);
+
+  const varianceColor = (diff: number | null) => {
+    if (diff === null) return "text-muted-foreground";
+    if (diff <= 0) return "text-green-600";
+    if (diff <= 15) return "text-blue-500";
+    if (diff <= 30) return "text-amber-600";
+    return "text-destructive";
+  };
+  const varianceLabel = (diff: number | null) => {
+    if (diff === null) return "—";
+    if (diff === 0) return "On time";
+    return diff > 0 ? `+${diff}m late` : `${diff}m early`;
+  };
+  const onTimeIcon = (diff: number | null) => {
+    if (diff === null) return "—";
+    if (diff <= 15) return "✅";
+    if (diff <= 30) return "⚠️";
+    return "❌";
+  };
+  const fmt12 = (t: string | null) => t ? format(parseISO(`2000-01-01T${t}`), "h:mm a") : "—";
+
+  const downloadCsv = () => {
+    const escape = (v: any) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const headers = ["Worker","Date","Customer","Scheduled","Clock In","Clock Out","Duration","Variance","On-Time"];
+    const rows = filtered.map(b => {
+      const diff = getOnTimeDiff(b);
+      return [
+        workerNames[b.assigned_worker_id!] || "Unknown",
+        b.scheduled_date,
+        b.guest_name || "",
+        b.scheduled_time || "",
+        b.clock_in_at ? format(new Date(b.clock_in_at), "h:mm a") : "—",
+        b.completed_at ? format(new Date(b.completed_at), "h:mm a") : "—",
+        // duration = end - start in min
+        b.clock_in_at && b.completed_at
+          ? formatHmLocal(differenceInMinutes(new Date(b.completed_at), new Date(b.clock_in_at)))
+          : "—",
+        diff === null ? "" : diff,
+        diff === null ? "No data" : (diff <= 15 ? "Yes" : "No"),
+      ];
+    });
+    const csv = [headers.map(escape).join(","), ...rows.map(r => r.map(escape).join(","))].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `av-time-audit-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-primary" /> Time Audit
+          </CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={workerFilter}
+              onChange={(e) => setWorkerFilter(e.target.value)}
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="all">All workers</option>
+              {workerOptions.map(w => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+            <select
+              value={onTimeFilter}
+              onChange={(e) => setOnTimeFilter(e.target.value as any)}
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="all">All on-time statuses</option>
+              <option value="ontime">On time (≤15m)</option>
+              <option value="late">Late (&gt;15m)</option>
+              <option value="nodata">No data</option>
+            </select>
+            <Button size="sm" variant="outline" onClick={downloadCsv} disabled={filtered.length === 0}>
+              <Download className="h-4 w-4 mr-1.5" /> Export CSV
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-8 text-center">No completed jobs match these filters.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Worker</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Scheduled</TableHead>
+                  <TableHead>Clock In</TableHead>
+                  <TableHead>Clock Out</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Variance</TableHead>
+                  <TableHead className="text-center">On-Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map(b => {
+                  const diff = getOnTimeDiff(b);
+                  const dur = b.clock_in_at && b.completed_at
+                    ? differenceInMinutes(new Date(b.completed_at), new Date(b.clock_in_at))
+                    : null;
+                  return (
+                    <TableRow key={b.id}>
+                      <TableCell className="whitespace-nowrap">{workerNames[b.assigned_worker_id!] || "Unknown"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{format(parseISO(b.scheduled_date), "MMM d")}</TableCell>
+                      <TableCell className="max-w-[160px] truncate">{b.guest_name || "—"}</TableCell>
+                      <TableCell>{fmt12(b.scheduled_time)}</TableCell>
+                      <TableCell>{b.clock_in_at ? format(new Date(b.clock_in_at), "h:mm a") : "—"}</TableCell>
+                      <TableCell>{b.completed_at ? format(new Date(b.completed_at), "h:mm a") : "—"}</TableCell>
+                      <TableCell>{dur != null ? formatHmLocal(dur) : "—"}</TableCell>
+                      <TableCell className={cn("font-medium", varianceColor(diff))}>{varianceLabel(diff)}</TableCell>
+                      <TableCell className="text-center">{onTimeIcon(diff)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function formatHmLocal(totalMinutes: number | null | undefined): string {
+  if (totalMinutes == null || isNaN(totalMinutes)) return "—";
+  const m = Math.max(0, Math.round(totalMinutes));
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  if (h === 0) return `${mm}m`;
+  if (mm === 0) return `${h}h`;
+  return `${h}h ${mm}m`;
 }

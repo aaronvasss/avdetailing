@@ -37,6 +37,7 @@ import WorkerLoginPage from "./pages/WorkerLoginPage";
 import WorkerDashboardPage from "./pages/WorkerDashboardPage";
 import WorkerAllJobsPage from "./pages/WorkerAllJobsPage";
 import WorkerEarningsPage from "./pages/WorkerEarningsPage";
+import WorkerTimesheetPage from "./pages/WorkerTimesheetPage";
 import WorkerProfilePage from "./pages/WorkerProfilePage";
 import WorkerChatPage from "./pages/WorkerChatPage";
 import RatingPage from "./pages/RatingPage";
@@ -114,6 +115,11 @@ const App = () => (
               <Route path="/worker/earnings" element={
                 <ProtectedRoute requiredRole={["staff", "admin"]}>
                   <WorkerEarningsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/worker/timesheet" element={
+                <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <WorkerTimesheetPage />
                 </ProtectedRoute>
               } />
               <Route path="/worker/profile" element={
