@@ -731,7 +731,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       vehicle_model: editVehicleModel || booking.vehicle_model,
       vehicle_type: editVehicleType || booking.vehicle_type,
       total_price: editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price,
-      tip_amount: editTipAmount ? parseFloat(editTipAmount) : booking.tip_amount,
+      tip_amount: editTipAmount ? parseFloat(editTipAmount) : (booking as any).tip_amount,
       payment_method: paymentMethod,
       payment_status: paymentStatus,
       profiles: booking.profile_name
