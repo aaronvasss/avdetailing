@@ -18,6 +18,11 @@ import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from "dat
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { BookingEditDialog } from "./BookingEditDialog";
+import {
+  getPaymentBadge as renderPaymentBadge,
+  getPaymentMethodIcon,
+  PaymentDetailsSection,
+} from "@/lib/payment-display";
 
 interface Booking {
   id: string;
@@ -26,9 +31,13 @@ interface Booking {
   scheduled_time: string;
   status: string;
   payment_status: string;
+  payment_method: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   total_price: number;
   subtotal: number | null;
   add_ons_total: number | null;
+  tip_amount: number | null;
   vehicle_type: string;
   vehicle_make: string;
   vehicle_model: string;
@@ -86,9 +95,13 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         scheduled_time,
         status,
         payment_status,
+        payment_method,
+        stripe_checkout_session_id,
+        stripe_payment_intent_id,
         total_price,
         subtotal,
         add_ons_total,
+        tip_amount,
         vehicle_type,
         vehicle_make,
         vehicle_model,
@@ -289,16 +302,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
     return <Badge variant={variant} className={cn("capitalize", className)}>{status}</Badge>;
   };
 
-  const getPaymentBadge = (status: string) => {
-    const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
-      paid: { variant: "outline", className: "border-green-500 text-green-600" },
-      unpaid: { variant: "destructive" },
-      partial: { variant: "secondary" },
-      refunded: { variant: "outline" },
-    };
-    const { variant, className } = config[status] || { variant: "secondary" };
-    return <Badge variant={variant} className={cn("capitalize", className)}>{status}</Badge>;
-  };
+  const getPaymentBadge = (status: string) => renderPaymentBadge(status);
 
   // Stats
   const stats = {
@@ -530,7 +534,12 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                       </TableCell>
                     )}
                     {isAdmin && (
-                      <TableCell>{getPaymentBadge(booking.payment_status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {getPaymentMethodIcon(booking.payment_method)}
+                          {getPaymentBadge(booking.payment_status)}
+                        </div>
+                      </TableCell>
                     )}
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
                     <TableCell>
@@ -674,25 +683,19 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
               )}
 
               {isAdmin && (
-                <div className="border-t pt-4 space-y-1">
-                  {selectedBooking.subtotal != null && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>${Number(selectedBooking.subtotal).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {selectedBooking.add_ons_total != null && Number(selectedBooking.add_ons_total) > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Add-ons Total</span>
-                      <span>${Number(selectedBooking.add_ons_total).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between pt-1">
-                    <span className="text-muted-foreground">Total</span>
-                    <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
-                  </div>
+                <>
+                  <PaymentDetailsSection
+                    payment_method={selectedBooking.payment_method}
+                    payment_status={selectedBooking.payment_status}
+                    stripe_checkout_session_id={selectedBooking.stripe_checkout_session_id}
+                    stripe_payment_intent_id={selectedBooking.stripe_payment_intent_id}
+                    subtotal={selectedBooking.subtotal}
+                    add_ons_total={selectedBooking.add_ons_total}
+                    tip_amount={selectedBooking.tip_amount}
+                    total_price={selectedBooking.total_price}
+                  />
                   {selectedBooking.stripe_amount_cents != null && (
-                    <div className="flex justify-between text-sm pt-1">
+                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Stripe Charged</span>
                       <span className={cn(
                         "font-medium",
@@ -704,7 +707,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                       </span>
                     </div>
                   )}
-                </div>
+                </>
               )}
 
               {/* Send Reminder */}
