@@ -477,8 +477,29 @@ function navUrl(addr: string): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
 }
 function fullRouteUrl(addrs: string[], optimize = false): string {
-  const path = addrs.map((a) => encodeURIComponent(a)).join("/");
-  return `https://www.google.com/maps/dir/${path}${optimize ? "/?waypoints=optimized:true" : ""}`;
+  if (addrs.length === 0) return "https://www.google.com/maps";
+  if (addrs.length === 1) return navUrl(addrs[0]);
+  const origin = encodeURIComponent(addrs[0]);
+  const destination = encodeURIComponent(addrs[addrs.length - 1]);
+  const middle = addrs.slice(1, -1).map((a) => encodeURIComponent(a)).join("|");
+  const waypoints = middle
+    ? `&waypoints=${optimize ? "optimize:true|" : ""}${middle}`
+    : "";
+  return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints}&travelmode=driving`;
+}
+function parseDurationEstimateMin(s?: string | null): number {
+  if (!s) return 0;
+  const t = s.toLowerCase();
+  const hMatch = t.match(/(\d+(?:\.\d+)?)\s*h/);
+  const mMatch = t.match(/(\d+)\s*m/);
+  let mins = 0;
+  if (hMatch) mins += parseFloat(hMatch[1]) * 60;
+  if (mMatch) mins += parseInt(mMatch[1]);
+  if (!hMatch && !mMatch) {
+    const range = t.match(/(\d+)\s*-\s*(\d+)/);
+    if (range) mins = (parseInt(range[1]) + parseInt(range[2])) / 2 * 60;
+  }
+  return Math.round(mins);
 }
 
 function TodaysRoute({ bookings }: { bookings: any[] }) {
