@@ -517,15 +517,14 @@ export function AdminQuotesTab() {
                     <Eye className="h-3 w-3" />
                   </Button>
                   {q.status === 'quoted' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleSendFollowup(q)}
-                      disabled={sendingFollowup === q.id}
-                    >
-                      {sendingFollowup === q.id
-                        ? <Loader2 className="h-3 w-3 animate-spin" />
-                        : <Mail className="h-3 w-3" />}
-                    </Button>
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => handleSendFollowup(q, "email")} disabled={sendingFollowup === q.id} title="Email follow-up">
+                        {sendingFollowup === q.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleSendFollowup(q, "sms")} disabled={sendingFollowup === q.id} title="SMS follow-up">
+                        <MessageSquare className="h-3 w-3" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
