@@ -508,9 +508,19 @@ export function ClientsListView() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm leading-tight break-words">
+                          <div className="font-semibold text-sm leading-tight break-words flex items-center gap-1.5 flex-wrap">
                             {getDisplayName(client)}
+                            {isVip(client.totalSpent, client.totalBookings) && (
+                              <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0 gap-1">
+                                <Star className="h-2.5 w-2.5 fill-current" /> VIP
+                              </Badge>
+                            )}
                           </div>
+                          {getNoteSubtitle(client.notes) && (
+                            <div className="mt-0.5 text-[11px] text-muted-foreground italic truncate">
+                              {getNoteSubtitle(client.notes)}
+                            </div>
+                          )}
                           <div className="mt-1 text-xs text-muted-foreground break-all">
                             {client.email || <span className="italic text-muted-foreground/60">No email on file</span>}
                           </div>
