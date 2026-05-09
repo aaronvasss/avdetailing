@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { format, isToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from "date-fns";
 import { toast } from "sonner";
+import { checkRecentNotification, logNotification } from "@/lib/notification-log";
 
 const PAID_STATUSES = ["paid", "completed"];
 
