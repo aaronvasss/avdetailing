@@ -691,6 +691,19 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                     <span className="text-muted-foreground">Total</span>
                     <span className="font-bold text-lg">${selectedBooking.total_price?.toFixed(2)}</span>
                   </div>
+                  {selectedBooking.stripe_amount_cents != null && (
+                    <div className="flex justify-between text-sm pt-1">
+                      <span className="text-muted-foreground">Stripe Charged</span>
+                      <span className={cn(
+                        "font-medium",
+                        Math.abs((selectedBooking.stripe_amount_cents / 100) - (selectedBooking.total_price || 0)) < 0.01
+                          ? "text-green-500"
+                          : "text-yellow-500"
+                      )}>
+                        ${(selectedBooking.stripe_amount_cents / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
