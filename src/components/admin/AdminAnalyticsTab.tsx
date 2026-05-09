@@ -81,8 +81,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     setLoading(true);
     try {
       const sixMonthsAgo = subMonths(new Date(), 6);
-      
-      const [bookingsRes, membershipsRes, tipsRes, wpRes] = await Promise.all([
+
+      const [bookingsRes, membershipsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select(`
@@ -108,25 +108,27 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             status,
             membership_plans (name, price)
           `),
-        supabase
-          .from("payment_records")
-          .select("amount_cents")
-          .eq("payment_type", "tip")
-          .eq("status", "paid"),
-        supabase
-          .from("worker_profiles")
-          .select("user_id, pay_rate, pay_type, is_active"),
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
       if (membershipsRes.error) throw membershipsRes.error;
-      
+
       setBookings(bookingsRes.data || []);
       setMemberships((membershipsRes.data as any[]) || []);
-      setWorkerProfiles(wpRes.data || []);
-      
+
+      // Resilient: worker_profiles may not exist
+      let wpData: any[] = [];
+      try {
+        const { data, error } = await supabase
+          .from("worker_profiles" as any)
+          .select("user_id, pay_rate, pay_type, is_active");
+        if (!error && data) wpData = data as any[];
+      } catch (e) {
+        console.warn("worker_profiles unavailable", e);
+      }
+      setWorkerProfiles(wpData);
+
       // Fetch worker display names
-      const wpData = wpRes.data || [];
       if (wpData.length > 0) {
         const userIds = wpData.map((w: any) => w.user_id);
         const { data: profiles } = await supabase
@@ -139,15 +141,28 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
         });
         setWorkerNames(names);
       }
-      
-      const tipData = tipsRes.data || [];
-      const onlineTipTotal = tipData.reduce((sum, t) => sum + (t.amount_cents || 0), 0) / 100;
-      const onlineTipCount = tipData.length;
-      
+
+      // Resilient: tips from payment_records
+      let onlineTipTotal = 0;
+      let onlineTipCount = 0;
+      try {
+        const { data, error } = await supabase
+          .from("payment_records")
+          .select("amount_cents")
+          .eq("payment_type", "tip")
+          .eq("status", "paid");
+        if (!error && data) {
+          onlineTipTotal = data.reduce((sum, t: any) => sum + (t.amount_cents || 0), 0) / 100;
+          onlineTipCount = data.length;
+        }
+      } catch (e) {
+        console.warn("payment_records tips unavailable", e);
+      }
+
       // Also sum tip_amount from bookings (cash/in-person tips)
       const bookingTips = (bookingsRes.data || []).filter((b: any) => b.tip_amount && b.tip_amount > 0);
       const bookingTipTotal = bookingTips.reduce((sum: number, b: any) => sum + Number(b.tip_amount), 0);
-      
+
       setTipCount(onlineTipCount + bookingTips.length);
       setTotalTips(onlineTipTotal + bookingTipTotal);
     } catch (error) {
@@ -156,6 +171,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       setLoading(false);
     }
   };
+
 
   // Only count bookings where payment has actually been collected
   const isPaidBooking = (b: Booking) => 
@@ -232,11 +248,11 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     }
   };
 
-  // Calculate service popularity
+  // Calculate service popularity (paid bookings only)
   const getServicePopularity = () => {
     const serviceCounts: Record<string, { count: number; revenue: number }> = {};
-    
-    bookings.forEach(booking => {
+
+    bookings.filter(isPaidBooking).forEach(booking => {
       const serviceName = booking.services?.name || "Unknown";
       if (!serviceCounts[serviceName]) {
         serviceCounts[serviceName] = { count: 0, revenue: 0 };
@@ -255,11 +271,11 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       .slice(0, 8);
   };
 
-  // Calculate vehicle type distribution
+  // Calculate vehicle type distribution (paid bookings only)
   const getVehicleDistribution = () => {
     const vehicleCounts: Record<string, number> = {};
-    
-    bookings.forEach(booking => {
+
+    bookings.filter(isPaidBooking).forEach(booking => {
       const vehicleType = booking.vehicle_type || "Unknown";
       vehicleCounts[vehicleType] = (vehicleCounts[vehicleType] || 0) + 1;
     });
