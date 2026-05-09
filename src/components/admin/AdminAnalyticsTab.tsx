@@ -160,7 +160,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
       if (bookingsRes.error) throw bookingsRes.error;
       if (membershipsRes.error) throw membershipsRes.error;
 
-      setBookings(bookingsRes.data || []);
+      setBookings((bookingsRes.data as any[]) || []);
       setMemberships((membershipsRes.data as any[]) || []);
 
       // Resilient: worker_profiles may not exist
