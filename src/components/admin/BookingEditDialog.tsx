@@ -694,56 +694,53 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     setSaving(false);
   };
 
-  const generateReceipt = () => {
+  const generateReceipt = async () => {
     if (!booking) return;
-    
-    const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
-    const serviceName = booking.custom_service_description || booking.services?.name || "Detailing Service";
-    
-    const receiptContent = `
-AV DETAILING - RECEIPT
-========================
-Date: ${format(new Date(), "MMMM d, yyyy")}
-Receipt #: ${booking.id.slice(0, 8).toUpperCase()}
 
-CUSTOMER
-${customerName}
-${editGuestEmail || booking.profile_email || booking.guest_email || ""}
-${editGuestPhone || booking.profile_phone || booking.guest_phone || ""}
+    // Build add-ons list from current selection
+    const addOnsForReceipt = selectedAddOnIds
+      .map((id) => allAddOns.find((a) => a.id === id))
+      .filter(Boolean)
+      .map((a: any) => ({ id: a.id, name: a.name, description: a.description, price: Number(a.price) }));
 
-SERVICE
-${serviceName}
-${editVehicleMake || ""} ${editVehicleModel || ""} (${editVehicleType || ""})
-Date: ${scheduledDate ? format(scheduledDate, "MMMM d, yyyy") : booking.scheduled_date}
-Time: ${scheduledTime || booking.scheduled_time}
+    // Use packageInfo (already loaded) but include slug for "Includes" lookup
+    let pkgForReceipt: { name: string; price: number; slug?: string | null } | null = packageInfo
+      ? { name: packageInfo.name, price: packageInfo.price }
+      : null;
+    if (booking.service_id && booking.vehicle_type) {
+      const { data: pkg } = await supabase
+        .from("service_packages")
+        .select("name, price, slug")
+        .eq("service_id", booking.service_id)
+        .eq("vehicle_type", booking.vehicle_type)
+        .maybeSingle();
+      if (pkg) pkgForReceipt = { name: pkg.name, price: Number(pkg.price), slug: pkg.slug };
+    }
 
-LOCATION
-${editAddress || ""}
-${editCity || ""}, ${editState || "LA"} ${editZip || ""}
+    const receiptBooking = {
+      ...booking,
+      guest_name: editGuestName || booking.guest_name,
+      guest_email: editGuestEmail || booking.guest_email,
+      guest_phone: editGuestPhone || booking.guest_phone,
+      service_address: editAddress || booking.service_address,
+      service_city: editCity || booking.service_city,
+      service_state: editState || booking.service_state,
+      service_zip: editZip || booking.service_zip,
+      vehicle_make: editVehicleMake || booking.vehicle_make,
+      vehicle_model: editVehicleModel || booking.vehicle_model,
+      vehicle_type: editVehicleType || booking.vehicle_type,
+      total_price: editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price,
+      tip_amount: editTipAmount ? parseFloat(editTipAmount) : booking.tip_amount,
+      payment_method: paymentMethod,
+      payment_status: paymentStatus,
+      profiles: booking.profile_name
+        ? { full_name: booking.profile_name, email: booking.profile_email, phone: booking.profile_phone }
+        : null,
+    };
 
-PAYMENT
-${"-".repeat(30)}
-Total:         $${(editTotalPrice ? parseFloat(editTotalPrice) : booking.total_price || 0).toFixed(2)}
-
-Payment Method: ${paymentMethod || "N/A"}
-Payment Status: ${paymentStatus || "N/A"}
-
-========================
-Thank you for your business!
-AV Detailing
-    `.trim();
-    
-    const blob = new Blob([receiptContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `receipt-${booking.id.slice(0, 8)}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast.success("Receipt downloaded");
+    const html = generateBookingReceiptHTML(receiptBooking as any, pkgForReceipt, addOnsForReceipt);
+    openReceiptPrintWindow(html, `Receipt ${booking.id.slice(0, 8).toUpperCase()}`);
+    toast.success("Receipt opened — use Print to save as PDF");
   };
 
   if (!booking) return null;
