@@ -12,6 +12,8 @@ export function HeroSection() {
           alt="Premium mobile car detailing service in Baton Rouge Louisiana"
           className="absolute inset-0 w-full h-full object-cover"
           loading="eager"
+          fetchPriority="high"
+          decoding="async"
           width={2000}
           height={1333}
         />
