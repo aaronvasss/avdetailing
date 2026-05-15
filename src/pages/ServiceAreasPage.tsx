@@ -194,6 +194,36 @@ const ServiceAreasPage = () => {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="section-padding bg-card">
+        <div className="container-custom">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-4">
+              Service Area FAQs
+            </h2>
+            <p className="text-center text-muted-foreground mb-12">
+              Common questions about where we travel and what to expect from our mobile service.
+            </p>
+            <Accordion type="single" collapsible className="space-y-4">
+              {serviceAreaFaqs.map((faq, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="bg-background border border-border rounded-lg px-6"
+                >
+                  <AccordionTrigger className="text-left hover:no-underline hover:text-primary py-5">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-5">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section-padding bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="container-custom text-center">
