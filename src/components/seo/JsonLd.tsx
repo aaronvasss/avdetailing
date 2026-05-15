@@ -147,11 +147,11 @@ export function serviceSchema(
     description,
     url: `${SITE_URL}${path}`,
     provider: { "@id": `${SITE_URL}/#business` },
-    areaServed: {
-      "@type": "City",
-      name: "Baton Rouge",
-      addressRegion: "LA",
-    },
+    areaServed: [
+      { "@type": "State", name: "Louisiana" },
+      ...SERVICE_AREA_SCHEMA,
+    ],
+    serviceArea: SERVICE_AREA_GEO,
     ...(priceRange && { priceRange }),
   };
 }
