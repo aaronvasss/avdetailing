@@ -34,7 +34,7 @@ const AboutPage = () => {
     <Layout>
       <SEOHead
         title="About Us"
-        description="Learn about AV Detailing - Baton Rouge's premier mobile auto detailing service. Fully insured, 5-star rated, serving the Capital Region with premium vehicle care."
+        description="Learn about AV Detailing — Baton Rouge's premier mobile auto detailing service. Fully insured, 5-star rated, premium vehicle care."
         path="/about"
       />
       <JsonLd data={localBusinessSchema()} />
