@@ -2,6 +2,8 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MapPin, ArrowRight, Check } from "lucide-react";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const primaryAreas = [
   {
@@ -54,6 +56,13 @@ const additionalAreas = [
 const ServiceAreasPage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Mobile Detailing Service Areas"
+        description="AV Detailing brings premium mobile auto, boat, RV, and aircraft detailing to Baton Rouge, Prairieville, Gonzales, Denham Springs, Central, Zachary, and surrounding areas."
+        path="/service-areas"
+      />
+      <JsonLd data={localBusinessSchema()} />
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Service Areas", path: "/service-areas" }])} />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

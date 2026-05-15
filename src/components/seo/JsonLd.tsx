@@ -119,6 +119,85 @@ export function serviceSchema(
   };
 }
 
+export function aboutPageSchema(description: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    url: `${SITE_URL}/about`,
+    name: "About AV Detailing",
+    description,
+    mainEntity: { "@id": `${SITE_URL}/#business` },
+  };
+}
+
+export function contactPageSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    url: `${SITE_URL}/contact`,
+    name: "Contact AV Detailing",
+    mainEntity: { "@id": `${SITE_URL}/#business` },
+  };
+}
+
+export function itemListSchema(
+  name: string,
+  items: { name: string; path: string; description?: string }[]
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}${item.path}`,
+      name: item.name,
+      ...(item.description && { description: item.description }),
+    })),
+  };
+}
+
+export function offerCatalogSchema(
+  name: string,
+  offers: { name: string; price: number; description?: string; url?: string }[]
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "OfferCatalog",
+    name,
+    provider: { "@id": `${SITE_URL}/#business` },
+    itemListElement: offers.map((o) => ({
+      "@type": "Offer",
+      price: o.price.toFixed(2),
+      priceCurrency: "USD",
+      ...(o.url && { url: `${SITE_URL}${o.url}` }),
+      itemOffered: {
+        "@type": "Service",
+        name: o.name,
+        ...(o.description && { description: o.description }),
+        provider: { "@id": `${SITE_URL}/#business` },
+      },
+    })),
+  };
+}
+
+export function imageGallerySchema(
+  images: { url: string; caption?: string }[]
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    url: `${SITE_URL}/gallery`,
+    name: "AV Detailing Before & After Gallery",
+    image: images.map((img) => ({
+      "@type": "ImageObject",
+      contentUrl: img.url,
+      ...(img.caption && { caption: img.caption }),
+    })),
+  };
+}
+
 export function breadcrumbSchema(items: { name: string; path: string }[]) {
   return {
     "@context": "https://schema.org",

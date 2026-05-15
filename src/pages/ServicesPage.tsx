@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Car, Droplets, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const services = [
   {
@@ -59,6 +60,13 @@ const ServicesPage = () => {
         description="Professional mobile detailing services in Baton Rouge, LA. Car, boat, RV & aircraft detailing, ceramic coating, and paint correction. Book online today."
         path="/services"
       />
+      <JsonLd
+        data={itemListSchema(
+          "AV Detailing Services",
+          services.map((s) => ({ name: s.title, path: s.href, description: s.description }))
+        )}
+      />
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Services", path: "/services" }])} />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

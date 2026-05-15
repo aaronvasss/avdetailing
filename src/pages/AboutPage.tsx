@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Shield, Award, Users, Heart, Leaf, ArrowRight } from "lucide-react";
 import aboutHeroImage from "@/assets/about-hero.jpg";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, aboutPageSchema, breadcrumbSchema, localBusinessSchema } from "@/components/seo/JsonLd";
 
 const values = [
   {
@@ -36,6 +37,9 @@ const AboutPage = () => {
         description="Learn about AV Detailing - Baton Rouge's premier mobile auto detailing service. Fully insured, 5-star rated, serving the Capital Region with premium vehicle care."
         path="/about"
       />
+      <JsonLd data={localBusinessSchema()} />
+      <JsonLd data={aboutPageSchema("Learn about AV Detailing - Baton Rouge's premier mobile auto detailing service.")} />
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "About", path: "/about" }])} />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { MEMBERSHIP_PRICES } from "@/lib/stripe";
 import { toast } from "sonner";
 import { MembershipSignupModal } from "@/components/membership/MembershipSignupModal";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, offerCatalogSchema, breadcrumbSchema, faqSchema } from "@/components/seo/JsonLd";
 
 interface MembershipPlan {
   id: string;
@@ -182,6 +184,19 @@ const MembershipsPage = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Detailing Memberships"
+        description="Recurring mobile detailing memberships in Baton Rouge. Monthly, bi-weekly, and weekly maintenance plans to keep your vehicle showroom-fresh."
+        path="/memberships"
+      />
+      <JsonLd
+        data={offerCatalogSchema(
+          "AV Detailing Memberships",
+          plans.map((p) => ({ name: p.name, price: p.price, description: p.description ?? undefined, url: "/memberships" }))
+        )}
+      />
+      <JsonLd data={faqSchema(faqs)} />
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Memberships", path: "/memberships" }])} />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">
