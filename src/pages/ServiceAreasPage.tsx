@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MapPin, ArrowRight, Check } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, breadcrumbSchema, faqSchema } from "@/components/seo/JsonLd";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const primaryAreas = [
   {
@@ -53,6 +59,39 @@ const additionalAreas = [
   "Livingston",
 ];
 
+const serviceAreaFaqs = [
+  {
+    question: "Do you charge a travel fee for mobile detailing in Baton Rouge?",
+    answer:
+      "No travel fees within our primary service area, which covers Baton Rouge, Prairieville, Gonzales, Denham Springs, Central, and Zachary. For locations outside this area (typically beyond 30 miles of downtown Baton Rouge), a small travel fee may apply — we'll confirm the exact amount during booking.",
+  },
+  {
+    question: "How far do you travel for mobile detailing services?",
+    answer:
+      "We typically service locations within approximately 30 miles of downtown Baton Rouge, including East Baton Rouge, Ascension, Livingston, West Baton Rouge, and parts of Pointe Coupee parishes. For boat, RV, and aircraft detailing we often travel further — call us to confirm availability in your area.",
+  },
+  {
+    question: "Can you detail my vehicle at my home or office in Prairieville or Gonzales?",
+    answer:
+      "Yes — that's the whole idea behind our mobile service. We bring all our own water, power, and equipment directly to your home, office, or marina anywhere in Prairieville, Gonzales, and the surrounding Ascension Parish area. Just give us a flat, accessible spot to work and we'll handle the rest.",
+  },
+  {
+    question: "Do you service Denham Springs, Walker, and Livingston Parish?",
+    answer:
+      "Absolutely. Denham Springs is one of our primary service areas with no travel fee, and we regularly service Walker, Watson, and other Livingston Parish communities. Same-week availability is typical for these locations.",
+  },
+  {
+    question: "What about boat detailing on the Tickfaw, False River, or Lake Pontchartrain?",
+    answer:
+      "We provide on-location boat detailing at marinas, boat ramps, and private docks throughout the Baton Rouge area, including the Tickfaw River, False River, Lake Maurepas, and surrounding waterways. Contact us with your marina or storage location and we'll confirm scheduling.",
+  },
+  {
+    question: "I don't see my area listed — can you still come to me?",
+    answer:
+      "Most likely yes. We service many smaller communities and rural areas around Baton Rouge that aren't individually listed. Call (225) 521-6264 or fill out our contact form with your address and we'll let you know within the same day whether we can service your location and what (if any) travel fee applies.",
+  },
+];
+
 const ServiceAreasPage = () => {
   return (
     <Layout>
@@ -63,6 +102,7 @@ const ServiceAreasPage = () => {
       />
       <JsonLd data={localBusinessSchema()} />
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Service Areas", path: "/service-areas" }])} />
+      <JsonLd data={faqSchema(serviceAreaFaqs)} />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">
