@@ -64,17 +64,15 @@ export function localBusinessSchema() {
     email: "aaronvasquez@avdetailingg.com",
     areaServed: [
       { "@type": "State", name: "Louisiana" },
-      { "@type": "City", name: "Baton Rouge", addressRegion: "LA" },
-      { "@type": "City", name: "Prairieville", addressRegion: "LA" },
-      { "@type": "City", name: "Gonzales", addressRegion: "LA" },
-      { "@type": "City", name: "Denham Springs", addressRegion: "LA" },
-      { "@type": "City", name: "Central", addressRegion: "LA" },
-      { "@type": "City", name: "Zachary", addressRegion: "LA" },
+      ...SERVICE_AREA_SCHEMA,
     ],
+    serviceArea: SERVICE_AREA_GEO,
     address: {
       "@type": "PostalAddress",
+      streetAddress: "Mobile Service",
       addressLocality: "Baton Rouge",
       addressRegion: "LA",
+      postalCode: "70809",
       addressCountry: "US",
     },
     geo: {
@@ -82,6 +80,7 @@ export function localBusinessSchema() {
       latitude: 30.4515,
       longitude: -91.1871,
     },
+    hasMap: "https://www.google.com/maps/place/Baton+Rouge,+LA",
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "5.0",
@@ -89,6 +88,8 @@ export function localBusinessSchema() {
       bestRating: "5",
     },
     priceRange: "$$",
+    currenciesAccepted: "USD",
+    paymentAccepted: "Cash, Credit Card, Zelle, Venmo",
     openingHours: "Mo-Sa 08:00-18:00",
     openingHoursSpecification: [
       {
