@@ -98,7 +98,7 @@ const STATUS_OPTIONS = [
   { value: "in_progress", label: "In Progress", icon: Clock, color: "text-purple-500" },
   { value: "completed", label: "Completed", icon: CheckCircle2, color: "text-green-500" },
   { value: "cancelled", label: "Cancelled", icon: XCircle, color: "text-red-500" },
-  { value: "no_show", label: "No Show", icon: XCircle, color: "text-gray-500" },
+  { value: "no_show", label: "No Show", icon: XCircle, color: "text-muted-foreground" },
 ];
 
 const PAYMENT_STATUS_OPTIONS = [

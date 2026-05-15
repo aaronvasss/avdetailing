@@ -19,10 +19,10 @@ export const getPaymentBadge = (status: string | null | undefined) => {
     partial: { className: "border-yellow-500 bg-yellow-500/10 text-yellow-600", icon: <Clock className="h-3 w-3" />, label: "Partial" },
     failed: { className: "border-red-500 bg-red-500/10 text-red-600", icon: <XCircle className="h-3 w-3" />, label: "Failed" },
     refunded: { className: "border-purple-500 bg-purple-500/10 text-purple-600", icon: <RotateCcw className="h-3 w-3" />, label: "Refunded" },
-    expired: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" />, label: "Expired" },
-    cancelled: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" />, label: "Cancelled" },
+    expired: { className: "border-muted-foreground/40 bg-muted text-foreground", icon: <Ban className="h-3 w-3" />, label: "Expired" },
+    cancelled: { className: "border-muted-foreground/40 bg-muted text-foreground", icon: <Ban className="h-3 w-3" />, label: "Cancelled" },
   };
-  const cfg = map[s] || { className: "border-gray-400 bg-gray-400/10 text-gray-500", label: s };
+  const cfg = map[s] || { className: "border-muted-foreground/40 bg-muted text-foreground", label: s };
   return (
     <Badge variant="outline" className={cn("gap-1", cfg.className)}>
       {cfg.icon}
@@ -40,9 +40,9 @@ export const getStatusBadge = (status: string | null | undefined) => {
     in_progress: { className: "border-purple-500 bg-purple-500/10 text-purple-600", icon: <Clock className="h-3 w-3" />, label: "In Progress" },
     completed: { className: "border-green-500 bg-green-500/10 text-green-600", icon: <Check className="h-3 w-3" />, label: "Completed" },
     cancelled: { className: "border-red-500 bg-red-500/10 text-red-600", icon: <XCircle className="h-3 w-3" />, label: "Cancelled" },
-    no_show: { className: "border-gray-400 bg-gray-400/10 text-gray-500", icon: <Ban className="h-3 w-3" />, label: "No Show" },
+    no_show: { className: "border-muted-foreground/40 bg-muted text-foreground", icon: <Ban className="h-3 w-3" />, label: "No Show" },
   };
-  const cfg = map[s] || { className: "border-gray-400 bg-gray-400/10 text-gray-500", label: s };
+  const cfg = map[s] || { className: "border-muted-foreground/40 bg-muted text-foreground", label: s };
   return (
     <Badge variant="outline" className={cn("gap-1", cfg.className)}>
       {cfg.icon}
