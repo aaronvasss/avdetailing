@@ -2,6 +2,42 @@ import { Helmet } from "react-helmet-async";
 
 const SITE_URL = "https://avdetailing.net";
 
+// Cities served (Baton Rouge metro + surrounding parishes)
+const SERVICE_CITIES: { name: string; lat: number; lng: number }[] = [
+  { name: "Baton Rouge", lat: 30.4515, lng: -91.1871 },
+  { name: "Prairieville", lat: 30.3057, lng: -90.9784 },
+  { name: "Gonzales", lat: 30.2382, lng: -90.9201 },
+  { name: "Denham Springs", lat: 30.4855, lng: -90.9559 },
+  { name: "Walker", lat: 30.4866, lng: -90.8631 },
+  { name: "Livingston", lat: 30.5024, lng: -90.7484 },
+  { name: "Central", lat: 30.5527, lng: -91.0357 },
+  { name: "Zachary", lat: 30.6491, lng: -91.1565 },
+  { name: "Baker", lat: 30.5852, lng: -91.1684 },
+  { name: "Port Allen", lat: 30.4521, lng: -91.2107 },
+  { name: "Brusly", lat: 30.3935, lng: -91.2540 },
+  { name: "Addis", lat: 30.3563, lng: -91.2654 },
+  { name: "Plaquemine", lat: 30.2905, lng: -91.2348 },
+  { name: "St. Gabriel", lat: 30.2563, lng: -91.0987 },
+  { name: "Geismar", lat: 30.2210, lng: -90.9962 },
+  { name: "St. Amant", lat: 30.1996, lng: -90.8312 },
+  { name: "Sorrento", lat: 30.1838, lng: -90.8589 },
+  { name: "Watson", lat: 30.5852, lng: -90.9495 },
+];
+
+const SERVICE_AREA_SCHEMA = SERVICE_CITIES.map((c) => ({
+  "@type": "City",
+  name: c.name,
+  address: { "@type": "PostalAddress", addressLocality: c.name, addressRegion: "LA", addressCountry: "US" },
+  geo: { "@type": "GeoCoordinates", latitude: c.lat, longitude: c.lng },
+}));
+
+// 50-mile service radius from Baton Rouge HQ
+const SERVICE_AREA_GEO = {
+  "@type": "GeoCircle",
+  geoMidpoint: { "@type": "GeoCoordinates", latitude: 30.4515, longitude: -91.1871 },
+  geoRadius: "80467", // meters (~50 miles)
+};
+
 interface JsonLdProps {
   data: Record<string, unknown> | Record<string, unknown>[];
 }
