@@ -97,7 +97,7 @@ const ServiceAreasPage = () => {
     <Layout>
       <SEOHead
         title="Mobile Detailing Service Areas"
-        description="AV Detailing brings premium mobile auto, boat, RV, and aircraft detailing to Baton Rouge, Prairieville, Gonzales, Denham Springs, Central, Zachary, and surrounding areas."
+        description="Premium mobile auto, boat, RV, and aircraft detailing in Baton Rouge, Prairieville, Gonzales, Denham Springs, Central, Zachary, and nearby."
         path="/service-areas"
       />
       <JsonLd data={localBusinessSchema()} />

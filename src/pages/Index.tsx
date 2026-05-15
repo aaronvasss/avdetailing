@@ -14,8 +14,8 @@ const Index = () => {
   return (
     <Layout>
       <SEOHead
-        title="AV Detailing | Mobile Auto, Boat & Aircraft Detailing in Baton Rouge, LA"
-        description="AV Detailing offers premium mobile detailing in Baton Rouge and across Louisiana. Cars, RVs, boats, and aircraft. Ceramic coating, paint correction, and interior detailing. Book online today."
+        title="AV Detailing | Mobile Auto, Boat & Aircraft Detailing in LA"
+        description="Premium mobile detailing in Baton Rouge, LA. Cars, boats, RVs, and aircraft. Ceramic coating, paint correction, interior. Book online today!"
         path="/"
       />
       <JsonLd data={localBusinessSchema()} />
