@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { JsonLd, imageGallerySchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -35,6 +36,15 @@ const GalleryPage = () => {
         description="See stunning before and after auto detailing transformations by AV Detailing in Baton Rouge. Cars, boats, RVs and more."
         path="/gallery"
       />
+      <JsonLd
+        data={imageGallerySchema(
+          galleryItems.flatMap((g) => [
+            { url: g.after, caption: `${g.title} — ${g.service} (after)` },
+            { url: g.before, caption: `${g.title} — ${g.service} (before)` },
+          ])
+        )}
+      />
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Gallery", path: "/gallery" }])} />
       {/* Hero */}
       <section className="section-padding bg-card">
         <div className="container-custom">

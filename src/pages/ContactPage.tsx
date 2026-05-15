@@ -140,6 +140,10 @@ const ContactPage = () => {
         </div>
       </section>
 
+      <JsonLd data={localBusinessSchema()} />
+      <JsonLd data={contactPageSchema()} />
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Contact", path: "/contact" }])} />
+
       {/* Contact Content */}
       <section className="section-padding bg-background">
         <div className="container-custom">
