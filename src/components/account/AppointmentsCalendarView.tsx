@@ -130,7 +130,7 @@ export function AppointmentsCalendarView({
             className={cn(
               "inline-flex items-center justify-center w-7 h-7 rounded-full text-sm",
               isCurrentDay && "bg-primary text-primary-foreground font-bold",
-              !isCurrentMonth && "text-muted-foreground/50"
+              !isCurrentMonth && "text-muted-foreground"
             )}
           >
             {format(day, "d")}
