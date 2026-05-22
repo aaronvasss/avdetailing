@@ -60,7 +60,7 @@ export function localBusinessSchema() {
     description:
       "Premium mobile detailing for cars, boats, RVs, and aircraft in Baton Rouge, Louisiana.",
     url: SITE_URL,
-    telephone: "+12252284796",
+    telephone: "+12255216264",
     email: "aaronvasquez@avdetailingg.com",
     areaServed: [
       { "@type": "State", name: "Louisiana" },

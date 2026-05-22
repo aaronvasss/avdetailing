@@ -54,7 +54,7 @@ export function Footer() {
             </p>
             <div className="flex space-x-4">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/avdetailingg"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
@@ -62,7 +62,7 @@ export function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/avdetailingg"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
@@ -70,7 +70,7 @@ export function Footer() {
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                href="https://youtube.com"
+                href="https://www.youtube.com/@avdetailing"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
