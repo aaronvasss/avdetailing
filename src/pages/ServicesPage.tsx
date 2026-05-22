@@ -59,6 +59,7 @@ const ServicesPage = () => {
         title="Auto Detailing Services"
         description="Professional mobile detailing services in Baton Rouge, LA. Car, boat, RV & aircraft detailing, ceramic coating, and paint correction. Book online today."
         path="/services"
+        noIndex={true}
       />
       <JsonLd
         data={itemListSchema(

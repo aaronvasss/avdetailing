@@ -5,6 +5,7 @@ import rvDetailingImage from "@/assets/rv-detailing.jpg";
 const RVDetailingPage = () => {
   return (
     <ServicePageTemplate
+      noIndex
       title="RV Exterior Wash"
       location="Professional RV & Motorhome Exterior Wash in Baton Rouge, Louisiana"
       description="Expert exterior wash services for motorhomes, travel trailers, and fifth wheels of all sizes. Keep your RV looking showroom-ready with our thorough roof-to-tire cleaning."
