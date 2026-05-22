@@ -124,11 +124,11 @@ export function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href={`tel:${settings.publicBusinessPhoneE164}`}
+                  href="tel:+12255216264"
                   className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Phone className="h-4 w-4 mr-3 text-primary" />
-                  {settings.publicBusinessPhone}
+                  (225) 521-6264
                 </a>
               </li>
               <li>
@@ -139,6 +139,13 @@ export function Footer() {
                   <Mail className="h-4 w-4 mr-3 text-primary" />
                   info@avdetailing.com
                 </a>
+              </li>
+              <li className="flex items-start text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 mr-3 mt-0.5 text-primary shrink-0" />
+                <address className="not-italic">
+                  AV Detailing<br />
+                  Baton Rouge, LA
+                </address>
               </li>
               <li className="flex items-start text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mr-3 mt-0.5 text-primary shrink-0" />

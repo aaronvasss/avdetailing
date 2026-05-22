@@ -157,11 +157,11 @@ export function Header() {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center space-x-4 shrink-0">
             <a
-              href={`tel:${settings.publicBusinessPhoneE164}`}
+              href="tel:+12255216264"
               className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               <Phone className="h-4 w-4 mr-2" />
-              {settings.publicBusinessPhone}
+              (225) 521-6264
             </a>
             {user ? (
               <Button asChild variant="outline" size="sm">
