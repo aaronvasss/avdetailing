@@ -33,6 +33,8 @@ interface ServicePageProps {
   icon: ReactNode;
   /** If true, uses the $100 deposit booking flow instead of standard booking */
   depositFlow?: boolean;
+  /** If true, adds noindex meta to prevent search indexing */
+  noIndex?: boolean;
 }
 
 export function ServicePageTemplate({
