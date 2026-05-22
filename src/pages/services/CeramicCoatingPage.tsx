@@ -5,6 +5,7 @@ import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
 const CeramicCoatingPage = () => {
   return (
     <ServicePageTemplate
+      noIndex
       depositFlow
       title="Ceramic Coating"
       location="Professional Ceramic Coating in Baton Rouge, Louisiana"

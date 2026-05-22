@@ -132,6 +132,7 @@ const CarDetailingPage = () => {
 
   return (
     <ServicePageTemplate
+      noIndex
       title="Car Detailing"
       location="Premium Auto Detailing in Baton Rouge, Louisiana"
       description="Complete interior and exterior detailing services for sedans, SUVs, trucks, and sports cars. We bring showroom-quality results directly to your location."

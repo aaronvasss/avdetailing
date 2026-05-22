@@ -5,6 +5,7 @@ import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 const PaintCorrectionPage = () => {
   return (
     <ServicePageTemplate
+      noIndex
       depositFlow
       title="Paint Correction"
       location="Expert Paint Correction & Buffing in Baton Rouge, Louisiana"

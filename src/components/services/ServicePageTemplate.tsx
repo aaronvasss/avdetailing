@@ -33,6 +33,8 @@ interface ServicePageProps {
   icon: ReactNode;
   /** If true, uses the $100 deposit booking flow instead of standard booking */
   depositFlow?: boolean;
+  /** If true, adds noindex meta to prevent search indexing */
+  noIndex?: boolean;
 }
 
 export function ServicePageTemplate({
@@ -47,6 +49,7 @@ export function ServicePageTemplate({
   faqs,
   icon,
   depositFlow = false,
+  noIndex = false,
 }: ServicePageProps) {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const routeLocation = useLocation();
@@ -61,6 +64,7 @@ export function ServicePageTemplate({
         title={`${title} Services in Baton Rouge`}
         description={description}
         path={routeLocation.pathname}
+        noIndex={noIndex}
       />
       <JsonLd data={serviceSchema(title, description, routeLocation.pathname)} />
       <JsonLd data={faqSchema(faqs)} />

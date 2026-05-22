@@ -4,6 +4,7 @@ import { ServicePageTemplate } from "@/components/services/ServicePageTemplate";
 const AircraftDetailingPage = () => {
   return (
     <ServicePageTemplate
+      noIndex
       depositFlow
       title="Aircraft Detailing"
       location="Professional Aircraft Detailing in Baton Rouge, Louisiana"
