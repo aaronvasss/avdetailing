@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -65,12 +65,12 @@ const App = () => (
               {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/services" element={<ServicesPage />} />
-              <Route path="/services/car-detailing" element={<CarDetailingPage />} />
-              <Route path="/services/ceramic-coating" element={<CeramicCoatingPage />} />
-              <Route path="/services/paint-correction" element={<PaintCorrectionPage />} />
-              <Route path="/services/boat-detailing" element={<BoatDetailingPage />} />
-              <Route path="/services/rv-detailing" element={<RVDetailingPage />} />
-              <Route path="/services/aircraft-detailing" element={<AircraftDetailingPage />} />
+              <Route path="/services/car-detailing" element={<Navigate to="/car-detailing-baton-rouge" replace />} />
+              <Route path="/services/ceramic-coating" element={<Navigate to="/ceramic-coating-baton-rouge" replace />} />
+              <Route path="/services/paint-correction" element={<Navigate to="/paint-correction-baton-rouge" replace />} />
+              <Route path="/services/boat-detailing" element={<Navigate to="/boat-detailing-baton-rouge" replace />} />
+              <Route path="/services/rv-detailing" element={<Navigate to="/rv-detailing-baton-rouge" replace />} />
+              <Route path="/services/aircraft-detailing" element={<Navigate to="/aircraft-detailing-baton-rouge" replace />} />
               <Route path="/car-detailing-baton-rouge" element={<CarDetailingBatonRougePage />} />
               <Route path="/rv-detailing-baton-rouge" element={<RVDetailingBatonRougePage />} />
               <Route path="/boat-detailing-baton-rouge" element={<BoatDetailingBatonRougePage />} />
