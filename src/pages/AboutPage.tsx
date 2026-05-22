@@ -74,6 +74,10 @@ const AboutPage = () => {
                 src={aboutHeroImage}
                 alt="AV Detailing team at work"
                 className="rounded-xl shadow-2xl"
+                loading="lazy"
+                width={800}
+                height={600}
+                decoding="async"
               />
               <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground p-6 rounded-xl">
                 <div className="text-4xl font-bold">3+</div>
