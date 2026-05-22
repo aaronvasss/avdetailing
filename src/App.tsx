@@ -20,6 +20,8 @@ import CarDetailingBatonRougePage from "./pages/CarDetailingBatonRougePage";
 import RVDetailingBatonRougePage from "./pages/RVDetailingBatonRougePage";
 import BoatDetailingBatonRougePage from "./pages/BoatDetailingBatonRougePage";
 import AircraftDetailingBatonRougePage from "./pages/AircraftDetailingBatonRougePage";
+import ServiceLandingPage from "./pages/ServiceLandingPage";
+import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
 import AboutPage from "./pages/AboutPage";
 import MembershipsPage from "./pages/MembershipsPage";
 import GalleryPage from "./pages/GalleryPage";
@@ -71,6 +73,13 @@ const App = () => (
               <Route path="/rv-detailing-baton-rouge" element={<RVDetailingBatonRougePage />} />
               <Route path="/boat-detailing-baton-rouge" element={<BoatDetailingBatonRougePage />} />
               <Route path="/aircraft-detailing-baton-rouge" element={<AircraftDetailingBatonRougePage />} />
+              {SERVICE_LANDING_PAGES.map((p) => (
+                <Route
+                  key={p.slug}
+                  path={`/${p.slug}`}
+                  element={<ServiceLandingPage slug={p.slug} />}
+                />
+              ))}
               <Route path="/about" element={<AboutPage />} />
               <Route path="/memberships" element={<MembershipsPage />} />
               <Route path="/gallery" element={<GalleryPage />} />
