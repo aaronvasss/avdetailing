@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const SITE_URL = "https://avdetailing.net";
 const PAGE_PATH = "/aircraft-detailing-baton-rouge";
@@ -61,7 +61,27 @@ export default function AircraftDetailingBatonRougePage() {
         description="Professional aircraft cleaning & detailing at BTR, LFT, MSY, NEW and South Louisiana general aviation airports. Aviation-safe products for painted aluminum, composites & plexiglass."
         path={PAGE_PATH}
       />
-      <JsonLd data={[localBusinessSchema(), serviceSchema]} />
+      <JsonLd data={[
+        localBusinessSchema(),
+        serviceSchema,
+        breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Aircraft Detailing Serving Baton Rouge, Lafayette & New Orleans Airports", path: PAGE_PATH },
+        ]),
+      ]} />
+
+      <nav aria-label="Breadcrumb" className="container-custom pt-6 pb-2">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <li>
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">
+            Aircraft Detailing Serving Baton Rouge, Lafayette & New Orleans Airports
+          </li>
+        </ol>
+      </nav>
+
 
       <section className="section-padding bg-card">
         <div className="container-custom max-w-4xl">

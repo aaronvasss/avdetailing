@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const SITE_URL = "https://avdetailing.net";
 const PAGE_PATH = "/boat-detailing-baton-rouge";
@@ -56,7 +56,27 @@ export default function BoatDetailingBatonRougePage() {
         description="Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning, and pontoon detailing on Louisiana waterways. We come to your marina, launch, or driveway."
         path={PAGE_PATH}
       />
-      <JsonLd data={[localBusinessSchema(), serviceSchema]} />
+      <JsonLd data={[
+        localBusinessSchema(),
+        serviceSchema,
+        breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Boat Detailing in Baton Rouge, LA", path: PAGE_PATH },
+        ]),
+      ]} />
+
+      <nav aria-label="Breadcrumb" className="container-custom pt-6 pb-2">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <li>
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">
+            Boat Detailing in Baton Rouge, LA
+          </li>
+        </ol>
+      </nav>
+
 
       <section className="section-padding bg-card">
         <div className="container-custom max-w-4xl">

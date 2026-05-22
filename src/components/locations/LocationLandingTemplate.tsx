@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { LocationPageConfig } from "@/data/locationPages";
 
 const SITE_URL = "https://avdetailing.net";
@@ -60,7 +60,34 @@ export function LocationLandingTemplate({ config }: Props) {
   return (
     <Layout>
       <SEOHead title={`${config.titleTag} | AV Detailing`} description={config.metaDescription} path={pagePath} />
-      <JsonLd data={[localBusinessSchema(), serviceSchema]} />
+      <JsonLd data={[
+        localBusinessSchema(),
+        serviceSchema,
+        breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Service Areas", path: "/service-areas" },
+          { name: config.titleH1, path: `/${config.slug}` },
+        ]),
+      ]} />
+
+      <nav aria-label="Breadcrumb" className="container-custom pt-6 pb-2">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <li>
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li>
+            <Link to="/service-areas" className="hover:text-primary transition-colors">
+              Service Areas
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">
+            {config.titleH1}
+          </li>
+        </ol>
+      </nav>
+
 
       {/* H1 + Intro */}
       <section className="section-padding bg-card">
