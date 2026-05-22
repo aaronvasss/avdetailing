@@ -17,6 +17,9 @@ import BoatDetailingPage from "./pages/services/BoatDetailingPage";
 import RVDetailingPage from "./pages/services/RVDetailingPage";
 import AircraftDetailingPage from "./pages/services/AircraftDetailingPage";
 import CarDetailingBatonRougePage from "./pages/CarDetailingBatonRougePage";
+import RVDetailingBatonRougePage from "./pages/RVDetailingBatonRougePage";
+import BoatDetailingBatonRougePage from "./pages/BoatDetailingBatonRougePage";
+import AircraftDetailingBatonRougePage from "./pages/AircraftDetailingBatonRougePage";
 import AboutPage from "./pages/AboutPage";
 import MembershipsPage from "./pages/MembershipsPage";
 import GalleryPage from "./pages/GalleryPage";
@@ -65,6 +68,9 @@ const App = () => (
               <Route path="/services/rv-detailing" element={<RVDetailingPage />} />
               <Route path="/services/aircraft-detailing" element={<AircraftDetailingPage />} />
               <Route path="/car-detailing-baton-rouge" element={<CarDetailingBatonRougePage />} />
+              <Route path="/rv-detailing-baton-rouge" element={<RVDetailingBatonRougePage />} />
+              <Route path="/boat-detailing-baton-rouge" element={<BoatDetailingBatonRougePage />} />
+              <Route path="/aircraft-detailing-baton-rouge" element={<AircraftDetailingBatonRougePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/memberships" element={<MembershipsPage />} />
               <Route path="/gallery" element={<GalleryPage />} />
