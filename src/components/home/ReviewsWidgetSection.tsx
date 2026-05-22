@@ -12,7 +12,6 @@ export function ReviewsWidgetSection() {
         </div>
 
         <div className="max-w-5xl mx-auto rounded-2xl border border-border bg-background/50 p-4 sm:p-6">
-        <div className="max-w-5xl mx-auto rounded-2xl border border-border bg-background/50 p-4 sm:p-6">
           <div
             className="elfsight-app-b8a9d35a-2106-433a-a919-0586fe965883"
             data-elfsight-app-lazy
