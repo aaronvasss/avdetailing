@@ -22,6 +22,8 @@ import BoatDetailingBatonRougePage from "./pages/BoatDetailingBatonRougePage";
 import AircraftDetailingBatonRougePage from "./pages/AircraftDetailingBatonRougePage";
 import ServiceLandingPage from "./pages/ServiceLandingPage";
 import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
+import LocationLandingPage from "./pages/LocationLandingPage";
+import { LOCATION_PAGES } from "@/data/locationPages";
 import AboutPage from "./pages/AboutPage";
 import MembershipsPage from "./pages/MembershipsPage";
 import GalleryPage from "./pages/GalleryPage";
@@ -78,6 +80,13 @@ const App = () => (
                   key={p.slug}
                   path={`/${p.slug}`}
                   element={<ServiceLandingPage slug={p.slug} />}
+                />
+              ))}
+              {LOCATION_PAGES.map((p) => (
+                <Route
+                  key={p.slug}
+                  path={`/${p.slug}`}
+                  element={<LocationLandingPage slug={p.slug} />}
                 />
               ))}
               <Route path="/about" element={<AboutPage />} />
