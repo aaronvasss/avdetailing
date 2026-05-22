@@ -11,17 +11,13 @@ export function ReviewsWidgetSection() {
           </p>
         </div>
 
-        {/* Elfsight Google Reviews widget — paste widget code inside this container */}
+        {/* OWNER ACTION REQUIRED: Replace "elfsight-app-PLACEHOLDER" with your real Elfsight widget ID once created at elfsight.com */}
         <div className="max-w-5xl mx-auto rounded-2xl border border-border bg-background/50 p-4 sm:p-6">
           <div
             className="elfsight-app-PLACEHOLDER"
             data-elfsight-app-lazy
-            aria-label="Google Reviews"
-          >
-            {/* Replace this placeholder div's class with your Elfsight widget ID
-                (e.g. elfsight-app-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) and add
-                the Elfsight platform script to index.html. */}
-          </div>
+            aria-label="Google Reviews from AV Detailing customers"
+          />
         </div>
       </div>
     </section>
