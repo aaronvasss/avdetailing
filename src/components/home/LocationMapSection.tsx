@@ -17,7 +17,7 @@ export function LocationMapSection() {
           <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-border shadow-lg">
             <iframe
               title="AV Detailing Baton Rouge on Google Maps"
-              src="https://www.google.com/maps?q=AV+Detailing+Baton+Rouge,+LA&output=embed"
+              src="https://maps.google.com/maps?q=AV+Detailing+LLC,+Baton+Rouge,+LA&output=embed"
               width="100%"
               height="400"
               style={{ border: 0 }}
