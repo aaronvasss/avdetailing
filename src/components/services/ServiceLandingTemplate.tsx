@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
 
 const SITE_URL = "https://avdetailing.net";
@@ -82,7 +82,34 @@ export function ServiceLandingTemplate({ config }: Props) {
   return (
     <Layout>
       <SEOHead title={config.title} description={config.metaDescription} path={pagePath} />
-      <JsonLd data={[localBusinessSchema(), serviceSchema]} />
+      <JsonLd data={[
+        localBusinessSchema(),
+        serviceSchema,
+        breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Services", path: "/car-detailing-baton-rouge" },
+          { name: config.title, path: `/${config.slug}` },
+        ]),
+      ]} />
+
+      <nav aria-label="Breadcrumb" className="container-custom pt-6 pb-2">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <li>
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li>
+            <Link to="/car-detailing-baton-rouge" className="hover:text-primary transition-colors">
+              Services
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">
+            {config.title}
+          </li>
+        </ol>
+      </nav>
+
 
       {/* H1 + Intro */}
       <section className="section-padding bg-card">
