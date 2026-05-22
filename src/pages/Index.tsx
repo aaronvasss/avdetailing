@@ -1,9 +1,12 @@
 import { Layout } from "@/components/layout/Layout";
 import { HeroSection } from "@/components/home/HeroSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
+import { LocalServicesSection } from "@/components/home/LocalServicesSection";
 import { MembershipSection } from "@/components/home/MembershipSection";
 import { GalleryPreview } from "@/components/home/GalleryPreview";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { ReviewsWidgetSection } from "@/components/home/ReviewsWidgetSection";
+import { LocationMapSection } from "@/components/home/LocationMapSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
