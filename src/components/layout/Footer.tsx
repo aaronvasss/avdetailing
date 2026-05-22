@@ -3,12 +3,12 @@ import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react"
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 
 const services = [
-  { name: "Car Detailing", href: "/services/car-detailing" },
-  { name: "Ceramic Coating", href: "/services/ceramic-coating" },
-  { name: "Paint Correction", href: "/services/paint-correction" },
-  { name: "Boat Detailing", href: "/services/boat-detailing" },
-  { name: "RV Detailing", href: "/services/rv-detailing" },
-  { name: "Aircraft Detailing", href: "/services/aircraft-detailing" },
+  { name: "Car Detailing", href: "/car-detailing-baton-rouge" },
+  { name: "Ceramic Coating", href: "/ceramic-coating-baton-rouge" },
+  { name: "Paint Correction", href: "/paint-correction-baton-rouge" },
+  { name: "Boat Detailing", href: "/boat-detailing-baton-rouge" },
+  { name: "RV Detailing", href: "/rv-detailing-baton-rouge" },
+  { name: "Aircraft Detailing", href: "/aircraft-detailing-baton-rouge" },
 ];
 
 const company = [
@@ -22,11 +22,11 @@ const company = [
 const serviceAreas = [
   "Baton Rouge",
   "Denham Springs",
-  "higland road",
-  "perkins",
-  "old jefferson",
-  "shennandoah",
-  "higland lakes",
+  "Highland Road",
+  "Perkins Road",
+  "Old Jefferson",
+  "Shenandoah",
+  "Highland Lakes",
   "Prairieville",
   "Gonzales",
   "Walker",

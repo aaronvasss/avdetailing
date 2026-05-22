@@ -12,7 +12,7 @@ export function ServiceContentSection() {
           </h2>
           <p className="text-base sm:text-lg text-foreground/90 leading-relaxed">
             AV Detailing is Baton Rouge&apos;s most trusted mobile car detailing service, bringing professional-grade equipment and premium products directly to your driveway, office, or anywhere across the Baton Rouge metro. Whether your vehicle needs a quick refresh or a complete transformation with System X ceramic coating, paint correction, deep interior cleaning, or headlight restoration, we handle every detail on-site — no drop-off required. We serve Highland Road, Shenandoah, Gonzales, Central Baton Rouge, Prairieville, Walker, and surrounding areas. Explore our complete{" "}
-            <Link to="/services/car-detailing" className="text-primary underline">
+            <Link to="/car-detailing-baton-rouge" className="text-primary underline">
               car detailing services in Baton Rouge
             </Link>{" "}
             and find the right package for your vehicle.
@@ -26,7 +26,7 @@ export function ServiceContentSection() {
           </h2>
           <p className="text-base sm:text-lg text-foreground/90 leading-relaxed">
             Louisiana&apos;s relentless heat, UV exposure, and humidity are the worst conditions possible for an RV&apos;s exterior and interior. Oxidation, black streaks, mold growth, and faded fiberglass develop fast — and left untreated, they permanently damage your RV&apos;s surface and reduce its resale value. AV Detailing provides fully mobile RV detailing including exterior wash, oxidation removal, roof cleaning, interior deep clean, and System X ceramic coating — all at your location across Baton Rouge and surrounding parishes. Learn more about our{" "}
-            <Link to="/services/rv-detailing" className="text-primary underline">
+            <Link to="/rv-detailing-baton-rouge" className="text-primary underline">
               RV detailing services in Baton Rouge
             </Link>{" "}
             and protect your investment before Louisiana&apos;s climate does more damage.
@@ -40,7 +40,7 @@ export function ServiceContentSection() {
           </h2>
           <p className="text-base sm:text-lg text-foreground/90 leading-relaxed">
             Louisiana is one of the top boating states in the country, and Baton Rouge area boat owners know exactly how fast algae, oxidation, waterline scum, and UV damage can destroy a vessel&apos;s finish. Whether you&apos;re on the Mississippi, False River, or any of the lakes and waterways across the parish, AV Detailing provides fully mobile boat detailing — hull cleaning, gelcoat restoration, marine ceramic coating, and upholstery cleaning — all performed at your marina, dock, or driveway. See everything included in our{" "}
-            <Link to="/services/boat-detailing" className="text-primary underline">
+            <Link to="/boat-detailing-baton-rouge" className="text-primary underline">
               boat detailing services in Baton Rouge
             </Link>{" "}
             and book at your convenience.
@@ -54,7 +54,7 @@ export function ServiceContentSection() {
           </h2>
           <p className="text-base sm:text-lg text-foreground/90 leading-relaxed">
             AV Detailing serves private pilots, charter operators, and aircraft owners throughout South Louisiana with professional aircraft cleaning and detailing using only aviation-safe products and procedures. We service aircraft at Baton Rouge Metropolitan Airport (BTR), Lafayette Regional Airport (LFT), Louis Armstrong New Orleans International (MSY), and New Orleans Lakefront Airport (NEW). For pilots and aircraft operators who demand the same precision in their aircraft&apos;s presentation as they do in their flying, discover our{" "}
-            <Link to="/services/aircraft-detailing" className="text-primary underline">
+            <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">
               aircraft detailing services serving Baton Rouge, Lafayette, and New Orleans
             </Link>
             .
