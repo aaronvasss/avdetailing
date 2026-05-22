@@ -16,6 +16,7 @@ import PaintCorrectionPage from "./pages/services/PaintCorrectionPage";
 import BoatDetailingPage from "./pages/services/BoatDetailingPage";
 import RVDetailingPage from "./pages/services/RVDetailingPage";
 import AircraftDetailingPage from "./pages/services/AircraftDetailingPage";
+import CarDetailingBatonRougePage from "./pages/CarDetailingBatonRougePage";
 import AboutPage from "./pages/AboutPage";
 import MembershipsPage from "./pages/MembershipsPage";
 import GalleryPage from "./pages/GalleryPage";
@@ -63,6 +64,7 @@ const App = () => (
               <Route path="/services/boat-detailing" element={<BoatDetailingPage />} />
               <Route path="/services/rv-detailing" element={<RVDetailingPage />} />
               <Route path="/services/aircraft-detailing" element={<AircraftDetailingPage />} />
+              <Route path="/car-detailing-baton-rouge" element={<CarDetailingBatonRougePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/memberships" element={<MembershipsPage />} />
               <Route path="/gallery" element={<GalleryPage />} />
