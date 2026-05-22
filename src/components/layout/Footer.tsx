@@ -21,11 +21,15 @@ const company = [
 
 const serviceAreas = [
   "Baton Rouge",
+  "Denham Springs",
+  "higland road",
+  "perkins",
+  "old jefferson",
+  "shennandoah",
+  "higland lakes",
   "Prairieville",
   "Gonzales",
-  "Denham Springs",
-  "Central",
-  "Zachary",
+  "Walker",
 ];
 
 export function Footer() {
@@ -150,7 +154,7 @@ export function Footer() {
               <li className="flex items-start text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mr-3 mt-0.5 text-primary shrink-0" />
                 <span>
-                  Serving {serviceAreas.join(", ")} and surrounding areas
+                  Serving {serviceAreas.join(", ")} & surrounding areas within 30 miles
                 </span>
               </li>
             </ul>

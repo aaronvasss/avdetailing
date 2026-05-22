@@ -19,7 +19,7 @@ export function LocationMapSection() {
               title="AV Detailing Baton Rouge on Google Maps"
               src="https://www.google.com/maps?q=AV+Detailing+Baton+Rouge,+LA&output=embed"
               width="100%"
-              height="450"
+              height="400"
               style={{ border: 0 }}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
