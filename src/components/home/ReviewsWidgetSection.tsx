@@ -14,7 +14,7 @@ export function ReviewsWidgetSection() {
         {/* OWNER ACTION REQUIRED: Replace "elfsight-app-PLACEHOLDER" with your real Elfsight widget ID once created at elfsight.com */}
         <div className="max-w-5xl mx-auto rounded-2xl border border-border bg-background/50 p-4 sm:p-6">
           <div
-            className="elfsight-app-PLACEHOLDER"
+            className="elfsight-app-b8a9d35a-2106-433a-a919-0586fe965883"
             data-elfsight-app-lazy
             aria-label="Google Reviews from AV Detailing customers"
           />
