@@ -8,7 +8,7 @@ export function HeroSection() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=80&w=2000&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=75&w=2000&auto=format&fit=crop&fm=webp"
           alt="Premium mobile car detailing service in Baton Rouge Louisiana"
           className="absolute inset-0 w-full h-full object-cover"
           loading="eager"

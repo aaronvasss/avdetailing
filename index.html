@@ -18,9 +18,17 @@
     <link
       rel="preload"
       as="image"
-      href="https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=80&w=2000&auto=format&fit=crop"
+      href="https://images.unsplash.com/photo-1507136566006-cfc505b114fc?q=75&w=2000&auto=format&fit=crop&fm=webp"
       fetchpriority="high"
     />
+
+    <!-- DNS prefetch for external services -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://maps.googleapis.com" />
+    <link rel="preconnect" href="https://maps.googleapis.com" crossorigin />
+
+    <!-- Preload critical CSS -->
+    <link rel="preload" as="style" href="/src/index.css" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="AV Detailing | Mobile Auto, Boat & Aircraft Detailing" />

@@ -74,6 +74,10 @@ const AboutPage = () => {
                 src={aboutHeroImage}
                 alt="AV Detailing team at work"
                 className="rounded-xl shadow-2xl"
+                loading="lazy"
+                width={800}
+                height={600}
+                decoding="async"
               />
               <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground p-6 rounded-xl">
                 <div className="text-4xl font-bold">3+</div>
@@ -115,9 +119,13 @@ const AboutPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <img
-                src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?q=80&w=800&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?q=80&w=800&auto=format&fit=crop&fm=webp"
                 alt="Premium detailing results"
                 className="rounded-xl shadow-2xl"
+                loading="lazy"
+                width={800}
+                height={600}
+                decoding="async"
               />
             </div>
             <div className="order-1 lg:order-2">
