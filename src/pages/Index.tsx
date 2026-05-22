@@ -1,5 +1,6 @@
 import { Layout } from "@/components/layout/Layout";
 import { HeroSection } from "@/components/home/HeroSection";
+import { ServiceContentSection } from "@/components/home/ServiceContentSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { LocalServicesSection } from "@/components/home/LocalServicesSection";
 import { MembershipSection } from "@/components/home/MembershipSection";
@@ -23,6 +24,7 @@ const Index = () => {
       />
       <JsonLd data={localBusinessSchema()} />
       <HeroSection />
+      <ServiceContentSection />
       <LocalServicesSection />
       <ServicesSection />
       <MembershipSection />
