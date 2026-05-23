@@ -1930,51 +1930,21 @@ const BookingPage = () => {
 
   return (
     <Layout>
-      <section className={cn(step === 1 ? "pt-4 pb-4" : "section-padding", "bg-background min-h-[80vh]")}>
+      <section className="pt-6 pb-12 bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
-            {/* Progress Bar - Mobile-friendly with horizontal scroll */}
-            {!bookingId && step > 1 && step <= getTotalSteps() && (
-              <div className="mb-12">
-                {/* Mobile: Show active step + progress bar */}
-                <div className="md:hidden mb-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">
-                      Step {currentStepForProgress()} of {getProgressLabels().length}: {getProgressLabels()[currentStepForProgress() - 1]}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {Math.round(((currentStepForProgress()) / getProgressLabels().length) * 100)}%
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Desktop: Show all step labels */}
-                <div className="hidden md:flex justify-between mb-2">
-                  {getProgressLabels().map((label, index) => (
-                    <span
-                      key={label}
-                      className={cn(
-                        "text-xs font-medium",
-                        currentStepForProgress() > index + 1 
-                          ? "text-primary" 
-                          : currentStepForProgress() === index + 1 
-                            ? "text-foreground" 
-                            : "text-muted-foreground"
-                      )}
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${((currentStepForProgress() - 1) / (getProgressLabels().length - 1)) * 100}%` }}
-                  />
-                </div>
+            {/* Simple step indicator */}
+            {!bookingId && step <= getTotalSteps() && (
+              <div className="mb-4 text-center">
+                <span className="text-sm font-semibold text-primary">
+                  Step {currentStepForProgress()}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {" — "}{getProgressLabels()[currentStepForProgress() - 1]}
+                </span>
               </div>
             )}
+
 
             {renderStep()}
           </div>
