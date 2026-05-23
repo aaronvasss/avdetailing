@@ -234,6 +234,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service Greenwell Springs Road, Sullivan Road, Hooper Road, the Wax Road area, and the residential streets out toward the Central / Livingston Parish border. Whether you're near Greenwell Springs, off Sullivan, or out toward Hooper, our mobile team comes to you.",
     surroundingParagraph: "central-link",
+    lat: 30.5527,
+    lng: -91.0357,
   },
 ];
 
