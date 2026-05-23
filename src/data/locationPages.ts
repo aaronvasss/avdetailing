@@ -90,6 +90,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "Our team regularly details vehicles throughout Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive, the Mall of Louisiana area, Burbank Drive, Bluebonnet Boulevard, and the neighborhoods between Siegen and Highland Road. If you're near the Mall, off Picardy, or out toward Burbank, we come to you.",
     surroundingParagraph: "shenandoah-link",
+    lat: 30.3542,
+    lng: -91.0351,
   },
   {
     slug: "car-detailing-gonzales-la",
