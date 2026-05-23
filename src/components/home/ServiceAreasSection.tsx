@@ -120,7 +120,7 @@ const serviceAreaSchema = {
 
 export function ServiceAreasSection() {
   return (
-    <section className="section-padding bg-card">
+    <section className="section-padding bg-card overflow-hidden">
       <JsonLd data={serviceAreaSchema} />
       <div className="container-custom">
         <div className="text-center max-w-3xl mx-auto mb-16">
