@@ -114,6 +114,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service the Prairieville Road area, the Hwy 30 corridor, neighborhoods around Tanger Outlets, the Burnside area, and the residential streets between I-10 and Hwy 44. Whether you're near the outlets, off Airline Highway, or out toward the river, our mobile team comes to you.",
     surroundingParagraph: "gonzales-link",
+    lat: 30.2382,
+    lng: -90.9201,
   },
   {
     slug: "car-detailing-prairieville-la",
