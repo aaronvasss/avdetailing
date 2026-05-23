@@ -27,6 +27,8 @@ export interface LocationPageConfig {
   whyChoose: string[];     // 4 bullets
   neighborhoods: string;   // streets, subdivisions, landmarks paragraph
   surroundingParagraph: React.ReactNode | string; // brief w/ internal link
+  lat: number;
+  lng: number;
 }
 
 const CR: ExtLink = { text: "Consumer Reports", url: "https://www.consumerreports.org/cars/car-care/" };
