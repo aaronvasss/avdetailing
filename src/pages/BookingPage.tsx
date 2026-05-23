@@ -776,51 +776,24 @@ const BookingPage = () => {
       case 1:
         return (
           <div className="space-y-4">
-            <div className="text-center mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-                Book Your Mobile Detail
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Professional detailing at your home or office — Baton Rouge & surrounding areas
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Star className="h-3.5 w-3.5 text-primary fill-primary" />
-                <span>5.0 rated on Google</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Shield className="h-3.5 w-3.5 text-primary" />
-                <span>Fully insured</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Award className="h-3.5 w-3.5 text-primary" />
-                <span>System X certified</span>
-              </div>
-            </div>
             <div className="text-center">
-              <h2 className="text-lg sm:text-xl font-semibold mb-1">
-                What service do you need?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Select the type of detailing service
-              </p>
+              <h2 className="text-2xl font-bold mb-1">What service do you need?</h2>
+              <p className="text-muted-foreground text-sm">Select the type of detailing service</p>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {serviceTypes.map((type) => (
                 <button
                   key={type.id}
                   onClick={() => {
                     setServiceType(type.id);
                     setSelectedPackage(""); // Reset package selection when changing service
-                    // Quote-only services go to quote request step
                     if (quoteOnlyServices.includes(type.id)) {
-                      setStep(2); // Go to quote request
+                      setStep(2);
                     } else if (servicesWithVehicleSelection.includes(type.id)) {
-                      setStep(2); // Go to vehicle sub-type selection for car-based services
+                      setStep(2);
                     } else {
-                      setVehicleSubType(""); // Clear vehicle sub-type for other services
-                      setStep(3); // Skip to package selection
+                      setVehicleSubType("");
+                      setStep(3);
                     }
                   }}
                   className={cn(
@@ -1957,51 +1930,21 @@ const BookingPage = () => {
 
   return (
     <Layout>
-      <section className={cn(step === 1 ? "pt-4 pb-4" : "section-padding", "bg-background min-h-[80vh]")}>
+      <section className="pt-6 pb-12 bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
-            {/* Progress Bar - Mobile-friendly with horizontal scroll */}
-            {!bookingId && step > 1 && step <= getTotalSteps() && (
-              <div className="mb-12">
-                {/* Mobile: Show active step + progress bar */}
-                <div className="md:hidden mb-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">
-                      Step {currentStepForProgress()} of {getProgressLabels().length}: {getProgressLabels()[currentStepForProgress() - 1]}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {Math.round(((currentStepForProgress()) / getProgressLabels().length) * 100)}%
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Desktop: Show all step labels */}
-                <div className="hidden md:flex justify-between mb-2">
-                  {getProgressLabels().map((label, index) => (
-                    <span
-                      key={label}
-                      className={cn(
-                        "text-xs font-medium",
-                        currentStepForProgress() > index + 1 
-                          ? "text-primary" 
-                          : currentStepForProgress() === index + 1 
-                            ? "text-foreground" 
-                            : "text-muted-foreground"
-                      )}
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${((currentStepForProgress() - 1) / (getProgressLabels().length - 1)) * 100}%` }}
-                  />
-                </div>
+            {/* Simple step indicator */}
+            {!bookingId && step <= getTotalSteps() && (
+              <div className="mb-4 text-center">
+                <span className="text-sm font-semibold text-primary">
+                  Step {currentStepForProgress()}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {" — "}{getProgressLabels()[currentStepForProgress() - 1]}
+                </span>
               </div>
             )}
+
 
             {renderStep()}
           </div>
