@@ -66,6 +66,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service homes along Highland Road itself, plus surrounding subdivisions and corridors including Bocage, Goodwood, Kenilworth, Stanford Avenue, Perkins Road, the Acadian Thruway area, the Garden District edge, and the streets around LSU. Whether you're near the LSU lakes, the Perkins Road overpass, or out toward Pollard Estates, our mobile team comes to you.",
     surroundingParagraph: "highland-link",
+    lat: 30.3963,
+    lng: -91.1271,
   },
   {
     slug: "car-detailing-shenandoah-baton-rouge",
