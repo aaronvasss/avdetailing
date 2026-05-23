@@ -53,9 +53,75 @@ const serviceAreas = [
   },
 ];
 
+const serviceAreaSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://avdetailing.net/#business",
+  name: "AV Detailing",
+  url: "https://avdetailing.net",
+  telephone: "+12255216264",
+  areaServed: [
+    {
+      "@type": "City",
+      name: "Baton Rouge",
+      address: { "@type": "PostalAddress", addressLocality: "Baton Rouge", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.4515, longitude: -91.1871 },
+    },
+    {
+      "@type": "Place",
+      name: "Highland Road",
+      address: { "@type": "PostalAddress", addressLocality: "Baton Rouge", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.3963, longitude: -91.1271 },
+    },
+    {
+      "@type": "Place",
+      name: "Shenandoah",
+      address: { "@type": "PostalAddress", addressLocality: "Baton Rouge", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.3542, longitude: -91.0351 },
+    },
+    {
+      "@type": "City",
+      name: "Gonzales",
+      address: { "@type": "PostalAddress", addressLocality: "Gonzales", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.2382, longitude: -90.9201 },
+    },
+    {
+      "@type": "City",
+      name: "Prairieville",
+      address: { "@type": "PostalAddress", addressLocality: "Prairieville", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.3057, longitude: -90.9784 },
+    },
+    {
+      "@type": "City",
+      name: "Denham Springs",
+      address: { "@type": "PostalAddress", addressLocality: "Denham Springs", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.4855, longitude: -90.9559 },
+    },
+    {
+      "@type": "City",
+      name: "Walker",
+      address: { "@type": "PostalAddress", addressLocality: "Walker", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.4866, longitude: -90.8631 },
+    },
+    {
+      "@type": "City",
+      name: "Zachary",
+      address: { "@type": "PostalAddress", addressLocality: "Zachary", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.6491, longitude: -91.1565 },
+    },
+    {
+      "@type": "City",
+      name: "Central",
+      address: { "@type": "PostalAddress", addressLocality: "Central", addressRegion: "LA", addressCountry: "US" },
+      geo: { "@type": "GeoCoordinates", latitude: 30.5527, longitude: -91.0357 },
+    },
+  ],
+};
+
 export function ServiceAreasSection() {
   return (
     <section className="section-padding bg-card">
+      <JsonLd data={serviceAreaSchema} />
       <div className="container-custom">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-primary text-sm font-semibold uppercase tracking-wider">
