@@ -210,6 +210,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service the Pride Road corridor, Hwy 19, the Zachary community core, and the commuter neighborhoods throughout north Baton Rouge. Whether you're near Plank Road, off Hwy 19, or out toward Pride, our mobile team comes to you.",
     surroundingParagraph: "zachary-link",
+    lat: 30.6491,
+    lng: -91.1565,
   },
   {
     slug: "car-detailing-central-la",
