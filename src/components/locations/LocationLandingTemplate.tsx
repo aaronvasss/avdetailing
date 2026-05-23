@@ -53,7 +53,15 @@ export function LocationLandingTemplate({ config }: Props) {
         addressCountry: "US",
       },
     },
-    areaServed: { "@type": "Place", name: config.city },
+    areaServed: {
+      "@type": "Place",
+      name: config.city,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: config.lat,
+        longitude: config.lng,
+      },
+    },
     url: `${SITE_URL}${pagePath}`,
   };
 
