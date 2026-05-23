@@ -4,41 +4,49 @@ import { MapPin } from "lucide-react";
 const serviceAreas = [
   {
     city: "Highland Road",
+    anchor: "Mobile Detailing in Highland Road",
     description: "Serving the Highland Road corridor, Bocage, Kenilworth & LSU area.",
     href: "/car-detailing-highland-road-baton-rouge",
   },
   {
     city: "Shenandoah",
+    anchor: "Mobile Detailing in Shenandoah",
     description: "Serving Shenandoah Estates, Siegen Lane & the Mall of Louisiana area.",
     href: "/car-detailing-shenandoah-baton-rouge",
   },
   {
     city: "Gonzales",
+    anchor: "Mobile Detailing in Gonzales",
     description: "Serving Gonzales, Burnside & the Ascension Parish I-10 corridor.",
     href: "/car-detailing-gonzales-la",
   },
   {
     city: "Prairieville",
+    anchor: "Mobile Detailing in Prairieville",
     description: "Serving Prairieville, Galvez & all Ascension Parish subdivisions.",
     href: "/car-detailing-prairieville-la",
   },
   {
     city: "Denham Springs",
+    anchor: "Mobile Detailing in Denham Springs",
     description: "Serving Denham Springs, Juban Road & all of Livingston Parish.",
     href: "/car-detailing-denham-springs-la",
   },
   {
     city: "Walker",
+    anchor: "Mobile Detailing in Walker",
     description: "Serving Walker, Highway 16 & north Livingston Parish communities.",
     href: "/car-detailing-walker-la",
   },
   {
     city: "Zachary",
+    anchor: "Mobile Detailing in Zachary",
     description: "Serving Zachary, Pride Road & north Baton Rouge communities.",
     href: "/car-detailing-zachary-la",
   },
   {
     city: "Central",
+    anchor: "Mobile Detailing in Central",
     description: "Serving the City of Central, Greenwell Springs & Sullivan Road.",
     href: "/car-detailing-central-la",
   },
@@ -71,7 +79,7 @@ export function ServiceAreasSection() {
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
                 <span className="font-semibold text-base group-hover:text-primary transition-colors">
-                  {area.city}
+                  {area.anchor}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
