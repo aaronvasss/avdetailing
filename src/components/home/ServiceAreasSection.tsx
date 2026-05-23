@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 const serviceAreas = [
   {
