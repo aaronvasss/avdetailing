@@ -777,10 +777,10 @@ const BookingPage = () => {
         return (
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-1">What service do you need?</h2>
-              <p className="text-muted-foreground text-sm">Select the type of detailing service</p>
+              <h2 className="text-2xl font-bold mb-1">What would you like to book?</h2>
+              <p className="text-muted-foreground text-sm">Select a service to get started</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {serviceTypes.map((type) => (
                 <button
                   key={type.id}
@@ -797,12 +797,12 @@ const BookingPage = () => {
                     }
                   }}
                   className={cn(
-                    "p-3 rounded-xl border-2 transition-all text-center hover:border-primary flex flex-col items-center justify-center gap-2",
+                    "min-h-[150px] sm:min-h-[170px] p-4 rounded-xl border-2 transition-all text-center hover:border-primary flex flex-col items-center justify-center gap-3",
                     serviceType === type.id ? "border-primary bg-primary/5" : "border-border"
                   )}
                 >
-                  <type.icon className="h-8 w-8 text-primary" />
-                  <span className="text-sm font-medium">{type.label}</span>
+                  <type.icon className="h-12 w-12 text-primary" />
+                  <span className="text-base font-semibold">{type.label}</span>
                 </button>
               ))}
             </div>
@@ -1939,9 +1939,11 @@ const BookingPage = () => {
                 <span className="text-sm font-semibold text-primary">
                   Step {currentStepForProgress()}
                 </span>
-                <span className="text-sm text-muted-foreground">
-                  {" — "}{getProgressLabels()[currentStepForProgress() - 1]}
-                </span>
+                {currentStepForProgress() > 1 && (
+                  <span className="text-sm text-muted-foreground">
+                    {" — "}{getProgressLabels()[currentStepForProgress() - 1]}
+                  </span>
+                )}
               </div>
             )}
 
