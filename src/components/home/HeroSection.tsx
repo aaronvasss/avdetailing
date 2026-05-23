@@ -41,9 +41,7 @@ export function HeroSection() {
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Experience showroom-quality results for your car, boat, RV, or aircraft. 
-            We bring professional detailing services directly to your location in 
-            Baton Rouge and surrounding areas.
+            Baton Rouge's top-rated mobile detailing service — we come to your home or office across Highland Road, Shenandoah, Gonzales, Prairieville & surrounding areas. No drop-off required.
           </p>
 
           {/* CTAs */}
@@ -55,8 +53,8 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg h-14 px-8">
-              <Link to="/services">
-                View Services
+              <Link to="/car-detailing-baton-rouge">
+                Our Services
               </Link>
             </Button>
           </div>
