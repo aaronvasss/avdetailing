@@ -138,6 +138,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service the Airline Highway corridor, the Hwy 73 area, the Galvez community, and the newer subdivisions throughout Prairieville and Ascension Parish. Whether you're near Hoo Shoo Too Road, off Hwy 73, or in one of the newer developments closer to Hwy 42, we come to you.",
     surroundingParagraph: "prairieville-link",
+    lat: 30.3057,
+    lng: -90.9784,
   },
   {
     slug: "car-detailing-denham-springs-la",
