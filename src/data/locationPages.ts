@@ -162,6 +162,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, and the residential streets throughout Denham Springs and Livingston Parish. Whether you're near the Bass Pro, off Juban, or out toward Watson, our mobile team comes to you.",
     surroundingParagraph: "denham-link",
+    lat: 30.4855,
+    lng: -90.9559,
   },
   {
     slug: "car-detailing-walker-la",
