@@ -53,8 +53,8 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg h-14 px-8">
-              <Link to="/services">
-                View Services
+              <Link to="/car-detailing-baton-rouge">
+                Our Services
               </Link>
             </Button>
           </div>
