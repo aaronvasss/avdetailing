@@ -186,6 +186,8 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service the Hwy 16 corridor, Walker Road, the neighborhoods along Hwy 447, and the residential streets throughout north Livingston Parish. Whether you're near Hwy 16, off Walker South Road, or out toward Watson, our mobile team comes to you.",
     surroundingParagraph: "walker-link",
+    lat: 30.4866,
+    lng: -90.8631,
   },
   {
     slug: "car-detailing-zachary-la",
