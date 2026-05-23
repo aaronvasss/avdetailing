@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* AV Detailing Design System
    Brand Colors: Black, White, Red
    Style: Luxury, Professional, Automotive Premium
