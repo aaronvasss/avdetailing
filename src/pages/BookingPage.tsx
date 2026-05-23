@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle, CreditCard, Gift } from "lucide-react";
+import { Car, Ship, Caravan, Plane, Check, ArrowRight, ArrowLeft, Calendar as CalendarIcon, Clock, MapPin, Sparkles, Star, Loader2, Droplets, Disc3, MessageSquareQuote, CalendarPlus, Download, AlertCircle, CreditCard, Gift, Shield, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -775,12 +775,38 @@ const BookingPage = () => {
       // Step 1: Select Service Type
       case 1:
         return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">What service do you need?</h2>
-              <p className="text-muted-foreground">Select the type of detailing service</p>
+          <div className="space-y-4">
+            <div className="text-center mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+                Book Your Mobile Detail
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Professional detailing at your home or office — Baton Rouge & surrounding areas
+              </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Star className="h-3.5 w-3.5 text-primary fill-primary" />
+                <span>5.0 rated on Google</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Shield className="h-3.5 w-3.5 text-primary" />
+                <span>Fully insured</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Award className="h-3.5 w-3.5 text-primary" />
+                <span>System X certified</span>
+              </div>
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg sm:text-xl font-semibold mb-1">
+                What service do you need?
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Select the type of detailing service
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {serviceTypes.map((type) => (
                 <button
                   key={type.id}
@@ -798,12 +824,12 @@ const BookingPage = () => {
                     }
                   }}
                   className={cn(
-                    "p-6 rounded-xl border-2 transition-all text-center hover:border-primary",
+                    "p-3 rounded-xl border-2 transition-all text-center hover:border-primary flex flex-col items-center justify-center gap-2",
                     serviceType === type.id ? "border-primary bg-primary/5" : "border-border"
                   )}
                 >
-                  <type.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
-                  <span className="font-medium">{type.label}</span>
+                  <type.icon className="h-8 w-8 text-primary" />
+                  <span className="text-sm font-medium">{type.label}</span>
                 </button>
               ))}
             </div>
@@ -1931,11 +1957,11 @@ const BookingPage = () => {
 
   return (
     <Layout>
-      <section className="section-padding bg-background min-h-[80vh]">
+      <section className={cn(step === 1 ? "pt-4 pb-4" : "section-padding", "bg-background min-h-[80vh]")}>
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
             {/* Progress Bar - Mobile-friendly with horizontal scroll */}
-            {!bookingId && step <= getTotalSteps() && (
+            {!bookingId && step > 1 && step <= getTotalSteps() && (
               <div className="mb-12">
                 {/* Mobile: Show active step + progress bar */}
                 <div className="md:hidden mb-2">
