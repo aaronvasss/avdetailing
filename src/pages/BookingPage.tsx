@@ -1957,11 +1957,11 @@ const BookingPage = () => {
 
   return (
     <Layout>
-      <section className="section-padding bg-background min-h-[80vh]">
+      <section className={cn(step === 1 ? "pt-4 pb-4" : "section-padding", "bg-background min-h-[80vh]")}>
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
             {/* Progress Bar - Mobile-friendly with horizontal scroll */}
-            {!bookingId && step <= getTotalSteps() && (
+            {!bookingId && step > 1 && step <= getTotalSteps() && (
               <div className="mb-12">
                 {/* Mobile: Show active step + progress bar */}
                 <div className="md:hidden mb-2">
