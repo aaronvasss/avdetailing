@@ -416,9 +416,27 @@ const BookingPage = () => {
 
   // Get the selected package duration for time slot generation
   const selectedPackageDuration = useMemo(() => {
+    if (serviceType === "ceramic") return 480; // 8 hours for ceramic coating
     if (!selectedPackage) return DEFAULT_DURATION;
     return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
-  }, [selectedPackage]);
+  }, [selectedPackage, serviceType]);
+
+  const ceramicPrice = (): number => {
+    if (serviceType !== "ceramic" || !ceramicVehicleClass || ceramicVehicleClass === "rv-boat-aircraft" || !ceramicTier) return 0;
+    const map: Record<string, Record<string, number>> = {
+      "car": { "3-year": 850, "5-year": 1300, "10-year": 1700 },
+      "suv-truck": { "3-year": 950, "5-year": 1400, "10-year": 1800 },
+    };
+    return map[ceramicVehicleClass]?.[ceramicTier] || 0;
+  };
+  const ceramicTierLabel = (): string => {
+    const map: Record<string, string> = { "3-year": "3-Year Protection", "5-year": "5-Year Protection", "10-year": "10-Year Protection" };
+    return ceramicTier ? map[ceramicTier] || "" : "";
+  };
+  const ceramicVehicleLabel = (): string => {
+    const map: Record<string, string> = { "car": "Car", "suv-truck": "SUV / Truck", "rv-boat-aircraft": "RV / Boat / Aircraft" };
+    return ceramicVehicleClass ? map[ceramicVehicleClass] || "" : "";
+  };
 
   // Read referral code from URL param + fetch user's available credits
   useEffect(() => {
@@ -560,6 +578,7 @@ const BookingPage = () => {
   };
 
   const calculateTotal = () => {
+    if (serviceType === "ceramic") return ceramicPrice();
     const pkg = packages.find(p => p.id === selectedPackage);
     const packagePrice = pkg ? getDisplayPackagePrice(pkg) : 0;
     const addOnsTotal = selectedAddOns.reduce((sum, id) => {
@@ -624,8 +643,11 @@ const BookingPage = () => {
         throw new Error(serviceError?.message || "Unable to load service for booking");
       }
       const pkg = packages.find((p) => p.id === selectedPackage);
-      const serviceName = pkg?.name || "Detailing Service";
-      const totalPrice = getPackagePrice(pkg!);
+      const isCeramic = serviceType === "ceramic";
+      const serviceName = isCeramic
+        ? `Ceramic Coating — ${ceramicTierLabel()} (${ceramicVehicleLabel()})`
+        : (pkg?.name || "Detailing Service");
+      const totalPrice = isCeramic ? ceramicPrice() : getPackagePrice(pkg!);
       const addOnsTotal = selectedAddOns.reduce((sum, id) => {
         const addon = addOns.find(a => a.id === id);
         return sum + (addon?.price || 0);
@@ -807,6 +829,9 @@ const BookingPage = () => {
   };
 
   const getProgressLabels = () => {
+    if (serviceType === "ceramic") {
+      return ["Service", "Tier & Pricing", "Schedule", "Details"];
+    }
     // Quote-only services have a different flow
     if (quoteOnlyServices.includes(serviceType)) {
       return ["Service", "Quote Request"];
@@ -819,6 +844,7 @@ const BookingPage = () => {
   };
 
   const getTotalSteps = () => {
+    if (serviceType === "ceramic") return 4;
     if (quoteOnlyServices.includes(serviceType)) return 2;
     return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
   };
@@ -905,7 +931,7 @@ const BookingPage = () => {
                     <div className="flex items-start gap-3">
                       <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <h3 className="font-semibold">Want to learn more about System X ceramic coating before booking?</h3>
+                        <h3 className="font-semibold">Want to know what is included in the ceramic coating package?</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           Learn about prep, application, and long-term protection.
                         </p>
@@ -973,10 +999,25 @@ const BookingPage = () => {
                   </Card>
                 )}
 
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={() => setStep(1)}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  {ceramicVehicleClass && ceramicVehicleClass !== "rv-boat-aircraft" && (
+                    <Button
+                      className="flex-1 glow-red"
+                      disabled={!ceramicTier}
+                      onClick={() => {
+                        setPaymentMethod('in_person');
+                        setStep(5);
+                      }}
+                    >
+                      Continue to Schedule
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           }
@@ -1460,13 +1501,13 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setStep(4)}>
+              <Button variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 2 : 4)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(6)}
+                onClick={() => setStep(serviceType === "ceramic" ? 7 : 6)}
                 disabled={!selectedDate || !selectedTime}
               >
                 Continue
@@ -1658,7 +1699,18 @@ const BookingPage = () => {
                     </span>
                   </div>
                 )}
-                {(() => {
+                {serviceType === "ceramic" ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Vehicle Class</span>
+                      <span className="font-medium">{ceramicVehicleLabel()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{ceramicTierLabel()}</span>
+                      <span className="font-medium">${ceramicPrice().toFixed(2)}</span>
+                    </div>
+                  </>
+                ) : (() => {
                   const pkg = packages.find((p) => p.id === selectedPackage);
                   const pkgPrice = pkg ? getDisplayPackagePrice(pkg) : 0;
                   return (
@@ -1760,7 +1812,7 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(6)}>
+              <Button type="button" variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 5 : 6)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -2063,6 +2115,13 @@ const BookingPage = () => {
   };
 
   const currentStepForProgress = () => {
+    if (serviceType === "ceramic") {
+      // Ceramic flow: step 1 → 1, step 2 → 2, step 5 → 3, step 7 → 4
+      if (step <= 2) return step;
+      if (step === 5) return 3;
+      if (step === 7) return 4;
+      return step;
+    }
     // Quote-only services have their own flow
     if (quoteOnlyServices.includes(serviceType)) {
       return step;
