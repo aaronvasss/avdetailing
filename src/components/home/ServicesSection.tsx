@@ -67,7 +67,7 @@ const services = [
 
 export function ServicesSection() {
   return (
-    <section className="section-padding bg-background">
+    <section id="services" className="section-padding bg-background">
       <div className="container-custom">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

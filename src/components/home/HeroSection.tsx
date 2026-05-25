@@ -52,10 +52,17 @@ export function HeroSection() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-lg h-14 px-8">
-              <Link to="/car-detailing-baton-rouge">
-                Our Services
-              </Link>
+            <Button
+              variant="outline"
+              size="lg"
+              className="text-lg h-14 px-8"
+              onClick={() =>
+                document
+                  .getElementById("services")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
+              Our Services
             </Button>
           </div>
 
