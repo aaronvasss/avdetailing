@@ -1,15 +1,13 @@
 import { Layout } from "@/components/layout/Layout";
 import { HeroSection } from "@/components/home/HeroSection";
-import { ServiceContentSection } from "@/components/home/ServiceContentSection";
-import { ServicesSection } from "@/components/home/ServicesSection";
-
-import { MembershipSection } from "@/components/home/MembershipSection";
-import { GalleryPreview } from "@/components/home/GalleryPreview";
-
 import { ReviewsWidgetSection } from "@/components/home/ReviewsWidgetSection";
+import { ServicesSection } from "@/components/home/ServicesSection";
+import { HowItWorksSection } from "@/components/home/HowItWorksSection";
+import { ServiceContentSection } from "@/components/home/ServiceContentSection";
+import { GalleryPreview } from "@/components/home/GalleryPreview";
+import { MembershipSection } from "@/components/home/MembershipSection";
 import { ServiceAreasSection } from "@/components/home/ServiceAreasSection";
 import { LocationMapSection } from "@/components/home/LocationMapSection";
-import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { CTASection } from "@/components/home/CTASection";
 import { SEOHead } from "@/components/seo/SEOHead";
@@ -25,11 +23,11 @@ const Index = () => {
       />
       <JsonLd data={localBusinessSchema()} />
       <HeroSection />
-      <ServicesSection />
-      <ServiceContentSection />
-      <HowItWorksSection />
-      <GalleryPreview />
       <ReviewsWidgetSection />
+      <ServicesSection />
+      <HowItWorksSection />
+      <ServiceContentSection />
+      <GalleryPreview />
       <MembershipSection />
       <ServiceAreasSection />
       <LocationMapSection />
