@@ -1501,13 +1501,13 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setStep(4)}>
+              <Button variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 2 : 4)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(6)}
+                onClick={() => setStep(serviceType === "ceramic" ? 7 : 6)}
                 disabled={!selectedDate || !selectedTime}
               >
                 Continue
