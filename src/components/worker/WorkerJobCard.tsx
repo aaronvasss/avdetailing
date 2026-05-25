@@ -337,11 +337,11 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
 
       if (error) throw error;
 
-      if (booking.guest_phone) {
+      if (booking.guest_phone && booking.manage_token) {
         await supabase.functions.invoke("send-sms", {
           body: {
             to: booking.guest_phone,
-            message: `Hi ${firstName}! Your detail is done! 🚗✨ Thank you for choosing AV Detailing. We hope you love the results! Rate your experience: ${window.location.origin}/rate/${booking.id}`,
+            message: `Hi ${firstName}! Your detail is done! 🚗✨ Thank you for choosing AV Detailing. We hope you love the results! Rate your experience: ${window.location.origin}/rate/${booking.id}?token=${booking.manage_token}`,
           },
         });
       }
