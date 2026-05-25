@@ -129,7 +129,7 @@ export function ServicesSection() {
                   {service.description}
                 </p>
                 <div className="flex items-center text-primary text-sm font-medium">
-                  Learn More
+                  View Packages
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
