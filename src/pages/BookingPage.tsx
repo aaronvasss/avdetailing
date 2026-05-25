@@ -762,7 +762,7 @@ const BookingPage = () => {
         }
       }
 
-      if (paymentMethod === 'online' && !isCeramic) {
+      if (paymentMethod === 'online' && !isInPersonOnly) {
         toast.loading("Redirecting to payment...");
         
         try {
