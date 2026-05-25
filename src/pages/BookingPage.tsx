@@ -845,6 +845,9 @@ const BookingPage = () => {
     }
     // In-person-only services skip the payment step
     if (inPersonOnlyServices.includes(serviceType)) {
+      if (servicesWithoutAddOns.includes(serviceType)) {
+        return ["Service", "Package", "Schedule", "Details"];
+      }
       return ["Service", "Package", "Add-ons", "Schedule", "Details"];
     }
     // Services that need vehicle sub-type selection
@@ -857,7 +860,9 @@ const BookingPage = () => {
   const getTotalSteps = () => {
     if (serviceType === "ceramic") return 4;
     if (quoteOnlyServices.includes(serviceType)) return 2;
-    if (inPersonOnlyServices.includes(serviceType)) return 5;
+    if (inPersonOnlyServices.includes(serviceType)) {
+      return servicesWithoutAddOns.includes(serviceType) ? 4 : 5;
+    }
     return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
   };
 
