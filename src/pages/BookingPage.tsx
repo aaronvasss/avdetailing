@@ -874,8 +874,8 @@ const BookingPage = () => {
           // Ceramic Coating: vehicle class selector + tiered pricing
           if (serviceType === "ceramic") {
             const ceramicPricing: Record<string, { tier3: string; tier5: string; tier10: string }> = {
-              "car": { tier3: "$1,000", tier5: "$1,300", tier10: "$1,600" },
-              "suv-truck": { tier3: "$1,200", tier5: "$1,500", tier10: "$1,800" },
+              "car": { tier3: "$850", tier5: "$1,300", tier10: "$1,700" },
+              "suv-truck": { tier3: "$950", tier5: "$1,400", tier10: "$1,800" },
             };
             const vehicleClassOptions = [
               { id: "car" as const, label: "Car", description: "Sedans, coupes & compact vehicles" },
