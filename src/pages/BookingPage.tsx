@@ -1311,7 +1311,7 @@ const BookingPage = () => {
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(4)}
+                onClick={() => setStep(servicesWithoutAddOns.includes(serviceType) ? 5 : 4)}
                 disabled={!selectedPackage || packages.length === 0}
               >
                 Continue
