@@ -1113,7 +1113,7 @@ const BookingPage = () => {
             ) : (
               <div className="space-y-4">
                 {packages.map((pkg) => {
-                  const price = getPackagePrice(pkg);
+                  const displayPrice = getDisplayPackagePrice(pkg);
                   const isPopular = pkg.is_popular;
                   return (
                     <button
