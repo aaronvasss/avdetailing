@@ -1147,7 +1147,7 @@ const BookingPage = () => {
                             <span className="text-xs text-muted-foreground block">Starting at</span>
                           )}
                           <span className="text-2xl font-bold text-primary">
-                            ${price}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
+                            ${displayPrice}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
                           </span>
                         </div>
                       </div>
