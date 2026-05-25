@@ -1699,7 +1699,18 @@ const BookingPage = () => {
                     </span>
                   </div>
                 )}
-                {(() => {
+                {serviceType === "ceramic" ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Vehicle Class</span>
+                      <span className="font-medium">{ceramicVehicleLabel()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{ceramicTierLabel()}</span>
+                      <span className="font-medium">${ceramicPrice().toFixed(2)}</span>
+                    </div>
+                  </>
+                ) : (() => {
                   const pkg = packages.find((p) => p.id === selectedPackage);
                   const pkgPrice = pkg ? getDisplayPackagePrice(pkg) : 0;
                   return (
