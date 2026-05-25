@@ -870,16 +870,124 @@ const BookingPage = () => {
         if (isQuoteOnlyService()) {
           const quoteServiceLabel = serviceTypes.find(s => s.id === serviceType)?.label || "Service";
           const QuoteIcon = serviceTypes.find(s => s.id === serviceType)?.icon || MessageSquareQuote;
+
+          // Ceramic Coating: vehicle class selector + tiered pricing
+          if (serviceType === "ceramic") {
+            const ceramicPricing: Record<string, { tier3: string; tier5: string; tier10: string }> = {
+              "car": { tier3: "$1,000", tier5: "$1,300", tier10: "$1,600" },
+              "suv-truck": { tier3: "$1,200", tier5: "$1,500", tier10: "$1,800" },
+            };
+            const vehicleClassOptions = [
+              { id: "car" as const, label: "Car", description: "Sedans, coupes & compact vehicles" },
+              { id: "suv-truck" as const, label: "SUV / Truck", description: "SUVs, trucks & larger vehicles" },
+              { id: "rv-boat-aircraft" as const, label: "RV / Boat / Aircraft", description: "Custom quote required" },
+            ];
+            const tiers = ceramicVehicleClass && ceramicVehicleClass !== "rv-boat-aircraft"
+              ? [
+                  { id: "3-year", name: "3-Year Protection", price: ceramicPricing[ceramicVehicleClass].tier3 },
+                  { id: "5-year", name: "5-Year Protection", price: ceramicPricing[ceramicVehicleClass].tier5 },
+                  { id: "10-year", name: "10-Year Protection", price: ceramicPricing[ceramicVehicleClass].tier10 },
+                ]
+              : [];
+
+            return (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <QuoteIcon className="h-16 w-16 mx-auto mb-4 text-primary" />
+                  <h2 className="text-2xl font-bold mb-2">Ceramic Coating</h2>
+                  <p className="text-muted-foreground">
+                    Select your vehicle type to see protection tiers and pricing.
+                  </p>
+                </div>
+
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h3 className="font-semibold">Explanation of what is included in the service</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Learn about prep, application, and long-term protection.
+                        </p>
+                      </div>
+                    </div>
+                    <Button asChild variant="outline" className="flex-shrink-0">
+                      <Link to="/ceramic-coating-baton-rouge">Learn About Ceramic Coating</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Select Your Vehicle Type</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {vehicleClassOptions.map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => {
+                          setCeramicVehicleClass(opt.id);
+                          setCeramicTier("");
+                        }}
+                        className={cn(
+                          "p-5 rounded-xl border-2 transition-all text-left hover:border-primary",
+                          ceramicVehicleClass === opt.id ? "border-primary bg-primary/5" : "border-border"
+                        )}
+                      >
+                        <h4 className="font-semibold">{opt.label}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{opt.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {ceramicVehicleClass && ceramicVehicleClass !== "rv-boat-aircraft" && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Choose Your Protection Tier</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {tiers.map((tier) => (
+                        <button
+                          key={tier.id}
+                          onClick={() => setCeramicTier(tier.id)}
+                          className={cn(
+                            "p-6 rounded-xl border-2 transition-all text-left hover:border-primary flex flex-col gap-2",
+                            ceramicTier === tier.id ? "border-primary bg-primary/5" : "border-border"
+                          )}
+                        >
+                          <Droplets className="h-8 w-8 text-primary" />
+                          <h4 className="font-semibold text-lg">{tier.name}</h4>
+                          <p className="text-2xl font-bold text-primary">{tier.price}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {ceramicVehicleClass === "rv-boat-aircraft" && (
+                  <Card className="border-primary/30">
+                    <CardContent className="p-6 text-center space-y-3">
+                      <h3 className="text-xl font-bold">Custom Quote</h3>
+                      <p className="text-muted-foreground">Call us at (225) 521-6264 for pricing</p>
+                      <Button asChild className="glow-red">
+                        <a href="tel:+12255216264">Call (225) 521-6264</a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Button variant="outline" onClick={() => setStep(1)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </div>
+            );
+          }
+
           return (
             <div className="space-y-8">
               <div className="text-center">
                 <QuoteIcon className="h-16 w-16 mx-auto mb-4 text-primary" />
                 <h2 className="text-2xl font-bold mb-2">Request a {quoteServiceLabel} Quote</h2>
                 <p className="text-muted-foreground">
-                  {serviceType === "ceramic" 
-                    ? "Ceramic coating pricing depends on vehicle size, condition, and protection level. We'll provide a custom quote."
-                    : "Aircraft detailing requires an on-site assessment. We'll contact you to schedule a consultation."
-                  }
+                  Aircraft detailing requires an on-site assessment. We'll contact you to schedule a consultation.
                 </p>
               </div>
 
@@ -890,21 +998,10 @@ const BookingPage = () => {
                     <div>
                       <h3 className="font-semibold">What's Included in Your Quote</h3>
                       <ul className="text-sm text-muted-foreground mt-2 space-y-1">
-                        {serviceType === "ceramic" ? (
-                          <>
-                            <li>• Vehicle inspection & condition assessment</li>
-                            <li>• Recommended ceramic coating tier (Lite, Pro, or Elite)</li>
-                            <li>• Paint correction requirements if needed</li>
-                            <li>• Complete pricing with no hidden fees</li>
-                          </>
-                        ) : (
-                          <>
-                            <li>• Aircraft size and type assessment</li>
-                            <li>• Exterior and interior cleaning scope</li>
-                            <li>• Specialized aviation-safe products</li>
-                            <li>• On-site service at your hangar</li>
-                          </>
-                        )}
+                        <li>• Aircraft size and type assessment</li>
+                        <li>• Exterior and interior cleaning scope</li>
+                        <li>• Specialized aviation-safe products</li>
+                        <li>• On-site service at your hangar</li>
                       </ul>
                     </div>
                   </div>
@@ -957,12 +1054,10 @@ const BookingPage = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="quoteVehicle">
-                      {serviceType === "ceramic" ? "Vehicle Details (Year, Make, Model)" : "Aircraft Details (Type, Size)"}
-                    </Label>
+                    <Label htmlFor="quoteVehicle">Aircraft Details (Type, Size)</Label>
                     <Input 
                       id="quoteVehicle" 
-                      placeholder={serviceType === "ceramic" ? "e.g., 2024 BMW X5" : "e.g., Cessna 172, Single-Engine"}
+                      placeholder="e.g., Cessna 172, Single-Engine"
                       value={`${customerInfo.vehicleYear} ${customerInfo.vehicleMake} ${customerInfo.vehicleModel}`.trim()} 
                       onChange={(e) => {
                         const parts = e.target.value.split(" ");
@@ -974,10 +1069,7 @@ const BookingPage = () => {
                     <Label htmlFor="quoteNotes">Additional Details (Optional)</Label>
                     <Textarea 
                       id="quoteNotes" 
-                      placeholder={serviceType === "ceramic" 
-                        ? "Current vehicle condition, any specific concerns, preferred protection level..."
-                        : "Hangar location, scheduling preferences, specific cleaning requirements..."
-                      }
+                      placeholder="Hangar location, scheduling preferences, specific cleaning requirements..."
                       value={customerInfo.notes} 
                       onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} 
                     />
@@ -993,7 +1085,6 @@ const BookingPage = () => {
                 <Button 
                   className="flex-1 glow-red" 
                   onClick={async () => {
-                    // Validate basic fields
                     if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email || !customerInfo.phone) {
                       toast.error("Please fill in all required fields");
                       return;
@@ -1001,7 +1092,6 @@ const BookingPage = () => {
                     
                     setIsSubmitting(true);
                     try {
-                      // Send quote request email/notification
                       const { error } = await supabase.functions.invoke('send-contact-email', {
                         body: {
                           name: `${customerInfo.firstName} ${customerInfo.lastName}`,
@@ -1015,7 +1105,7 @@ const BookingPage = () => {
                       if (error) throw error;
                       
                       toast.success("Quote request submitted! We'll contact you within 24 hours.");
-                      setBookingId("quote-" + Date.now()); // Set a pseudo-ID to show confirmation
+                      setBookingId("quote-" + Date.now());
                     } catch (error) {
                       console.error('Quote request error:', error);
                       toast.error("Failed to submit quote request. Please try again or call us directly.");
@@ -1041,6 +1131,7 @@ const BookingPage = () => {
             </div>
           );
         }
+
 
         // Regular vehicle sub-type selection for car-based services
         const ServiceIcon = serviceTypes.find(s => s.id === serviceType)?.icon || Car;
