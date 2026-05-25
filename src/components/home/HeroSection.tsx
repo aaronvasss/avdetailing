@@ -41,7 +41,7 @@ export function HeroSection() {
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Baton Rouge's top-rated mobile detailing service — we come to your home or office across Highland Road, Shenandoah, Gonzales, Prairieville & surrounding areas. No drop-off required.
+            Baton Rouge's #1 mobile car detailing service, System X ceramic coating, paint correction, interior detailing & more. We come to you across Highland Road, Shenandoah, Gonzales, Deham Springs, Perkins & Prairieville
           </p>
 
           {/* CTAs */}
