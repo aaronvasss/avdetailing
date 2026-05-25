@@ -156,6 +156,25 @@ const fallbackPackages = [
   },
 ];
 
+// Display price overrides — used ONLY for what the customer sees during selection.
+// Actual DB prices are preserved for backend calculations, Stripe, and booking totals.
+const DISPLAY_PACKAGE_PRICES: Record<string, Record<string, number>> = {
+  "exterior-only": { sedan: 75, "suv-5": 75, "suv-8": 75, truck: 75 },
+  "basic": { sedan: 140, "suv-5": 150, "suv-8": 150, truck: 150 },
+  "silver": { sedan: 250, "suv-5": 250, "suv-8": 260, truck: 250 },
+  "gold": { sedan: 350, "suv-5": 350, "suv-8": 360, truck: 350 },
+  "interior-basic": { sedan: 100, "suv-5": 100, "suv-8": 100, truck: 100 },
+  "interior-full-detail": { sedan: 260, "suv-5": 260, "suv-8": 260, truck: 260 },
+};
+
+const DISPLAY_ADDON_PRICES: Record<string, number> = {
+  "pet hair removal": 45,
+  "engine bay cleaning": 60,
+  "odor elimination": 50,
+  "headlight restoration": 70,
+  "clay bar treatment": 70,
+};
+
 interface ServicePackage {
   id: string;
   name: string;
