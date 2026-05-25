@@ -156,6 +156,25 @@ const fallbackPackages = [
   },
 ];
 
+// Display price overrides — used ONLY for what the customer sees during selection.
+// Actual DB prices are preserved for backend calculations, Stripe, and booking totals.
+const DISPLAY_PACKAGE_PRICES: Record<string, Record<string, number>> = {
+  "exterior-only": { sedan: 75, "suv-5": 75, "suv-8": 75, truck: 75 },
+  "basic": { sedan: 140, "suv-5": 150, "suv-8": 150, truck: 150 },
+  "silver": { sedan: 250, "suv-5": 250, "suv-8": 260, truck: 250 },
+  "gold": { sedan: 350, "suv-5": 350, "suv-8": 360, truck: 350 },
+  "interior-basic": { sedan: 100, "suv-5": 100, "suv-8": 100, truck: 100 },
+  "interior-full-detail": { sedan: 260, "suv-5": 260, "suv-8": 260, truck: 260 },
+};
+
+const DISPLAY_ADDON_PRICES: Record<string, number> = {
+  "pet hair removal": 45,
+  "engine bay cleaning": 60,
+  "odor elimination": 50,
+  "headlight restoration": 70,
+  "clay bar treatment": 70,
+};
+
 interface ServicePackage {
   id: string;
   name: string;
@@ -504,12 +523,46 @@ const BookingPage = () => {
     return pkg.basePrice;
   };
 
+  // Display-only prices for UI rendering (package selection, add-ons, summary)
+  const getDisplayPackagePrice = (pkg: { id: string; name: string; basePrice: number; prices: Record<string, number> }) => {
+    const displayMap = DISPLAY_PACKAGE_PRICES[pkg.id];
+    if (displayMap) {
+      if (vehicleSubType && displayMap[vehicleSubType]) {
+        return displayMap[vehicleSubType];
+      }
+      if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
+        for (const dbType of vehicleSubTypeToDbType[vehicleSubType]) {
+          if (displayMap[dbType]) {
+            return displayMap[dbType];
+          }
+        }
+      }
+      const firstPrice = Object.values(displayMap)[0];
+      if (firstPrice !== undefined) return firstPrice;
+    }
+
+    // Name-based fallback for interior packages with unknown slugs
+    const nameLower = pkg.name.toLowerCase();
+    if (nameLower.includes("interior basic")) return 100;
+    if (nameLower.includes("interior full")) return 260;
+
+    return getPackagePrice(pkg);
+  };
+
+  const getDisplayAddOnPrice = (addon: { name: string; price: number }) => {
+    const nameLower = addon.name.toLowerCase();
+    for (const [key, price] of Object.entries(DISPLAY_ADDON_PRICES)) {
+      if (nameLower.includes(key)) return price;
+    }
+    return addon.price;
+  };
+
   const calculateTotal = () => {
     const pkg = packages.find(p => p.id === selectedPackage);
-    const packagePrice = pkg ? getPackagePrice(pkg) : 0;
+    const packagePrice = pkg ? getDisplayPackagePrice(pkg) : 0;
     const addOnsTotal = selectedAddOns.reduce((sum, id) => {
       const addon = addOns.find(a => a.id === id);
-      return sum + (addon?.price || 0);
+      return sum + (addon ? getDisplayAddOnPrice(addon) : 0);
     }, 0);
     return packagePrice + addOnsTotal;
   };
@@ -1060,7 +1113,7 @@ const BookingPage = () => {
             ) : (
               <div className="space-y-4">
                 {packages.map((pkg) => {
-                  const price = getPackagePrice(pkg);
+                  const displayPrice = getDisplayPackagePrice(pkg);
                   const isPopular = pkg.is_popular;
                   return (
                     <button
@@ -1094,7 +1147,7 @@ const BookingPage = () => {
                             <span className="text-xs text-muted-foreground block">Starting at</span>
                           )}
                           <span className="text-2xl font-bold text-primary">
-                            ${price}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
+                            ${displayPrice}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
                           </span>
                         </div>
                       </div>
@@ -1166,7 +1219,7 @@ const BookingPage = () => {
                             <p className="text-xs text-muted-foreground">{reason}</p>
                           </div>
                         </div>
-                        <span className="font-semibold text-primary">${addon.price}</span>
+                        <span className="font-semibold text-primary">${getDisplayAddOnPrice(addon)}</span>
                       </button>
                     );
                   })}
@@ -1206,7 +1259,7 @@ const BookingPage = () => {
                           <p className="text-sm text-muted-foreground">{addon.description}</p>
                         </div>
                       </div>
-                      <span className="font-semibold text-primary">${addon.price}</span>
+                      <span className="font-semibold text-primary">${getDisplayAddOnPrice(addon)}</span>
                     </button>
                   );
                 })}
@@ -1514,7 +1567,7 @@ const BookingPage = () => {
                 )}
                 {(() => {
                   const pkg = packages.find((p) => p.id === selectedPackage);
-                  const pkgPrice = pkg ? getPackagePrice(pkg) : 0;
+                  const pkgPrice = pkg ? getDisplayPackagePrice(pkg) : 0;
                   return (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{pkg?.name || 'Package'}</span>
@@ -1530,7 +1583,7 @@ const BookingPage = () => {
                       .map((a) => (
                         <div key={a.id} className="flex justify-between pl-3">
                           <span className="text-sm">{a.name}</span>
-                          <span className="font-medium">${Number(a.price).toFixed(2)}</span>
+                          <span className="font-medium">${getDisplayAddOnPrice(a).toFixed(2)}</span>
                         </div>
                       ))}
                     <div className="flex justify-between pl-3 text-sm text-muted-foreground border-t pt-1">
@@ -1538,7 +1591,7 @@ const BookingPage = () => {
                       <span>
                         ${selectedAddOns.reduce((sum, id) => {
                           const a = addOns.find((x) => x.id === id);
-                          return sum + (a ? Number(a.price) : 0);
+                          return sum + (a ? getDisplayAddOnPrice(a) : 0);
                         }, 0).toFixed(2)}
                       </span>
                     </div>
