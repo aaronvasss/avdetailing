@@ -34,12 +34,12 @@ import { Link } from "react-router-dom";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
-  { id: "car", label: "Car Detailing", icon: Car },
-  { id: "ceramic", label: "Ceramic Coating", icon: Droplets, quoteOnly: true },
-  { id: "paint", label: "Paint Correction", icon: Disc3 },
-  { id: "boat", label: "Boat Detailing", icon: Ship },
-  { id: "rv", label: "RV/Motorhome", icon: Caravan },
-  { id: "aircraft", label: "Aircraft", icon: Plane, quoteOnly: true },
+  { id: "car", label: "Car Detailing", subtitle: "Interior & exterior", icon: Car },
+  { id: "ceramic", label: "Ceramic Coating", subtitle: "Long-term paint protection", icon: Droplets, quoteOnly: true },
+  { id: "paint", label: "Paint Correction", subtitle: "Remove swirls & scratches", icon: Disc3 },
+  { id: "boat", label: "Boat Detailing", subtitle: "Marine vessels", icon: Ship },
+  { id: "rv", label: "RV/Motorhome", subtitle: "Motorhomes & trailers", icon: Caravan },
+  { id: "aircraft", label: "Aircraft", subtitle: "Private planes", icon: Plane, quoteOnly: true },
 ];
 
 // Services that are quote-only (no package selection)
