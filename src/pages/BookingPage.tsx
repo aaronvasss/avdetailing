@@ -1567,7 +1567,7 @@ const BookingPage = () => {
                 )}
                 {(() => {
                   const pkg = packages.find((p) => p.id === selectedPackage);
-                  const pkgPrice = pkg ? getPackagePrice(pkg) : 0;
+                  const pkgPrice = pkg ? getDisplayPackagePrice(pkg) : 0;
                   return (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{pkg?.name || 'Package'}</span>
