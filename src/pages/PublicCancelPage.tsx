@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Car, MapPin, Check, Loader2 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
