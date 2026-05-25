@@ -127,17 +127,38 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Accept either the service role key (server-to-server) or a valid Supabase JWT
-  // (authenticated user or anon key from our own app). Reject everything else.
+  // Authorization: allow service role (server-to-server) OR an authenticated
+  // staff/admin user. Reject everything else (including the anon key and
+  // arbitrary JWTs).
   const authHeader = req.headers.get("Authorization") ?? "";
-  const apiKeyHeader = req.headers.get("apikey") ?? "";
   const SUPABASE_SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-  const isAuthorized =
-    token === SUPABASE_SERVICE_ROLE ||
-    (SUPABASE_ANON && (token === SUPABASE_ANON || apiKeyHeader === SUPABASE_ANON)) ||
-    token.split(".").length === 3; // any Supabase-issued JWT
+
+  let isAuthorized = false;
+  if (token && token === SUPABASE_SERVICE_ROLE) {
+    isAuthorized = true;
+  } else if (token && SUPABASE_ANON) {
+    try {
+      const authClient = createClient(SUPABASE_URL, SUPABASE_ANON, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: userData } = await authClient.auth.getUser(token);
+      const userId = userData?.user?.id;
+      if (userId) {
+        const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+        const { data: roleRows } = await adminClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .in("role", ["admin", "staff"]);
+        if (roleRows && roleRows.length > 0) isAuthorized = true;
+      }
+    } catch (_) {
+      // fall through to unauthorized
+    }
+  }
+
   if (!isAuthorized) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
