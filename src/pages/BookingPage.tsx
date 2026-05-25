@@ -578,6 +578,7 @@ const BookingPage = () => {
   };
 
   const calculateTotal = () => {
+    if (serviceType === "ceramic") return ceramicPrice();
     const pkg = packages.find(p => p.id === selectedPackage);
     const packagePrice = pkg ? getDisplayPackagePrice(pkg) : 0;
     const addOnsTotal = selectedAddOns.reduce((sum, id) => {
