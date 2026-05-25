@@ -45,6 +45,7 @@ const serviceTypes = [
 // Services that are quote-only (no package selection)
 const quoteOnlyServices = ["ceramic", "aircraft"];
 const inPersonOnlyServices = ["ceramic", "boat"];
+const servicesWithoutAddOns = ["boat"];
 
 // Vehicle sub-types for Car, Ceramic, and Paint Correction
 const carVehicleTypes = [
