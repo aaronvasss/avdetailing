@@ -1765,7 +1765,7 @@ const BookingPage = () => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
                   <span className="font-medium">
-                    {serviceType === "ceramic" ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
+                    {inPersonOnlyServices.includes(serviceType) ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
                   </span>
                 </div>
                 {referralCredit > 0 && useCredit && (
