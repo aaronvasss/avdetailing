@@ -829,6 +829,9 @@ const BookingPage = () => {
   };
 
   const getProgressLabels = () => {
+    if (serviceType === "ceramic") {
+      return ["Service", "Tier & Pricing", "Schedule", "Details"];
+    }
     // Quote-only services have a different flow
     if (quoteOnlyServices.includes(serviceType)) {
       return ["Service", "Quote Request"];
@@ -841,6 +844,7 @@ const BookingPage = () => {
   };
 
   const getTotalSteps = () => {
+    if (serviceType === "ceramic") return 4;
     if (quoteOnlyServices.includes(serviceType)) return 2;
     return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
   };
