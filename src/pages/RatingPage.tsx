@@ -55,17 +55,24 @@ export default function RatingPage() {
 
   const handleSubmit = async () => {
     if (!rating || !bookingId) return;
+    if (!token) {
+      toast.error("Invalid rating link");
+      return;
+    }
     setSubmitting(true);
 
-    const { error } = await supabase.from("booking_ratings").insert({
-      booking_id: bookingId,
-      rating,
-      comment: comment.trim() || null,
-      customer_name: booking?.guest_name || null,
+    const { data, error } = await supabase.functions.invoke("submit-rating", {
+      body: {
+        booking_id: bookingId,
+        token,
+        rating,
+        comment: comment.trim() || null,
+        customer_name: booking?.guest_name || null,
+      },
     });
 
-    if (error) {
-      toast.error("Failed to submit rating");
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || "Failed to submit rating");
       setSubmitting(false);
       return;
     }
