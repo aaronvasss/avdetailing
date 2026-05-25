@@ -268,6 +268,8 @@ const BookingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [ceramicVehicleClass, setCeramicVehicleClass] = useState<"car" | "suv-truck" | "rv-boat-aircraft" | "">("");
+  const [ceramicTier, setCeramicTier] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>(null);
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   const [smsConsent, setSmsConsent] = useState(false);
