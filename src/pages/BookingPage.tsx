@@ -45,6 +45,7 @@ const serviceTypes = [
 // Services that are quote-only (no package selection)
 const quoteOnlyServices = ["ceramic", "aircraft"];
 const inPersonOnlyServices = ["ceramic", "boat"];
+const servicesWithoutAddOns = ["boat"];
 
 // Vehicle sub-types for Car, Ceramic, and Paint Correction
 const carVehicleTypes = [
@@ -844,6 +845,9 @@ const BookingPage = () => {
     }
     // In-person-only services skip the payment step
     if (inPersonOnlyServices.includes(serviceType)) {
+      if (servicesWithoutAddOns.includes(serviceType)) {
+        return ["Service", "Package", "Schedule", "Details"];
+      }
       return ["Service", "Package", "Add-ons", "Schedule", "Details"];
     }
     // Services that need vehicle sub-type selection
@@ -856,7 +860,9 @@ const BookingPage = () => {
   const getTotalSteps = () => {
     if (serviceType === "ceramic") return 4;
     if (quoteOnlyServices.includes(serviceType)) return 2;
-    if (inPersonOnlyServices.includes(serviceType)) return 5;
+    if (inPersonOnlyServices.includes(serviceType)) {
+      return servicesWithoutAddOns.includes(serviceType) ? 4 : 5;
+    }
     return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
   };
 
@@ -1310,7 +1316,7 @@ const BookingPage = () => {
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(4)}
+                onClick={() => setStep(servicesWithoutAddOns.includes(serviceType) ? 5 : 4)}
                 disabled={!selectedPackage || packages.length === 0}
               >
                 Continue
@@ -1513,7 +1519,7 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 2 : 4)}>
+              <Button variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 2 : servicesWithoutAddOns.includes(serviceType) ? 3 : 4)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
