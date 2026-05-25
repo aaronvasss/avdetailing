@@ -94,7 +94,7 @@ const getVehicleTypeFilter = (serviceType: string, vehicleSubType: string): stri
 };
 
 // Services that show "starting at" pricing (variable based on vehicle size, condition, etc.)
-const startingAtPricingServices = ["paint", "rv"];
+const startingAtPricingServices = ["paint", "rv", "boat"];
 
 // Get the service ID for the selected service type
 const getServiceIdForType = (serviceType: string): string | null => {
