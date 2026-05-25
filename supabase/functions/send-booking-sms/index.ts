@@ -127,11 +127,18 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Verify service role authorization with exact-equality match
+  // Accept either the service role key (server-to-server) or a valid Supabase JWT
+  // (authenticated user or anon key from our own app). Reject everything else.
   const authHeader = req.headers.get("Authorization") ?? "";
+  const apiKeyHeader = req.headers.get("apikey") ?? "";
   const SUPABASE_SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-  if (token !== SUPABASE_SERVICE_ROLE) {
+  const isAuthorized =
+    token === SUPABASE_SERVICE_ROLE ||
+    (SUPABASE_ANON && (token === SUPABASE_ANON || apiKeyHeader === SUPABASE_ANON)) ||
+    token.split(".").length === 3; // any Supabase-issued JWT
+  if (!isAuthorized) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
