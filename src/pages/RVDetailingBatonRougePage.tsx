@@ -62,7 +62,7 @@ export default function RVDetailingBatonRougePage() {
     <Layout>
       <SEOHead
         title="RV Detailing in Baton Rouge, LA"
-        description="Mobile RV detailing in Baton Rouge — oxidation removal, ceramic coating, roof cleaning, and interior detailing for Class A/B/C motorhomes, fifth wheels & travel trailers."
+        description="Mobile RV detailing in Baton Rouge — oxidation removal, ceramic coating & roof cleaning for Class A/B/C motorhomes, fifth wheels & travel trailers."
         path={PAGE_PATH}
       />
       <JsonLd data={[
