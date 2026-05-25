@@ -1259,7 +1259,7 @@ const BookingPage = () => {
                           <p className="text-sm text-muted-foreground">{addon.description}</p>
                         </div>
                       </div>
-                      <span className="font-semibold text-primary">${addon.price}</span>
+                      <span className="font-semibold text-primary">${getDisplayAddOnPrice(addon)}</span>
                     </button>
                   );
                 })}
