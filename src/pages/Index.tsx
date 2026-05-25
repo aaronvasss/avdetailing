@@ -25,8 +25,8 @@ const Index = () => {
       />
       <JsonLd data={localBusinessSchema()} />
       <HeroSection />
-      <ServiceContentSection />
       <ServicesSection />
+      <ServiceContentSection />
       <HowItWorksSection />
       <GalleryPreview />
       <ReviewsWidgetSection />
