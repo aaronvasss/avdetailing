@@ -449,21 +449,43 @@ serve(async (req) => {
       });
     }
 
-    // For resend modes, verify caller is staff/admin
-    if (mode !== "auto") {
-      const authHeader = req.headers.get("authorization");
-      if (!authHeader) {
+    // Auth gate:
+    //   - "auto" mode is server-to-server only and requires the service role key
+    //   - resend modes require an authenticated staff/admin user
+    const authHeader = req.headers.get("authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const SERVICE_ROLE = SUPABASE_SERVICE_ROLE_KEY;
+
+    if (mode === "auto") {
+      if (!token || token !== SERVICE_ROLE) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      if (!token) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const supabaseAuth = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
+        global: { headers: { Authorization: `Bearer ${token}` } },
       });
       const { data: { user } } = await supabaseAuth.auth.getUser();
       if (!user) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE);
+      const { data: roleRows } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["admin", "staff"]);
+      if (!roleRows || roleRows.length === 0) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
