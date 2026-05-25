@@ -1519,7 +1519,7 @@ const BookingPage = () => {
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(serviceType === "ceramic" ? 7 : 6)}
+                onClick={() => setStep(inPersonOnlyServices.includes(serviceType) ? 7 : 6)}
                 disabled={!selectedDate || !selectedTime}
               >
                 Continue
