@@ -23,6 +23,8 @@ interface BookingInfo {
 
 export default function PublicCancelPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") ?? "";
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -36,13 +38,18 @@ export default function PublicCancelPage() {
       setLoading(false);
       return;
     }
+    if (!token) {
+      setError("This cancellation link is missing its security token. Please use the link from your confirmation email, or manage your booking from your account.");
+      setLoading(false);
+      return;
+    }
     fetchBooking();
-  }, [bookingId]);
+  }, [bookingId, token]);
 
   const fetchBooking = async () => {
     try {
       const { data, error: fnError } = await supabase.functions.invoke("cancel-booking-public", {
-        body: { booking_id: bookingId, action: "get" },
+        body: { booking_id: bookingId, manage_token: token, action: "get" },
       });
       if (fnError || data?.error) {
         setError(data?.error || "Booking not found.");
@@ -68,7 +75,7 @@ export default function PublicCancelPage() {
     setSubmitting(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("cancel-booking-public", {
-        body: { booking_id: bookingId, action: "cancel" },
+        body: { booking_id: bookingId, manage_token: token, action: "cancel" },
       });
       if (fnError || data?.error) {
         toast.error(data?.error || "Failed to cancel. Please try again.");
