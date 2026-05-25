@@ -905,7 +905,7 @@ const BookingPage = () => {
                     <div className="flex items-start gap-3">
                       <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <h3 className="font-semibold">Explanation of what is included in the service</h3>
+                        <h3 className="font-semibold">Want to learn more about System X ceramic coating before booking?</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           Learn about prep, application, and long-term protection.
                         </p>
