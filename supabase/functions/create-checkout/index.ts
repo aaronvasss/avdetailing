@@ -184,10 +184,16 @@ serve(async (req) => {
         }
       }
 
-      // If service_packages has a stripe_price_id, use it directly (price already finalized in Stripe)
+      // If service_packages has a stripe_price_id, verify it exists in this Stripe mode before using
       if (packageStripePriceId) {
-        price_id = packageStripePriceId;
-        logStep("Using stripe_price_id from service_packages directly", { price_id });
+        try {
+          await stripe.prices.retrieve(packageStripePriceId);
+          price_id = packageStripePriceId;
+          logStep("Using stripe_price_id from service_packages directly", { price_id });
+        } catch (e) {
+          logStep("Stored stripe_price_id invalid, will create dynamic price", { packageStripePriceId, error: (e as Error).message });
+          packageStripePriceId = null;
+        }
       }
 
       // Fallback to services.base_price if no package match
@@ -271,12 +277,19 @@ serve(async (req) => {
 
       if (addOns && addOns.length > 0) {
         for (const addon of addOns) {
+          let useStoredPriceId: string | null = null;
           if (addon.stripe_price_id) {
-            lineItems.push({ price: addon.stripe_price_id, quantity: 1 });
-            logStep("Added add-on line item", { name: addon.name, price_id: addon.stripe_price_id });
+            try {
+              await stripe.prices.retrieve(addon.stripe_price_id);
+              useStoredPriceId = addon.stripe_price_id;
+            } catch (e) {
+              logStep("Stored add-on stripe_price_id invalid, creating dynamic", { name: addon.name, error: (e as Error).message });
+            }
+          }
+          if (useStoredPriceId) {
+            lineItems.push({ price: useStoredPriceId, quantity: 1 });
+            logStep("Added add-on line item", { name: addon.name, price_id: useStoredPriceId });
           } else {
-            // Create dynamic price for add-on without a Stripe price ID (include 3.5% processing fee)
-            // Add-on prices in service_add_ons already include any fee — do NOT add again.
             const addonBasePrice = Number(addon.price);
             const addonTotalCents = Math.round(addonBasePrice * 100);
             const addonPrice = await stripe.prices.create({
