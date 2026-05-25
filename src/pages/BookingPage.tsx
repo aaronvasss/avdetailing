@@ -1824,7 +1824,7 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 5 : 6)}>
+              <Button type="button" variant="outline" onClick={() => setStep(inPersonOnlyServices.includes(serviceType) ? 5 : 6)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -1832,11 +1832,11 @@ const BookingPage = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Redirecting to Payment..." : "Confirming..."}
+                    {paymentMethod === 'online' && !inPersonOnlyServices.includes(serviceType) ? "Redirecting to Payment..." : "Confirming..."}
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Proceed to Payment" : "Confirm Booking"}
+                    {paymentMethod === 'online' && !inPersonOnlyServices.includes(serviceType) ? "Proceed to Payment" : "Confirm Booking"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
