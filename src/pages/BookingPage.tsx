@@ -416,7 +416,7 @@ const BookingPage = () => {
 
   // Get the selected package duration for time slot generation
   const selectedPackageDuration = useMemo(() => {
-    if (serviceType === "ceramic") return 480; // 8 hours for ceramic coating
+    if (serviceType === "ceramic") return 300; // 5 hours for ceramic coating
     if (!selectedPackage) return DEFAULT_DURATION;
     return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
   }, [selectedPackage, serviceType]);
