@@ -64,7 +64,7 @@ export default function CarDetailingBatonRougePage() {
     <Layout>
       <SEOHead
         title="Car Detailing in Baton Rouge, LA"
-        description="AV Detailing is Baton Rouge's premier mobile car detailing service — System X ceramic coating, paint correction, interior & exterior detailing across Baton Rouge, Highland Road, Gonzales, Prairieville & more."
+        description="Baton Rouge's premier mobile car detailing — System X ceramic coating, paint correction & interior detailing across Baton Rouge & surrounding parishes."
         path={PAGE_PATH}
       />
       <JsonLd data={[
