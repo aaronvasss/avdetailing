@@ -999,10 +999,25 @@ const BookingPage = () => {
                   </Card>
                 )}
 
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={() => setStep(1)}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  {ceramicVehicleClass && ceramicVehicleClass !== "rv-boat-aircraft" && (
+                    <Button
+                      className="flex-1 glow-red"
+                      disabled={!ceramicTier}
+                      onClick={() => {
+                        setPaymentMethod('in_person');
+                        setStep(5);
+                      }}
+                    >
+                      Continue to Schedule
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           }
