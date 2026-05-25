@@ -479,10 +479,10 @@ const BookingPage = () => {
 
   // Fetch available time slots when date changes
   useEffect(() => {
-    if (selectedDate && selectedPackage) {
+    if (selectedDate && (selectedPackage || serviceType === "ceramic")) {
       fetchAvailableSlots(selectedDate);
     }
-  }, [selectedDate, selectedPackage]);
+  }, [selectedDate, selectedPackage, serviceType]);
 
   const fetchAvailableSlots = async (date: Date) => {
     setLoadingSlots(true);
