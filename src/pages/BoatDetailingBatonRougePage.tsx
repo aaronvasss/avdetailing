@@ -62,7 +62,7 @@ export default function BoatDetailingBatonRougePage() {
     <Layout>
       <SEOHead
         title="Boat Detailing in Baton Rouge, LA"
-        description="Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning, and pontoon detailing on Louisiana waterways. We come to your marina, launch, or driveway."
+        description="Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning & pontoon detailing at your marina or driveway."
         path={PAGE_PATH}
       />
       <JsonLd data={[
