@@ -643,8 +643,11 @@ const BookingPage = () => {
         throw new Error(serviceError?.message || "Unable to load service for booking");
       }
       const pkg = packages.find((p) => p.id === selectedPackage);
-      const serviceName = pkg?.name || "Detailing Service";
-      const totalPrice = getPackagePrice(pkg!);
+      const isCeramic = serviceType === "ceramic";
+      const serviceName = isCeramic
+        ? `Ceramic Coating — ${ceramicTierLabel()} (${ceramicVehicleLabel()})`
+        : (pkg?.name || "Detailing Service");
+      const totalPrice = isCeramic ? ceramicPrice() : getPackagePrice(pkg!);
       const addOnsTotal = selectedAddOns.reduce((sum, id) => {
         const addon = addOns.find(a => a.id === id);
         return sum + (addon?.price || 0);
