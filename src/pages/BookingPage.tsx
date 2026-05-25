@@ -496,9 +496,11 @@ const BookingPage = () => {
         .eq("scheduled_date", dateStr)
         .in("status", ["pending", "confirmed", "in_progress"]);
 
-      // Generate available time slots based on service duration and existing bookings
+      // Generate slots using a minimal duration so service length never blocks slots.
+      // Conflict checks still use real durations of EXISTING bookings to prevent overlap.
+      const slotDurationForDisplay = schedulingConfig?.slotInterval ?? 15;
       const slots = generateTimeSlots(
-        selectedPackageDuration,
+        slotDurationForDisplay,
         existingBookings || [],
         schedulingConfig
       );
@@ -508,7 +510,7 @@ const BookingPage = () => {
     } catch (error) {
       console.error("Error fetching available slots:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(selectedPackageDuration, [], schedulingConfig));
+      setAvailableSlots(generateTimeSlots(schedulingConfig?.slotInterval ?? 15, [], schedulingConfig));
     } finally {
       setLoadingSlots(false);
     }
