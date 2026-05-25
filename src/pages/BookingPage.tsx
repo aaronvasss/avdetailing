@@ -523,12 +523,46 @@ const BookingPage = () => {
     return pkg.basePrice;
   };
 
+  // Display-only prices for UI rendering (package selection, add-ons, summary)
+  const getDisplayPackagePrice = (pkg: { id: string; name: string; basePrice: number; prices: Record<string, number> }) => {
+    const displayMap = DISPLAY_PACKAGE_PRICES[pkg.id];
+    if (displayMap) {
+      if (vehicleSubType && displayMap[vehicleSubType]) {
+        return displayMap[vehicleSubType];
+      }
+      if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
+        for (const dbType of vehicleSubTypeToDbType[vehicleSubType]) {
+          if (displayMap[dbType]) {
+            return displayMap[dbType];
+          }
+        }
+      }
+      const firstPrice = Object.values(displayMap)[0];
+      if (firstPrice !== undefined) return firstPrice;
+    }
+
+    // Name-based fallback for interior packages with unknown slugs
+    const nameLower = pkg.name.toLowerCase();
+    if (nameLower.includes("interior basic")) return 100;
+    if (nameLower.includes("interior full")) return 260;
+
+    return getPackagePrice(pkg);
+  };
+
+  const getDisplayAddOnPrice = (addon: { name: string; price: number }) => {
+    const nameLower = addon.name.toLowerCase();
+    for (const [key, price] of Object.entries(DISPLAY_ADDON_PRICES)) {
+      if (nameLower.includes(key)) return price;
+    }
+    return addon.price;
+  };
+
   const calculateTotal = () => {
     const pkg = packages.find(p => p.id === selectedPackage);
-    const packagePrice = pkg ? getPackagePrice(pkg) : 0;
+    const packagePrice = pkg ? getDisplayPackagePrice(pkg) : 0;
     const addOnsTotal = selectedAddOns.reduce((sum, id) => {
       const addon = addOns.find(a => a.id === id);
-      return sum + (addon?.price || 0);
+      return sum + (addon ? getDisplayAddOnPrice(addon) : 0);
     }, 0);
     return packagePrice + addOnsTotal;
   };
