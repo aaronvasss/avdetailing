@@ -1,8 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { createRequire } from "module";
 import { componentTagger } from "lovable-tagger";
-import prerender from "vite-plugin-prerender";
+
+const require = createRequire(import.meta.url);
 
 const prerenderRoutes = [
   "/",
@@ -59,10 +61,13 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     mode === "production" &&
-      prerender({
-        staticDir: path.join(__dirname, "dist"),
-        routes: prerenderRoutes,
-      }),
+      (() => {
+        const prerender = require("vite-plugin-prerender");
+        return (prerender.default || prerender)({
+          staticDir: path.join(__dirname, "dist"),
+          routes: prerenderRoutes,
+        });
+      })(),
   ].filter(Boolean),
   resolve: {
     alias: {
