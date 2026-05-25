@@ -165,6 +165,9 @@ const DISPLAY_PACKAGE_PRICES: Record<string, Record<string, number>> = {
   "gold": { sedan: 350, "suv-5": 350, "suv-8": 360, truck: 350 },
   "interior-basic": { sedan: 100, "suv-5": 100, "suv-8": 100, truck: 100 },
   "interior-full-detail": { sedan: 260, "suv-5": 260, "suv-8": 260, truck: 260 },
+  "boat-basic": { boat: 280 },
+  "boat-full": { boat: 380 },
+  "boat-premium": { boat: 480 },
 };
 
 const DISPLAY_ADDON_PRICES: Record<string, number> = {
