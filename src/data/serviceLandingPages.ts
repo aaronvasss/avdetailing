@@ -494,7 +494,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   // ===================== AIRCRAFT (3) =====================
   {
     slug: "aircraft-cleaning-baton-rouge",
-    title: "Aircraft Exterior Cleaning in Baton Rouge, LA",
+    title: "Aircraft Cleaning in Baton Rouge, LA",
     metaDescription:
       "Aircraft exterior cleaning in Baton Rouge — aviation-safe products only. Service at BTR, LFT, MSY, NEW, and South Louisiana general aviation airports.",
     intro:
@@ -518,7 +518,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   },
   {
     slug: "aircraft-interior-detailing-baton-rouge",
-    title: "Aircraft Interior Detailing in Baton Rouge, LA",
+    title: "Aircraft Interior Detail in Baton Rouge, LA",
     metaDescription:
       "Aircraft interior detailing in Baton Rouge — aviation-safe seat conditioning, carpet shampoo, panel care, and odor elimination at BTR, LFT, MSY, and NEW.",
     intro:
@@ -542,7 +542,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   },
   {
     slug: "aircraft-paint-protection-baton-rouge",
-    title: "Aircraft Paint Protection in Baton Rouge, LA",
+    title: "Aircraft Paint Protection Baton Rouge",
     metaDescription:
       "Aircraft paint protection in Baton Rouge — aviation sealants and protective coatings that slow corrosion and protect resale value. Service at BTR, LFT, MSY, NEW.",
     intro:

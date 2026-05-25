@@ -20,7 +20,11 @@ export function SEOHead({
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
 }: SEOHeadProps) {
-  const fullTitle = path === "/" ? title : `${title} | AV Detailing`;
+  const fullTitle = path === "/"
+    ? title
+    : title.includes("AV Detailing")
+      ? title
+      : `${title} | AV Detailing`;
   const canonicalUrl = `${SITE_URL}${path}`;
 
   return (

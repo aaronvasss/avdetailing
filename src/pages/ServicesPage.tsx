@@ -76,11 +76,10 @@ const ServicesPage = () => {
               Our Services
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 mb-6">
-              Professional Detailing for Every Vehicle
+              Our Detailing Services in Baton Rouge, LA
             </h1>
             <p className="text-lg text-muted-foreground">
-              From daily drivers to luxury aircraft, we deliver showroom-quality results with 
-              professional-grade products and techniques. Mobile service throughout Baton Rouge.
+              AV Detailing provides professional mobile detailing services throughout Greater Baton Rouge and surrounding Louisiana parishes. We offer mobile car detailing, System X ceramic coating, paint correction, interior detailing, exterior detailing, headlight restoration, odor removal, pet hair removal, engine bay cleaning, RV detailing, boat detailing, and aircraft detailing. We bring our fully equipped mobile rig directly to your home, office, marina, or airport — no drop-off required. Serving Highland Road, Shenandoah, Gonzales, Prairieville, Denham Springs, Walker, Zachary, Central, and all of East Baton Rouge Parish, Livingston Parish, and Ascension Parish within 30 miles.
             </p>
           </div>
         </div>
