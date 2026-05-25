@@ -798,27 +798,26 @@ const BookingPage = () => {
       // Confirmation emails are now sent automatically server-side by create-booking
       // No frontend email call needed
 
-      // Send SMS confirmation (non-blocking)
-      try {
-        await sendBookingSms({
-          customerPhone: customerInfo.phone,
-          customerName: customerInfo.firstName,
-          serviceName: serviceName,
-          scheduledDate: selectedDate?.toISOString() || "",
-          scheduledTime: selectedTime,
-          serviceAddress: customerInfo.address,
-          serviceCity: customerInfo.city,
-          totalPrice: totalPrice + addOnsTotal,
-          bookingId: createdId,
-          notifyBusiness: true,
-        });
-      } catch (smsError) {
+      // Send SMS confirmation (fire-and-forget so the user isn't kept waiting)
+      sendBookingSms({
+        customerPhone: customerInfo.phone,
+        customerName: customerInfo.firstName,
+        serviceName: serviceName,
+        scheduledDate: selectedDate?.toISOString() || "",
+        scheduledTime: selectedTime,
+        serviceAddress: customerInfo.address,
+        serviceCity: customerInfo.city,
+        totalPrice: totalPrice + addOnsTotal,
+        bookingId: createdId,
+        notifyBusiness: true,
+      }).catch((smsError) => {
         console.error("SMS failed but booking succeeded:", smsError);
-      }
+      });
 
       clearRateLimit('booking-form');
       toast.success("Booking confirmed! You'll receive a confirmation email shortly.");
       setStep(7);
+
     } catch (error: any) {
       console.error("Booking error:", error);
       const code = error?.code || error?.status || error?.name;
