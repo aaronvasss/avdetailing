@@ -11,6 +11,8 @@ const GOOGLE_REVIEW_URL = "https://g.page/r/CYyQqJOk3f1hEBM/review";
 
 export default function RatingPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") || "";
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
