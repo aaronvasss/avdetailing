@@ -184,10 +184,16 @@ serve(async (req) => {
         }
       }
 
-      // If service_packages has a stripe_price_id, use it directly (price already finalized in Stripe)
+      // If service_packages has a stripe_price_id, verify it exists in this Stripe mode before using
       if (packageStripePriceId) {
-        price_id = packageStripePriceId;
-        logStep("Using stripe_price_id from service_packages directly", { price_id });
+        try {
+          await stripe.prices.retrieve(packageStripePriceId);
+          price_id = packageStripePriceId;
+          logStep("Using stripe_price_id from service_packages directly", { price_id });
+        } catch (e) {
+          logStep("Stored stripe_price_id invalid, will create dynamic price", { packageStripePriceId, error: (e as Error).message });
+          packageStripePriceId = null;
+        }
       }
 
       // Fallback to services.base_price if no package match
