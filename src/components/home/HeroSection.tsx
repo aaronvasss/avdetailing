@@ -35,7 +35,7 @@ export function HeroSection() {
 
           {/* Headline - Single H1 */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 animate-fade-in-up">
-            Mobile <span className="text-primary">Car, RV, Boat &amp; Aircraft</span> Detailing
+            Mobile <span className="text-primary">Car</span> Detailing
             <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2 font-semibold text-muted-foreground">in Baton Rouge, LA</span>
           </h1>
 
