@@ -1,28 +1,9 @@
-# AV Detailing
+# AV Detailing — llms.txt
+# Mobile car, RV, boat and aircraft detailing in Baton Rouge, Louisiana
 
-> Premium mobile auto, boat, RV, and aircraft detailing in Baton Rouge, Louisiana. We come to you with professional equipment and products to deliver showroom-quality results.
-
-AV Detailing is a fully insured mobile detailing company serving Baton Rouge and the surrounding Capital Region (Prairieville, Gonzales, Denham Springs, Central, Zachary). We specialize in cars, trucks, SUVs, boats, RVs, and aircraft, with services ranging from basic washes to multi-year ceramic coatings and multi-step paint correction.
-
-## Pages
-
-- [Home](/): Overview of services, memberships, and how mobile detailing works.
-- [Services](/services): Full list of detailing packages and pricing.
-- [Car Detailing](/services/car-detailing): Exterior, Basic, Silver, Gold, and Platinum packages for sedans, SUVs, and trucks.
-- [Ceramic Coating](/services/ceramic-coating): 3-Year, 6-Year, and 10-Year ceramic coating packages.
-- [Paint Correction](/services/paint-correction): 1-Step, 2-Step, and 3-Step paint correction services.
-- [Boat Detailing](/services/boat-detailing): Mobile boat washing, polishing, and ceramic coating.
-- [RV Detailing](/services/rv-detailing): Exterior-only RV washing and detailing.
-- [Aircraft Detailing](/services/aircraft-detailing): Hangar-based aircraft exterior and interior detailing.
-- [Memberships](/memberships): Monthly, bi-weekly, and weekly recurring detailing plans.
-- [Service Areas](/service-areas): Cities and ZIP codes we cover around Baton Rouge.
-- [Gallery](/gallery): Before-and-after photos of recent jobs.
-- [Reviews](/reviews): Customer testimonials and ratings.
-- [About](/about): Company background, values, and team.
-- [Contact](/contact): Phone, text, and email contact details.
-- [Book](/book): Online booking flow with instant scheduling.
-
-## Optional
-
-- [Privacy Policy](/privacy-policy)
-- [Terms and Conditions](/terms-and-conditions)
+Business: AV Detailing
+Website: https://avdetailing.net
+Phone: (225) 521-6264
+Location: Baton Rouge, Louisiana
+Services: Mobile car detailing, System X ceramic coating, paint correction, interior detailing, exterior detailing, RV detailing, boat detailing, aircraft detailing
+Service areas: Baton Rouge, Highland Road, Shenandoah, Gonzales, Prairieville, Denham Springs, Walker, Zachary, Central
