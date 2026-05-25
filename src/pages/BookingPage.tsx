@@ -693,10 +693,10 @@ const BookingPage = () => {
         subtotal: totalPrice,
         add_ons_total: addOnsTotal,
         total_price: totalPrice + addOnsTotal,
-        // Ceramic coating is always in-person payment (no Stripe)
-        status: isCeramic ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
-        payment_status: isCeramic ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
-        payment_method: isCeramic ? "in_person" : (paymentMethod || "in_person"),
+        // Ceramic coating and boat detailing are in-person payment only (no Stripe)
+        status: isInPersonOnly ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
+        payment_status: isInPersonOnly ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
+        payment_method: isInPersonOnly ? "in_person" : (paymentMethod || "in_person"),
         // Pass add-on IDs so backend creates booking_add_ons records
         add_on_ids: selectedAddOns.length > 0 ? selectedAddOns : undefined,
       };
