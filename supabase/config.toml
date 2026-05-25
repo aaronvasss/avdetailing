@@ -45,3 +45,5 @@ project_id = "prcrvuzncffsblsxblim"
     verify_jwt = false
   [functions.download-ics]
     verify_jwt = false
+  [functions.submit-rating]
+    verify_jwt = false
