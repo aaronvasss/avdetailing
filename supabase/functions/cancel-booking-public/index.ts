@@ -44,7 +44,7 @@ serve(async (req) => {
   }
 
   try {
-    const { booking_id, action } = await req.json();
+    const { booking_id, action, manage_token } = await req.json();
 
     // Validate booking_id is a UUID
     if (!booking_id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(booking_id)) {
@@ -53,13 +53,21 @@ serve(async (req) => {
       });
     }
 
+    // Require a manage_token secret (>= 32 hex chars) to prevent UUID-only access
+    if (!manage_token || typeof manage_token !== "string" || manage_token.length < 32) {
+      return new Response(JSON.stringify({ error: "Missing or invalid token" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch booking
+    // Fetch booking and verify token matches
     const { data: booking, error: fetchErr } = await supabase
       .from("bookings")
       .select("*, services(name)")
       .eq("id", booking_id)
+      .eq("manage_token", manage_token)
       .single();
 
     if (fetchErr || !booking) {
