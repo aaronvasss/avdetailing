@@ -1583,7 +1583,7 @@ const BookingPage = () => {
                       .map((a) => (
                         <div key={a.id} className="flex justify-between pl-3">
                           <span className="text-sm">{a.name}</span>
-                          <span className="font-medium">${Number(a.price).toFixed(2)}</span>
+                          <span className="font-medium">${getDisplayAddOnPrice(a).toFixed(2)}</span>
                         </div>
                       ))}
                     <div className="flex justify-between pl-3 text-sm text-muted-foreground border-t pt-1">
@@ -1591,7 +1591,7 @@ const BookingPage = () => {
                       <span>
                         ${selectedAddOns.reduce((sum, id) => {
                           const a = addOns.find((x) => x.id === id);
-                          return sum + (a ? Number(a.price) : 0);
+                          return sum + (a ? getDisplayAddOnPrice(a) : 0);
                         }, 0).toFixed(2)}
                       </span>
                     </div>
