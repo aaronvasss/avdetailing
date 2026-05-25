@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,8 @@ const GOOGLE_REVIEW_URL = "https://g.page/r/CYyQqJOk3f1hEBM/review";
 
 export default function RatingPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") || "";
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -53,17 +55,24 @@ export default function RatingPage() {
 
   const handleSubmit = async () => {
     if (!rating || !bookingId) return;
+    if (!token) {
+      toast.error("Invalid rating link");
+      return;
+    }
     setSubmitting(true);
 
-    const { error } = await supabase.from("booking_ratings").insert({
-      booking_id: bookingId,
-      rating,
-      comment: comment.trim() || null,
-      customer_name: booking?.guest_name || null,
+    const { data, error } = await supabase.functions.invoke("submit-rating", {
+      body: {
+        booking_id: bookingId,
+        token,
+        rating,
+        comment: comment.trim() || null,
+        customer_name: booking?.guest_name || null,
+      },
     });
 
-    if (error) {
-      toast.error("Failed to submit rating");
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || "Failed to submit rating");
       setSubmitting(false);
       return;
     }
