@@ -416,9 +416,27 @@ const BookingPage = () => {
 
   // Get the selected package duration for time slot generation
   const selectedPackageDuration = useMemo(() => {
+    if (serviceType === "ceramic") return 480; // 8 hours for ceramic coating
     if (!selectedPackage) return DEFAULT_DURATION;
     return PACKAGE_DURATIONS[selectedPackage] || DEFAULT_DURATION;
-  }, [selectedPackage]);
+  }, [selectedPackage, serviceType]);
+
+  const ceramicPrice = (): number => {
+    if (serviceType !== "ceramic" || !ceramicVehicleClass || ceramicVehicleClass === "rv-boat-aircraft" || !ceramicTier) return 0;
+    const map: Record<string, Record<string, number>> = {
+      "car": { "3-year": 850, "5-year": 1300, "10-year": 1700 },
+      "suv-truck": { "3-year": 950, "5-year": 1400, "10-year": 1800 },
+    };
+    return map[ceramicVehicleClass]?.[ceramicTier] || 0;
+  };
+  const ceramicTierLabel = (): string => {
+    const map: Record<string, string> = { "3-year": "3-Year Protection", "5-year": "5-Year Protection", "10-year": "10-Year Protection" };
+    return ceramicTier ? map[ceramicTier] || "" : "";
+  };
+  const ceramicVehicleLabel = (): string => {
+    const map: Record<string, string> = { "car": "Car", "suv-truck": "SUV / Truck", "rv-boat-aircraft": "RV / Boat / Aircraft" };
+    return ceramicVehicleClass ? map[ceramicVehicleClass] || "" : "";
+  };
 
   // Read referral code from URL param + fetch user's available credits
   useEffect(() => {
