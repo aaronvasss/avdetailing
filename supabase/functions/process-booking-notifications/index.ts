@@ -244,7 +244,7 @@ ${paymentBanner}
       <tr>
         <td width="33%" style="padding-right:4px;"><a href="${rescheduleUrl}" style="display:block;background-color:#3b82f6;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">📅 Reschedule</a></td>
         <td width="34%" style="padding:0 4px;"><a href="${BASE_URL}/account" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">👤 My Account</a></td>
-        <td width="33%" style="padding-left:4px;"><a href="${BASE_URL}/cancel/${booking.id}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">✕ Cancel</a></td>
+        <td width="33%" style="padding-left:4px;"><a href="${BASE_URL}/cancel/${booking.id}?token=${booking.manage_token}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">✕ Cancel</a></td>
       </tr>
     </table>
     ${!booking.user_id ? '<p style="color:#737373;font-size:11px;text-align:center;margin:0 0 12px;">To manage your appointment, create a free account using the same email you booked with.</p>' : ''}
