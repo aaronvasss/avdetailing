@@ -1822,16 +1822,21 @@ const BookingPage = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {paymentMethod === 'online' ? "Redirecting to Payment..." : "Confirming..."}
+                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Redirecting to Payment..." : "Confirming..."}
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'online' ? "Proceed to Payment" : "Confirm Booking"}
+                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Proceed to Payment" : "Confirm Booking"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
             </div>
+            {!smsConsent && (
+              <p className="text-xs text-center text-muted-foreground -mt-2">
+                Please check the agreement box above to enable booking confirmation.
+              </p>
+            )}
           </form>
         );
 
