@@ -44,6 +44,7 @@ const serviceTypes = [
 
 // Services that are quote-only (no package selection)
 const quoteOnlyServices = ["ceramic", "aircraft"];
+const inPersonOnlyServices = ["ceramic", "boat"];
 
 // Vehicle sub-types for Car, Ceramic, and Paint Correction
 const carVehicleTypes = [
@@ -165,6 +166,9 @@ const DISPLAY_PACKAGE_PRICES: Record<string, Record<string, number>> = {
   "gold": { sedan: 350, "suv-5": 350, "suv-8": 360, truck: 350 },
   "interior-basic": { sedan: 100, "suv-5": 100, "suv-8": 100, truck: 100 },
   "interior-full-detail": { sedan: 260, "suv-5": 260, "suv-8": 260, truck: 260 },
+  "boat-basic": { boat: 280 },
+  "boat-full": { boat: 380 },
+  "boat-premium": { boat: 480 },
 };
 
 const DISPLAY_ADDON_PRICES: Record<string, number> = {
@@ -646,6 +650,7 @@ const BookingPage = () => {
       }
       const pkg = packages.find((p) => p.id === selectedPackage);
       const isCeramic = serviceType === "ceramic";
+      const isInPersonOnly = inPersonOnlyServices.includes(serviceType);
       const serviceName = isCeramic
         ? `Ceramic Coating — ${ceramicTierLabel()} (${ceramicVehicleLabel()})`
         : (pkg?.name || "Detailing Service");
@@ -688,10 +693,10 @@ const BookingPage = () => {
         subtotal: totalPrice,
         add_ons_total: addOnsTotal,
         total_price: totalPrice + addOnsTotal,
-        // Ceramic coating is always in-person payment (no Stripe)
-        status: isCeramic ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
-        payment_status: isCeramic ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
-        payment_method: isCeramic ? "in_person" : (paymentMethod || "in_person"),
+        // Ceramic coating and boat detailing are in-person payment only (no Stripe)
+        status: isInPersonOnly ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
+        payment_status: isInPersonOnly ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
+        payment_method: isInPersonOnly ? "in_person" : (paymentMethod || "in_person"),
         // Pass add-on IDs so backend creates booking_add_ons records
         add_on_ids: selectedAddOns.length > 0 ? selectedAddOns : undefined,
       };
@@ -757,7 +762,7 @@ const BookingPage = () => {
         }
       }
 
-      if (paymentMethod === 'online' && !isCeramic) {
+      if (paymentMethod === 'online' && !isInPersonOnly) {
         toast.loading("Redirecting to payment...");
         
         try {
@@ -837,6 +842,10 @@ const BookingPage = () => {
     if (quoteOnlyServices.includes(serviceType)) {
       return ["Service", "Quote Request"];
     }
+    // In-person-only services skip the payment step
+    if (inPersonOnlyServices.includes(serviceType)) {
+      return ["Service", "Package", "Add-ons", "Schedule", "Details"];
+    }
     // Services that need vehicle sub-type selection
     if (servicesWithVehicleSelection.includes(serviceType)) {
       return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Payment", "Details"];
@@ -847,6 +856,7 @@ const BookingPage = () => {
   const getTotalSteps = () => {
     if (serviceType === "ceramic") return 4;
     if (quoteOnlyServices.includes(serviceType)) return 2;
+    if (inPersonOnlyServices.includes(serviceType)) return 5;
     return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
   };
 
@@ -1509,7 +1519,7 @@ const BookingPage = () => {
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(serviceType === "ceramic" ? 7 : 6)}
+                onClick={() => setStep(inPersonOnlyServices.includes(serviceType) ? 7 : 6)}
                 disabled={!selectedDate || !selectedTime}
               >
                 Continue
@@ -1755,7 +1765,7 @@ const BookingPage = () => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
                   <span className="font-medium">
-                    {serviceType === "ceramic" ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
+                    {inPersonOnlyServices.includes(serviceType) ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
                   </span>
                 </div>
                 {referralCredit > 0 && useCredit && (
@@ -1814,7 +1824,7 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 5 : 6)}>
+              <Button type="button" variant="outline" onClick={() => setStep(inPersonOnlyServices.includes(serviceType) ? 5 : 6)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -1822,11 +1832,11 @@ const BookingPage = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Redirecting to Payment..." : "Confirming..."}
+                    {paymentMethod === 'online' && !inPersonOnlyServices.includes(serviceType) ? "Redirecting to Payment..." : "Confirming..."}
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Proceed to Payment" : "Confirm Booking"}
+                    {paymentMethod === 'online' && !inPersonOnlyServices.includes(serviceType) ? "Proceed to Payment" : "Confirm Booking"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
