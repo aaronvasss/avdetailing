@@ -650,6 +650,7 @@ const BookingPage = () => {
       }
       const pkg = packages.find((p) => p.id === selectedPackage);
       const isCeramic = serviceType === "ceramic";
+      const isInPersonOnly = inPersonOnlyServices.includes(serviceType);
       const serviceName = isCeramic
         ? `Ceramic Coating — ${ceramicTierLabel()} (${ceramicVehicleLabel()})`
         : (pkg?.name || "Detailing Service");
