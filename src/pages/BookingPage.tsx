@@ -2115,6 +2115,13 @@ const BookingPage = () => {
   };
 
   const currentStepForProgress = () => {
+    if (serviceType === "ceramic") {
+      // Ceramic flow: step 1 → 1, step 2 → 2, step 5 → 3, step 7 → 4
+      if (step <= 2) return step;
+      if (step === 5) return 3;
+      if (step === 7) return 4;
+      return step;
+    }
     // Quote-only services have their own flow
     if (quoteOnlyServices.includes(serviceType)) {
       return step;
