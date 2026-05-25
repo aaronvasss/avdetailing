@@ -1801,7 +1801,7 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(6)}>
+              <Button type="button" variant="outline" onClick={() => setStep(serviceType === "ceramic" ? 5 : 6)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
