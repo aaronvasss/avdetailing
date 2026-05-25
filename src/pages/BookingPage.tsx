@@ -879,12 +879,13 @@ const BookingPage = () => {
                     }
                   }}
                   className={cn(
-                    "min-h-[150px] sm:min-h-[170px] p-4 rounded-xl border-2 transition-all text-center hover:border-primary flex flex-col items-center justify-center gap-3",
+                    "min-h-[150px] sm:min-h-[170px] p-4 rounded-xl border-2 transition-all text-center hover:border-primary flex flex-col items-center justify-center gap-2",
                     serviceType === type.id ? "border-primary bg-primary/5" : "border-border"
                   )}
                 >
                   <type.icon className="h-12 w-12 text-primary" />
                   <span className="text-base font-semibold">{type.label}</span>
+                  <span className="text-xs text-muted-foreground">{type.subtitle}</span>
                 </button>
               ))}
             </div>
