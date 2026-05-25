@@ -688,10 +688,10 @@ const BookingPage = () => {
         subtotal: totalPrice,
         add_ons_total: addOnsTotal,
         total_price: totalPrice + addOnsTotal,
-        // Set status based on payment method
-        status: paymentMethod === 'online' ? "pending_payment" : "confirmed",
-        payment_status: paymentMethod === 'online' ? "pending" : "unpaid",
-        payment_method: paymentMethod || "in_person",
+        // Ceramic coating is always in-person payment (no Stripe)
+        status: isCeramic ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
+        payment_status: isCeramic ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
+        payment_method: isCeramic ? "in_person" : (paymentMethod || "in_person"),
         // Pass add-on IDs so backend creates booking_add_ons records
         add_on_ids: selectedAddOns.length > 0 ? selectedAddOns : undefined,
       };
@@ -757,7 +757,7 @@ const BookingPage = () => {
         }
       }
 
-      if (paymentMethod === 'online') {
+      if (paymentMethod === 'online' && !isCeramic) {
         toast.loading("Redirecting to payment...");
         
         try {
@@ -1755,7 +1755,7 @@ const BookingPage = () => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
                   <span className="font-medium">
-                    {paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person'}
+                    {serviceType === "ceramic" ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
                   </span>
                 </div>
                 {referralCredit > 0 && useCredit && (
@@ -1822,16 +1822,21 @@ const BookingPage = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {paymentMethod === 'online' ? "Redirecting to Payment..." : "Confirming..."}
+                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Redirecting to Payment..." : "Confirming..."}
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'online' ? "Proceed to Payment" : "Confirm Booking"}
+                    {paymentMethod === 'online' && serviceType !== "ceramic" ? "Proceed to Payment" : "Confirm Booking"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
             </div>
+            {!smsConsent && (
+              <p className="text-xs text-center text-muted-foreground -mt-2">
+                Please check the agreement box above to enable booking confirmation.
+              </p>
+            )}
           </form>
         );
 
