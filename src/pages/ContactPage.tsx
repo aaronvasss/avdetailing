@@ -130,11 +130,10 @@ const ContactPage = () => {
               Contact Us
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 mb-6">
-              Get in Touch
+              Contact AV Detailing in Baton Rouge, LA
             </h1>
             <p className="text-lg text-muted-foreground">
-              Have questions? Need a quote? We're here to help. Reach out and we'll 
-              respond within 24 hours.
+              Have a question about our mobile detailing services? Ready to book or get a quote for System X ceramic coating, paint correction, or any of our detailing packages? Reach out to AV Detailing — we serve Baton Rouge, Highland Road, Shenandoah, Gonzales, Prairieville, Denham Springs, Walker, Zachary, Central, and all surrounding areas within 30 miles. Call us at (225) 521-6264 or fill out the form below and we will get back to you promptly.
             </p>
           </div>
         </div>
