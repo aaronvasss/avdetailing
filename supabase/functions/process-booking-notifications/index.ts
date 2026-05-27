@@ -116,7 +116,7 @@ function buildCalendarLinks(booking: any, serviceName: string) {
   const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(startDate)}/${fmt(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
 
   // Use hosted edge function URL for ICS download (data: URIs don't work in email clients)
-  const icsUrl = `${SUPABASE_URL}/functions/v1/download-ics?id=${booking.id}`;
+  const icsUrl = `${SUPABASE_URL}/functions/v1/download-ics?id=${booking.id}&token=${booking.manage_token}`;
 
   const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${encodeURIComponent(location)}&body=${encodeURIComponent(description)}`;
 
@@ -430,6 +430,15 @@ function buildAdminHtml(booking: any, serviceName: string) {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Service-role-only: this function is only called server-to-server (stripe-webhook, cron, admin actions)
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (token !== SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
