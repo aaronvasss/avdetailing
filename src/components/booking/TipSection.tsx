@@ -10,6 +10,7 @@ import { toast } from "sonner";
 interface TipSectionProps {
   bookingId: string;
   serviceTotal?: number;
+  manageToken?: string | null;
 }
 
 const PERCENTAGE_OPTIONS = [
