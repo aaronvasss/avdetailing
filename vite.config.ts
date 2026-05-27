@@ -46,6 +46,9 @@ const prerenderRoutes = [
   "/about",
   "/contact",
   "/reviews",
+  "/memberships",
+  "/gallery",
+  "/service-areas",
 ];
 
 // https://vitejs.dev/config/
