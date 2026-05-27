@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Phone,
   Car,
@@ -179,6 +180,86 @@ export default function CarDetailingBatonRougePage() {
                 {area}
               </span>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Packages Section */}
+      <section className="section-padding bg-background">
+        <div className="container-custom max-w-6xl">
+          <div className="mb-10 md:mb-12 max-w-2xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Our Car Detailing Packages</h2>
+            <p className="text-muted-foreground text-base md:text-lg">
+              Prices shown for sedans & coupes. SUVs and trucks vary — call{" "}
+              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact pricing.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <article className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
+              <h3 className="text-xl font-bold mb-2">Exterior Only</h3>
+              <p className="text-2xl font-bold text-primary mb-4">from $75</p>
+              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
+                <li>Hand wash & dry</li>
+                <li>Wheel cleaning</li>
+                <li>Tire shine</li>
+                <li>Exterior windows</li>
+                <li>Spray wax</li>
+              </ul>
+              <Button asChild className="w-full">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            </article>
+
+            <article className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
+              <h3 className="text-xl font-bold mb-2">Basic Package</h3>
+              <p className="text-2xl font-bold text-primary mb-4">from $130</p>
+              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
+                <li>Light vacuum</li>
+                <li>Interior wipe down</li>
+                <li>Hand wash & dry</li>
+                <li>Wheel cleaning</li>
+                <li>Tire shine</li>
+              </ul>
+              <Button asChild className="w-full">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            </article>
+
+            <article className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
+              <h3 className="text-xl font-bold mb-2">Silver Package</h3>
+              <p className="text-2xl font-bold text-primary mb-4">from $210</p>
+              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
+                <li>Deep vacuum</li>
+                <li>Console & cup holders</li>
+                <li>Door panels & dashboard</li>
+                <li>Hand wash & dry</li>
+                <li>Full exterior wash</li>
+                <li>Wheel & tire cleaning</li>
+              </ul>
+              <Button asChild className="w-full">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            </article>
+
+            <article className="flex flex-col h-full rounded-2xl border-2 border-primary bg-card p-6 transition-all hover:shadow-lg">
+              <div className="mb-3">
+                <Badge className="mb-2">Most Popular</Badge>
+                <h3 className="text-xl font-bold mb-2">Gold Package</h3>
+                <p className="text-2xl font-bold text-primary mb-4">from $310</p>
+              </div>
+              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
+                <li>Everything in Silver</li>
+                <li>Seat shampooing</li>
+                <li>Leather conditioning</li>
+                <li>Wax application</li>
+                <li>Wheel detail</li>
+                <li>Meticulous interior finish</li>
+              </ul>
+              <Button asChild className="w-full bg-primary hover:bg-primary/90">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            </article>
           </div>
         </div>
       </section>
