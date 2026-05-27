@@ -60,20 +60,62 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Service-role-only: this function may only be invoked server-to-server (e.g. from stripe-webhook or cron)
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const authToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (authToken !== SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     logStep("Function started");
 
     const body: ReviewRequestBody = await req.json();
-    logStep("Request body", { booking_id: body.booking_id, name: body.customer_name });
+    logStep("Request body", { booking_id: body.booking_id });
 
-    if (!body.booking_id || !body.customer_name) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    if (!body.booking_id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.booking_id)) {
+      return new Response(JSON.stringify({ error: "Invalid booking_id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Look up customer contact info from the booking — do NOT trust caller-supplied values
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .select("guest_name, guest_email, guest_phone, user_id")
+      .eq("id", body.booking_id)
+      .maybeSingle();
+
+    if (bookingError || !booking) {
+      return new Response(JSON.stringify({ error: "Booking not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    let customerEmail: string | null = booking.guest_email || null;
+    let customerPhone: string | null = booking.guest_phone || null;
+    let customerName: string = booking.guest_name || "";
+
+    if (booking.user_id && (!customerEmail || !customerPhone || !customerName)) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, phone, full_name")
+        .eq("user_id", booking.user_id)
+        .maybeSingle();
+      if (profile) {
+        customerEmail = customerEmail || profile.email || null;
+        customerPhone = customerPhone || profile.phone || null;
+        customerName = customerName || profile.full_name || "";
+      }
+    }
+
     const { smsSenderPhone, autoReviewEnabled } = await getBusinessSettings(supabase);
 
     if (!autoReviewEnabled) {
@@ -84,14 +126,14 @@ serve(async (req) => {
       });
     }
 
-    const firstName = body.customer_name.split(" ")[0];
+    const firstName = (customerName || "Customer").split(" ")[0];
     const reviewMessage = `Hi ${firstName}! 🚗✨ Thank you for choosing AV Detailing! We hope your vehicle is looking amazing. We'd love it if you could take 30 seconds to leave us a Google review — it helps us grow! ${GOOGLE_REVIEW_URL} Thank you! — AV Detailing Team`;
 
     const results: { sms?: any; email?: any } = {};
 
     // Send SMS
-    if (body.customer_phone) {
-      const formatted = formatPhoneNumber(body.customer_phone);
+    if (customerPhone) {
+      const formatted = formatPhoneNumber(customerPhone);
       if (/^\+1\d{10}$/.test(formatted)) {
         logStep("Sending review SMS", { to: formatted });
         const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
