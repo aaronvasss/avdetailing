@@ -1,3 +1,18 @@
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+
+/worker/*
+  X-Robots-Tag: noindex, nofollow
+
+/auth/*
+  X-Robots-Tag: noindex, nofollow
+
+/account/*
+  X-Robots-Tag: noindex, nofollow
+
+/book
+  X-Robots-Tag: noindex, nofollow
+
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
