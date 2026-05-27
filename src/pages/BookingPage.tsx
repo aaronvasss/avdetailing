@@ -653,9 +653,6 @@ const BookingPage = () => {
       const pkg = packages.find((p) => p.id === selectedPackage);
       const isCeramic = serviceType === "ceramic";
       const isInPersonOnly = inPersonOnlyServices.includes(serviceType);
-      const serviceName = isCeramic
-        ? `Ceramic Coating — ${ceramicTierLabel()} (${ceramicVehicleLabel()})`
-        : (pkg?.name || "Detailing Service");
       const totalPrice = isCeramic ? ceramicPrice() : getPackagePrice(pkg!);
       const addOnsTotal = selectedAddOns.reduce((sum, id) => {
         const addon = addOns.find(a => a.id === id);
@@ -663,6 +660,17 @@ const BookingPage = () => {
       }, 0);
 
       const vehicleTypeLabel = carVehicleTypes.find(v => v.id === vehicleSubType)?.label || serviceType;
+
+      // Build full package name: "[Package Tier] — [Vehicle Type]"
+      const baseName = isCeramic
+        ? `Ceramic Coating ${ceramicTierLabel()}`
+        : (pkg?.name || "Detailing Service");
+      const vehicleSuffix = isCeramic
+        ? ceramicVehicleLabel()
+        : (serviceType === "car" ? vehicleTypeLabel : "");
+      const serviceName = vehicleSuffix
+        ? `${baseName} — ${vehicleSuffix}`
+        : baseName;
 
       const createPayload = {
         service_id: service.id,
