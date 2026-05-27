@@ -304,10 +304,10 @@ const handler = async (req: Request): Promise<Response> => {
       payment_status: finalPaymentStatus,
       payment_method: finalPaymentMethod,
       manage_token: manageToken,
-      assigned_worker_id: body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
-      worker_pay_type: body.worker_pay_type === "percentage" || body.worker_pay_type === "flat" ? body.worker_pay_type : null,
-      worker_pay_rate: body.worker_pay_rate != null ? Math.min(Math.max(0, Number(body.worker_pay_rate)), 100000) : null,
-      tip_amount: body.tip_amount != null ? Math.min(Math.max(0, Number(body.tip_amount)), 10000) : null,
+      assigned_worker_id: isCallerStaff && body.assigned_worker_id && uuidRegex.test(body.assigned_worker_id) ? body.assigned_worker_id : null,
+      worker_pay_type: isCallerStaff && (body.worker_pay_type === "percentage" || body.worker_pay_type === "flat") ? body.worker_pay_type : null,
+      worker_pay_rate: isCallerStaff && body.worker_pay_rate != null ? Math.min(Math.max(0, Number(body.worker_pay_rate)), 100000) : null,
+      tip_amount: isCallerStaff && body.tip_amount != null ? Math.min(Math.max(0, Number(body.tip_amount)), 10000) : null,
       custom_service_description: sanitize(body.custom_service_description, 500),
 
       // Boat-specific fields
