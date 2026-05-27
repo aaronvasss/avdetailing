@@ -1,0 +1,48 @@
+name: Validate sitemap.xml
+
+# Runs before deployment to ensure sitemap.xml is well-formed XML and every
+# URL it advertises responds with 200 or 301. Fails the workflow (and any
+# deployment that depends on it) if either check fails.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/sitemap.xml"
+      - "scripts/validate-sitemap.ts"
+      - "scripts/generate-sitemap.ts"
+      - "src/data/serviceLandingPages.ts"
+      - "src/data/locationPages.ts"
+      - ".github/workflows/sitemap-validation.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Base URL to validate against (defaults to https://avdetailing.net)"
+        required: false
+        default: "https://avdetailing.net"
+
+jobs:
+  validate-sitemap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://avdetailing.net' }}
+      CONCURRENCY: "8"
+      TIMEOUT_MS: "15000"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Regenerate sitemap.xml
+        run: bun scripts/generate-sitemap.ts
+
+      - name: Validate sitemap XML + URL reachability
+        run: bun scripts/validate-sitemap.ts
