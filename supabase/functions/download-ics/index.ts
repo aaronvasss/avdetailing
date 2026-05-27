@@ -30,9 +30,14 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const bookingId = url.searchParams.get("id");
+    const token = url.searchParams.get("token");
 
     if (!bookingId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bookingId)) {
       return new Response("Invalid booking ID", { status: 400 });
+    }
+
+    if (!token || token.length < 16) {
+      return new Response("Missing or invalid token", { status: 401 });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -41,6 +46,7 @@ serve(async (req) => {
       .from("bookings")
       .select("id, scheduled_date, scheduled_time, duration_minutes, service_address, service_city, service_state, service_zip, vehicle_year, vehicle_make, vehicle_model, services(name)")
       .eq("id", bookingId)
+      .eq("manage_token", token)
       .single();
 
     if (error || !booking) {
