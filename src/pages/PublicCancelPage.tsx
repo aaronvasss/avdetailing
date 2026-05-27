@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 interface BookingInfo {
   id: string;
@@ -161,6 +162,7 @@ export default function PublicCancelPage() {
 
   return (
     <Layout>
+      <SEOHead title="Cancel Booking" description="Private page." path="/cancel" noIndex />
       <div className="container max-w-lg mx-auto px-4 py-12">
         <Card>
           <CardHeader className="text-center">

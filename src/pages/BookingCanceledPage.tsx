@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { XCircle, ArrowLeft, Phone, RotateCcw } from "lucide-react";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 export default function BookingCanceledPage() {
   const [searchParams] = useSearchParams();
@@ -10,6 +11,7 @@ export default function BookingCanceledPage() {
 
   return (
     <Layout>
+      <SEOHead title="Booking Canceled" description="Private page." path="/booking/canceled" noIndex />
       <div className="section-padding">
         <div className="container-custom max-w-2xl">
           <Card>

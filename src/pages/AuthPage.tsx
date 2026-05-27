@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { authFormSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
@@ -126,6 +127,7 @@ export default function AuthPage() {
 
   return (
     <Layout>
+      <SEOHead title="Sign In" description="Private page." path="/auth" noIndex />
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           {/* Header */}

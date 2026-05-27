@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 export default function WorkerLoginPage() {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ export default function WorkerLoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEOHead title="Worker Login" description="Private page." path="/worker/login" noIndex />
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">

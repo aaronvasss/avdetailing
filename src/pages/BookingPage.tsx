@@ -31,6 +31,7 @@ import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
 import { TipSection } from "@/components/booking/TipSection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -2158,6 +2159,7 @@ const BookingPage = () => {
 
   return (
     <Layout>
+      <SEOHead title="Book" description="Private page." path="/book" noIndex />
       <section className="pt-6 pb-12 bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">

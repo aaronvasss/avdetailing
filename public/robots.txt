@@ -1,24 +1,15 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
 Disallow: /admin
-Disallow: /account
+Disallow: /admin/
 Disallow: /worker
-Disallow: /booking/manage
-Disallow: /booking/cancel
-Disallow: /booking/canceled
+Disallow: /worker/
+Disallow: /account
 Disallow: /auth
-Disallow: /unauthorized
+Disallow: /auth/
+Disallow: /book
+Disallow: /booking/
+Disallow: /booking/manage
 
 Sitemap: https://avdetailing.net/sitemap.xml

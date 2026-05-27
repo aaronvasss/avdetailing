@@ -24,6 +24,7 @@ import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
 import { ReferralTab } from "@/components/account/ReferralTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -110,6 +111,7 @@ export default function AccountPage() {
 
   return (
     <Layout>
+      <SEOHead title="My Account" description="Private page." path="/account" noIndex />
       <div className="section-padding">
         <div className="container-custom max-w-6xl">
           {/* Header */}

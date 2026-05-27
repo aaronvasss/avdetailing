@@ -7,6 +7,7 @@ import { Loader2, ClipboardList, Inbox } from "lucide-react";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 type FilterType = "today" | "week" | "upcoming" | "all";
 
@@ -80,6 +81,7 @@ export default function WorkerAllJobsPage() {
 
   return (
     <WorkerLayout>
+      <SEOHead title="Worker Jobs" description="Private page." path="/worker/jobs" noIndex />
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-5 w-5 text-primary" />

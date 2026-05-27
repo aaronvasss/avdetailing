@@ -27,6 +27,7 @@ import { PhotoUploader } from "@/components/photos/PhotoUploader";
 import { PhotoGallery } from "@/components/photos/PhotoGallery";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 interface BookingDetails {
   id: string;
@@ -215,6 +216,7 @@ export default function AdminPage() {
 
   return (
     <>
+      <SEOHead title="Admin" description="Private page." path="/admin" noIndex />
       <AdminLayout 
         currentTab={currentTab} 
         onTabChange={setCurrentTab}

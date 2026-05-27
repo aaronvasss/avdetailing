@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Loader2, User, LogOut, Star, Briefcase, DollarSign, Calendar } from "lucide-react";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 export default function WorkerProfilePage() {
   const navigate = useNavigate();
@@ -113,6 +114,7 @@ export default function WorkerProfilePage() {
 
   return (
     <WorkerLayout>
+      <SEOHead title="Worker Profile" description="Private page." path="/worker/profile" noIndex />
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <User className="h-5 w-5 text-primary" />
