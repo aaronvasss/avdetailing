@@ -157,13 +157,13 @@ serve(async (req) => {
           logStep("SMS error", results.sms);
         }
       } else {
-        logStep("Invalid phone number", { phone: body.customer_phone });
+        logStep("Invalid phone number", { phone: customerPhone });
       }
     }
 
     // Send Email
-    if (body.customer_email && RESEND_API_KEY) {
-      logStep("Sending review email", { to: body.customer_email });
+    if (customerEmail && RESEND_API_KEY) {
+      logStep("Sending review email", { to: customerEmail });
       try {
         const emailRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -173,7 +173,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             from: "AV Detailing <noreply@avdetailing.net>",
-            to: [body.customer_email],
+            to: [customerEmail],
             subject: `${firstName}, how did we do? 🚗✨`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -208,12 +208,12 @@ serve(async (req) => {
     }
 
     // Log the review request in sms_messages for tracking
-    if (results.sms?.success && body.customer_phone) {
+    if (results.sms?.success && customerPhone) {
       await supabase.from("sms_messages").insert({
         booking_id: body.booking_id,
         direction: "outbound",
         from_number: smsSenderPhone,
-        to_number: formatPhoneNumber(body.customer_phone),
+        to_number: formatPhoneNumber(customerPhone),
         body: reviewMessage,
         message_sid: results.sms.sid || null,
         status: "sent",
