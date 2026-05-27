@@ -10,6 +10,7 @@ import { toast } from "sonner";
 interface TipSectionProps {
   bookingId: string;
   serviceTotal?: number;
+  manageToken?: string | null;
 }
 
 const PERCENTAGE_OPTIONS = [
@@ -20,7 +21,7 @@ const PERCENTAGE_OPTIONS = [
 
 const FIXED_OPTIONS = [5, 10, 20, 30];
 
-export function TipSection({ bookingId, serviceTotal = 0 }: TipSectionProps) {
+export function TipSection({ bookingId, serviceTotal = 0, manageToken }: TipSectionProps) {
   const [tipType, setTipType] = useState<"percentage" | "fixed" | "custom">("percentage");
   const [selectedTip, setSelectedTip] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
@@ -52,6 +53,7 @@ export function TipSection({ bookingId, serviceTotal = 0 }: TipSectionProps) {
         body: {
           booking_id: bookingId,
           tip_amount: tipAmount,
+          manage_token: manageToken ?? undefined,
         },
       });
 

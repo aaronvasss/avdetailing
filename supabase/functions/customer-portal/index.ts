@@ -82,7 +82,7 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: "Unable to open billing portal. Please try again or contact support." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

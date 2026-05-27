@@ -359,7 +359,7 @@ export default function BookingSuccessPage() {
 
               {/* Tip Section */}
               {booking && tipStatus !== "success" && (
-                <TipSection bookingId={booking.id} serviceTotal={booking.total_price || 0} />
+                <TipSection bookingId={booking.id} serviceTotal={booking.total_price || 0} manageToken={booking.manage_token} />
               )}
               {tipStatus === "success" && (
                 <Alert className="border-primary/40 bg-primary/5">
