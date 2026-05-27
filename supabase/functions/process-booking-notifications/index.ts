@@ -432,6 +432,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Service-role-only: this function is only called server-to-server (stripe-webhook, cron, admin actions)
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (token !== SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { booking_id, mode = "auto" } = await req.json();
 
