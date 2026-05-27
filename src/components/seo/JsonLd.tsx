@@ -31,11 +31,11 @@ const SERVICE_AREA_SCHEMA = SERVICE_CITIES.map((c) => ({
   geo: { "@type": "GeoCoordinates", latitude: c.lat, longitude: c.lng },
 }));
 
-// 50-mile service radius from Baton Rouge HQ
+// 30-mile service radius from Baton Rouge HQ
 const SERVICE_AREA_GEO = {
   "@type": "GeoCircle",
   geoMidpoint: { "@type": "GeoCoordinates", latitude: 30.4515, longitude: -91.1871 },
-  geoRadius: "80467", // meters (~50 miles)
+  geoRadius: "48280", // meters (~30 miles)
 };
 
 interface JsonLdProps {
