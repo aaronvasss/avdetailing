@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { generateICS } from "@/lib/calendar";
 import { TipSection } from "@/components/booking/TipSection";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 interface BookingDetails {
   id: string;
@@ -229,6 +230,7 @@ export default function BookingSuccessPage() {
 
   return (
     <Layout>
+      <SEOHead title="Booking Confirmed" description="Private page." path="/booking/success" noIndex />
       <div className="section-padding">
         <div className="container-custom max-w-2xl space-y-4">
           {booking && <PaymentBanner status={booking.payment_status} />}

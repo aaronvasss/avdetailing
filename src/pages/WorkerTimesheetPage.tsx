@@ -18,6 +18,7 @@ import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { formatHm } from "@/lib/duration-format";
 import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 type Preset = "week" | "month" | "custom";
 
@@ -258,6 +259,7 @@ export default function WorkerTimesheetPage() {
 function SummaryStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <Card>
+      <SEOHead title="Worker Timesheet" description="Private page." path="/worker/timesheet" noIndex />
       <CardContent className="p-3">
         <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
         <p className={cn("mt-1 text-lg font-bold tabular-nums", accent && "text-green-500")}>{value}</p>

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Star, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const GOOGLE_REVIEW_URL = "https://g.page/r/CYyQqJOk3f1hEBM/review";
 
@@ -119,6 +120,7 @@ export default function RatingPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEOHead title="Rate Your Service" description="Private page." path="/rate" noIndex />
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold">

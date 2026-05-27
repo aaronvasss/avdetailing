@@ -16,6 +16,7 @@ import {
   formatDuration
 } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 interface BookingDetails {
   id: string;
@@ -236,6 +237,7 @@ export default function BookingManagePage() {
 
   return (
     <Layout>
+      <SEOHead title="Manage Booking" description="Private page." path="/booking/manage" noIndex />
       <div className="container max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Reschedule Your Appointment</h1>

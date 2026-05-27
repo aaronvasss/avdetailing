@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 interface BookingDetails {
   id: string;
@@ -180,6 +181,7 @@ export default function BookingCancelPage() {
 
   return (
     <Layout>
+      <SEOHead title="Cancel Booking" description="Private page." path="/booking/cancel" noIndex />
       <div className="container max-w-lg mx-auto px-4 py-12">
         <Card>
           <CardHeader className="text-center">

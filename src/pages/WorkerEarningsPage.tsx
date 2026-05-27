@@ -7,6 +7,7 @@ import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star, Clock } fro
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { formatHm } from "@/lib/duration-format";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 type TimeFilter = "today" | "week" | "month" | "all";
 
@@ -168,6 +169,7 @@ export default function WorkerEarningsPage() {
 
   return (
     <WorkerLayout>
+      <SEOHead title="Worker Earnings" description="Private page." path="/worker/earnings" noIndex />
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />

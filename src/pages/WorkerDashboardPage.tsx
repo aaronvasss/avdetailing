@@ -10,6 +10,7 @@ import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wr
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { formatStopwatch } from "@/lib/duration-format";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const fmtMoney = (n: number) => (n > 0 ? `$${n.toFixed(n % 1 === 0 ? 0 : 2)}` : "—");
 const fmtCount = (n: number) => (n > 0 ? String(n) : "—");
@@ -545,6 +546,7 @@ function TodaysRoute({ bookings }: { bookings: any[] }) {
 
   return (
     <Card>
+      <SEOHead title="Worker Dashboard" description="Private page." path="/worker" noIndex />
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
