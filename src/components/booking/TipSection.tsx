@@ -53,6 +53,7 @@ export function TipSection({ bookingId, serviceTotal = 0, manageToken }: TipSect
         body: {
           booking_id: bookingId,
           tip_amount: tipAmount,
+          manage_token: manageToken ?? undefined,
         },
       });
 
