@@ -388,8 +388,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // If client_id was passed directly (from admin search), use it
-    if (body.client_id && uuidRegex.test(body.client_id)) {
+    // If client_id was passed directly (from admin search), use it — staff only
+    if (isCallerStaff && body.client_id && uuidRegex.test(body.client_id)) {
       clientId = body.client_id;
     }
 
