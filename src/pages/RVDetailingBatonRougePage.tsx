@@ -123,6 +123,39 @@ export default function RVDetailingBatonRougePage() {
                 structural integrity and resale value. AV Detailing serves Baton Rouge,
                 Denham Springs, Walker, Gonzales, Prairieville, and all surrounding areas.
               </p>
+
+              {/* CTAs + contact info */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
+                <Button asChild className="font-semibold tracking-wide">
+                  <Link to="/book">Book Online</Link>
+                </Button>
+                <Button asChild variant="outline" className="font-semibold tracking-wide">
+                  <a href="tel:+12255216264">
+                    <Phone className="mr-2 h-4 w-4" />
+                    (225) 521-6264
+                  </a>
+                </Button>
+              </div>
+              <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                <a
+                  href="tel:+12255216264"
+                  className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <Phone className="h-3.5 w-3.5 text-primary" />
+                  (225) 521-6264
+                </a>
+                <a
+                  href="sms:+12252284796"
+                  className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <span className="text-primary">✉</span>
+                  Text (225) 228-4796
+                </a>
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-primary" />
+                  Baton Rouge, LA · Mon–Sun 6AM–8PM
+                </span>
+              </div>
             </div>
 
             {/* Climate threats panel */}
