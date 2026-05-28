@@ -119,8 +119,8 @@ export default function CeramicCoatingBatonRougePage() {
             that bonds chemically to your vehicle's clear coat. AV Detailing exclusively installs{" "}
             <strong className="text-foreground">System X</strong>, one of the most respected ceramic brands in the
             industry, in three tiers: <strong className="text-foreground">3-year</strong>,{" "}
-            <strong className="text-foreground">6-year (most popular)</strong>, and{" "}
-            <strong className="text-foreground">10-year</strong>. Black and dark-colored vehicles see the biggest
+            <strong className="text-foreground">6-year</strong>, and{" "}
+            <strong className="text-foreground">10-year (most popular)</strong>. Black and dark-colored vehicles see the biggest
             visual improvement and the largest protection benefit under our Louisiana sun. According to{" "}
             <a
               href="https://www.consumerreports.org/cars/car-care/"
