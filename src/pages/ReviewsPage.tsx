@@ -328,7 +328,7 @@ const ReviewsPage = () => {
               ))}
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
-              110+ Five-Star Reviews on Google
+              115+ Five-Star Reviews on Google
             </h2>
             <p className="text-muted-foreground mb-7 max-w-2xl mx-auto">
               AV Detailing is Baton Rouge's top-rated mobile detailing service. Don't just
