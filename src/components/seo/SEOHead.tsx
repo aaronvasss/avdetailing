@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE_URL = "https://avdetailing.net";
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
 
 interface SEOHeadProps {
@@ -16,7 +15,6 @@ export function SEOHead({
   title,
   description,
   path,
-  type = "website",
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
 }: SEOHeadProps) {
@@ -25,20 +23,24 @@ export function SEOHead({
     : title.includes("AV Detailing")
       ? title
       : `${title} | AV Detailing`;
-  const canonicalUrl = `${SITE_URL}${path}`;
-
   return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={canonicalUrl} />
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
-      {/* Open Graph */}
-      <meta property="og:type" content={type} />
+      {/*
+        NOTE: <link rel="canonical">, <meta property="og:url"> and
+        <meta property="og:type"> are intentionally NOT emitted here —
+        they are written into the prerendered HTML by
+        scripts/postbuild-seo.ts. Emitting them from react-helmet too
+        creates duplicates that crawlers (Semrush, etc.) flag as
+        "Multiple canonical URLs".
+      */}
+
+      {/* Open Graph (title/description/image only) */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={image} />
       <meta property="og:site_name" content="AV Detailing" />
 
