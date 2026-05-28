@@ -370,15 +370,30 @@ export default function PaintCorrectionBatonRougePage() {
                     </div>
 
                     {/* Right — CTA */}
-                    <div className="md:col-span-3 flex md:flex-col md:items-stretch md:justify-end gap-3">
-                      <Button asChild size="lg" className="flex-1" variant={isFeatured ? "default" : "outline"}>
-                        <Link to="/book">Book {tier.name.split(" ")[0]}</Link>
+                    <div className="md:col-span-3 flex flex-col justify-end gap-4">
+                      <div className="text-right md:text-right">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Starting at</div>
+                        <div className="text-3xl md:text-4xl font-bold">{tier.price}</div>
+                      </div>
+                      <Button
+                        asChild
+                        className={`w-full font-semibold tracking-wide ${
+                          isFeatured
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+                            : "bg-foreground text-background hover:bg-foreground/90"
+                        }`}
+                      >
+                        <Link to="/book">
+                          Book Now
+                          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                        </Link>
                       </Button>
-                      <Button asChild size="lg" variant="ghost" className="flex-1 md:flex-none">
-                        <a href="tel:+12255216264">
-                          <Phone className="mr-2 h-4 w-4" /> Quote
-                        </a>
-                      </Button>
+                      <a
+                        href="tel:+12255216264"
+                        className="text-xs text-muted-foreground hover:text-primary transition-colors text-center md:text-right"
+                      >
+                        Or call for a custom quote
+                      </a>
                     </div>
                   </div>
                 </article>
