@@ -100,7 +100,7 @@ export function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://www.instagram.com/avdetailinngg?igsh=N2ZtN3hsa3hwemNh&utm_source=qr"
+                href="https://www.instagram.com/avdetailinngg/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="AV Detailing on Instagram"
