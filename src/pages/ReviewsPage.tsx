@@ -285,7 +285,7 @@ const ReviewsPage = () => {
                   {averageRating}
                 </div>
                 <div className="text-sm text-muted-foreground mb-4">
-                  Based on 110+ Google reviews
+                  Based on 115+ verified Google reviews
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
                   <CheckCircle2 className="h-3.5 w-3.5" />
