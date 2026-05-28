@@ -69,10 +69,10 @@ export function localBusinessSchema() {
     serviceArea: SERVICE_AREA_GEO,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Mobile Service",
+      streetAddress: "418 E State St",
       addressLocality: "Baton Rouge",
       addressRegion: "LA",
-      postalCode: "70809",
+      postalCode: "70802",
       addressCountry: "US",
     },
     geo: {

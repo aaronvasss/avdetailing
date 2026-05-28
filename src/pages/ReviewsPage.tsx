@@ -29,6 +29,16 @@ const ReviewsPage = () => {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "AV Detailing LLC",
+    url: "https://avdetailing.net/reviews",
+    telephone: "+12255216264",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "418 E State St",
+      addressLocality: "Baton Rouge",
+      addressRegion: "LA",
+      postalCode: "70802",
+      addressCountry: "US",
+    },
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "5.0",
