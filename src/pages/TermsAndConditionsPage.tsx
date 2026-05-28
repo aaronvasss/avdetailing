@@ -1,9 +1,15 @@
 import { Layout } from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const TermsAndConditionsPage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Terms & Conditions | AV Detailing"
+        description="AV Detailing booking terms, SMS consent disclosure, cancellation policy, deposits, refunds and service guarantees for mobile detailing in Baton Rouge, LA."
+        path="/terms-and-conditions"
+      />
       <section className="section-padding bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto prose prose-invert">
