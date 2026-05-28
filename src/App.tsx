@@ -18,6 +18,7 @@ const CarDetailingBatonRougePage = lazy(() => import("./pages/CarDetailingBatonR
 const RVDetailingBatonRougePage = lazy(() => import("./pages/RVDetailingBatonRougePage"));
 const BoatDetailingBatonRougePage = lazy(() => import("./pages/BoatDetailingBatonRougePage"));
 const AircraftDetailingBatonRougePage = lazy(() => import("./pages/AircraftDetailingBatonRougePage"));
+const CeramicCoatingBatonRougePage = lazy(() => import("./pages/CeramicCoatingBatonRougePage"));
 const ServiceLandingPage = lazy(() => import("./pages/ServiceLandingPage"));
 const LocationLandingPage = lazy(() => import("./pages/LocationLandingPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
