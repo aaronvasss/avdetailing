@@ -30,6 +30,51 @@ interface RouteMeta {
   path: string;
   title: string;
   description: string;
+  body?: string;
+}
+
+function stripTokens(s: string): string {
+  return s.replace(/\{\{l1\}\}/g, "").replace(/\{\{l2\}\}/g, "").replace(/\s+/g, " ").trim();
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
+  const services = p.services
+    .map((s) => `<li><strong>${esc(s.name)}</strong> — ${esc(s.description)}</li>`)
+    .join("");
+  const why = p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("");
+  return [
+    `<h1>${esc(p.titleH1)}</h1>`,
+    `<p>${esc(stripTokens(p.intro))}</p>`,
+    `<h2>Detailing Services in ${esc(p.city)}</h2><ul>${services}</ul>`,
+    `<h2>Why Choose AV Detailing</h2><ul>${why}</ul>`,
+    `<h2>Neighborhoods We Serve</h2><p>${esc(p.neighborhoods)}</p>`,
+    `<p>Call (225) 521-6264 to book mobile detailing in ${esc(p.city)}, Baton Rouge, LA.</p>`,
+  ].join("");
+}
+
+function bodyForService(p: (typeof SERVICE_LANDING_PAGES)[number]): string {
+  const steps = p.steps.map((s) => `<li>${esc(s)}</li>`).join("");
+  const why = p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("");
+  return [
+    `<h1>${esc(p.title)}</h1>`,
+    `<p>${esc(stripTokens(p.intro))}</p>`,
+    `<h2>Our Process</h2><ol>${steps}</ol>`,
+    `<h2>Why Choose AV Detailing</h2><ul>${why}</ul>`,
+    `<h2>Service Areas</h2><p>AV Detailing serves Greater Baton Rouge including Highland Road, Shenandoah, Gonzales, Prairieville, Central, Walker, Denham Springs, and Zachary, Louisiana. Call (225) 521-6264 to book.</p>`,
+  ].join("");
+}
+
+function bodyForStatic(m: { title: string; description: string }): string {
+  return [
+    `<h1>${esc(m.title)}</h1>`,
+    `<p>${esc(m.description)}</p>`,
+    `<p>AV Detailing is Baton Rouge's premier mobile detailing service — bringing System X ceramic coating, paint correction, interior shampoo, RV, boat, and aircraft detailing directly to your driveway, office, or storage location. We proudly serve Highland Road, Shenandoah, Gonzales, Prairieville, Central, Walker, Denham Springs, and Zachary, Louisiana.</p>`,
+    `<p>Call (225) 521-6264 or visit avdetailing.net/book to schedule. Fully insured. 115+ five-star Google reviews. Family-owned and operated in Baton Rouge, LA.</p>`,
+  ].join("");
 }
 
 const STATIC_ROUTES: RouteMeta[] = [
