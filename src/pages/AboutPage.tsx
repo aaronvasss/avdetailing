@@ -313,7 +313,7 @@ const AboutPage = () => {
                       </span>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-1">{r.title}</h4>
+                      <h3 className="font-semibold mb-1">{r.title}</h3>
                       <p className="text-muted-foreground text-sm">
                         {r.description}
                       </p>
