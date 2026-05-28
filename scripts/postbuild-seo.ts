@@ -176,16 +176,22 @@ const STATIC_ROUTES: RouteMeta[] = [
   },
 ];
 
+for (const r of STATIC_ROUTES) {
+  if (!r.body) r.body = bodyForStatic(r);
+}
+
 const SERVICE_ROUTES: RouteMeta[] = SERVICE_LANDING_PAGES.map((p) => ({
   path: `/${p.slug}`,
   title: `${p.title} | AV Detailing`,
   description: p.metaDescription,
+  body: bodyForService(p),
 }));
 
 const LOCATION_ROUTES: RouteMeta[] = LOCATION_PAGES.map((p) => ({
   path: `/${p.slug}`,
   title: `${p.titleTag} | AV Detailing`,
   description: p.metaDescription,
+  body: bodyForLocation(p),
 }));
 
 const ALL_ROUTES: RouteMeta[] = [
