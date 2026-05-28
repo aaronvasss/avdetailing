@@ -175,8 +175,35 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-16 pt-8 border-t border-border">
+        {/* Cross-links for SEO / internal linking */}
+        <div className="mt-16 pt-10 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div>
+            <h3 className="text-lg font-semibold mb-5">Detailing by City</h3>
+            <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
+              {locationLinks.map((l) => (
+                <li key={l.href}>
+                  <Link to={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {l.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-5">Specialty Services</h3>
+            <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
+              {specialtyLinks.map((l) => (
+                <li key={l.href}>
+                  <Link to={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {l.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-muted-foreground">
               © {currentYear} AV Detailing. All rights reserved.
