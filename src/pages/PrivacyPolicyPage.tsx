@@ -1,9 +1,15 @@
 import { Layout } from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const PrivacyPolicyPage = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Privacy Policy | AV Detailing"
+        description="How AV Detailing collects, uses and protects customer information, including phone numbers and SMS opt-in details for booking confirmations and reminders."
+        path="/privacy-policy"
+      />
       <section className="section-padding bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto prose prose-invert">

@@ -7,7 +7,7 @@
     "predev": "bun scripts/generate-sitemap.ts",
     "dev": "vite",
     "prebuild": "bun scripts/generate-sitemap.ts",
-    "build": "vite build",
+    "build": "vite build && bun scripts/postbuild-seo.ts",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
