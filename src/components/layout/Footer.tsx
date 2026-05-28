@@ -203,7 +203,7 @@ export function Footer() {
           </div>
         </div>
 
-
+        <div className="mt-16 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-muted-foreground">
               © {currentYear} AV Detailing. All rights reserved.
