@@ -318,68 +318,6 @@ const ReviewsPage = () => {
       {/* LIVE GOOGLE REVIEWS WIDGET */}
       <ReviewsWidgetSection />
 
-      {/* FEATURED CUSTOMER STORIES */}
-      <section className="section-padding">
-        <div className="container-custom max-w-6xl">
-          <div className="mb-12 max-w-2xl">
-            <div className="text-xs uppercase tracking-[0.25em] text-primary mb-3">
-              Featured Customer Stories
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Real results from real Baton Rouge customers
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {reviews.map((review) => (
-              <article
-                key={review.id}
-                className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 hover:border-primary/40 transition-colors"
-              >
-                <Quote className="absolute top-5 right-5 h-7 w-7 text-primary/15" />
-
-                {/* Rating row */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex gap-0.5">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <span className="text-xs text-muted-foreground">{review.date}</span>
-                </div>
-
-                {/* Text */}
-                <p className="text-sm md:text-base text-foreground/90 leading-relaxed mb-5 flex-1">
-                  "{review.text}"
-                </p>
-
-                {/* Service tag */}
-                <div className="mb-4">
-                  <span className="inline-block text-[11px] uppercase tracking-wider font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-full">
-                    {review.service}
-                  </span>
-                </div>
-
-                {/* Author */}
-                <div className="flex items-center gap-3 pt-4 border-t border-border">
-                  <img
-                    src={review.image}
-                    alt={review.name}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-border"
-                  />
-                  <div className="min-w-0">
-                    <div className="font-semibold text-sm truncate">{review.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {review.location} · {review.vehicle}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* GOOGLE BANNER */}
       <section className="section-padding bg-card border-y border-border">
         <div className="container-custom max-w-4xl">
