@@ -185,70 +185,51 @@ export default function CarDetailingBatonRougePage() {
       </section>
 
       {/* Packages Section */}
-      <section className="section-padding bg-background">
+      <section className="pt-10 md:pt-12 pb-16 md:pb-20 bg-background">
         <div className="container-custom max-w-6xl">
-          <div className="mb-10 md:mb-12 max-w-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Our Car Detailing Packages</h2>
+          <div className="mb-10 md:mb-12 text-center max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Detailing Packages</h2>
             <p className="text-muted-foreground text-base md:text-lg">
-              Prices shown for sedans & coupes. SUVs and trucks vary — call{" "}
-              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact pricing.
+              Choose the level of care your vehicle deserves. For exact pricing on SUVs and trucks, call{" "}
+              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a>.
             </p>
           </div>
 
-          <div className="grid gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <article className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
-              <h3 className="text-xl font-bold mb-2">Exterior Only</h3>
-              <p className="text-2xl font-bold text-primary mb-4">from $75</p>
-              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
-                <li>Hand wash & dry</li>
-                <li>Wheel cleaning</li>
-                <li>Tire shine</li>
-                <li>Exterior windows</li>
-                <li>Spray wax</li>
-              </ul>
-              <Button asChild className="w-full">
-                <Link to="/book">Book Now</Link>
-              </Button>
-            </article>
-
-            <article className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
-              <h3 className="text-xl font-bold mb-2">Basic Package</h3>
-              <p className="text-2xl font-bold text-primary mb-4">from $130</p>
-              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
+          <div className="grid gap-6 md:gap-5 grid-cols-1 lg:grid-cols-3 lg:items-center">
+            {/* Basic — Black */}
+            <article className="order-1 lg:order-1 flex flex-col h-full rounded-2xl p-7 bg-[hsl(0_0%_6%)] text-white border border-white/10 shadow-xl transition-all hover:shadow-2xl">
+              <span className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-2">Essentials</span>
+              <h3 className="text-2xl font-bold mb-2">Basic Package</h3>
+              <p className="text-3xl font-bold mb-5">
+                from $130
+                <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes</span>
+              </p>
+              <ul className="text-sm text-white/80 space-y-2.5 mb-7 flex-1">
                 <li>Light vacuum</li>
                 <li>Interior wipe down</li>
                 <li>Hand wash & dry</li>
                 <li>Wheel cleaning</li>
                 <li>Tire shine</li>
               </ul>
-              <Button asChild className="w-full">
+              <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
                 <Link to="/book">Book Now</Link>
               </Button>
             </article>
 
-            <article className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
-              <h3 className="text-xl font-bold mb-2">Silver Package</h3>
-              <p className="text-2xl font-bold text-primary mb-4">from $210</p>
-              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
-                <li>Deep vacuum</li>
-                <li>Console & cup holders</li>
-                <li>Door panels & dashboard</li>
-                <li>Hand wash & dry</li>
-                <li>Full exterior wash</li>
-                <li>Wheel & tire cleaning</li>
-              </ul>
-              <Button asChild className="w-full">
-                <Link to="/book">Book Now</Link>
-              </Button>
-            </article>
-
-            <article className="flex flex-col h-full rounded-2xl border-2 border-primary bg-card p-6 transition-all hover:shadow-lg">
-              <div className="mb-3">
-                <Badge className="mb-2">Most Popular</Badge>
-                <h3 className="text-xl font-bold mb-2">Gold Package</h3>
-                <p className="text-2xl font-bold text-primary mb-4">from $310</p>
+            {/* Gold — Center, Elevated */}
+            <article className="order-0 lg:order-2 flex flex-col h-full rounded-2xl p-8 bg-gradient-to-b from-[hsl(45_70%_12%)] to-[hsl(40_50%_6%)] border-2 border-[hsl(45_85%_55%)] shadow-2xl lg:scale-105 lg:-my-2 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <Badge className="bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_55%)] font-semibold px-3 py-1 shadow-md">
+                  Most Popular
+                </Badge>
               </div>
-              <ul className="text-muted-foreground text-sm space-y-2 mb-6 flex-1">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(45_85%_65%)] mb-2">Signature</span>
+              <h3 className="text-2xl font-bold mb-2 text-white">Gold Package</h3>
+              <p className="text-3xl font-bold mb-5 text-[hsl(45_85%_65%)]">
+                from $310
+                <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes</span>
+              </p>
+              <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
                 <li>Everything in Silver</li>
                 <li>Seat shampooing</li>
                 <li>Leather conditioning</li>
@@ -256,7 +237,28 @@ export default function CarDetailingBatonRougePage() {
                 <li>Wheel detail</li>
                 <li>Meticulous interior finish</li>
               </ul>
-              <Button asChild className="w-full bg-primary hover:bg-primary/90">
+              <Button asChild className="w-full bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_60%)] font-semibold">
+                <Link to="/book">Book Now</Link>
+              </Button>
+            </article>
+
+            {/* Silver */}
+            <article className="order-2 lg:order-3 flex flex-col h-full rounded-2xl p-7 bg-gradient-to-b from-[hsl(0_0%_96%)] to-[hsl(0_0%_88%)] text-[hsl(0_0%_10%)] border border-[hsl(0_0%_75%)] shadow-xl transition-all hover:shadow-2xl">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(0_0%_35%)] mb-2">Premium</span>
+              <h3 className="text-2xl font-bold mb-2">Silver Package</h3>
+              <p className="text-3xl font-bold mb-5">
+                from $210
+                <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes</span>
+              </p>
+              <ul className="text-sm text-[hsl(0_0%_25%)] space-y-2.5 mb-7 flex-1">
+                <li>Deep vacuum</li>
+                <li>Console & cup holders</li>
+                <li>Door panels & dashboard</li>
+                <li>Hand wash & dry</li>
+                <li>Full exterior wash</li>
+                <li>Wheel & tire cleaning</li>
+              </ul>
+              <Button asChild className="w-full bg-black text-white hover:bg-black/85">
                 <Link to="/book">Book Now</Link>
               </Button>
             </article>
