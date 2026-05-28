@@ -244,32 +244,31 @@ const ReviewsPage = () => {
         <div className="container-custom relative pt-12 pb-14 md:pt-16 md:pb-20">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-primary mb-5">
             <Star className="h-3.5 w-3.5 fill-primary" />
-            Customer Reviews · Baton Rouge, LA
+            Verified Google Reviews · Baton Rouge, LA
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
             <div className="lg:col-span-8">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05]">
-                Loved by{" "}
-                <span className="text-primary">110+ Baton Rouge</span> drivers, boaters &
-                pilots.
+                Customer Reviews <br />
+                <span className="text-primary">Baton Rouge, LA</span>
               </h1>
               <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
-                Every review is real, every star is earned. Read what our customers say
-                about mobile detailing, ceramic coating, paint correction, RV, boat, and
-                aircraft service across the Greater Baton Rouge area.
+                See what customers across Baton Rouge, Prairieville, Gonzales, Denham Springs and
+                surrounding areas say about our mobile auto detailing, ceramic coating, paint
+                correction, RV, boat, and aircraft services.
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:items-center">
                 <Button asChild className="font-semibold tracking-wide">
-                  <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-                    Read on Google
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="font-semibold tracking-wide">
                   <Link to="/book">
                     Book Your Detail
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
+                </Button>
+                <Button asChild variant="outline" className="font-semibold tracking-wide">
+                  <a href="tel:+12255216264">
+                    <Phone className="mr-2 h-4 w-4" />
+                    (225) 521-6264
+                  </a>
                 </Button>
               </div>
             </div>
