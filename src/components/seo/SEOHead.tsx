@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE_URL = "https://avdetailing.net";
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
 
 interface SEOHeadProps {
@@ -16,7 +15,6 @@ export function SEOHead({
   title,
   description,
   path,
-  type = "website",
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
 }: SEOHeadProps) {
