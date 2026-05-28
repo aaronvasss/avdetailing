@@ -221,8 +221,8 @@ const ReviewsPage = () => {
   return (
     <Layout>
       <SEOHead
-        title="Customer Reviews"
-        description="Read 110+ five-star reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto detailing service."
+        title="Customer Reviews & Testimonials | AV Detailing Baton Rouge"
+        description="Read 115+ five-star Google reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto, RV, boat & aircraft detailing service."
         path="/reviews"
       />
       <script
