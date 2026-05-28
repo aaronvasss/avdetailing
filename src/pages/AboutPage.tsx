@@ -87,7 +87,7 @@ const AboutPage = () => {
     <Layout>
       <SEOHead
         title="About AV Detailing | Baton Rouge Mobile Detailing"
-        description="Meet AV Detailing — Baton Rouge's premier mobile auto detailing service. Fully insured, 5-star rated, and built on craftsmanship for cars, boats, RVs, and aircraft."
+        description="Meet AV Detailing — Baton Rouge's premier mobile detailing service. Fully insured, 5-star rated craftsmanship for cars, boats, RVs & aircraft."
         path="/about"
       />
       <JsonLd data={localBusinessSchema()} />
@@ -313,7 +313,7 @@ const AboutPage = () => {
                       </span>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-1">{r.title}</h4>
+                      <h3 className="font-semibold mb-1">{r.title}</h3>
                       <p className="text-muted-foreground text-sm">
                         {r.description}
                       </p>

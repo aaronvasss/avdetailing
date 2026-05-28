@@ -86,6 +86,7 @@ export function Footer() {
                 href="https://www.facebook.com/avdetailingg"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="AV Detailing on Facebook"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
               >
                 <Facebook className="h-5 w-5" />
@@ -94,6 +95,7 @@ export function Footer() {
                 href="https://www.instagram.com/avdetailingg"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="AV Detailing on Instagram"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
               >
                 <Instagram className="h-5 w-5" />
@@ -102,6 +104,7 @@ export function Footer() {
                 href="https://www.youtube.com/@avdetailing"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="AV Detailing on YouTube"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
               >
                 <Youtube className="h-5 w-5" />
