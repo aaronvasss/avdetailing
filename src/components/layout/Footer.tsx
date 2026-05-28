@@ -2,6 +2,14 @@ import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5A2.89 2.89 0 0 1 6.6 15.17a2.89 2.89 0 0 1 2.88-2.89c.3 0 .6.05.88.13V9.08a6.37 6.37 0 0 0-.88-.06A6.18 6.18 0 0 0 3.22 15.17a6.18 6.18 0 0 0 6.17 6.17 6.18 6.18 0 0 0 6.17-6.17V9.03a8.15 8.15 0 0 0 4.78 1.53V7.11a4.85 4.85 0 0 1-.75-.42z"/>
+    </svg>
+  );
+}
+
 const services = [
   { name: "Car Detailing", href: "/car-detailing-baton-rouge" },
   { name: "Ceramic Coating", href: "/ceramic-coating-baton-rouge" },
@@ -92,13 +100,22 @@ export function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://www.instagram.com/avdetailingg"
+                href="https://www.instagram.com/avdetailinngg?igsh=N2ZtN3hsa3hwemNh&utm_source=qr"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="AV Detailing on Instagram"
                 className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
               >
                 <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@avdetailinngg?_r=1&_t=ZT-96jE8KwVW9t"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="AV Detailing on TikTok"
+                className="p-2 bg-secondary rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
+              >
+                <TikTokIcon className="h-5 w-5" />
               </a>
               <a
                 href="https://www.youtube.com/@avdetailing"
