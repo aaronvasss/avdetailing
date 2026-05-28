@@ -299,15 +299,29 @@ export default function CeramicCoatingBatonRougePage() {
 
       {/* How It Works */}
       <section className="section-padding">
-        <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">How Our Ceramic Coating Service Works</h2>
-          <ol className="space-y-5">
+        <div className="container-custom max-w-6xl">
+          <div className="mb-10 md:mb-12 max-w-2xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">How Our Ceramic Coating Service Works</h2>
+            <p className="text-muted-foreground text-base md:text-lg">
+              A clear, five-step process from consultation to a final, fully cured finish.
+            </p>
+          </div>
+
+          <ol className="grid gap-4 md:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {STEPS.map((step, i) => (
-              <li key={i} className="flex gap-4">
-                <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center">
-                  {i + 1}
-                </span>
-                <p className="text-muted-foreground leading-relaxed text-base md:text-lg pt-1">{step}</p>
+              <li
+                key={i}
+                className="group relative flex flex-col rounded-2xl border border-border bg-card p-5 md:p-6 transition-all hover:border-primary/50 hover:shadow-lg"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="flex-shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Step {i + 1} of {STEPS.length}
+                  </span>
+                </div>
+                <p className="text-foreground/90 leading-relaxed text-sm md:text-base">{step}</p>
               </li>
             ))}
           </ol>
@@ -333,34 +347,42 @@ export default function CeramicCoatingBatonRougePage() {
 
       {/* Service Areas */}
       <section className="section-padding">
-        <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Service Areas</h2>
-          <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
-            {SERVICE_AREAS_TEXT}
-          </p>
-        </div>
-      </section>
+        <div className="container-custom max-w-6xl">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12 items-start">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-4">
+                <MapPin className="h-3.5 w-3.5" />
+                Mobile Service Across Greater Baton Rouge
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Service Areas</h2>
+              <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
+                {SERVICE_AREAS_TEXT}
+              </p>
+            </div>
 
-      {/* CTA */}
-      <section className="section-padding bg-card border-t border-border">
-        <div className="container-custom max-w-4xl text-center">
-          <p className="text-xl md:text-2xl font-semibold mb-6">
-            Ready to protect your vehicle? Call{" "}
-            <a href="tel:+12255216264" className="text-primary hover:underline">
-              (225) 521-6264
-            </a>{" "}
-            or book online today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-base">
-              <Link to="/book">Book Online</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-base">
-              <a href="tel:+12255216264">
-                <Phone className="mr-2 h-5 w-5" />
-                (225) 521-6264
-              </a>
-            </Button>
+            <div className="rounded-2xl border border-border bg-card p-6 md:p-7">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+                Neighborhoods We Cover
+              </h3>
+              <div className="grid grid-cols-2 gap-2.5">
+                {SERVICE_AREAS.map((area) => (
+                  <div
+                    key={area}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground"
+                  >
+                    <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                    {area}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-5 text-xs text-muted-foreground leading-relaxed">
+                Not sure if we cover your area? Call{" "}
+                <a href="tel:+12255216264" className="text-primary hover:underline font-medium">
+                  (225) 521-6264
+                </a>{" "}
+                — we likely do.
+              </p>
+            </div>
           </div>
         </div>
       </section>
