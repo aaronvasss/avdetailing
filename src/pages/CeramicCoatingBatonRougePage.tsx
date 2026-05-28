@@ -64,7 +64,7 @@ const STEPS = [
 
 const WHY_CHOOSE = [
   "Exclusively System X — one of the industry-leading ceramic coating brands.",
-  "Three tiers offered: 3-year, 6-year (most popular), and 10-year.",
+  "Three tiers offered: 3-year, 6-year, and 10-year (most popular).",
   "Paint correction prep included to avoid locking swirls in under the coating.",
   "Hydrophobic protection engineered for Louisiana UV, humidity, and rain.",
 ];
@@ -194,7 +194,7 @@ export default function CeramicCoatingBatonRougePage() {
                 A strong starting point for daily drivers. Real ceramic protection without the long-term commitment.
               </p>
               <div className="mb-5 pb-5 border-b border/10 border-white/10">
-                <span className="text-3xl font-bold">from $800</span>
+                <span className="text-3xl font-bold">from $850</span>
                 <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
@@ -209,55 +209,55 @@ export default function CeramicCoatingBatonRougePage() {
               </Button>
             </article>
 
-            {/* 6-Year — Center, Elevated */}
+            {/* 10-Year — Center, Elevated, Most Popular */}
             <article className="order-1 lg:order-2 flex flex-col h-full rounded-2xl p-6 sm:p-8 bg-gradient-to-b from-[hsl(45_70%_14%)] via-[hsl(42_60%_9%)] to-[hsl(40_55%_5%)] border-2 border-[hsl(45_85%_55%)] shadow-2xl lg:scale-[1.04] lg:-my-2 relative mt-4 lg:mt-0">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <Badge className="bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_55%)] font-semibold px-3 py-1 shadow-lg whitespace-nowrap">
                   ★ Most Popular
                 </Badge>
               </div>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(45_85%_65%)] mb-2">Best Value</span>
-              <h3 className="text-2xl font-bold mb-1.5 text-white">System X 6-Year</h3>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(45_85%_65%)] mb-2">Lifetime Tier</span>
+              <h3 className="text-2xl font-bold mb-1.5 text-white">System X 10-Year</h3>
               <p className="text-sm text-white/70 mb-4 leading-relaxed">
-                Our most-installed tier. The sweet spot of protection, durability, and value for Louisiana drivers.
+                The highest level of System X protection we install. Built for long-term ownership and showroom standards.
               </p>
               <div className="mb-5 pb-5 border-b border-[hsl(45_85%_55%)]/25">
-                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from $1,200</span>
+                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from $1,750</span>
                 <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-white/90 space-y-2.5 mb-7 flex-1">
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span className="font-semibold">Everything in 3-Year</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>6 years of full ceramic protection</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Stronger UV & chemical resistance</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Multi-stage paint correction included</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Maximum hydrophobic beading</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Wheel face coating available as add-on</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span className="font-semibold">Everything in 6-Year</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>10 years of full ceramic protection</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Maximum hardness & scratch resistance</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Premium multi-step correction included</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Mirror-deep gloss finish</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Best long-term resale-value play</span></li>
               </ul>
               <Button asChild className="w-full bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_60%)] font-semibold shadow-md">
                 <Link to="/book">Book Now</Link>
               </Button>
             </article>
 
-            {/* 10-Year — Silver */}
+            {/* 6-Year — Silver */}
             <article className="order-3 lg:order-3 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-gradient-to-b from-[hsl(0_0%_97%)] to-[hsl(0_0%_86%)] text-[hsl(0_0%_10%)] border border-[hsl(0_0%_72%)] shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">Lifetime Tier</span>
-              <h3 className="text-2xl font-bold mb-1.5">System X 10-Year</h3>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">Best Value</span>
+              <h3 className="text-2xl font-bold mb-1.5">System X 6-Year</h3>
               <p className="text-sm text-[hsl(0_0%_30%)] mb-4 leading-relaxed">
-                The highest level of System X protection we install. Built for long-term ownership and showroom standards.
+                Our most-installed tier. The sweet spot of protection, durability, and value for Louisiana drivers.
               </p>
               <div className="mb-5 pb-5 border-b border-[hsl(0_0%_60%)]/40">
-                <span className="text-3xl font-bold">from $1,600</span>
+                <span className="text-3xl font-bold">from $1,350</span>
                 <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-[hsl(0_0%_20%)] space-y-2.5 mb-3 flex-1">
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Everything in 6-Year</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>10 years of ceramic protection</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Maximum hardness & scratch resistance</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Premium multi-step correction included</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Mirror-deep gloss finish</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Best long-term resale-value play</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Everything in 3-Year</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>6 years of ceramic protection</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Stronger UV & chemical resistance</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Multi-stage paint correction included</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Maximum hydrophobic beading</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Wheel face coating available as add-on</span></li>
               </ul>
-              <p className="text-xs italic text-[hsl(0_0%_35%)] mb-5">Recommended for new or freshly painted vehicles.</p>
+              <p className="text-xs italic text-[hsl(0_0%_35%)] mb-5">Recommended for daily drivers looking for solid mid-term protection.</p>
               <Button asChild className="w-full bg-black text-white hover:bg-black/85">
                 <Link to="/book">Book Now</Link>
               </Button>
