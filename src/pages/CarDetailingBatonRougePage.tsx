@@ -195,21 +195,25 @@ export default function CarDetailingBatonRougePage() {
             </p>
           </div>
 
-          <div className="grid gap-6 md:gap-5 grid-cols-1 lg:grid-cols-3 lg:items-center">
+          <div className="grid gap-5 sm:gap-6 grid-cols-1 lg:grid-cols-3 lg:items-stretch lg:gap-6">
             {/* Basic — Black */}
-            <article className="order-1 lg:order-1 flex flex-col h-full rounded-2xl p-7 bg-[hsl(0_0%_6%)] text-white border border-white/10 shadow-xl transition-all hover:shadow-2xl">
-              <span className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-2">Essentials</span>
-              <h3 className="text-2xl font-bold mb-2">Basic Package</h3>
-              <p className="text-3xl font-bold mb-5">
-                from $130
-                <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes</span>
+            <article className="order-2 lg:order-1 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-[hsl(0_0%_6%)] text-white border border-white/10 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55 mb-2">Essentials</span>
+              <h3 className="text-2xl font-bold mb-1.5">Basic Package</h3>
+              <p className="text-sm text-white/65 mb-4 leading-relaxed">
+                Perfect for regular maintenance. Keeps your vehicle clean and fresh between full details.
               </p>
-              <ul className="text-sm text-white/80 space-y-2.5 mb-7 flex-1">
-                <li>Light vacuum</li>
-                <li>Interior wipe down</li>
-                <li>Hand wash & dry</li>
-                <li>Wheel cleaning</li>
-                <li>Tire shine</li>
+              <div className="mb-5 pb-5 border-b border-white/10">
+                <span className="text-3xl font-bold">from $150</span>
+                <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes</span>
+              </div>
+              <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
+                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Light interior vacuum</span></li>
+                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Interior wipe down — dashboard, console, door panels</span></li>
+                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Hand wash & dry</span></li>
+                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Wheel cleaning</span></li>
+                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Tire shine</span></li>
+                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Exterior windows cleaned</span></li>
               </ul>
               <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
                 <Link to="/book">Book Now</Link>
@@ -217,47 +221,56 @@ export default function CarDetailingBatonRougePage() {
             </article>
 
             {/* Gold — Center, Elevated */}
-            <article className="order-0 lg:order-2 flex flex-col h-full rounded-2xl p-8 bg-gradient-to-b from-[hsl(45_70%_12%)] to-[hsl(40_50%_6%)] border-2 border-[hsl(45_85%_55%)] shadow-2xl lg:scale-105 lg:-my-2 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_55%)] font-semibold px-3 py-1 shadow-md">
-                  Most Popular
+            <article className="order-1 lg:order-2 flex flex-col h-full rounded-2xl p-6 sm:p-8 bg-gradient-to-b from-[hsl(45_70%_14%)] via-[hsl(42_60%_9%)] to-[hsl(40_55%_5%)] border-2 border-[hsl(45_85%_55%)] shadow-2xl lg:scale-[1.04] lg:-my-2 relative mt-4 lg:mt-0">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                <Badge className="bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_55%)] font-semibold px-3 py-1 shadow-lg whitespace-nowrap">
+                  ★ Most Popular
                 </Badge>
               </div>
-              <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(45_85%_65%)] mb-2">Signature</span>
-              <h3 className="text-2xl font-bold mb-2 text-white">Gold Package</h3>
-              <p className="text-3xl font-bold mb-5 text-[hsl(45_85%_65%)]">
-                from $310
-                <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(45_85%_65%)] mb-2">Signature</span>
+              <h3 className="text-2xl font-bold mb-1.5 text-white">Gold Package</h3>
+              <p className="text-sm text-white/70 mb-4 leading-relaxed">
+                The complete detail. Every surface treated inside and out — the closest thing to a showroom finish.
               </p>
-              <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
-                <li>Everything in Silver</li>
-                <li>Seat shampooing</li>
-                <li>Leather conditioning</li>
-                <li>Wax application</li>
-                <li>Wheel detail</li>
-                <li>Meticulous interior finish</li>
+              <div className="mb-5 pb-5 border-b border-[hsl(45_85%_55%)]/25">
+                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from $310</span>
+                <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes</span>
+              </div>
+              <ul className="text-sm text-white/90 space-y-2.5 mb-7 flex-1">
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span className="font-semibold">Everything in Silver</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Seat & upholstery shampooing</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Leather cleaning & conditioning</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Carpet deep clean</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Wax application — paint protection</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Meticulous wheel detail & tire shine</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Door jamb cleaning</span></li>
               </ul>
-              <Button asChild className="w-full bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_60%)] font-semibold">
+              <Button asChild className="w-full bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_60%)] font-semibold shadow-md">
                 <Link to="/book">Book Now</Link>
               </Button>
             </article>
 
             {/* Silver */}
-            <article className="order-2 lg:order-3 flex flex-col h-full rounded-2xl p-7 bg-gradient-to-b from-[hsl(0_0%_96%)] to-[hsl(0_0%_88%)] text-[hsl(0_0%_10%)] border border-[hsl(0_0%_75%)] shadow-xl transition-all hover:shadow-2xl">
-              <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(0_0%_35%)] mb-2">Premium</span>
-              <h3 className="text-2xl font-bold mb-2">Silver Package</h3>
-              <p className="text-3xl font-bold mb-5">
-                from $210
-                <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes</span>
+            <article className="order-3 lg:order-3 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-gradient-to-b from-[hsl(0_0%_97%)] to-[hsl(0_0%_86%)] text-[hsl(0_0%_10%)] border border-[hsl(0_0%_72%)] shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">Most Popular</span>
+              <h3 className="text-2xl font-bold mb-1.5">Silver Package</h3>
+              <p className="text-sm text-[hsl(0_0%_30%)] mb-4 leading-relaxed">
+                A thorough interior and exterior clean for vehicles that see daily use.
               </p>
-              <ul className="text-sm text-[hsl(0_0%_25%)] space-y-2.5 mb-7 flex-1">
-                <li>Deep vacuum</li>
-                <li>Console & cup holders</li>
-                <li>Door panels & dashboard</li>
-                <li>Hand wash & dry</li>
-                <li>Full exterior wash</li>
-                <li>Wheel & tire cleaning</li>
+              <div className="mb-5 pb-5 border-b border-[hsl(0_0%_60%)]/40">
+                <span className="text-3xl font-bold">from $210</span>
+                <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes</span>
+              </div>
+              <ul className="text-sm text-[hsl(0_0%_20%)] space-y-2.5 mb-3 flex-1">
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Deep vacuum — seats, carpets, mats, trunk</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Console, cup holders & door panel detail</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Dashboard & trim cleaning</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Hand wash & dry</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Full exterior wash</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Wheel & tire cleaning</span></li>
+                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Exterior windows cleaned</span></li>
               </ul>
+              <p className="text-xs italic text-[hsl(0_0%_35%)] mb-5">Seat shampoo not included — upgrade to Gold.</p>
               <Button asChild className="w-full bg-black text-white hover:bg-black/85">
                 <Link to="/book">Book Now</Link>
               </Button>
