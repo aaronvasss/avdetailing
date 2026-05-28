@@ -197,7 +197,7 @@ const reviews = [
 
 const TRUST_STATS = [
   { icon: Star, value: "5.0", label: "Average Rating" },
-  { icon: ThumbsUp, value: "110+", label: "Google Reviews" },
+  { icon: ThumbsUp, value: "115+", label: "Google Reviews" },
   { icon: Award, value: "#1", label: "Rated in Baton Rouge" },
   { icon: CheckCircle2, value: "100%", label: "Recommend Us" },
 ];
