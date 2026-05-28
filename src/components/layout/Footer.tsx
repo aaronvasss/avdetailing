@@ -19,17 +19,31 @@ const company = [
   { name: "Contact", href: "/contact" },
 ];
 
+const locationLinks = [
+  { name: "Highland Road", href: "/car-detailing-highland-road-baton-rouge" },
+  { name: "Shenandoah", href: "/car-detailing-shenandoah-baton-rouge" },
+  { name: "Gonzales", href: "/car-detailing-gonzales-la" },
+  { name: "Prairieville", href: "/car-detailing-prairieville-la" },
+  { name: "Denham Springs", href: "/car-detailing-denham-springs-la" },
+  { name: "Walker", href: "/car-detailing-walker-la" },
+  { name: "Zachary", href: "/car-detailing-zachary-la" },
+  { name: "Central, LA", href: "/car-detailing-central-la" },
+];
+
+const specialtyLinks = [
+  { name: "Aircraft Cleaning", href: "/aircraft-cleaning-baton-rouge" },
+  { name: "Aircraft Interior Detail", href: "/aircraft-interior-detailing-baton-rouge" },
+  { name: "Aircraft Paint Protection", href: "/aircraft-paint-protection-baton-rouge" },
+  { name: "Mobile Car Detailing", href: "/mobile-car-detailing-baton-rouge" },
+  { name: "Interior Detailing", href: "/interior-detailing-baton-rouge" },
+  { name: "Headlight Restoration", href: "/headlight-restoration-baton-rouge" },
+  { name: "Odor Removal", href: "/odor-removal-baton-rouge" },
+  { name: "Engine Bay Cleaning", href: "/engine-bay-cleaning-baton-rouge" },
+];
+
 const serviceAreas = [
-  "Baton Rouge",
-  "Denham Springs",
-  "Highland Road",
-  "Perkins Road",
-  "Old Jefferson",
-  "Shenandoah",
-  "Highland Lakes",
-  "Prairieville",
-  "Gonzales",
-  "Walker",
+  "Baton Rouge", "Denham Springs", "Highland Road", "Perkins Road", "Old Jefferson",
+  "Shenandoah", "Highland Lakes", "Prairieville", "Gonzales", "Walker",
 ];
 
 export function Footer() {
