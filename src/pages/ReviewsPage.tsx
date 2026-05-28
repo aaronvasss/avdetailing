@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
   Star,
-  Quote,
   ArrowRight,
   ExternalLink,
   Phone,
