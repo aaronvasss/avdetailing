@@ -36,9 +36,24 @@ const specialtyLinks = [
   { name: "Aircraft Paint Protection", href: "/aircraft-paint-protection-baton-rouge" },
   { name: "Mobile Car Detailing", href: "/mobile-car-detailing-baton-rouge" },
   { name: "Interior Detailing", href: "/interior-detailing-baton-rouge" },
+  { name: "Exterior Detailing", href: "/exterior-detailing-baton-rouge" },
   { name: "Headlight Restoration", href: "/headlight-restoration-baton-rouge" },
   { name: "Odor Removal", href: "/odor-removal-baton-rouge" },
   { name: "Engine Bay Cleaning", href: "/engine-bay-cleaning-baton-rouge" },
+  { name: "Pet Hair Removal", href: "/pet-hair-removal-baton-rouge" },
+];
+
+const boatRvLinks = [
+  { name: "Mobile Boat Detailing", href: "/mobile-boat-detailing-baton-rouge" },
+  { name: "Boat Ceramic Coating", href: "/boat-ceramic-coating-baton-rouge" },
+  { name: "Hull Cleaning", href: "/hull-cleaning-baton-rouge" },
+  { name: "Pontoon Cleaning", href: "/pontoon-cleaning-baton-rouge" },
+  { name: "Gelcoat Restoration", href: "/gelcoat-restoration-baton-rouge" },
+  { name: "Mobile RV Detailing", href: "/mobile-rv-detailing-baton-rouge" },
+  { name: "RV Ceramic Coating", href: "/rv-ceramic-coating-baton-rouge" },
+  { name: "RV Interior Detailing", href: "/rv-interior-detailing-baton-rouge" },
+  { name: "RV Roof Cleaning", href: "/rv-roof-cleaning-baton-rouge" },
+  { name: "RV Oxidation Removal", href: "/rv-oxidation-removal-baton-rouge" },
 ];
 
 const serviceAreas = [
@@ -176,7 +191,7 @@ export function Footer() {
         </div>
 
         {/* Cross-links for SEO / internal linking */}
-        <div className="mt-16 pt-10 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="mt-16 pt-10 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
             <h3 className="text-lg font-semibold mb-5">Detailing by City</h3>
             <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
@@ -193,6 +208,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-5">Specialty Services</h3>
             <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
               {specialtyLinks.map((l) => (
+                <li key={l.href}>
+                  <Link to={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {l.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-5">Boat & RV Services</h3>
+            <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
+              {boatRvLinks.map((l) => (
                 <li key={l.href}>
                   <Link to={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {l.name}
