@@ -1,9 +1,74 @@
-# AV Detailing — llms.txt
-# Mobile car, RV, boat and aircraft detailing in Baton Rouge, Louisiana
+# AV Detailing
+
+> Premium mobile car, RV, boat, and aircraft detailing in Baton Rouge, Louisiana. Ceramic coating, paint correction, and interior/exterior detailing — we come to you.
 
 Business: AV Detailing
 Website: https://avdetailing.net
 Phone: (225) 521-6264
 Location: Baton Rouge, Louisiana
-Services: Mobile car detailing, System X ceramic coating, paint correction, interior detailing, exterior detailing, RV detailing, boat detailing, aircraft detailing
 Service areas: Baton Rouge, Highland Road, Shenandoah, Gonzales, Prairieville, Denham Springs, Walker, Zachary, Central
+
+## Pages
+
+- [Home](/): Overview of AV Detailing mobile services in Baton Rouge.
+- [About](/about): Our story, values, and why customers choose us.
+- [Services](/services): Full list of detailing services and packages.
+- [Memberships](/memberships): Recurring detailing plans (weekly, bi-weekly, monthly).
+- [Gallery](/gallery): Before-and-after photos of completed work.
+- [Reviews](/reviews): Customer testimonials and 5-star ratings.
+- [Service Areas](/service-areas): Cities and neighborhoods we serve.
+- [Contact](/contact): Phone, address, and contact form.
+
+## Car detailing
+
+- [Car Detailing Baton Rouge](/car-detailing-baton-rouge): Full mobile car detailing service.
+- [Mobile Car Detailing](/mobile-car-detailing-baton-rouge): We come to your home or office.
+- [Ceramic Coating](/ceramic-coating-baton-rouge): System X 3-, 6-, and 10-year ceramic coatings.
+- [Paint Correction](/paint-correction-baton-rouge): 1-, 2-, and 3-step paint correction.
+- [Interior Detailing](/interior-detailing-baton-rouge): Deep interior cleaning and protection.
+- [Exterior Detailing](/exterior-detailing-baton-rouge): Wash, decontamination, and polish.
+- [Headlight Restoration](/headlight-restoration-baton-rouge): Restore cloudy headlights.
+- [Odor Removal](/odor-removal-baton-rouge): Eliminate persistent vehicle odors.
+- [Pet Hair Removal](/pet-hair-removal-baton-rouge): Specialized pet hair extraction.
+- [Engine Bay Cleaning](/engine-bay-cleaning-baton-rouge): Safe engine bay detailing.
+
+## RV detailing
+
+- [RV Detailing](/rv-detailing-baton-rouge): Full-service RV cleaning.
+- [Mobile RV Detailing](/mobile-rv-detailing-baton-rouge): On-site RV detailing.
+- [RV Ceramic Coating](/rv-ceramic-coating-baton-rouge): Long-term paint protection for RVs.
+- [RV Interior Detailing](/rv-interior-detailing-baton-rouge): Interior RV cleaning.
+- [RV Roof Cleaning](/rv-roof-cleaning-baton-rouge): Safe roof cleaning and treatment.
+- [RV Oxidation Removal](/rv-oxidation-removal-baton-rouge): Restore faded RV exteriors.
+
+## Boat detailing
+
+- [Boat Detailing](/boat-detailing-baton-rouge): Full boat detailing services.
+- [Mobile Boat Detailing](/mobile-boat-detailing-baton-rouge): At-marina boat detailing.
+- [Boat Ceramic Coating](/boat-ceramic-coating-baton-rouge): Marine-grade ceramic protection.
+- [Gelcoat Restoration](/gelcoat-restoration-baton-rouge): Restore faded gelcoat.
+- [Hull Cleaning](/hull-cleaning-baton-rouge): Below-waterline hull cleaning.
+- [Pontoon Cleaning](/pontoon-cleaning-baton-rouge): Specialized pontoon care.
+
+## Aircraft detailing
+
+- [Aircraft Detailing](/aircraft-detailing-baton-rouge): Full aircraft cleaning services.
+- [Aircraft Cleaning](/aircraft-cleaning-baton-rouge): Exterior aircraft wash.
+- [Aircraft Interior Detailing](/aircraft-interior-detailing-baton-rouge): Cabin cleaning and treatment.
+- [Aircraft Paint Protection](/aircraft-paint-protection-baton-rouge): Protective coatings for aircraft.
+
+## Locations
+
+- [Highland Road](/car-detailing-highland-road-baton-rouge)
+- [Shenandoah](/car-detailing-shenandoah-baton-rouge)
+- [Gonzales, LA](/car-detailing-gonzales-la)
+- [Prairieville, LA](/car-detailing-prairieville-la)
+- [Denham Springs, LA](/car-detailing-denham-springs-la)
+- [Walker, LA](/car-detailing-walker-la)
+- [Zachary, LA](/car-detailing-zachary-la)
+- [Central, LA](/car-detailing-central-la)
+
+## Optional
+
+- [Privacy Policy](/privacy-policy)
+- [Terms and Conditions](/terms-and-conditions)
