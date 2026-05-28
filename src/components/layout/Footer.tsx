@@ -191,7 +191,7 @@ export function Footer() {
         </div>
 
         {/* Cross-links for SEO / internal linking */}
-        <div className="mt-16 pt-10 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="mt-16 pt-10 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
             <h3 className="text-lg font-semibold mb-5">Detailing by City</h3>
             <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
@@ -208,6 +208,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-5">Specialty Services</h3>
             <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
               {specialtyLinks.map((l) => (
+                <li key={l.href}>
+                  <Link to={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {l.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-5">Boat & RV Services</h3>
+            <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
+              {boatRvLinks.map((l) => (
                 <li key={l.href}>
                   <Link to={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {l.name}
