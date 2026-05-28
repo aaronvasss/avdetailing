@@ -2,7 +2,17 @@ import { Layout } from "@/components/layout/Layout";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Star, Quote, ArrowRight, ExternalLink } from "lucide-react";
+import {
+  Star,
+  Quote,
+  ArrowRight,
+  ExternalLink,
+  Phone,
+  Award,
+  ThumbsUp,
+  CheckCircle2,
+} from "lucide-react";
+import { ReviewsWidgetSection } from "@/components/home/ReviewsWidgetSection";
 
 const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/place/AV+Detailing+LLC";
 
@@ -185,6 +195,13 @@ const reviews = [
   },
 ];
 
+const TRUST_STATS = [
+  { icon: Star, value: "5.0", label: "Average Rating" },
+  { icon: ThumbsUp, value: "110+", label: "Google Reviews" },
+  { icon: Award, value: "#1", label: "Rated in Baton Rouge" },
+  { icon: CheckCircle2, value: "100%", label: "Recommend Us" },
+];
+
 const ReviewsPage = () => {
   const averageRating = "5.0";
 
@@ -212,106 +229,178 @@ const ReviewsPage = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsJsonLd) }}
       />
-      {/* Hero */}
-      <section className="section-padding bg-card">
-        <div className="container-custom">
-          <div className="text-center max-w-3xl mx-auto">
-            <span className="text-primary text-sm font-semibold uppercase tracking-wider">
-              Customer Reviews
-            </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 mb-6">
-              What Our Clients Say
-            </h1>
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-8 w-8 fill-primary text-primary" />
-                ))}
+
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-border">
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+          aria-hidden
+        />
+        <div className="container-custom relative pt-12 pb-14 md:pt-16 md:pb-20">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-primary mb-5">
+            <Star className="h-3.5 w-3.5 fill-primary" />
+            Customer Reviews · Baton Rouge, LA
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
+            <div className="lg:col-span-8">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05]">
+                Loved by{" "}
+                <span className="text-primary">110+ Baton Rouge</span> drivers, boaters &
+                pilots.
+              </h1>
+              <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
+                Every review is real, every star is earned. Read what our customers say
+                about mobile detailing, ceramic coating, paint correction, RV, boat, and
+                aircraft service across the Greater Baton Rouge area.
+              </p>
+              <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:items-center">
+                <Button asChild className="font-semibold tracking-wide">
+                  <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+                    Read on Google
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+                <Button asChild variant="outline" className="font-semibold tracking-wide">
+                  <Link to="/book">
+                    Book Your Detail
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
-              <span className="text-3xl font-bold">{averageRating}</span>
             </div>
-            <p className="text-lg text-muted-foreground mb-4">
-              Based on 110+ reviews on Google
-            </p>
-            <a
-              href={GOOGLE_REVIEWS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
-            >
-              View on Google <ExternalLink className="h-4 w-4" />
-            </a>
+
+            {/* Rating panel */}
+            <aside className="lg:col-span-4">
+              <div className="rounded-2xl border border-border bg-card p-6 text-center">
+                <div className="flex justify-center mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-7 w-7 fill-primary text-primary" />
+                  ))}
+                </div>
+                <div className="text-5xl font-bold text-foreground leading-none mb-2">
+                  {averageRating}
+                </div>
+                <div className="text-sm text-muted-foreground mb-4">
+                  Based on 110+ Google reviews
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Verified Google Business
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          {/* Trust stats strip */}
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-border bg-border/60">
+            {TRUST_STATS.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.label} className="bg-card px-5 py-5 md:px-6 md:py-6 text-center">
+                  <Icon className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <div className="text-2xl md:text-3xl font-bold text-foreground leading-none">
+                    {s.value}
+                  </div>
+                  <div className="mt-2 text-[11px] md:text-xs uppercase tracking-wider text-muted-foreground">
+                    {s.label}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Reviews Grid */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {reviews.map((review) => (
-              <div
-                key={review.id}
-                className="relative p-6 bg-card rounded-xl border border-border"
-              >
-                <Quote className="absolute top-6 right-6 h-8 w-8 text-primary/20" />
+      {/* LIVE GOOGLE REVIEWS WIDGET */}
+      <ReviewsWidgetSection />
 
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="flex">
+      {/* FEATURED CUSTOMER STORIES */}
+      <section className="section-padding">
+        <div className="container-custom max-w-6xl">
+          <div className="mb-12 max-w-2xl">
+            <div className="text-xs uppercase tracking-[0.25em] text-primary mb-3">
+              Featured Customer Stories
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Real results from real Baton Rouge customers
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {reviews.map((review) => (
+              <article
+                key={review.id}
+                className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 hover:border-primary/40 transition-colors"
+              >
+                <Quote className="absolute top-5 right-5 h-7 w-7 text-primary/15" />
+
+                {/* Rating row */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex gap-0.5">
                     {[...Array(review.rating)].map((_, i) => (
                       <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                     ))}
                   </div>
-                  <span className="text-sm text-muted-foreground">{review.date}</span>
+                  <span className="text-xs text-muted-foreground">{review.date}</span>
                 </div>
 
                 {/* Text */}
-                <p className="text-foreground mb-4 leading-relaxed">
+                <p className="text-sm md:text-base text-foreground/90 leading-relaxed mb-5 flex-1">
                   "{review.text}"
                 </p>
 
-                {/* Service Tag */}
+                {/* Service tag */}
                 <div className="mb-4">
-                  <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                  <span className="inline-block text-[11px] uppercase tracking-wider font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-full">
                     {review.service}
                   </span>
                 </div>
 
                 {/* Author */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 pt-4 border-t border-border">
                   <img
                     src={review.image}
                     alt={review.name}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-border"
                   />
-                  <div>
-                    <div className="font-semibold">{review.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {review.location} • {review.vehicle}
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm truncate">{review.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {review.location} · {review.vehicle}
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Google Reviews Banner */}
-      <section className="px-4 pb-8">
-        <div className="container-custom">
-          <div className="bg-card border border-border rounded-2xl p-8 md:p-10 text-center max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-              ⭐ 110+ Five-Star Reviews on Google
+      {/* GOOGLE BANNER */}
+      <section className="section-padding bg-card border-y border-border">
+        <div className="container-custom max-w-4xl">
+          <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-8 md:p-10 text-center">
+            <div className="flex justify-center mb-4">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-6 w-6 fill-primary text-primary" />
+              ))}
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+              110+ Five-Star Reviews on Google
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              AV Detailing is Baton Rouge's top-rated mobile detailing service
+            <p className="text-muted-foreground mb-7 max-w-2xl mx-auto">
+              AV Detailing is Baton Rouge's top-rated mobile detailing service. Don't just
+              take our word for it — see what your neighbors are saying.
             </p>
-            <Button asChild size="lg" variant="default">
+            <Button asChild className="font-semibold tracking-wide">
               <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
                 Read All Reviews on Google
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ExternalLink className="ml-2 h-4 w-4" />
               </a>
             </Button>
           </div>
@@ -319,21 +408,30 @@ const ReviewsPage = () => {
       </section>
 
       {/* CTA */}
-      <section className="section-padding bg-gradient-to-br from-primary/10 via-background to-background">
-        <div className="container-custom text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-            Ready to Experience It Yourself?
+      <section className="section-padding">
+        <div className="container-custom max-w-3xl text-center">
+          <div className="mx-auto mb-6 h-px w-16 bg-primary/60" aria-hidden />
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to experience it yourself?
           </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join hundreds of satisfied customers and see why we're Baton Rouge's 
-            top-rated mobile detailing service.
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join hundreds of satisfied customers and see why we're Baton Rouge's top-rated
+            mobile detailing service.
           </p>
-          <Button asChild size="lg" className="glow-red">
-            <Link to="/book">
-              Book Your Detail
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
+            <Button asChild className="font-semibold tracking-wide">
+              <Link to="/book">
+                Book Your Detail
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="font-semibold tracking-wide">
+              <a href="tel:+12255216264">
+                <Phone className="mr-2 h-4 w-4" />
+                (225) 521-6264
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
     </Layout>
