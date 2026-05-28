@@ -93,6 +93,42 @@ const STATIC_ROUTES: RouteMeta[] = [
     description:
       "AV Detailing booking terms, SMS consent disclosure, cancellation policy, deposits, refunds and service guarantees for mobile detailing in Baton Rouge, LA.",
   },
+  {
+    path: "/car-detailing-baton-rouge",
+    title: "Car Detailing in Baton Rouge, LA | AV Detailing",
+    description:
+      "Mobile car detailing in Baton Rouge — full interior + exterior, ceramic coating, paint correction and headlight restoration. We come to your driveway across Greater Baton Rouge.",
+  },
+  {
+    path: "/rv-detailing-baton-rouge",
+    title: "RV Detailing in Baton Rouge, LA | AV Detailing",
+    description:
+      "Mobile RV detailing in Baton Rouge — oxidation removal, ceramic coating and roof cleaning for Class A/B/C motorhomes, fifth wheels and travel trailers.",
+  },
+  {
+    path: "/boat-detailing-baton-rouge",
+    title: "Boat Detailing in Baton Rouge, LA | AV Detailing",
+    description:
+      "Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning and pontoon detailing at your marina, dock or driveway.",
+  },
+  {
+    path: "/aircraft-detailing-baton-rouge",
+    title: "Aircraft Detailing in Baton Rouge, Lafayette & New Orleans, LA | AV Detailing",
+    description:
+      "Aviation-safe aircraft detailing across Baton Rouge, Lafayette and New Orleans — exterior wash, paint protection and interior conditioning for piston, turbine and jet hangars.",
+  },
+  {
+    path: "/ceramic-coating-baton-rouge",
+    title: "Ceramic Coating in Baton Rouge, LA | AV Detailing",
+    description:
+      "System X ceramic coating in Baton Rouge — 3-year, 6-year and 10-year tiers with paint correction, wheel and glass coating. Mobile install at your home or office.",
+  },
+  {
+    path: "/paint-correction-baton-rouge",
+    title: "Paint Correction in Baton Rouge, LA | AV Detailing",
+    description:
+      "Professional 1-step, 2-step and 3-step paint correction in Baton Rouge — remove swirls, water spots and oxidation before ceramic coating. Mobile service available.",
+  },
 ];
 
 const SERVICE_ROUTES: RouteMeta[] = SERVICE_LANDING_PAGES.map((p) => ({
