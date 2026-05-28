@@ -233,7 +233,7 @@ export default function CarDetailingBatonRougePage() {
                 The complete detail. Every surface treated inside and out — the closest thing to a showroom finish.
               </p>
               <div className="mb-5 pb-5 border-b border-[hsl(45_85%_55%)]/25">
-                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from $310</span>
+                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from $350</span>
                 <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes</span>
               </div>
               <ul className="text-sm text-white/90 space-y-2.5 mb-7 flex-1">
@@ -258,7 +258,7 @@ export default function CarDetailingBatonRougePage() {
                 A thorough interior and exterior clean for vehicles that see daily use.
               </p>
               <div className="mb-5 pb-5 border-b border-[hsl(0_0%_60%)]/40">
-                <span className="text-3xl font-bold">from $210</span>
+                <span className="text-3xl font-bold">from $250</span>
                 <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes</span>
               </div>
               <ul className="text-sm text-[hsl(0_0%_20%)] space-y-2.5 mb-3 flex-1">
