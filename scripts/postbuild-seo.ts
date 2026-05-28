@@ -270,6 +270,14 @@ function rewrite(html: string, m: RouteMeta): string {
     `<meta name="twitter:description" content="${d}" />`,
   );
 
+  // Inject SEO body content inside #root (React will replace on hydration).
+  if (m.body) {
+    out = out.replace(
+      /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
+      `<div id="root"><div data-seo-content>${m.body}</div></div>`,
+    );
+  }
+
   return out;
 }
 
