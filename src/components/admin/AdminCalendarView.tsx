@@ -514,6 +514,19 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             /* Month View */
             <div>
               {/* Day Headers */}
+              <div className="grid grid-cols-7 border-b">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+                  <div key={d} className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              {/* Weeks */}
+              {monthWeeks.map((week, wIdx) => (
+                <div key={wIdx} className="grid grid-cols-7 border-b last:border-b-0">
+                  {week.map((day, dIdx) => {
+                    const dayBookings = getBookingsForDay(day);
+                    const inMonth = isSameMonth(day, currentDate);
                     return (
                       <div
                         key={dIdx}
@@ -574,24 +587,11 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                         </div>
                       </div>
                     );
-
-                              )}
-                            >
-                              {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
-                            </button>
-                          ))}
-                          {dayBookings.length > 3 && (
-                            <div className="text-[10px] text-muted-foreground text-center">
-                              +{dayBookings.length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
                   })}
                 </div>
               ))}
             </div>
+
           ) : viewMode === "week" ? (
             <div className="overflow-x-auto">
               {/* Week Header */}
