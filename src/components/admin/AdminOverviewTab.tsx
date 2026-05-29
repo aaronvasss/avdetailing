@@ -245,7 +245,6 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
     .filter(b => b.status !== "cancelled" && PAID_STATUSES.includes(b.payment_status))
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
-    .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const unassignedUpcoming = bookings.filter(b =>
     b.status === "confirmed" &&
