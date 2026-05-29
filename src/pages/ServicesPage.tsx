@@ -118,7 +118,7 @@ const ServicesPage = () => {
             Our Services · Baton Rouge, LA
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] max-w-4xl">
-            Six core services. <span className="text-primary">One mobile rig</span>. Your driveway.
+            Mobile Detailing <span className="text-primary">Services</span> in Baton Rouge
           </h1>
           <p className="mt-6 max-w-3xl text-base md:text-lg text-muted-foreground leading-relaxed">
             AV Detailing brings professional mobile detailing directly to your home, office,
