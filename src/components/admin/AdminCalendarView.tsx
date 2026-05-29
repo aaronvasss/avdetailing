@@ -244,15 +244,31 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   };
 
   const updateStatus = async (bookingId: string, newStatus: string) => {
+    if (newStatus === "cancelled") {
+      const confirmed = window.confirm(
+        "Cancel this booking?\n\nIt will be removed from the calendar and excluded from revenue. You can still find it under Bookings → Cancelled."
+      );
+      if (!confirmed) return;
+    }
+
+    const updates: Record<string, any> = { status: newStatus };
+    if (newStatus === "cancelled") {
+      updates.payment_status = "cancelled";
+    }
+
     const { error } = await supabase
       .from("bookings")
-      .update({ status: newStatus })
+      .update(updates)
       .eq("id", bookingId);
 
     if (error) {
       toast.error("Failed to update status");
     } else {
-      toast.success(`Booking ${newStatus}`);
+      toast.success(
+        newStatus === "cancelled"
+          ? "Booking cancelled — removed from calendar & revenue"
+          : `Booking ${newStatus}`
+      );
       if (newStatus === "in_progress") {
         sendInProgressSms(bookingId);
       }
@@ -260,6 +276,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       setSelectedBooking(null);
     }
   };
+
 
   const getCustomerName = (booking: Booking) => {
     return booking.profiles?.full_name || booking.guest_name || "Unknown";
@@ -437,6 +454,45 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
           );
         })}
       </div>
+
+      {/* Admin Summary Bar - visible jobs & expected revenue for current view */}
+      {(() => {
+        const visible = viewMode === "month"
+          ? filteredBookings.filter(b => {
+              const d = new Date(b.scheduled_date);
+              return d >= monthStart && d <= monthEnd;
+            })
+          : viewMode === "week"
+          ? filteredBookings.filter(b => {
+              const d = new Date(b.scheduled_date);
+              return d >= weekStart && d <= weekEnd;
+            })
+          : filteredBookings.filter(b => isSameDay(new Date(b.scheduled_date), currentDate));
+        const expectedRevenue = visible.reduce((s, b) => s + (b.total_price || 0), 0);
+        const unassigned = visible.filter(b => !b.assigned_worker_id && b.status !== "completed").length;
+        const unpaid = visible.filter(b => b.payment_status === "unpaid").length;
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="rounded-lg border bg-card px-3 py-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Jobs</div>
+              <div className="text-lg font-bold">{visible.length}</div>
+            </div>
+            <div className="rounded-lg border bg-green-500/5 border-green-500/20 px-3 py-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Expected Revenue</div>
+              <div className="text-lg font-bold text-green-600">${expectedRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            </div>
+            <div className={cn("rounded-lg border px-3 py-2", unassigned > 0 ? "bg-destructive/5 border-destructive/30" : "bg-card")}>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Unassigned</div>
+              <div className={cn("text-lg font-bold", unassigned > 0 && "text-destructive")}>{unassigned}</div>
+            </div>
+            <div className={cn("rounded-lg border px-3 py-2", unpaid > 0 ? "bg-yellow-500/5 border-yellow-500/30" : "bg-card")}>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Unpaid</div>
+              <div className={cn("text-lg font-bold", unpaid > 0 && "text-yellow-600")}>{unpaid}</div>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* Calendar Grid */}
       <Card>
