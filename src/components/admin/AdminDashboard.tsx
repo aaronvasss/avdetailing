@@ -103,7 +103,7 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
   };
 
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] min-h-0 bg-background overflow-hidden">
+    <div className="fixed inset-0 flex h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden overscroll-none bg-background">
       {/* Sidebar */}
       <AdminSidebar
         activeSection={activeSection}
