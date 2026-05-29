@@ -599,28 +599,40 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 <div className="p-2 text-center text-sm font-medium text-muted-foreground border-r">
                   Time
                 </div>
-                {weekDays.map((day, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "p-2 text-center border-r last:border-r-0",
-                      isToday(day) && "bg-primary/10",
-                      isDayBlocked(day) && "bg-destructive/10"
-                    )}
-                  >
-                    <div className="text-sm font-medium">{format(day, "EEE")}</div>
-                    <div className={cn(
-                      "text-lg font-bold",
-                      isToday(day) && "text-primary",
-                      isDayBlocked(day) && "text-destructive"
-                    )}>
-                      {format(day, "d")}
-                    </div>
-                    {isDayBlocked(day) && (
-                      <div className="text-[10px] text-destructive">Blocked</div>
-                    )}
-                  </div>
-                ))}
+                {weekDays.map((day, idx) => {
+                  const count = getBookingsForDay(day).length;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setCurrentDate(day);
+                        setViewMode("day");
+                      }}
+                      className={cn(
+                        "p-2 text-center border-r last:border-r-0 hover:bg-accent/40 transition-colors cursor-pointer",
+                        isToday(day) && "bg-primary/10",
+                        isDayBlocked(day) && "bg-destructive/10"
+                      )}
+                    >
+                      <div className="text-sm font-medium">{format(day, "EEE")}</div>
+                      <div className={cn(
+                        "text-lg font-bold",
+                        isToday(day) && "text-primary",
+                        isDayBlocked(day) && "text-destructive"
+                      )}>
+                        {format(day, "d")}
+                      </div>
+                      {count > 0 && (
+                        <div className="text-[10px] text-muted-foreground">{count} job{count > 1 ? "s" : ""}</div>
+                      )}
+                      {isDayBlocked(day) && (
+                        <div className="text-[10px] text-destructive">Blocked</div>
+                      )}
+                    </button>
+                  );
+                })}
+
               </div>
 
               {/* Time Grid */}
