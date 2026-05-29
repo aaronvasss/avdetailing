@@ -178,10 +178,10 @@ export function AdminSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-card border-r border-border/30 flex-shrink-0 h-screen sticky top-0 z-40 transition-all duration-300",
+          "bg-card border-r border-border/30 flex-shrink-0 h-[100dvh] max-h-[100dvh] sticky top-0 z-40 transition-all duration-300",
           isMobile
             ? cn(
-                "fixed top-0 left-0 h-full w-[260px] transform",
+                "fixed top-0 left-0 w-[260px] transform",
                 mobileOpen ? "translate-x-0" : "-translate-x-full"
               )
             : collapsed
