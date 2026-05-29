@@ -170,12 +170,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
     const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
     const { data } = await supabase
       .from("bookings")
-      .select("total_price, payment_status")
+      .select("total_price, payment_status, status")
       .gte("scheduled_date", monthStart)
       .lte("scheduled_date", monthEnd)
+      .neq("status", "cancelled")
       .in("payment_status", PAID_STATUSES);
     const total = (data || []).reduce((sum, b) => sum + (b.total_price || 0), 0);
     setMonthRevenue(total);
+
   };
 
   const fetchTotalTips = async () => {
