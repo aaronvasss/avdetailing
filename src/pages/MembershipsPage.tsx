@@ -250,7 +250,7 @@ const MembershipsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
             <div className="lg:col-span-8">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05]">
-                Showroom-fresh, <span className="text-primary">on autopilot</span>.
+                Mobile Detailing <span className="text-primary">Membership Plans</span>
               </h1>
               <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
                 Pick a frequency that fits your life. We show up, detail your vehicle, and

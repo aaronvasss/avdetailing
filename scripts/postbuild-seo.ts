@@ -88,13 +88,13 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/about",
     title: "About AV Detailing | Baton Rouge Mobile Detailing",
     description:
-      "Meet the family behind AV Detailing — a fully-insured mobile detailing crew serving Baton Rouge with 115+ five-star Google reviews and System X-certified technicians.",
+      "Meet the family behind AV Detailing — a fully-insured mobile detailing crew serving Baton Rouge with 115+ five-star reviews.",
   },
   {
     path: "/services",
     title: "Mobile Detailing Services in Baton Rouge | AV Detailing",
     description:
-      "Browse every AV Detailing service — car, RV, boat & aircraft detailing, ceramic coating, paint correction, interior shampoo and more. Mobile across Greater Baton Rouge.",
+      "Browse every AV Detailing service — car, RV, boat & aircraft detailing, ceramic coating, paint correction and interior shampoo.",
   },
   {
     path: "/memberships",
@@ -112,7 +112,7 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/reviews",
     title: "Customer Reviews & Testimonials | AV Detailing Baton Rouge",
     description:
-      "Read 115+ five-star Google reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto, RV, boat & aircraft detailing service.",
+      "Read 115+ five-star Google reviews from AV Detailing customers in Baton Rouge, LA — top-rated mobile car, RV, boat & aircraft detailing.",
   },
   {
     path: "/contact",
@@ -142,7 +142,7 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/car-detailing-baton-rouge",
     title: "Car Detailing in Baton Rouge, LA | AV Detailing",
     description:
-      "Mobile car detailing in Baton Rouge — full interior + exterior, ceramic coating, paint correction and headlight restoration. We come to your driveway across Greater Baton Rouge.",
+      "Mobile car detailing in Baton Rouge — full interior + exterior, ceramic coating, paint correction and headlight restoration at your driveway.",
   },
   {
     path: "/rv-detailing-baton-rouge",
@@ -166,14 +166,15 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/ceramic-coating-baton-rouge",
     title: "Ceramic Coating in Baton Rouge, LA | AV Detailing",
     description:
-      "System X ceramic coating in Baton Rouge — 3-year, 6-year and 10-year tiers with paint correction, wheel and glass coating. Mobile install at your home or office.",
+      "System X ceramic coating in Baton Rouge — 3-year, 6-year and 10-year tiers with paint correction. Mobile install at your home or office.",
   },
   {
     path: "/paint-correction-baton-rouge",
     title: "Paint Correction in Baton Rouge, LA | AV Detailing",
     description:
-      "Professional 1-step, 2-step and 3-step paint correction in Baton Rouge — remove swirls, water spots and oxidation before ceramic coating. Mobile service available.",
+      "Professional 1-step, 2-step and 3-step paint correction in Baton Rouge — remove swirls, water spots and oxidation. Mobile service available.",
   },
+];
 ];
 
 for (const r of STATIC_ROUTES) {

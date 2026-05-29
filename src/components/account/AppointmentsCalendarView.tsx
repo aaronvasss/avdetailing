@@ -199,13 +199,13 @@ export function AppointmentsCalendarView({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Navigation */}
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={navigatePrev}>
+            <Button variant="outline" size="icon" onClick={navigatePrev} aria-label="Previous period">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button variant="outline" onClick={goToToday}>
               Today
             </Button>
-            <Button variant="outline" size="icon" onClick={navigateNext}>
+            <Button variant="outline" size="icon" onClick={navigateNext} aria-label="Next period">
               <ChevronRight className="h-4 w-4" />
             </Button>
             <CardTitle className="ml-2">
