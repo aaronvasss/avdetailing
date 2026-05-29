@@ -256,6 +256,16 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       updates.payment_status = "cancelled";
     }
 
+    // Optimistic update — remove cancelled bookings from view instantly
+    if (newStatus === "cancelled") {
+      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+      setSelectedBooking(null);
+    } else {
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
+      );
+    }
+
     const { error } = await supabase
       .from("bookings")
       .update(updates)
@@ -263,6 +273,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
     if (error) {
       toast.error("Failed to update status");
+      fetchBookings(); // rollback by refetching
     } else {
       toast.success(
         newStatus === "cancelled"
@@ -272,10 +283,12 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       if (newStatus === "in_progress") {
         sendInProgressSms(bookingId);
       }
-      fetchBookings();
-      setSelectedBooking(null);
+      if (newStatus !== "cancelled") {
+        setSelectedBooking(null);
+      }
     }
   };
+
 
 
   const getCustomerName = (booking: Booking) => {
@@ -518,27 +531,39 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                       <div
                         key={dIdx}
                         className={cn(
-                          "min-h-[100px] p-1 border-r last:border-r-0",
+                          "min-h-[110px] p-1 border-r last:border-r-0 group cursor-pointer hover:bg-accent/30 transition-colors",
                           !inMonth && "opacity-40 bg-muted/20",
                           isToday(day) && "bg-primary/5",
                           isDayBlocked(day) && "bg-destructive/10"
                         )}
+                        onClick={() => {
+                          setCurrentDate(day);
+                          setViewMode("day");
+                        }}
                       >
                         <div className={cn(
-                          "text-sm font-medium mb-1 text-center",
+                          "text-sm font-medium mb-1 text-center flex items-center justify-center gap-1",
                           isToday(day) && "text-primary",
                           isDayBlocked(day) && "text-destructive"
                         )}>
-                          {format(day, "d")}
+                          <span>{format(day, "d")}</span>
+                          {dayBookings.length > 0 && (
+                            <span className="text-[9px] font-semibold text-muted-foreground bg-muted/60 rounded px-1">
+                              {dayBookings.length}
+                            </span>
+                          )}
                           {isDayBlocked(day) && (
                             <span className="block text-[9px] text-destructive font-normal">Blocked</span>
                           )}
                         </div>
                         <div className="space-y-0.5">
-                          {dayBookings.slice(0, 3).map(booking => (
+                          {dayBookings.slice(0, 4).map(booking => (
                             <button
                               key={booking.id}
-                              onClick={() => setSelectedBooking(booking)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBooking(booking);
+                              }}
                               className={cn(
                                 "w-full text-left px-1 py-0.5 rounded text-[10px] leading-tight border-l-2 truncate hover:opacity-80",
                                 getServiceColorClass(booking.services?.slug)
@@ -547,10 +572,17 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                               {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
                             </button>
                           ))}
-                          {dayBookings.length > 3 && (
-                            <div className="text-[10px] text-muted-foreground text-center">
-                              +{dayBookings.length - 3} more
-                            </div>
+                          {dayBookings.length > 4 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentDate(day);
+                                setViewMode("day");
+                              }}
+                              className="w-full text-[10px] text-primary hover:underline text-center font-medium"
+                            >
+                              +{dayBookings.length - 4} more — view all
+                            </button>
                           )}
                         </div>
                       </div>
@@ -559,6 +591,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 </div>
               ))}
             </div>
+
           ) : viewMode === "week" ? (
             <div className="overflow-x-auto">
               {/* Week Header */}
@@ -566,28 +599,40 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 <div className="p-2 text-center text-sm font-medium text-muted-foreground border-r">
                   Time
                 </div>
-                {weekDays.map((day, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "p-2 text-center border-r last:border-r-0",
-                      isToday(day) && "bg-primary/10",
-                      isDayBlocked(day) && "bg-destructive/10"
-                    )}
-                  >
-                    <div className="text-sm font-medium">{format(day, "EEE")}</div>
-                    <div className={cn(
-                      "text-lg font-bold",
-                      isToday(day) && "text-primary",
-                      isDayBlocked(day) && "text-destructive"
-                    )}>
-                      {format(day, "d")}
-                    </div>
-                    {isDayBlocked(day) && (
-                      <div className="text-[10px] text-destructive">Blocked</div>
-                    )}
-                  </div>
-                ))}
+                {weekDays.map((day, idx) => {
+                  const count = getBookingsForDay(day).length;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setCurrentDate(day);
+                        setViewMode("day");
+                      }}
+                      className={cn(
+                        "p-2 text-center border-r last:border-r-0 hover:bg-accent/40 transition-colors cursor-pointer",
+                        isToday(day) && "bg-primary/10",
+                        isDayBlocked(day) && "bg-destructive/10"
+                      )}
+                    >
+                      <div className="text-sm font-medium">{format(day, "EEE")}</div>
+                      <div className={cn(
+                        "text-lg font-bold",
+                        isToday(day) && "text-primary",
+                        isDayBlocked(day) && "text-destructive"
+                      )}>
+                        {format(day, "d")}
+                      </div>
+                      {count > 0 && (
+                        <div className="text-[10px] text-muted-foreground">{count} job{count > 1 ? "s" : ""}</div>
+                      )}
+                      {isDayBlocked(day) && (
+                        <div className="text-[10px] text-destructive">Blocked</div>
+                      )}
+                    </button>
+                  );
+                })}
+
               </div>
 
               {/* Time Grid */}
