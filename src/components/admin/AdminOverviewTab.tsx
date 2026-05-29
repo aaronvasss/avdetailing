@@ -237,13 +237,14 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
   const cancelledBookings = bookings.filter(b => 
     b.status === "cancelled" && new Date(b.scheduled_date) >= addDays(today, -7)
   );
-
   const todayRevenue = todaysBookings
-    .filter(b => PAID_STATUSES.includes(b.payment_status))
+    .filter(b => b.status !== "cancelled" && PAID_STATUSES.includes(b.payment_status))
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const weekRevenue = thisWeekBookings
-    .filter(b => PAID_STATUSES.includes(b.payment_status))
+    .filter(b => b.status !== "cancelled" && PAID_STATUSES.includes(b.payment_status))
+    .reduce((sum, b) => sum + (b.total_price || 0), 0);
+
     .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const unassignedUpcoming = bookings.filter(b =>
