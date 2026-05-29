@@ -444,13 +444,13 @@ serve(async (req) => {
       });
     }
 
-    // Validate mode
-    const validModes = ["auto", "resend_customer", "resend_admin"];
+    const validModes = ["auto", "resend_customer", "resend_admin", "reschedule"];
     if (!validModes.includes(mode)) {
       return new Response(JSON.stringify({ error: "Invalid mode" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     // Auth gate:
     //   - "auto" mode is server-to-server only and requires the service role key
