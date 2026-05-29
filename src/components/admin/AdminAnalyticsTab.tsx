@@ -727,8 +727,14 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="audit">Time Audit</TabsTrigger>
         </TabsList>
-
         <TabsContent value="overview" className="space-y-6 mt-4">
+      {/* Exclusion notice */}
+      <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        💡 Cancelled bookings are <strong className="text-foreground">excluded</strong> from revenue and active counts. They remain visible under Bookings → Cancelled for your records.
+      </div>
+
+      {/* KPI Cards - Row 1 */}
+
       {/* KPI Cards - Row 1 */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
