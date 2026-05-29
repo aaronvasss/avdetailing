@@ -244,15 +244,31 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
   };
 
   const updateStatus = async (bookingId: string, newStatus: string) => {
+    if (newStatus === "cancelled") {
+      const confirmed = window.confirm(
+        "Cancel this booking?\n\nIt will be removed from the calendar and excluded from revenue. You can still find it under Bookings → Cancelled."
+      );
+      if (!confirmed) return;
+    }
+
+    const updates: Record<string, any> = { status: newStatus };
+    if (newStatus === "cancelled") {
+      updates.payment_status = "cancelled";
+    }
+
     const { error } = await supabase
       .from("bookings")
-      .update({ status: newStatus })
+      .update(updates)
       .eq("id", bookingId);
 
     if (error) {
       toast.error("Failed to update status");
     } else {
-      toast.success(`Booking ${newStatus}`);
+      toast.success(
+        newStatus === "cancelled"
+          ? "Booking cancelled — removed from calendar & revenue"
+          : `Booking ${newStatus}`
+      );
       if (newStatus === "in_progress") {
         sendInProgressSms(bookingId);
       }
@@ -260,6 +276,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       setSelectedBooking(null);
     }
   };
+
 
   const getCustomerName = (booking: Booking) => {
     return booking.profiles?.full_name || booking.guest_name || "Unknown";
