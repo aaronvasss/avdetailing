@@ -50,6 +50,7 @@ export function AppointmentsCalendarView({
 }: AppointmentsCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const visibleBookingLimit = viewMode === "week" ? 5 : 2;
 
   // Group bookings by date
   const bookingsByDate = useMemo(() => {
@@ -139,7 +140,7 @@ export function AppointmentsCalendarView({
 
         {/* Bookings */}
         <div className="space-y-1">
-          {dayBookings.slice(0, viewMode === "week" ? 5 : 2).map((booking) => {
+          {dayBookings.slice(0, visibleBookingLimit).map((booking) => {
             const customerName = booking.guest_name || "Customer";
             return (
               <button
@@ -180,9 +181,9 @@ export function AppointmentsCalendarView({
               </button>
             );
           })}
-          {dayBookings.length > (viewMode === "week" ? 5 : 2) && (
+          {dayBookings.length > visibleBookingLimit && (
             <span className="text-xs text-muted-foreground px-2">
-              +{dayBookings.length - (viewMode === "week" ? 5 : 2)} more
+              +{dayBookings.length - visibleBookingLimit} more
             </span>
           )}
         </div>
@@ -272,12 +273,7 @@ export function AppointmentsCalendarView({
           </div>
 
           {/* Days Grid */}
-          <div
-            className={cn(
-              "grid grid-cols-7",
-              viewMode === "week" ? "min-h-[300px]" : ""
-            )}
-          >
+          <div className="grid grid-cols-7 auto-rows-fr">
             {calendarDays.map((day) => renderDayCell(day))}
           </div>
         </div>
