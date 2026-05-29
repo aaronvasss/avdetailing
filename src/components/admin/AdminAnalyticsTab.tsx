@@ -88,7 +88,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [totalTips, setTotalTips] = useState(0);
   const [tipCount, setTipCount] = useState(0);
-  const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("weekly");
+
   const [workerProfiles, setWorkerProfiles] = useState<any[]>([]);
   const [workerNames, setWorkerNames] = useState<Record<string, string>>({});
   const [workerRatings, setWorkerRatings] = useState<Record<string, { avg: number; count: number }>>({});
