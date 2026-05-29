@@ -548,9 +548,12 @@ serve(async (req) => {
     console.log(`Processing notifications for booking ${booking_id} | mode=${mode} | customer=${customerEmail} | isAdminSelf=${isAdminSelf}`);
 
     // ━━━━ Customer Confirmation ━━━━
-    if ((mode === "auto" || mode === "resend_customer") && customerEmail && !isAdminSelf) {
+    if ((mode === "auto" || mode === "resend_customer" || mode === "reschedule") && customerEmail && !isAdminSelf) {
       const html = buildCustomerHtml(booking, serviceName, addOns || []);
-      const subject = `✅ Booking Confirmed — ${serviceName} on ${formatDate(booking.scheduled_date)}`;
+      const subject = mode === "reschedule"
+        ? `📅 Appointment Updated — ${serviceName} on ${formatDate(booking.scheduled_date)}`
+        : `✅ Booking Confirmed — ${serviceName} on ${formatDate(booking.scheduled_date)}`;
+
 
       results.customer = await sendEmail(customerEmail, FROM_EMAIL, subject, html);
 
