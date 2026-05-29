@@ -514,47 +514,67 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
             /* Month View */
             <div>
               {/* Day Headers */}
-              <div className="grid grid-cols-7 border-b">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-                  <div key={d} className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
-                    {d}
-                  </div>
-                ))}
-              </div>
-              {/* Weeks */}
-              {monthWeeks.map((week, wIdx) => (
-                <div key={wIdx} className="grid grid-cols-7 border-b last:border-b-0">
-                  {week.map((day, dIdx) => {
-                    const dayBookings = getBookingsForDay(day);
-                    const inMonth = isSameMonth(day, currentDate);
                     return (
                       <div
                         key={dIdx}
                         className={cn(
-                          "min-h-[100px] p-1 border-r last:border-r-0",
+                          "min-h-[110px] p-1 border-r last:border-r-0 group cursor-pointer hover:bg-accent/30 transition-colors",
                           !inMonth && "opacity-40 bg-muted/20",
                           isToday(day) && "bg-primary/5",
                           isDayBlocked(day) && "bg-destructive/10"
                         )}
+                        onClick={() => {
+                          setCurrentDate(day);
+                          setViewMode("day");
+                        }}
                       >
                         <div className={cn(
-                          "text-sm font-medium mb-1 text-center",
+                          "text-sm font-medium mb-1 text-center flex items-center justify-center gap-1",
                           isToday(day) && "text-primary",
                           isDayBlocked(day) && "text-destructive"
                         )}>
-                          {format(day, "d")}
+                          <span>{format(day, "d")}</span>
+                          {dayBookings.length > 0 && (
+                            <span className="text-[9px] font-semibold text-muted-foreground bg-muted/60 rounded px-1">
+                              {dayBookings.length}
+                            </span>
+                          )}
                           {isDayBlocked(day) && (
                             <span className="block text-[9px] text-destructive font-normal">Blocked</span>
                           )}
                         </div>
                         <div className="space-y-0.5">
-                          {dayBookings.slice(0, 3).map(booking => (
+                          {dayBookings.slice(0, 4).map(booking => (
                             <button
                               key={booking.id}
-                              onClick={() => setSelectedBooking(booking)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBooking(booking);
+                              }}
                               className={cn(
                                 "w-full text-left px-1 py-0.5 rounded text-[10px] leading-tight border-l-2 truncate hover:opacity-80",
                                 getServiceColorClass(booking.services?.slug)
+                              )}
+                            >
+                              {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
+                            </button>
+                          ))}
+                          {dayBookings.length > 4 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentDate(day);
+                                setViewMode("day");
+                              }}
+                              className="w-full text-[10px] text-primary hover:underline text-center font-medium"
+                            >
+                              +{dayBookings.length - 4} more — view all
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+
                               )}
                             >
                               {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
