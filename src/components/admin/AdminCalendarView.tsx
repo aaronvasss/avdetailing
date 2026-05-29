@@ -256,6 +256,16 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       updates.payment_status = "cancelled";
     }
 
+    // Optimistic update — remove cancelled bookings from view instantly
+    if (newStatus === "cancelled") {
+      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+      setSelectedBooking(null);
+    } else {
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
+      );
+    }
+
     const { error } = await supabase
       .from("bookings")
       .update(updates)
@@ -263,6 +273,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
 
     if (error) {
       toast.error("Failed to update status");
+      fetchBookings(); // rollback by refetching
     } else {
       toast.success(
         newStatus === "cancelled"
@@ -272,10 +283,12 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       if (newStatus === "in_progress") {
         sendInProgressSms(bookingId);
       }
-      fetchBookings();
-      setSelectedBooking(null);
+      if (newStatus !== "cancelled") {
+        setSelectedBooking(null);
+      }
     }
   };
+
 
 
   const getCustomerName = (booking: Booking) => {
