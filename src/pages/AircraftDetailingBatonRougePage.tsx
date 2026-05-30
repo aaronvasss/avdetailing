@@ -140,8 +140,8 @@ export default function AircraftDetailingBatonRougePage() {
   return (
     <Layout>
       <SEOHead
-        title="Aircraft Detailing in Baton Rouge, Lafayette & New Orleans, LA"
-        description="Professional aircraft cleaning & detailing at BTR, LFT, MSY, NEW and South Louisiana general aviation airports. Aviation-safe products for painted aluminum, composites & plexiglass."
+        title="Aircraft Detailing in Baton Rouge, LA"
+        description="Aviation-safe aircraft cleaning & detailing at BTR, LFT, MSY and NEW. Painted aluminum, composites & plexiglass — mobile to your hangar."
         path={PAGE_PATH}
       />
       <JsonLd data={[
