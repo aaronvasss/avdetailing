@@ -158,9 +158,9 @@ const STATIC_ROUTES: RouteMeta[] = [
   },
   {
     path: "/aircraft-detailing-baton-rouge",
-    title: "Aircraft Detailing Baton Rouge | AV Detailing",
+    title: "Aircraft Detailing in Baton Rouge, LA | AV Detailing",
     description:
-      "Aviation-safe aircraft detailing across Baton Rouge, Lafayette and New Orleans — exterior wash, paint protection and interior conditioning for piston, turbine and jet hangars.",
+      "Aviation-safe aircraft cleaning & detailing at BTR, LFT, MSY and NEW. Mobile to your hangar — painted aluminum, composites and plexiglass.",
   },
   {
     path: "/ceramic-coating-baton-rouge",
