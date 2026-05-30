@@ -175,7 +175,6 @@ const STATIC_ROUTES: RouteMeta[] = [
       "Professional 1-step, 2-step and 3-step paint correction in Baton Rouge — remove swirls, water spots and oxidation. Mobile service available.",
   },
 ];
-];
 
 for (const r of STATIC_ROUTES) {
   if (!r.body) r.body = bodyForStatic(r);
