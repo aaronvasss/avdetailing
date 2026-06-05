@@ -93,7 +93,11 @@ export function DepositBookingModal({ open, onOpenChange, serviceTitle }: Deposi
       window.location.href = data.url;
     } catch (err) {
       console.error("Deposit checkout error:", err);
-      toast.error("Unable to start checkout. Please try again.");
+      const friendly = getFriendlyBookingError(err);
+      toast.error(friendly.title, {
+        description: friendly.description,
+        duration: 10000,
+      });
     } finally {
       setIsSubmitting(false);
     }
