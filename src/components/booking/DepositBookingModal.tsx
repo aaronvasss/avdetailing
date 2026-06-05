@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowRight, DollarSign, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getFriendlyBookingError } from "@/lib/booking-errors";
 
 interface DepositBookingModalProps {
   open: boolean;
