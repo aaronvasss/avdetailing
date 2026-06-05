@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowRight, DollarSign, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getFriendlyBookingError } from "@/lib/booking-errors";
 
 interface DepositBookingModalProps {
   open: boolean;
@@ -93,7 +94,11 @@ export function DepositBookingModal({ open, onOpenChange, serviceTitle }: Deposi
       window.location.href = data.url;
     } catch (err) {
       console.error("Deposit checkout error:", err);
-      toast.error("Unable to start checkout. Please try again.");
+      const friendly = getFriendlyBookingError(err);
+      toast.error(friendly.title, {
+        description: friendly.description,
+        duration: 10000,
+      });
     } finally {
       setIsSubmitting(false);
     }
