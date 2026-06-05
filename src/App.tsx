@@ -64,6 +64,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <GhlChatWidget />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 {/* Public routes */}
