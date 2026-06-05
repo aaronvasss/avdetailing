@@ -32,6 +32,7 @@ import { TipSection } from "@/components/booking/TipSection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { getFriendlyBookingError } from "@/lib/booking-errors";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
