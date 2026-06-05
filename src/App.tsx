@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GhlChatWidget } from "@/components/GhlChatWidget";
 import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
 import { LOCATION_PAGES } from "@/data/locationPages";
 
@@ -64,6 +65,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <GhlChatWidget />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 {/* Public routes */}
