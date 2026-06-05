@@ -839,10 +839,11 @@ const BookingPage = () => {
 
     } catch (error: any) {
       console.error("Booking error:", error);
-      const code = error?.code || error?.status || error?.name;
-      const msg = error?.message || String(error);
-      const details = error?.details ? ` | ${error.details}` : "";
-      toast.error(`Booking failed${code ? ` (${code})` : ""}: ${msg}${details}`);
+      const friendly = getFriendlyBookingError(error);
+      toast.error(friendly.title, {
+        description: friendly.description,
+        duration: 10000,
+      });
     } finally {
       setIsSubmitting(false);
     }
