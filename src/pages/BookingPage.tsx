@@ -795,12 +795,16 @@ const BookingPage = () => {
         } catch (checkoutError) {
           console.error("Stripe checkout error:", checkoutError);
           toast.dismiss();
-          toast.error("Online payment unavailable. Please choose 'Pay in Person' or try again later.");
+          toast.error("Online payment unavailable", {
+            description:
+              "Please choose \"Pay in Person\" to lock in your appointment, or try again in a moment.",
+            duration: 8000,
+          });
           setStripeAvailable(false);
           // Revert the booking status since payment failed
           await supabase.functions.invoke("manage-booking", {
-            body: { 
-              booking_id: createdId, 
+            body: {
+              booking_id: createdId,
               action: "update",
               updates: { status: "cancelled", payment_status: "failed" }
             }
