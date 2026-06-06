@@ -1,0 +1,1 @@
+CREATE POLICY "Staff can view sms_messages" ON public.sms_messages FOR SELECT TO authenticated USING (public.is_staff());
