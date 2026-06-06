@@ -29,9 +29,25 @@ export async function startBackgroundTracking(params: {
   await stopBackgroundTracking();
 
   try {
-    const { BackgroundGeolocation } = await import(
-      "@capacitor-community/background-geolocation"
-    );
+    const { registerPlugin } = await import("@capacitor/core");
+    const BackgroundGeolocation = registerPlugin<{
+      addWatcher(
+        options: {
+          backgroundMessage?: string;
+          backgroundTitle?: string;
+          requestPermissions?: boolean;
+          stale?: boolean;
+          distanceFilter?: number;
+        },
+        callback: (
+          location:
+            | { latitude: number; longitude: number; accuracy: number | null }
+            | null,
+          error: { code: string; message: string } | null,
+        ) => void,
+      ): Promise<string>;
+      removeWatcher(options: { id: string }): Promise<void>;
+    }>("BackgroundGeolocation");
 
     watcherId = await BackgroundGeolocation.addWatcher(
       {
@@ -72,9 +88,10 @@ export async function startBackgroundTracking(params: {
 export async function stopBackgroundTracking(): Promise<void> {
   if (!isNative() || !watcherId) return;
   try {
-    const { BackgroundGeolocation } = await import(
-      "@capacitor-community/background-geolocation"
-    );
+    const { registerPlugin } = await import("@capacitor/core");
+    const BackgroundGeolocation = registerPlugin<{
+      removeWatcher(options: { id: string }): Promise<void>;
+    }>("BackgroundGeolocation");
     await BackgroundGeolocation.removeWatcher({ id: watcherId });
   } catch (e) {
     console.warn("[bg-geo] failed to stop", e);
