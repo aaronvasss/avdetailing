@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  startBackgroundTracking,
+  stopBackgroundTracking,
+  isNativeBackgroundTrackingAvailable,
+} from "@/lib/nativeBackgroundTracking";
 
 export interface ActiveShift {
   id: string;
@@ -95,13 +100,27 @@ export function useShiftTracking() {
     }
   }, []);
 
-  // Set up ping interval when there is an active shift
+  // Set up ping interval when there is an active shift.
+  // On native (Capacitor) we use background geolocation so pings continue
+  // even when the app is closed/backgrounded. On web we fall back to a
+  // foreground-only setInterval ping.
   useEffect(() => {
     if (intervalRef.current) {
       window.clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    if (!activeShift || !userId) return;
+    if (!activeShift || !userId) {
+      stopBackgroundTracking();
+      return;
+    }
+
+    if (isNativeBackgroundTrackingAvailable()) {
+      startBackgroundTracking({ shiftId: activeShift.id, userId });
+      return () => {
+        stopBackgroundTracking();
+      };
+    }
+
     const id = window.setInterval(() => {
       recordPing(activeShift.id, userId);
     }, PING_INTERVAL_MS);
