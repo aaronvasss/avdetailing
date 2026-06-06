@@ -1665,6 +1665,44 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_locations: {
+        Row: {
+          accuracy: number | null
+          id: string
+          lat: number
+          lng: number
+          recorded_at: string
+          shift_id: string | null
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          id?: string
+          lat: number
+          lng: number
+          recorded_at?: string
+          shift_id?: string | null
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          id?: string
+          lat?: number
+          lng?: number
+          recorded_at?: string
+          shift_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_locations_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "worker_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       worker_notifications: {
         Row: {
           body: string
@@ -1711,6 +1749,8 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          location_consent_at: string | null
+          location_tracking_enabled: boolean
           pay_rate: number
           pay_type: string
           phone: string | null
@@ -1721,6 +1761,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          location_consent_at?: string | null
+          location_tracking_enabled?: boolean
           pay_rate?: number
           pay_type?: string
           phone?: string | null
@@ -1731,9 +1773,62 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          location_consent_at?: string | null
+          location_tracking_enabled?: boolean
           pay_rate?: number
           pay_type?: string
           phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      worker_shifts: {
+        Row: {
+          clock_in_accuracy: number | null
+          clock_in_at: string
+          clock_in_lat: number | null
+          clock_in_lng: number | null
+          clock_out_accuracy: number | null
+          clock_out_at: string | null
+          clock_out_lat: number | null
+          clock_out_lng: number | null
+          created_at: string
+          id: string
+          notes: string | null
+          total_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clock_in_accuracy?: number | null
+          clock_in_at?: string
+          clock_in_lat?: number | null
+          clock_in_lng?: number | null
+          clock_out_accuracy?: number | null
+          clock_out_at?: string | null
+          clock_out_lat?: number | null
+          clock_out_lng?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          total_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clock_in_accuracy?: number | null
+          clock_in_at?: string
+          clock_in_lat?: number | null
+          clock_in_lng?: number | null
+          clock_out_accuracy?: number | null
+          clock_out_at?: string | null
+          clock_out_lat?: number | null
+          clock_out_lng?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          total_minutes?: number | null
           updated_at?: string
           user_id?: string
         }
