@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { WorkerNotificationBell } from "./WorkerNotificationBell";
 import { NotificationPermissionPrompt } from "./NotificationPermissionPrompt";
+import { ClockInCard } from "./ClockInCard";
 
 interface WorkerLayoutProps {
   children: ReactNode;
@@ -90,6 +91,7 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
       <main className="flex-1 pb-20 lg:pb-6">
         <div className="max-w-4xl mx-auto px-4 py-4 space-y-3">
           <NotificationPermissionPrompt />
+          <ClockInCard />
           {children}
         </div>
       </main>
