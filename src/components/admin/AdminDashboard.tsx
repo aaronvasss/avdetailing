@@ -20,6 +20,7 @@ import { AdminClientsTab } from "@/components/admin/AdminClientsTab";
 import { AdminMembershipsTab } from "@/components/admin/AdminMembershipsTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { AdminTeamChatTab } from "@/components/admin/AdminTeamChatTab";
+import { AdminTeamTrackingTab } from "@/components/admin/AdminTeamTrackingTab";
 
 interface AdminDashboardProps {
   user: any;
@@ -34,6 +35,7 @@ const sectionTitles: Record<AdminSection, string> = {
   memberships: "Memberships",
   analytics: "Analytics",
   "team-chat": "Team Chat",
+  "team-tracking": "Team Tracking",
   settings: "Settings",
 };
 
@@ -95,6 +97,8 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
         return <AccountAnalyticsTab />;
       case "team-chat":
         return <AdminTeamChatTab />;
+      case "team-tracking":
+        return <AdminTeamTrackingTab />;
       case "settings":
         return <AdminSettingsTab />;
       default:
