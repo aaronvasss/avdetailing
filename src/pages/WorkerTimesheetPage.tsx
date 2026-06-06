@@ -3,13 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Clock, Download, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Clock, Download, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import {
   format, startOfWeek, endOfWeek, startOfMonth, endOfMonth,
   parseISO, differenceInMinutes,
@@ -17,56 +16,33 @@ import {
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { formatHm } from "@/lib/duration-format";
-import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { SEOHead } from "@/components/seo/SEOHead";
 
 type Preset = "week" | "month" | "custom";
 
-interface Row {
+interface ShiftRow {
   id: string;
-  scheduled_date: string;
-  scheduled_time: string | null;
-  guest_name: string | null;
-  clock_in_at: string | null;
+  clock_in_at: string;
   clock_out_at: string | null;
-  actual_duration_minutes: number | null;
-  total_price: number | null;
-  tip_amount: number | null;
-  worker_pay_type: string | null;
-  worker_pay_rate: number | null;
-  status: string;
+  clock_in_lat: number | null;
+  clock_in_lng: number | null;
+  clock_out_lat: number | null;
+  clock_out_lng: number | null;
+  total_minutes: number | null;
+  notes: string | null;
 }
 
-function calcEarn(b: Row, profile: { pay_type?: string | null; pay_rate?: number | null } | null) {
-  const value = Number(b.total_price) || 0;
-  if (b.worker_pay_type && b.worker_pay_rate != null) {
-    return b.worker_pay_type === "percentage"
-      ? value * (Number(b.worker_pay_rate) / 100)
-      : Number(b.worker_pay_rate);
-  }
-  if (!profile) return 0;
-  return profile.pay_type === "percentage"
-    ? value * (Number(profile.pay_rate) / 100)
-    : Number(profile.pay_rate) || 0;
+function googleMapsUrl(lat: number, lng: number) {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 }
 
-function onTimeFor(b: Row): { icon: string; label: string; diff: number | null } {
-  if (!b.clock_in_at || !b.scheduled_time) return { icon: "—", label: "No data", diff: null };
-  try {
-    const sched = parseISO(`${b.scheduled_date}T${b.scheduled_time}`);
-    const diff = differenceInMinutes(new Date(b.clock_in_at), sched);
-    if (diff <= 15) return { icon: "✅", label: "On time", diff };
-    if (diff <= 30) return { icon: "⚠️", label: `${diff}m late`, diff };
-    return { icon: "❌", label: `${diff}m late`, diff };
-  } catch {
-    return { icon: "—", label: "No data", diff: null };
-  }
+function shiftDateKey(iso: string) {
+  return format(parseISO(iso), "yyyy-MM-dd");
 }
 
 export default function WorkerTimesheetPage() {
   const [loading, setLoading] = useState(true);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [profile, setProfile] = useState<{ pay_type?: string | null; pay_rate?: number | null } | null>(null);
+  const [rows, setRows] = useState<ShiftRow[]>([]);
   const [preset, setPreset] = useState<Preset>("week");
   const [range, setRange] = useState<DateRange | undefined>({
     from: startOfWeek(new Date(), { weekStartsOn: 1 }),
@@ -85,79 +61,76 @@ export default function WorkerTimesheetPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const identity = await getCurrentWorkerIdentity();
-      if (!identity) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         if (!cancelled) { setRows([]); setLoading(false); }
         return;
       }
-      const { data: wp } = await supabase
-        .from("worker_profiles")
-        .select("pay_type, pay_rate")
-        .eq("user_id", identity.authUserId)
-        .maybeSingle();
-      if (!cancelled) setProfile(wp || null);
-
-      let q = supabase
-        .from("bookings")
-        .select("id, scheduled_date, scheduled_time, guest_name, clock_in_at, clock_out_at, actual_duration_minutes, total_price, tip_amount, worker_pay_type, worker_pay_rate, status")
-        .eq("status", "completed")
-        .gte("scheduled_date", format(range.from!, "yyyy-MM-dd"))
-        .lte("scheduled_date", format(range.to!, "yyyy-MM-dd"))
-        .order("scheduled_date", { ascending: false })
-        .order("scheduled_time", { ascending: false });
-      if (!identity.isAdmin) q = q.eq("assigned_worker_id", identity.authUserId);
-      const { data } = await q;
-      if (!cancelled) setRows(((data as Row[]) || []));
+      const fromIso = format(range.from!, "yyyy-MM-dd");
+      const toIso = format(range.to!, "yyyy-MM-dd");
+      const { data } = await supabase
+        .from("worker_shifts")
+        .select("id, clock_in_at, clock_out_at, clock_in_lat, clock_in_lng, clock_out_lat, clock_out_lng, total_minutes, notes")
+        .eq("user_id", user.id)
+        .gte("clock_in_at", `${fromIso}T00:00:00`)
+        .lte("clock_in_at", `${toIso}T23:59:59`)
+        .order("clock_in_at", { ascending: false });
+      if (!cancelled) setRows((data as ShiftRow[]) || []);
       if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [range]);
 
   const summary = useMemo(() => {
-    let totalMin = 0, totalEarn = 0, totalTips = 0;
+    let totalMin = 0;
+    let completed = 0;
+    let inProgress = 0;
     for (const r of rows) {
-      totalMin += Number(r.actual_duration_minutes) || 0;
-      totalEarn += calcEarn(r, profile);
-      totalTips += Number(r.tip_amount) || 0;
+      if (r.clock_out_at && r.total_minutes != null) {
+        totalMin += Number(r.total_minutes);
+        completed++;
+      } else {
+        inProgress++;
+      }
     }
-    return { totalMin, totalEarn, totalTips, jobs: rows.length };
-  }, [rows, profile]);
+    return { totalMin, completed, inProgress, shifts: rows.length };
+  }, [rows]);
 
   const exportCsv = () => {
     const escape = (v: any) => {
       const s = String(v ?? "");
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
-    const headers = ["Date","Customer","Clock In","Clock Out","Duration","Scheduled","On-Time","Earnings","Tip"];
+    const headers = ["Date", "Clock In", "Clock Out", "Duration", "Clock In Location", "Clock Out Location", "Notes"];
     const dataRows = rows.map(r => {
-      const ot = onTimeFor(r);
-      return [
-        r.scheduled_date,
-        r.guest_name || "",
-        r.clock_in_at ? format(new Date(r.clock_in_at), "h:mm a") : "—",
-        r.clock_out_at ? format(new Date(r.clock_out_at), "h:mm a") : "—",
-        r.actual_duration_minutes != null ? formatHm(r.actual_duration_minutes) : "—",
-        r.scheduled_time ? format(parseISO(`2000-01-01T${r.scheduled_time}`), "h:mm a") : "—",
-        ot.label,
-        calcEarn(r, profile).toFixed(2),
-        (Number(r.tip_amount) || 0).toFixed(2),
-      ];
+      const date = format(parseISO(r.clock_in_at), "yyyy-MM-dd");
+      const cin = format(parseISO(r.clock_in_at), "h:mm a");
+      const cout = r.clock_out_at ? format(parseISO(r.clock_out_at), "h:mm a") : "In Progress";
+      const dur = r.total_minutes != null ? formatHm(r.total_minutes) : "—";
+      const cinLoc = r.clock_in_lat != null && r.clock_in_lng != null
+        ? `${r.clock_in_lat.toFixed(5)}, ${r.clock_in_lng.toFixed(5)}`
+        : "—";
+      const coutLoc = r.clock_out_lat != null && r.clock_out_lng != null
+        ? `${r.clock_out_lat.toFixed(5)}, ${r.clock_out_lng.toFixed(5)}`
+        : "—";
+      return [date, cin, cout, dur, cinLoc, coutLoc, r.notes || ""];
     });
     const csv = [headers.map(escape).join(","), ...dataRows.map(r => r.map(escape).join(","))].join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `av-timesheet-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `av-shift-history-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <WorkerLayout>
+      <SEOHead title="Shift Timesheet" description="Private page." path="/worker/timesheet" noIndex />
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-bold">Timesheet</h1>
+          <h1 className="text-xl font-bold">Shift Timesheet</h1>
         </div>
 
         {/* Filters */}
@@ -195,45 +168,79 @@ export default function WorkerTimesheetPage() {
         {/* Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Jobs</CardTitle>
+            <CardTitle className="text-base">Shifts</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : rows.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No completed jobs in this range.</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">No shifts in this range.</p>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Customer</TableHead>
                       <TableHead>Clock In</TableHead>
                       <TableHead>Clock Out</TableHead>
                       <TableHead>Duration</TableHead>
-                      <TableHead>Scheduled</TableHead>
-                      <TableHead className="text-center">On-Time</TableHead>
-                      <TableHead className="text-right">Earnings</TableHead>
-                      <TableHead className="text-right">Tip</TableHead>
+                      <TableHead className="hidden sm:table-cell">Location</TableHead>
+                      <TableHead className="hidden md:table-cell">Notes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.map(r => {
-                      const ot = onTimeFor(r);
+                      const isOpen = !r.clock_out_at;
                       return (
                         <TableRow key={r.id}>
-                          <TableCell className="whitespace-nowrap">{format(parseISO(r.scheduled_date), "MMM d")}</TableCell>
-                          <TableCell className="max-w-[160px] truncate">{r.guest_name || "—"}</TableCell>
-                          <TableCell>{r.clock_in_at ? format(new Date(r.clock_in_at), "h:mm a") : "—"}</TableCell>
-                          <TableCell>{r.clock_out_at ? format(new Date(r.clock_out_at), "h:mm a") : "—"}</TableCell>
-                          <TableCell>{r.actual_duration_minutes != null ? formatHm(r.actual_duration_minutes) : "—"}</TableCell>
-                          <TableCell>{r.scheduled_time ? format(parseISO(`2000-01-01T${r.scheduled_time}`), "h:mm a") : "—"}</TableCell>
-                          <TableCell className="text-center">
-                            <span title={ot.label}>{ot.icon}</span>
+                          <TableCell className="whitespace-nowrap">
+                            {format(parseISO(r.clock_in_at), "EEE, MMM d")}
                           </TableCell>
-                          <TableCell className="text-right font-medium">${calcEarn(r, profile).toFixed(2)}</TableCell>
-                          <TableCell className="text-right text-emerald-600">${(Number(r.tip_amount) || 0).toFixed(2)}</TableCell>
+                          <TableCell>{format(parseISO(r.clock_in_at), "h:mm a")}</TableCell>
+                          <TableCell>
+                            {r.clock_out_at ? format(parseISO(r.clock_out_at), "h:mm a") : (
+                              <span className="inline-flex items-center gap-1 text-amber-500 text-xs font-medium">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                </span>
+                                In Progress
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {r.total_minutes != null ? formatHm(r.total_minutes) : "—"}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <div className="flex items-center gap-1.5">
+                              {r.clock_in_lat != null && r.clock_in_lng != null && (
+                                <a
+                                  href={googleMapsUrl(r.clock_in_lat, r.clock_in_lng)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                                  title="Clock-in location"
+                                >
+                                  <MapPin className="h-3 w-3" /> In
+                                </a>
+                              )}
+                              {r.clock_out_lat != null && r.clock_out_lng != null && (
+                                <a
+                                  href={googleMapsUrl(r.clock_out_lat, r.clock_out_lng)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:underline"
+                                  title="Clock-out location"
+                                >
+                                  <MapPin className="h-3 w-3" /> Out
+                                </a>
+                              )}
+                              {!r.clock_in_lat && !r.clock_out_lat && "—"}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell max-w-[200px] truncate text-muted-foreground">
+                            {r.notes || "—"}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -246,10 +253,10 @@ export default function WorkerTimesheetPage() {
 
         {/* Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <SummaryStat label="Total Hours" value={formatHm(summary.totalMin)} />
-          <SummaryStat label="Total Jobs" value={String(summary.jobs)} />
-          <SummaryStat label="Total Earnings" value={`$${summary.totalEarn.toFixed(2)}`} accent />
-          <SummaryStat label="Total Tips" value={`$${summary.totalTips.toFixed(2)}`} accent />
+          <SummaryStat label="Total Shifts" value={String(summary.shifts)} />
+          <SummaryStat label="Completed" value={String(summary.completed)} />
+          <SummaryStat label="In Progress" value={String(summary.inProgress)} />
+          <SummaryStat label="Total Hours" value={formatHm(summary.totalMin)} accent />
         </div>
       </div>
     </WorkerLayout>
@@ -259,10 +266,9 @@ export default function WorkerTimesheetPage() {
 function SummaryStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <Card>
-      <SEOHead title="Worker Timesheet" description="Private page." path="/worker/timesheet" noIndex />
       <CardContent className="p-3">
         <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p className={cn("mt-1 text-lg font-bold tabular-nums", accent && "text-green-500")}>{value}</p>
+        <p className={cn("mt-1 text-lg font-bold tabular-nums", accent && "text-primary")}>{value}</p>
       </CardContent>
     </Card>
   );
