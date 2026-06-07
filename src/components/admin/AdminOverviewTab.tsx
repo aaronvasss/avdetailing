@@ -127,24 +127,27 @@ export function AdminOverviewTab({ isAdmin, onViewBooking, onTextCustomer, onNav
       });
     }
 
-    const bookingsWithProfiles = await Promise.all(
-      (data || []).map(async (booking: any) => {
-        let profiles = null;
-        if (booking.user_id) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, phone")
-            .eq("user_id", booking.user_id)
-            .maybeSingle();
-          profiles = profile;
-        }
-        return {
-          ...booking,
-          profiles,
-          worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
-        };
-      })
+    // Batch-fetch all profiles in a single query (avoid N+1)
+    const userIds = Array.from(
+      new Set((data || []).map((b: any) => b.user_id).filter(Boolean) as string[])
     );
+    const profileMap: Record<string, { full_name: string; phone: string } | null> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", userIds);
+      (profiles || []).forEach((p: any) => {
+        profileMap[p.user_id] = { full_name: p.full_name, phone: p.phone };
+      });
+    }
+
+    const bookingsWithProfiles = (data || []).map((booking: any) => ({
+      ...booking,
+      profiles: booking.user_id ? profileMap[booking.user_id] || null : null,
+      worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+    }));
+
 
     setBookings(bookingsWithProfiles);
     setLoading(false);
