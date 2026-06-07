@@ -72,13 +72,17 @@ export function useShiftTracking() {
     if (!userId) return false;
     const { error } = await supabase
       .from("worker_profiles")
-      .update({
-        location_consent_at: new Date().toISOString(),
-        location_tracking_enabled: true,
-      })
-      .eq("user_id", userId);
+      .upsert(
+        {
+          user_id: userId,
+          location_consent_at: new Date().toISOString(),
+          location_tracking_enabled: true,
+        },
+        { onConflict: "user_id" }
+      );
     if (error) {
-      toast.error("Failed to save consent");
+      console.error("[shift] grantConsent error", error);
+      toast.error("Failed to save consent: " + error.message);
       return false;
     }
     await loadState();
