@@ -32,13 +32,20 @@ function isExcludedPath(pathname: string): boolean {
 function removeWidget() {
   // Remove the loader script
   document.getElementById(WIDGET_SCRIPT_ID)?.remove();
-  // Remove any widget DOM the loader injected
+  // Remove the chat-widget loader scripts (esm + nomodule) added by loader.js
   document
     .querySelectorAll(
-      "[id^='lc_chat'], [id^='leadconnector'], .lc_text-widget, lc-chat-widget"
+      'script[src*="leadconnectorhq.com/chat-widget"], script[src*="beta.leadconnectorhq.com"]'
+    )
+    .forEach((el) => el.remove());
+  // Remove any widget DOM the loader injected (covers <chat-widget>, lc-* prefixes, and stray ion-loading overlays from the widget)
+  document
+    .querySelectorAll(
+      "chat-widget, [id^='lc_chat'], [id^='leadconnector'], .lc_text-widget, lc-chat-widget, ion-loading, ion-app"
     )
     .forEach((el) => el.remove());
 }
+
 
 function injectWidget() {
   if (document.getElementById(WIDGET_SCRIPT_ID)) return;
