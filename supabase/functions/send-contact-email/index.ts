@@ -157,7 +157,12 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "AV Detailing <notifications@avdetailing.net>",
         to: BUSINESS_EMAILS,
+        reply_to: email.trim(),
         subject: `New Contact Form Submission from ${safeName}`,
+        headers: {
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+        },
+        tags: [{ name: "category", value: "contact_form_business" }],
         html: `
           <!DOCTYPE html>
           <html>
@@ -233,7 +238,14 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "AV Detailing <noreply@avdetailing.net>",
         to: [email.trim()],
+        reply_to: "aaronvasquez100@gmail.com",
         subject: "We received your message!",
+        headers: {
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+          "List-Unsubscribe": "<mailto:aaronvasquez100@gmail.com?subject=unsubscribe>",
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+        tags: [{ name: "category", value: "contact_form_confirmation" }],
         html: customerEmailHtml,
       }),
     });
