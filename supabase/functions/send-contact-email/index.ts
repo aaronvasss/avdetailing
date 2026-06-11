@@ -157,7 +157,12 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "AV Detailing <notifications@avdetailing.net>",
         to: BUSINESS_EMAILS,
+        reply_to: email.trim(),
         subject: `New Contact Form Submission from ${safeName}`,
+        headers: {
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+        },
+        tags: [{ name: "category", value: "contact_form_business" }],
         html: `
           <!DOCTYPE html>
           <html>
