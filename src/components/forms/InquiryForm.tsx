@@ -80,6 +80,29 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
 
       if (contactError) throw contactError;
 
+      // Forward submission to GoHighLevel (fire-and-forget, no-cors)
+      try {
+        fetch("https://services.leadconnectorhq.com/hooks/AwUQlQZwW3pFWZuiOm6A/webhook-trigger/7ed4689d-5acc-4c82-b2f6-ccbf15f154e4", {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            full_name: fullName,
+            email: formData.email,
+            phone: formData.phone,
+            message: formData.message,
+            service: serviceContext || "",
+            source,
+            page_url: typeof window !== "undefined" ? window.location.href : "",
+            submitted_at: new Date().toISOString(),
+          }),
+        }).catch((err) => console.warn("GHL webhook failed:", err));
+      } catch (ghlErr) {
+        console.warn("GHL webhook error:", ghlErr);
+      }
+
       await sendContactEmail({
         name: fullName,
         email: formData.email,
