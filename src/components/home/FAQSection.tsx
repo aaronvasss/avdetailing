@@ -39,6 +39,26 @@ const faqs = [
     question: "What if it rains on my appointment day?",
     answer: "We monitor weather closely and will contact you to reschedule if conditions aren't suitable. For exterior-only services, we need dry conditions. Interior services and covered locations can proceed rain or shine. There's no fee for weather-related rescheduling.",
   },
+  {
+    question: "How much does mobile detailing cost in Baton Rouge?",
+    answer: "Pricing depends on vehicle size and the package you choose. Basic exterior washes start around $60, full interior + exterior details start at $150, ceramic coatings start at $800, and paint correction starts at $400. Boats, RVs, and aircraft are quoted individually. You'll always see a transparent, all-in price before you book — no hidden fees.",
+  },
+  {
+    question: "Do you offer ceramic coating in Baton Rouge?",
+    answer: "Yes. We offer professional ceramic coating packages: 3-Year ($800), 6-Year ($1,200), and 10-Year ($1,600). Coatings are applied at your location and typically take a full day. Each coating includes paint decontamination and a light polish for proper bonding.",
+  },
+  {
+    question: "Can you detail my boat, RV, or aircraft?",
+    answer: "Absolutely. We provide mobile detailing for boats, RVs (exterior only, starting at $180), and aircraft across the Baton Rouge area. These specialty services require a $100 deposit at booking which is applied to your final total. After we see photos of the unit, we send a custom quote.",
+  },
+  {
+    question: "How far in advance should I book?",
+    answer: "We typically have same-week availability for cars and SUVs, and 1–2 weeks for ceramic coatings, paint correction, and specialty services like boats and aircraft. Booking online takes about 60 seconds — or you can fill out our contact form and we'll reach out within 24 hours.",
+  },
+  {
+    question: "Do you offer monthly maintenance plans?",
+    answer: "Yes. Our membership plans cover recurring visits at a discount — Monthly ($135), Bi-Weekly ($260), and Weekly ($520). Members get priority scheduling, add-on discounts, and the same trusted detailer each visit so your vehicle always looks its best.",
+  },
 ];
 
 export function FAQSection() {

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { DepositBookingModal } from "@/components/booking/DepositBookingModal";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, serviceSchema, faqSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
+import { InquiryForm } from "@/components/forms/InquiryForm";
 
 interface ServicePageProps {
   title: string;
@@ -301,6 +302,27 @@ export function ServicePageTemplate({
           </div>
         </div>
       </section>
+
+      {/* Inquiry Form */}
+      <section className="section-padding bg-background">
+        <div className="container-custom">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+                Have Questions About {title}?
+              </h2>
+              <p className="text-muted-foreground">
+                Send us a message and we'll get back to you within 24 hours with a quote
+                or any details you need.
+              </p>
+            </div>
+            <div className="p-6 sm:p-8 bg-card rounded-xl border border-border">
+              <InquiryForm source={`service:${title}`} serviceContext={title} />
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* CTA */}
       <section className="section-padding bg-gradient-to-br from-primary/10 via-background to-background">
