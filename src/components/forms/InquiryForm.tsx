@@ -30,6 +30,26 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
     message: "",
   });
 
+  useEffect(() => {
+    if (!formRef.current) return;
+    const existing = formRef.current.querySelector(
+      'script[data-tracking-id="tk_347c00e8680f42a88abeb9ae8eef1082"]'
+    );
+    if (existing) return;
+
+    const script = document.createElement("script");
+    script.src = "https://link.msgsndr.com/js/external-tracking.js";
+    script.setAttribute("data-tracking-id", "tk_347c00e8680f42a88abeb9ae8eef1082");
+    script.async = true;
+    formRef.current.appendChild(script);
+
+    return () => {
+      if (formRef.current && script.parentNode === formRef.current) {
+        formRef.current.removeChild(script);
+      }
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
