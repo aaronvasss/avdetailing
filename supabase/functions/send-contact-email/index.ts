@@ -238,7 +238,14 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "AV Detailing <noreply@avdetailing.net>",
         to: [email.trim()],
+        reply_to: "aaronvasquez100@gmail.com",
         subject: "We received your message!",
+        headers: {
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+          "List-Unsubscribe": "<mailto:aaronvasquez100@gmail.com?subject=unsubscribe>",
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+        tags: [{ name: "category", value: "contact_form_confirmation" }],
         html: customerEmailHtml,
       }),
     });
