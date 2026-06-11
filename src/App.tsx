@@ -28,6 +28,7 @@ const MembershipsPage = lazy(() => import("./pages/MembershipsPage"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage"));
 const ReviewsPage = lazy(() => import("./pages/ReviewsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const GetStartedPage = lazy(() => import("./pages/GetStartedPage"));
 const ServiceAreasPage = lazy(() => import("./pages/ServiceAreasPage"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const BookingManagePage = lazy(() => import("@/pages/BookingManagePage"));
@@ -102,6 +103,8 @@ const App = () => (
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/reviews" element={<ReviewsPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/get-started" element={<GetStartedPage />} />
+                <Route path="/quote" element={<Navigate to="/get-started" replace />} />
                 <Route path="/service-areas" element={<ServiceAreasPage />} />
                 <Route path="/book" element={<BookingPage />} />
                 <Route path="/booking/manage" element={<BookingManagePage />} />

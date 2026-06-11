@@ -9,6 +9,7 @@ import { MembershipSection } from "@/components/home/MembershipSection";
 import { ServiceAreasSection } from "@/components/home/ServiceAreasSection";
 import { LocationMapSection } from "@/components/home/LocationMapSection";
 import { FAQSection } from "@/components/home/FAQSection";
+import { InquirySection } from "@/components/home/InquirySection";
 import { CTASection } from "@/components/home/CTASection";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
@@ -32,6 +33,7 @@ const Index = () => {
       <ServiceAreasSection />
       <LocationMapSection />
       <FAQSection />
+      <InquirySection source="homepage" />
       <CTASection />
     </Layout>
   );
