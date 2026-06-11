@@ -121,7 +121,7 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+    <form ref={formRef} onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor={`${source}-firstName`}>First Name</Label>
