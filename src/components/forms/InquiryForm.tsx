@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ interface InquiryFormProps {
 export function InquiryForm({ source = "inquiry_form", serviceContext, className = "" }: InquiryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -28,6 +29,26 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
     phone: "",
     message: "",
   });
+
+  useEffect(() => {
+    if (!formRef.current) return;
+    const existing = formRef.current.querySelector(
+      'script[data-tracking-id="tk_347c00e8680f42a88abeb9ae8eef1082"]'
+    );
+    if (existing) return;
+
+    const script = document.createElement("script");
+    script.src = "https://link.msgsndr.com/js/external-tracking.js";
+    script.setAttribute("data-tracking-id", "tk_347c00e8680f42a88abeb9ae8eef1082");
+    script.async = true;
+    formRef.current.appendChild(script);
+
+    return () => {
+      if (formRef.current && script.parentNode === formRef.current) {
+        formRef.current.removeChild(script);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -100,7 +121,7 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+    <form ref={formRef} onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor={`${source}-firstName`}>First Name</Label>
