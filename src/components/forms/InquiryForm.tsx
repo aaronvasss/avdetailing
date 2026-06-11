@@ -21,6 +21,7 @@ interface InquiryFormProps {
 export function InquiryForm({ source = "inquiry_form", serviceContext, className = "" }: InquiryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
