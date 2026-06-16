@@ -382,6 +382,74 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
               />
             </div>
 
+            {/* Vehicles */}
+            <div className="space-y-3 rounded-md border p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Car className="h-4 w-4" />
+                  Vehicles ({vehicles.length})
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addVehicle}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Vehicle
+                </Button>
+              </div>
+              {vehicles.length === 0 && (
+                <p className="text-xs text-muted-foreground">No vehicles yet. Click "Add Vehicle" to add one.</p>
+              )}
+              {vehicles.map((v, idx) => (
+                <div key={idx} className="space-y-2 rounded border bg-muted/30 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Vehicle #{idx + 1}</span>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeVehicle(idx)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Type</label>
+                      <Select value={v.vehicle_type} onValueChange={(val) => updateVehicle(idx, { vehicle_type: val })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="car">Car / Sedan</SelectItem>
+                          <SelectItem value="suv">SUV</SelectItem>
+                          <SelectItem value="suv_large">SUV (Large)</SelectItem>
+                          <SelectItem value="truck">Truck</SelectItem>
+                          <SelectItem value="boat">Boat</SelectItem>
+                          <SelectItem value="rv">RV</SelectItem>
+                          <SelectItem value="aircraft">Aircraft</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Year</label>
+                      <Input
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="2024"
+                        value={v.year}
+                        onChange={(e) => updateVehicle(idx, { year: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Make</label>
+                      <Input placeholder="Toyota" value={v.make} onChange={(e) => updateVehicle(idx, { make: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Model</label>
+                      <Input placeholder="Camry" value={v.model} onChange={(e) => updateVehicle(idx, { model: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Color (optional)</label>
+                    <Input placeholder="Black" value={v.color || ''} onChange={(e) => updateVehicle(idx, { color: e.target.value })} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+
             <FormField
               control={form.control}
               name="notes"
