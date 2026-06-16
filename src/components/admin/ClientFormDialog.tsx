@@ -75,7 +75,20 @@ interface Client {
   notes: string | null;
   source: string | null;
   created_at: string;
+  vehicles?: ClientVehicle[] | null;
 }
+
+interface ClientFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  client?: Client | null;
+  onSuccess: () => void;
+}
+
+export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: ClientFormDialogProps) {
+  const [saving, setSaving] = useState(false);
+  const [vehicles, setVehicles] = useState<ClientVehicle[]>([]);
+  const isEditing = !!client;
 
 interface ClientFormDialogProps {
   open: boolean;
