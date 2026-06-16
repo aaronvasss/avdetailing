@@ -88,7 +88,29 @@ interface ClientFormDialogProps {
 export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: ClientFormDialogProps) {
   const [saving, setSaving] = useState(false);
   const [vehicles, setVehicles] = useState<ClientVehicle[]>([]);
+  const [vehicleErrors, setVehicleErrors] = useState<Record<number, { year?: string; make?: string; model?: string }>>({});
   const isEditing = !!client;
+
+  const currentYear = new Date().getFullYear();
+  const validateVehicles = (list: ClientVehicle[]) => {
+    const errs: Record<number, { year?: string; make?: string; model?: string }> = {};
+    list.forEach((v, idx) => {
+      const hasAny = (v.year || v.make || v.model || v.color)?.toString().trim();
+      if (!hasAny) return; // skip fully-empty rows (they'll be filtered out)
+      const e: { year?: string; make?: string; model?: string } = {};
+      const yearTrim = (v.year || '').trim();
+      if (!yearTrim) e.year = "Year is required";
+      else if (!/^\d{4}$/.test(yearTrim)) e.year = "Enter a 4-digit year";
+      else {
+        const y = parseInt(yearTrim, 10);
+        if (y < 1900 || y > currentYear + 2) e.year = `Year must be 1900–${currentYear + 2}`;
+      }
+      if (!(v.make || '').trim()) e.make = "Make is required";
+      if (!(v.model || '').trim()) e.model = "Model is required";
+      if (Object.keys(e).length) errs[idx] = e;
+    });
+    return errs;
+  };
 
 
 
