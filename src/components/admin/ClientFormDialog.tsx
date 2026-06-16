@@ -20,9 +20,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Plus, Trash2, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+interface ClientVehicle {
+  vehicle_type: string;
+  year: string;
+  make: string;
+  model: string;
+  color?: string;
+}
+
+const emptyVehicle = (): ClientVehicle => ({
+  vehicle_type: "car",
+  year: "",
+  make: "",
+  model: "",
+  color: "",
+});
 
 const clientSchema = z.object({
   first_name: z.string().trim().max(100, "First name must be less than 100 characters").optional().or(z.literal("")),
@@ -58,6 +75,7 @@ interface Client {
   notes: string | null;
   source: string | null;
   created_at: string;
+  vehicles?: ClientVehicle[] | null;
 }
 
 interface ClientFormDialogProps {
@@ -69,7 +87,10 @@ interface ClientFormDialogProps {
 
 export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: ClientFormDialogProps) {
   const [saving, setSaving] = useState(false);
+  const [vehicles, setVehicles] = useState<ClientVehicle[]>([]);
   const isEditing = !!client;
+
+
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -103,6 +124,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         zip: client.zip || "",
         notes: client.notes || "",
       });
+      setVehicles(Array.isArray(client.vehicles) ? client.vehicles : []);
     } else {
       form.reset({
         first_name: "",
@@ -117,8 +139,17 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         zip: "",
         notes: "",
       });
+      setVehicles([]);
     }
   }, [client, form]);
+
+  const updateVehicle = (idx: number, patch: Partial<ClientVehicle>) => {
+    setVehicles((prev) => prev.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
+  };
+  const addVehicle = () => setVehicles((prev) => [...prev, emptyVehicle()]);
+  const removeVehicle = (idx: number) =>
+    setVehicles((prev) => prev.filter((_, i) => i !== idx));
+
 
   const normalizePhone = (phone: string): string => {
     const digits = phone.replace(/\D/g, '');
@@ -135,7 +166,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
     setSaving(true);
     try {
       // Build client data, filtering out empty strings
-      const clientData: Record<string, string | null> = {};
+      const clientData: Record<string, any> = {};
       Object.entries(data).forEach(([key, value]) => {
         if (value && value.trim()) {
           clientData[key] = key === 'phone' ? normalizePhone(value) : value.trim();
@@ -153,6 +184,20 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
       if (!isEditing) {
         clientData.source = 'manual';
       }
+
+      // Clean & include vehicles
+      const cleanedVehicles = vehicles
+        .map((v) => ({
+          vehicle_type: (v.vehicle_type || 'car').trim(),
+          year: (v.year || '').trim(),
+          make: (v.make || '').trim(),
+          model: (v.model || '').trim(),
+          color: (v.color || '').trim(),
+        }))
+        .filter((v) => v.year || v.make || v.model);
+      clientData.vehicles = cleanedVehicles;
+
+      console.log('[ClientFormDialog] Saving client payload:', clientData);
 
       if (isEditing && client) {
         const { error } = await supabase
@@ -177,6 +222,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
       console.error('Error saving client:', error);
       toast.error(error.message || "Failed to save client");
     } finally {
+
       setSaving(false);
     }
   };
@@ -335,6 +381,74 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
                 )}
               />
             </div>
+
+            {/* Vehicles */}
+            <div className="space-y-3 rounded-md border p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Car className="h-4 w-4" />
+                  Vehicles ({vehicles.length})
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addVehicle}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Vehicle
+                </Button>
+              </div>
+              {vehicles.length === 0 && (
+                <p className="text-xs text-muted-foreground">No vehicles yet. Click "Add Vehicle" to add one.</p>
+              )}
+              {vehicles.map((v, idx) => (
+                <div key={idx} className="space-y-2 rounded border bg-muted/30 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Vehicle #{idx + 1}</span>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeVehicle(idx)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Type</label>
+                      <Select value={v.vehicle_type} onValueChange={(val) => updateVehicle(idx, { vehicle_type: val })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="car">Car / Sedan</SelectItem>
+                          <SelectItem value="suv">SUV</SelectItem>
+                          <SelectItem value="suv_large">SUV (Large)</SelectItem>
+                          <SelectItem value="truck">Truck</SelectItem>
+                          <SelectItem value="boat">Boat</SelectItem>
+                          <SelectItem value="rv">RV</SelectItem>
+                          <SelectItem value="aircraft">Aircraft</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Year</label>
+                      <Input
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="2024"
+                        value={v.year}
+                        onChange={(e) => updateVehicle(idx, { year: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Make</label>
+                      <Input placeholder="Toyota" value={v.make} onChange={(e) => updateVehicle(idx, { make: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Model</label>
+                      <Input placeholder="Camry" value={v.model} onChange={(e) => updateVehicle(idx, { model: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Color (optional)</label>
+                    <Input placeholder="Black" value={v.color || ''} onChange={(e) => updateVehicle(idx, { color: e.target.value })} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
 
             <FormField
               control={form.control}

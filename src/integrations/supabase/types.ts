@@ -512,6 +512,7 @@ export type Database = {
           state: string | null
           total_lifetime_spend: number | null
           updated_at: string
+          vehicles: Json
           zip: string | null
         }
         Insert: {
@@ -533,6 +534,7 @@ export type Database = {
           state?: string | null
           total_lifetime_spend?: number | null
           updated_at?: string
+          vehicles?: Json
           zip?: string | null
         }
         Update: {
@@ -554,6 +556,7 @@ export type Database = {
           state?: string | null
           total_lifetime_spend?: number | null
           updated_at?: string
+          vehicles?: Json
           zip?: string | null
         }
         Relationships: []

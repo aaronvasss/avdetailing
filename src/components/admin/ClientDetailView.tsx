@@ -220,14 +220,26 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
         .reduce((sum, b) => sum + (b.total_price || 0), 0);
       setLifetimeSpend(spend);
 
-      // Fetch vehicles if user exists
+      // Merge: vehicles stored on the client record (admin-managed) + linked auth user vehicles
+      const clientVehicles: Vehicle[] = Array.isArray((client as any).vehicles)
+        ? (client as any).vehicles.map((v: any, i: number) => ({
+            id: `client-${i}`,
+            vehicle_type: v.vehicle_type || 'car',
+            make: v.make || null,
+            model: v.model || null,
+            year: v.year ? Number(v.year) : null,
+            color: v.color || null,
+            is_default: i === 0,
+          }))
+        : [];
+
       if (userId) {
         const { data: vehiclesData } = await supabase
           .from('customer_vehicles')
           .select('*')
           .eq('user_id', userId)
           .order('is_default', { ascending: false });
-        setVehicles(vehiclesData || []);
+        setVehicles([...clientVehicles, ...(vehiclesData || [])]);
 
         const { data: membershipsData } = await supabase
           .from('customer_memberships')
@@ -235,7 +247,10 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
         setMemberships(membershipsData || []);
+      } else {
+        setVehicles(clientVehicles);
       }
+
     } catch (error) {
       console.error('Error fetching client data:', error);
     } finally {
