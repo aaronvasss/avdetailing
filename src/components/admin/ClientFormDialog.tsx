@@ -166,7 +166,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
     setSaving(true);
     try {
       // Build client data, filtering out empty strings
-      const clientData: Record<string, string | null> = {};
+      const clientData: Record<string, any> = {};
       Object.entries(data).forEach(([key, value]) => {
         if (value && value.trim()) {
           clientData[key] = key === 'phone' ? normalizePhone(value) : value.trim();
@@ -184,6 +184,20 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
       if (!isEditing) {
         clientData.source = 'manual';
       }
+
+      // Clean & include vehicles
+      const cleanedVehicles = vehicles
+        .map((v) => ({
+          vehicle_type: (v.vehicle_type || 'car').trim(),
+          year: (v.year || '').trim(),
+          make: (v.make || '').trim(),
+          model: (v.model || '').trim(),
+          color: (v.color || '').trim(),
+        }))
+        .filter((v) => v.year || v.make || v.model);
+      clientData.vehicles = cleanedVehicles;
+
+      console.log('[ClientFormDialog] Saving client payload:', clientData);
 
       if (isEditing && client) {
         const { error } = await supabase
@@ -208,6 +222,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
       console.error('Error saving client:', error);
       toast.error(error.message || "Failed to save client");
     } finally {
+
       setSaving(false);
     }
   };
