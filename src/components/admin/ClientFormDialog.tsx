@@ -185,6 +185,19 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
   };
 
   const onSubmit = async (data: ClientFormData) => {
+    // Validate vehicles before saving
+    const vErrs = validateVehicles(vehicles);
+    setVehicleErrors(vErrs);
+    if (Object.keys(vErrs).length > 0) {
+      const firstIdx = Number(Object.keys(vErrs)[0]);
+      const firstErr = vErrs[firstIdx];
+      const missing = Object.values(firstErr).filter(Boolean) as string[];
+      toast.error(`Vehicle #${firstIdx + 1}: ${missing.join(", ")}`, {
+        description: "Fix the highlighted vehicle fields and try again.",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       // Build client data, filtering out empty strings
@@ -207,7 +220,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         clientData.source = 'manual';
       }
 
-      // Clean & include vehicles
+      // Clean & include vehicles (drop fully-empty rows)
       const cleanedVehicles = vehicles
         .map((v) => ({
           vehicle_type: (v.vehicle_type || 'car').trim(),
@@ -242,7 +255,18 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error saving client:', error);
-      toast.error(error.message || "Failed to save client");
+      const code = error?.code ? ` (code ${error.code})` : '';
+      const detail = error?.details || error?.hint || '';
+      const msg = error?.message || "Failed to save client";
+      // Friendlier messages for common Postgres errors
+      let friendly = msg;
+      if (error?.code === '23505') friendly = "A client with this email or phone already exists.";
+      else if (error?.code === '23502') friendly = "A required field is missing.";
+      else if (error?.code === '23514') friendly = "One of the fields has an invalid value.";
+      else if (error?.code === '42501' || /permission/i.test(msg)) friendly = "You don't have permission to save this client.";
+      toast.error(`Failed to save client${code}`, {
+        description: detail ? `${friendly} — ${detail}` : friendly,
+      });
     } finally {
 
       setSaving(false);
