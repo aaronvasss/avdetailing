@@ -90,16 +90,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
   const [vehicles, setVehicles] = useState<ClientVehicle[]>([]);
   const isEditing = !!client;
 
-interface ClientFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  client?: Client | null;
-  onSuccess: () => void;
-}
 
-export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: ClientFormDialogProps) {
-  const [saving, setSaving] = useState(false);
-  const isEditing = !!client;
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
