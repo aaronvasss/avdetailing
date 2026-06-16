@@ -20,9 +20,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Plus, Trash2, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+interface ClientVehicle {
+  vehicle_type: string;
+  year: string;
+  make: string;
+  model: string;
+  color?: string;
+}
+
+const emptyVehicle = (): ClientVehicle => ({
+  vehicle_type: "car",
+  year: "",
+  make: "",
+  model: "",
+  color: "",
+});
 
 const clientSchema = z.object({
   first_name: z.string().trim().max(100, "First name must be less than 100 characters").optional().or(z.literal("")),
