@@ -88,7 +88,29 @@ interface ClientFormDialogProps {
 export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: ClientFormDialogProps) {
   const [saving, setSaving] = useState(false);
   const [vehicles, setVehicles] = useState<ClientVehicle[]>([]);
+  const [vehicleErrors, setVehicleErrors] = useState<Record<number, { year?: string; make?: string; model?: string }>>({});
   const isEditing = !!client;
+
+  const currentYear = new Date().getFullYear();
+  const validateVehicles = (list: ClientVehicle[]) => {
+    const errs: Record<number, { year?: string; make?: string; model?: string }> = {};
+    list.forEach((v, idx) => {
+      const hasAny = (v.year || v.make || v.model || v.color)?.toString().trim();
+      if (!hasAny) return; // skip fully-empty rows (they'll be filtered out)
+      const e: { year?: string; make?: string; model?: string } = {};
+      const yearTrim = (v.year || '').trim();
+      if (!yearTrim) e.year = "Year is required";
+      else if (!/^\d{4}$/.test(yearTrim)) e.year = "Enter a 4-digit year";
+      else {
+        const y = parseInt(yearTrim, 10);
+        if (y < 1900 || y > currentYear + 2) e.year = `Year must be 1900–${currentYear + 2}`;
+      }
+      if (!(v.make || '').trim()) e.make = "Make is required";
+      if (!(v.model || '').trim()) e.model = "Model is required";
+      if (Object.keys(e).length) errs[idx] = e;
+    });
+    return errs;
+  };
 
 
 
@@ -125,6 +147,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         notes: client.notes || "",
       });
       setVehicles(Array.isArray(client.vehicles) ? client.vehicles : []);
+      setVehicleErrors({});
     } else {
       form.reset({
         first_name: "",
@@ -140,15 +163,37 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         notes: "",
       });
       setVehicles([]);
+      setVehicleErrors({});
     }
   }, [client, form]);
 
   const updateVehicle = (idx: number, patch: Partial<ClientVehicle>) => {
     setVehicles((prev) => prev.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
+    setVehicleErrors((prev) => {
+      if (!prev[idx]) return prev;
+      const next = { ...prev };
+      const row = { ...next[idx] };
+      Object.keys(patch).forEach((k) => {
+        if (k === 'year' || k === 'make' || k === 'model') delete (row as any)[k];
+      });
+      if (Object.keys(row).length === 0) delete next[idx];
+      else next[idx] = row;
+      return next;
+    });
   };
   const addVehicle = () => setVehicles((prev) => [...prev, emptyVehicle()]);
-  const removeVehicle = (idx: number) =>
+  const removeVehicle = (idx: number) => {
     setVehicles((prev) => prev.filter((_, i) => i !== idx));
+    setVehicleErrors((prev) => {
+      const next: typeof prev = {};
+      Object.entries(prev).forEach(([k, v]) => {
+        const n = Number(k);
+        if (n < idx) next[n] = v;
+        else if (n > idx) next[n - 1] = v;
+      });
+      return next;
+    });
+  };
 
 
   const normalizePhone = (phone: string): string => {
@@ -163,6 +208,19 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
   };
 
   const onSubmit = async (data: ClientFormData) => {
+    // Validate vehicles before saving
+    const vErrs = validateVehicles(vehicles);
+    setVehicleErrors(vErrs);
+    if (Object.keys(vErrs).length > 0) {
+      const firstIdx = Number(Object.keys(vErrs)[0]);
+      const firstErr = vErrs[firstIdx];
+      const missing = Object.values(firstErr).filter(Boolean) as string[];
+      toast.error(`Vehicle #${firstIdx + 1}: ${missing.join(", ")}`, {
+        description: "Fix the highlighted vehicle fields and try again.",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       // Build client data, filtering out empty strings
@@ -185,7 +243,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         clientData.source = 'manual';
       }
 
-      // Clean & include vehicles
+      // Clean & include vehicles (drop fully-empty rows)
       const cleanedVehicles = vehicles
         .map((v) => ({
           vehicle_type: (v.vehicle_type || 'car').trim(),
@@ -220,7 +278,18 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error saving client:', error);
-      toast.error(error.message || "Failed to save client");
+      const code = error?.code ? ` (code ${error.code})` : '';
+      const detail = error?.details || error?.hint || '';
+      const msg = error?.message || "Failed to save client";
+      // Friendlier messages for common Postgres errors
+      let friendly = msg;
+      if (error?.code === '23505') friendly = "A client with this email or phone already exists.";
+      else if (error?.code === '23502') friendly = "A required field is missing.";
+      else if (error?.code === '23514') friendly = "One of the fields has an invalid value.";
+      else if (error?.code === '42501' || /permission/i.test(msg)) friendly = "You don't have permission to save this client.";
+      toast.error(`Failed to save client${code}`, {
+        description: detail ? `${friendly} — ${detail}` : friendly,
+      });
     } finally {
 
       setSaving(false);
@@ -396,7 +465,9 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
               {vehicles.length === 0 && (
                 <p className="text-xs text-muted-foreground">No vehicles yet. Click "Add Vehicle" to add one.</p>
               )}
-              {vehicles.map((v, idx) => (
+              {vehicles.map((v, idx) => {
+                const err = vehicleErrors[idx] || {};
+                return (
                 <div key={idx} className="space-y-2 rounded border bg-muted/30 p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground">Vehicle #{idx + 1}</span>
@@ -421,24 +492,41 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
                       </Select>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">Year</label>
+                      <label className="text-xs text-muted-foreground">Year *</label>
                       <Input
                         inputMode="numeric"
                         maxLength={4}
                         placeholder="2024"
                         value={v.year}
+                        aria-invalid={!!err.year}
+                        className={err.year ? "border-destructive focus-visible:ring-destructive" : ""}
                         onChange={(e) => updateVehicle(idx, { year: e.target.value.replace(/\D/g, '').slice(0, 4) })}
                       />
+                      {err.year && <p className="text-xs text-destructive mt-1">{err.year}</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-muted-foreground">Make</label>
-                      <Input placeholder="Toyota" value={v.make} onChange={(e) => updateVehicle(idx, { make: e.target.value })} />
+                      <label className="text-xs text-muted-foreground">Make *</label>
+                      <Input
+                        placeholder="Toyota"
+                        value={v.make}
+                        aria-invalid={!!err.make}
+                        className={err.make ? "border-destructive focus-visible:ring-destructive" : ""}
+                        onChange={(e) => updateVehicle(idx, { make: e.target.value })}
+                      />
+                      {err.make && <p className="text-xs text-destructive mt-1">{err.make}</p>}
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">Model</label>
-                      <Input placeholder="Camry" value={v.model} onChange={(e) => updateVehicle(idx, { model: e.target.value })} />
+                      <label className="text-xs text-muted-foreground">Model *</label>
+                      <Input
+                        placeholder="Camry"
+                        value={v.model}
+                        aria-invalid={!!err.model}
+                        className={err.model ? "border-destructive focus-visible:ring-destructive" : ""}
+                        onChange={(e) => updateVehicle(idx, { model: e.target.value })}
+                      />
+                      {err.model && <p className="text-xs text-destructive mt-1">{err.model}</p>}
                     </div>
                   </div>
                   <div>
@@ -446,7 +534,8 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
                     <Input placeholder="Black" value={v.color || ''} onChange={(e) => updateVehicle(idx, { color: e.target.value })} />
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
 
