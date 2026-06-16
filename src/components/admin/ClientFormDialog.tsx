@@ -124,6 +124,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         zip: client.zip || "",
         notes: client.notes || "",
       });
+      setVehicles(Array.isArray(client.vehicles) ? client.vehicles : []);
     } else {
       form.reset({
         first_name: "",
@@ -138,8 +139,17 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         zip: "",
         notes: "",
       });
+      setVehicles([]);
     }
   }, [client, form]);
+
+  const updateVehicle = (idx: number, patch: Partial<ClientVehicle>) => {
+    setVehicles((prev) => prev.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
+  };
+  const addVehicle = () => setVehicles((prev) => [...prev, emptyVehicle()]);
+  const removeVehicle = (idx: number) =>
+    setVehicles((prev) => prev.filter((_, i) => i !== idx));
+
 
   const normalizePhone = (phone: string): string => {
     const digits = phone.replace(/\D/g, '');
