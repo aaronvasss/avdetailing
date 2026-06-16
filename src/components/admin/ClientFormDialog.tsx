@@ -147,6 +147,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         notes: client.notes || "",
       });
       setVehicles(Array.isArray(client.vehicles) ? client.vehicles : []);
+      setVehicleErrors({});
     } else {
       form.reset({
         first_name: "",
@@ -162,6 +163,7 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
         notes: "",
       });
       setVehicles([]);
+      setVehicleErrors({});
     }
   }, [client, form]);
 
