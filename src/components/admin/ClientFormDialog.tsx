@@ -465,7 +465,9 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
               {vehicles.length === 0 && (
                 <p className="text-xs text-muted-foreground">No vehicles yet. Click "Add Vehicle" to add one.</p>
               )}
-              {vehicles.map((v, idx) => (
+              {vehicles.map((v, idx) => {
+                const err = vehicleErrors[idx] || {};
+                return (
                 <div key={idx} className="space-y-2 rounded border bg-muted/30 p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground">Vehicle #{idx + 1}</span>
@@ -490,24 +492,41 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
                       </Select>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">Year</label>
+                      <label className="text-xs text-muted-foreground">Year *</label>
                       <Input
                         inputMode="numeric"
                         maxLength={4}
                         placeholder="2024"
                         value={v.year}
+                        aria-invalid={!!err.year}
+                        className={err.year ? "border-destructive focus-visible:ring-destructive" : ""}
                         onChange={(e) => updateVehicle(idx, { year: e.target.value.replace(/\D/g, '').slice(0, 4) })}
                       />
+                      {err.year && <p className="text-xs text-destructive mt-1">{err.year}</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-muted-foreground">Make</label>
-                      <Input placeholder="Toyota" value={v.make} onChange={(e) => updateVehicle(idx, { make: e.target.value })} />
+                      <label className="text-xs text-muted-foreground">Make *</label>
+                      <Input
+                        placeholder="Toyota"
+                        value={v.make}
+                        aria-invalid={!!err.make}
+                        className={err.make ? "border-destructive focus-visible:ring-destructive" : ""}
+                        onChange={(e) => updateVehicle(idx, { make: e.target.value })}
+                      />
+                      {err.make && <p className="text-xs text-destructive mt-1">{err.make}</p>}
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">Model</label>
-                      <Input placeholder="Camry" value={v.model} onChange={(e) => updateVehicle(idx, { model: e.target.value })} />
+                      <label className="text-xs text-muted-foreground">Model *</label>
+                      <Input
+                        placeholder="Camry"
+                        value={v.model}
+                        aria-invalid={!!err.model}
+                        className={err.model ? "border-destructive focus-visible:ring-destructive" : ""}
+                        onChange={(e) => updateVehicle(idx, { model: e.target.value })}
+                      />
+                      {err.model && <p className="text-xs text-destructive mt-1">{err.model}</p>}
                     </div>
                   </div>
                   <div>
@@ -515,7 +534,8 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
                     <Input placeholder="Black" value={v.color || ''} onChange={(e) => updateVehicle(idx, { color: e.target.value })} />
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
 
