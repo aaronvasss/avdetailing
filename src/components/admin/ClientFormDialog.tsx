@@ -167,10 +167,31 @@ export function ClientFormDialog({ open, onOpenChange, client, onSuccess }: Clie
 
   const updateVehicle = (idx: number, patch: Partial<ClientVehicle>) => {
     setVehicles((prev) => prev.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
+    setVehicleErrors((prev) => {
+      if (!prev[idx]) return prev;
+      const next = { ...prev };
+      const row = { ...next[idx] };
+      Object.keys(patch).forEach((k) => {
+        if (k === 'year' || k === 'make' || k === 'model') delete (row as any)[k];
+      });
+      if (Object.keys(row).length === 0) delete next[idx];
+      else next[idx] = row;
+      return next;
+    });
   };
   const addVehicle = () => setVehicles((prev) => [...prev, emptyVehicle()]);
-  const removeVehicle = (idx: number) =>
+  const removeVehicle = (idx: number) => {
     setVehicles((prev) => prev.filter((_, i) => i !== idx));
+    setVehicleErrors((prev) => {
+      const next: typeof prev = {};
+      Object.entries(prev).forEach(([k, v]) => {
+        const n = Number(k);
+        if (n < idx) next[n] = v;
+        else if (n > idx) next[n - 1] = v;
+      });
+      return next;
+    });
+  };
 
 
   const normalizePhone = (phone: string): string => {
