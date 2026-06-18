@@ -22,7 +22,7 @@ export const getStripeServiceType = (serviceType: string): string => {
 // Aircraft deposit price ID (fixed $500 deposit)
 export const AIRCRAFT_DEPOSIT_PRICE_ID = 'price_1StmLIDr7pQ6grsf1V0Mc2cl';
 
-// Get Stripe price ID from database
+// Get Stripe price ID via secure edge function (stripe_prices table is admin-only)
 export const getStripePriceIdFromDb = async (
   serviceType: string,
   packageSlug: string,
@@ -30,31 +30,23 @@ export const getStripePriceIdFromDb = async (
 ): Promise<string | null> => {
   const stripeServiceType = getStripeServiceType(serviceType);
   const vehicleCategory = getVehiclePriceCategory(vehicleSubType);
-  
-  // Query stripe_prices table for matching price
-  const { data: prices, error } = await supabase
-    .from('stripe_prices')
-    .select('stripe_price_id, vehicle_type')
-    .eq('service_type', stripeServiceType)
-    .eq('package_name', packageSlug)
-    .eq('is_active', true);
 
-  if (error || !prices || prices.length === 0) {
+  const { data, error } = await supabase.functions.invoke('lookup-stripe-price', {
+    body: {
+      serviceType: stripeServiceType,
+      packageSlug,
+      vehicleCategory,
+    },
+  });
+
+  if (error || !data?.stripe_price_id) {
     console.error('No Stripe price found:', { serviceType, packageSlug, vehicleSubType, error });
     return null;
   }
 
-  // Try exact match first
-  const exactMatch = prices.find(p => p.vehicle_type === vehicleCategory);
-  if (exactMatch) return exactMatch.stripe_price_id;
-
-  // Try car-suv5 fallback
-  const fallback = prices.find(p => p.vehicle_type === 'car-suv5');
-  if (fallback) return fallback.stripe_price_id;
-
-  // Return first available
-  return prices[0]?.stripe_price_id || null;
+  return data.stripe_price_id as string;
 };
+
 
 // Memberships pricing - matched to existing Stripe subscription products
 export const MEMBERSHIP_PRICES: Record<string, string> = {
