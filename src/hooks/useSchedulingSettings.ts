@@ -12,10 +12,10 @@ export interface SchedulingConfig {
 }
 
 const DEFAULT_CONFIG: SchedulingConfig = {
-  startHour: 6,
+  startHour: 0,
   startMinute: 0,
-  endHour: 20,
-  endMinute: 0,
+  endHour: 23,
+  endMinute: 59,
   bufferMinutes: 15,
   defaultDuration: 135,
   slotInterval: 30,

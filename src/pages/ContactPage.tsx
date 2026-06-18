@@ -204,10 +204,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-semibold mb-1">Hours</h3>
                     <p className="text-muted-foreground">
-                      Monday - Saturday: 7am - 7pm
-                    </p>
-                    <p className="text-muted-foreground">
-                      Sunday: By appointment
+                      24/7
                     </p>
                   </div>
                 </div>

@@ -3,10 +3,10 @@ import { format, parse, addMinutes, isBefore, isAfter, areIntervalsOverlapping }
 // ============= SCHEDULING CONSTANTS (defaults — overridden by DB settings) =============
 
 export const WORKING_HOURS = {
-  START_HOUR: 6,
+  START_HOUR: 0,
   START_MINUTE: 0,
-  END_HOUR: 20,
-  END_MINUTE: 0,
+  END_HOUR: 23,
+  END_MINUTE: 59,
 };
 
 export const BUFFER_MINUTES = 15;
@@ -268,5 +268,9 @@ export function formatDuration(minutes: number): string {
  * Gets display-friendly working hours
  */
 export function getWorkingHoursDisplay(config?: SchedulingConfig): string {
-  return `${minutesToTime(getWorkingStartMinutes(config))} - ${minutesToTime(getWorkingEndMinutes(config))}`;
+  const start = getWorkingStartMinutes(config);
+  const end = getWorkingEndMinutes(config);
+  // Full day coverage → show 24/7
+  if (start === 0 && end >= 1439) return "24/7";
+  return `${minutesToTime(start)} - ${minutesToTime(end)}`;
 }

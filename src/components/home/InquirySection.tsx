@@ -48,7 +48,7 @@ export function InquirySection({
                 </div>
                 <div>
                   <p className="font-semibold">Response Time</p>
-                  <p className="text-muted-foreground">Within 24 hours, Mon–Sat</p>
+                  <p className="text-muted-foreground">Within 24 hours, 7 days a week</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
