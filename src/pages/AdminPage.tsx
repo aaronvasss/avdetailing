@@ -17,6 +17,7 @@ import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
 import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
+import { AdminDataAuditTab } from "@/components/admin/AdminDataAuditTab";
 import { Loader2, ShieldAlert, Calendar, Clock, MapPin, Phone, Mail, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
