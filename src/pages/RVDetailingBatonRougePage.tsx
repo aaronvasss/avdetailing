@@ -153,7 +153,7 @@ export default function RVDetailingBatonRougePage() {
                 </a>
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 text-primary" />
-                  Baton Rouge, LA · Mon–Sun 6AM–8PM
+                  Baton Rouge, LA · 24/7
                 </span>
               </div>
             </div>
