@@ -212,6 +212,7 @@ export default function AdminPage() {
       case "messages": return "Customer Messages";
       case "reminders": return "Appointment Reminders";
       case "sms-debug": return "SMS Debug Tools";
+      case "data-audit": return "Data Audit";
       case "settings": return "Business Settings";
       default: return "Admin Dashboard";
     }
