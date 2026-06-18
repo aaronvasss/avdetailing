@@ -243,6 +243,7 @@ export default function AdminPage() {
             {currentTab === "messages" && "View and respond to customer SMS messages"}
             {currentTab === "reminders" && "Send appointment reminders to customers"}
             {currentTab === "sms-debug" && "Test and debug SMS functionality"}
+            {currentTab === "data-audit" && "Cross-check contacts against client records for missing addresses or phone numbers"}
             {currentTab === "settings" && "Manage phone numbers, emails, and business configuration"}
           </p>
         </div>
