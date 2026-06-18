@@ -188,6 +188,8 @@ export default function AdminPage() {
         return <AdminRemindersTab />;
       case "sms-debug":
         return isAdmin ? <AdminSmsDebugTab /> : null;
+      case "data-audit":
+        return isAdmin ? <AdminDataAuditTab /> : null;
       case "settings":
         return isAdmin ? <AdminSettingsTab /> : null;
       default:
