@@ -20,6 +20,7 @@ import {
   Shield,
   ShieldCheck,
   Settings,
+  ClipboardCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
   { id: "messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
   { id: "reminders", label: "Reminders", icon: <Bell className="h-4 w-4" /> },
   { id: "sms-debug", label: "SMS Debug", icon: <TestTube className="h-4 w-4" />, adminOnly: true },
+  { id: "data-audit", label: "Data Audit", icon: <ClipboardCheck className="h-4 w-4" />, adminOnly: true },
   { id: "settings", label: "Settings", icon: <Settings className="h-4 w-4" />, adminOnly: true },
 ];
 
