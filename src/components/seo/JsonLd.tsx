@@ -91,13 +91,13 @@ export function localBusinessSchema() {
     priceRange: "$$",
     currenciesAccepted: "USD",
     paymentAccepted: "Cash, Credit Card, Zelle, Venmo",
-    openingHours: "Mo-Sa 08:00-18:00",
+    openingHours: "Mo-Su 00:00-23:59",
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        opens: "08:00",
-        closes: "18:00",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "00:00",
+        closes: "23:59",
       },
     ],
     sameAs: [
