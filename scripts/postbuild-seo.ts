@@ -158,9 +158,9 @@ const STATIC_ROUTES: RouteMeta[] = [
   },
   {
     path: "/aircraft-detailing-baton-rouge",
-    title: "Aircraft Detailing in Baton Rouge, LA | AV Detailing",
+    title: "Aircraft Detailing in Baton Rouge — AV Detailing",
     description:
-      "Aviation-safe aircraft cleaning & detailing at BTR, LFT, MSY and NEW. Mobile to your hangar — painted aluminum, composites and plexiglass.",
+      "Aviation-safe aircraft detailing at BTR, LFT, MSY & NEW — painted aluminum, composites & plexiglass. Mobile to your hangar.",
   },
   {
     path: "/ceramic-coating-baton-rouge",
