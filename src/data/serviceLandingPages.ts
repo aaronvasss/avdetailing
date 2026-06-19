@@ -468,27 +468,27 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   },
   {
     slug: "pontoon-cleaning-baton-rouge",
-    title: "Pontoon Cleaning in Baton Rouge, LA",
+    title: "Pontoon Boat Detailing in Baton Rouge, LA",
     metaDescription:
-      "Pontoon cleaning in Baton Rouge — aluminum log polishing, vinyl seat restoration, and bimini top cleaning. Mobile on False River and Baton Rouge area lakes.",
+      "Pontoon boat detailing in Baton Rouge — aluminum oxidation removal, log polishing, vinyl seat restoration & UV protection. Mobile on False River, False River, and Baton Rouge area lakes.",
     intro:
-      "Pontoon logs collect heavy oxidation, water staining, and algae buildup that hosing and standard cleaning never remove — especially on Louisiana lakes like False River and the surrounding Baton Rouge area waterways. AV Detailing specializes in full pontoon detailing: aluminum log polishing with marine-grade acid cleaner where appropriate, deck cleaning, vinyl seat restoration and conditioning, bimini top cleaning, and full interior wipe-down. The aluminum log work in particular makes a dramatic visual difference and brings back the original shine. We service pontoons at your slip, lift, storage lot, or driveway. According to {{l1}}, vessel maintenance is a recognized safety practice, and {{l2}} encourages all Louisiana pontoon owners to maintain vessels properly for safe enjoyment of Louisiana's lakes and rivers.",
+      "Detailing a pontoon boat in South Louisiana is a different job than detailing a fiberglass hull — the aluminum logs, painted rails, vinyl seating, and bimini top each need their own products and technique. Heavy oxidation, water-line staining, and algae buildup form fast on aluminum logs sitting in False River, the Mississippi, and Baton Rouge area lakes, and a standard wash will not touch any of it. AV Detailing's pontoon boat detailing service covers full aluminum oxidation removal and log polishing with marine-grade acid cleaner, deck cleaning, vinyl seat shampoo and UV conditioning to prevent cracking, bimini and canvas cleaning, and a full interior wipe-down. The oxidation removal pass is what brings dull, chalky pontoon logs back to a bright, mirror-like shine. We perform pontoon detailing mobile at your lift, slip, storage lot, or driveway. According to {{l1}}, regular vessel maintenance is a recognized safety practice, and {{l2}} encourages all Louisiana pontoon owners to keep vessels in safe, well-maintained condition for Louisiana's lakes and rivers.",
     link1: { text: "the US Coast Guard", url: "https://www.uscgboating.org/" },
     link2: { text: "Louisiana Wildlife & Fisheries", url: "https://www.wlf.louisiana.gov/page/boating-safety" },
     steps: [
-      "Pre-rinse and initial wash of the entire pontoon.",
-      "Aluminum log cleaning and polishing pass.",
-      "Deck scrub and vinyl seat shampoo with conditioning.",
-      "Bimini top and canvas cleaning.",
-      "Final rinse and walkaround inspection.",
+      "Pre-rinse and initial wash of the entire pontoon boat.",
+      "Aluminum oxidation removal with marine-grade acid cleaner, then log polishing for a mirror finish.",
+      "Deck scrub plus vinyl seat shampoo with UV conditioner to prevent cracking and fading.",
+      "Bimini top, canvas, and enclosure cleaning.",
+      "Final rinse, protective wipe-down, and walkaround inspection.",
     ],
     whyChoose: [
-      "Aluminum log polishing specialty — restores original shine.",
-      "Vinyl seat restoration and UV conditioning included.",
-      "Bimini top and canvas cleaning available.",
-      "Mobile at your lift, slip, or storage location.",
+      "Aluminum oxidation removal specialty — restores chalky logs to original shine.",
+      "Vinyl seat restoration with UV conditioner to fight Louisiana sun damage.",
+      "Bimini, canvas, and enclosure cleaning included.",
+      "Mobile pontoon boat detailing at your lift, slip, marina, or storage location.",
     ],
-    serviceType: "Pontoon Cleaning",
+    serviceType: "Pontoon Boat Detailing",
   },
 
   // ===================== AIRCRAFT (3) =====================
