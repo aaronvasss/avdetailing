@@ -208,12 +208,12 @@ export default function CarDetailingBatonRougePage() {
                 <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes</span>
               </div>
               <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Light interior vacuum</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Interior wipe down — dashboard, console, door panels</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Hand wash & dry</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Wheel cleaning</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Tire shine</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Exterior windows cleaned</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Light interior vacuum</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Interior wipe down — dashboard, console, door panels</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Hand wash & dry</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Wheel cleaning</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Tire shine</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Exterior windows cleaned</span></li>
               </ul>
               <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
                 <Link to="/book">Book Now</Link>

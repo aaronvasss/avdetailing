@@ -247,7 +247,7 @@ export default function BoatDetailingBatonRougePage() {
                     <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
                       <Icon className="h-7 w-7" />
                     </div>
-                    <div className="text-4xl md:text-5xl font-bold text-muted-foreground/30 leading-none">
+                    <div className="text-4xl md:text-5xl font-bold text-muted-foreground/60 leading-none">
                       {num}
                     </div>
                   </div>

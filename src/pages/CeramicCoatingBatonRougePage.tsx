@@ -198,11 +198,11 @@ export default function CeramicCoatingBatonRougePage() {
                 <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>3 years of hydrophobic protection</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>UV, water-spot & oxidation resistance</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Mandatory 1-step paint correction prep</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Easier washes — dirt & grime release</span></li>
-                <li className="flex gap-2"><span className="text-white/40 mt-0.5">•</span><span>Deeper, glossier finish</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>3 years of hydrophobic protection</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>UV, water-spot & oxidation resistance</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Mandatory 1-step paint correction prep</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Easier washes — dirt & grime release</span></li>
+                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Deeper, glossier finish</span></li>
               </ul>
               <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
                 <Link to="/book">Book Now</Link>
