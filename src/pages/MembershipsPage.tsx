@@ -286,6 +286,7 @@ const MembershipsPage = () => {
       {/* PLANS */}
       <section className="section-padding">
         <div className="container-custom">
+          <h2 className="sr-only">Available Membership Plans</h2>
           {loading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
