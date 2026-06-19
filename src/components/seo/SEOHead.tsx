@@ -22,7 +22,7 @@ export function SEOHead({
     ? title
     : title.includes("AV Detailing")
       ? title
-      : `${title} | AV Detailing`;
+      : `${title} — AV Detailing`;
   return (
     <Helmet>
       <title>{fullTitle}</title>

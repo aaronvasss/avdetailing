@@ -18,7 +18,7 @@ const Index = () => {
   return (
     <Layout>
       <SEOHead
-        title="Car Detailing Service in Baton Rouge, LA | AV Detailing"
+        title="Car Detailing in Baton Rouge — AV Detailing"
         description="Baton Rouge's #1 mobile detailing for cars, RVs, boats & aircraft. Ceramic coating, paint correction & interior detailing. Call (225) 521-6264."
         path="/"
       />
