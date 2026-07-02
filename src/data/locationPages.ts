@@ -123,7 +123,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Prairieville, LA",
     titleTag: "Car Detailing in Prairieville, LA",
     metaDescription:
-      "Mobile car detailing in Prairieville, LA — serving the Airline Highway and Hwy 73 corridors, Galvez, and newer Ascension Parish subdivisions with System X ceramic coating.",
+      "Mobile car detailing in Prairieville, LA — Airline Hwy & Hwy 73 corridors, Galvez & new Ascension Parish subdivisions. System X ceramic coating.",
     intro:
       "Prairieville is one of the fastest-growing communities in Louisiana, with new subdivisions springing up along Airline Highway and Hwy 73 every year. Most households here have late-model SUVs, trucks, and family sedans — vehicles that owners want to keep looking new for as long as possible. The combination of suburban driving, Hwy 73 construction grime, and Louisiana's UV makes professional detailing a smart long-term investment. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere in Prairieville, with System X ceramic coating, paint correction, and interior detailing. According to {{l1}}, consistent professional care preserves resale value, and {{l2}} encourages residents to keep vehicles well-maintained for safer roads throughout the parish.",
     link1: CR,
