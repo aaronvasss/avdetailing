@@ -49,9 +49,9 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     slug: "car-detailing-highland-road-baton-rouge",
     city: "Highland Road",
     titleH1: "Car Detailing on Highland Road, Baton Rouge, LA",
-    titleTag: "Car Detailing on Highland Road Baton Rouge, LA",
+    titleTag: "Car Detailing on Highland Road, Baton Rouge",
     metaDescription:
-      "Mobile car detailing along Highland Road in Baton Rouge — serving Bocage, Goodwood, Kenilworth, Perkins Road, and the LSU area with System X ceramic coating and paint correction.",
+      "Mobile car detailing along Highland Road, Baton Rouge — Bocage, Goodwood, Kenilworth, Perkins Road & LSU area. System X ceramic coating & correction.",
     intro:
       "Highland Road runs from the LSU campus through the Perkins Road overpass and out to the affluent neighborhoods east of Acadian Thruway — a corridor that sees some of the heaviest daily commuter traffic in Baton Rouge. Residents in Bocage, Goodwood, Kenilworth, and the Perkins Road area often own luxury European sedans, late-model SUVs, and weekend sports cars that deserve professional care without the hassle of dropping off at a shop. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere along the Highland Road corridor. The mix of LSU game-day traffic, construction grime, and Louisiana UV is hard on paint and interiors. According to {{l1}}, regular professional detailing preserves resale value, and {{l2}} encourages residents to keep vehicles maintained for safer roads through the parish.",
     link1: CR,
