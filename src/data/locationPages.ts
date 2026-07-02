@@ -75,7 +75,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Shenandoah, Baton Rouge, LA",
     titleTag: "Car Detailing in Shenandoah Baton Rouge, LA",
     metaDescription:
-      "Mobile car detailing in Shenandoah Baton Rouge — serving Shenandoah Estates, Siegen Lane, Nicholson Drive, and the Mall of Louisiana area with System X ceramic coating.",
+      "Mobile car detailing in Shenandoah, Baton Rouge — Shenandoah Estates, Siegen Lane, Nicholson Dr & Mall of Louisiana. System X ceramic coating.",
     intro:
       "The Shenandoah area off Nicholson Drive and Siegen Lane has grown into one of the busiest family-residential corridors in Baton Rouge, anchored by the Mall of Louisiana and a steady mix of subdivisions, schools, and retail. Most households in Shenandoah Estates and the surrounding streets juggle family SUVs, daily-driver trucks, and commuter sedans — vehicles that rack up miles fast and rarely get a free Saturday for shop detailing. AV Detailing brings a fully equipped mobile rig to your driveway anywhere in the Shenandoah / Siegen / Nicholson area, with System X products and professional paint correction. According to {{l1}}, consistent professional care extends a vehicle's life, and {{l2}} reminds residents that well-maintained vehicles are safer on the parish's busiest roads.",
     link1: CR,
