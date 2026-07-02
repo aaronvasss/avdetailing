@@ -49,9 +49,9 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     slug: "car-detailing-highland-road-baton-rouge",
     city: "Highland Road",
     titleH1: "Car Detailing on Highland Road, Baton Rouge, LA",
-    titleTag: "Car Detailing on Highland Road Baton Rouge, LA",
+    titleTag: "Car Detailing on Highland Road, Baton Rouge",
     metaDescription:
-      "Mobile car detailing along Highland Road in Baton Rouge — serving Bocage, Goodwood, Kenilworth, Perkins Road, and the LSU area with System X ceramic coating and paint correction.",
+      "Mobile car detailing along Highland Road, Baton Rouge — Bocage, Goodwood, Kenilworth, Perkins Road & LSU area. System X ceramic coating & correction.",
     intro:
       "Highland Road runs from the LSU campus through the Perkins Road overpass and out to the affluent neighborhoods east of Acadian Thruway — a corridor that sees some of the heaviest daily commuter traffic in Baton Rouge. Residents in Bocage, Goodwood, Kenilworth, and the Perkins Road area often own luxury European sedans, late-model SUVs, and weekend sports cars that deserve professional care without the hassle of dropping off at a shop. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere along the Highland Road corridor. The mix of LSU game-day traffic, construction grime, and Louisiana UV is hard on paint and interiors. According to {{l1}}, regular professional detailing preserves resale value, and {{l2}} encourages residents to keep vehicles maintained for safer roads through the parish.",
     link1: CR,
@@ -75,7 +75,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Shenandoah, Baton Rouge, LA",
     titleTag: "Car Detailing in Shenandoah Baton Rouge, LA",
     metaDescription:
-      "Mobile car detailing in Shenandoah Baton Rouge — serving Shenandoah Estates, Siegen Lane, Nicholson Drive, and the Mall of Louisiana area with System X ceramic coating.",
+      "Mobile car detailing in Shenandoah, Baton Rouge — Shenandoah Estates, Siegen Lane, Nicholson Dr & Mall of Louisiana. System X ceramic coating.",
     intro:
       "The Shenandoah area off Nicholson Drive and Siegen Lane has grown into one of the busiest family-residential corridors in Baton Rouge, anchored by the Mall of Louisiana and a steady mix of subdivisions, schools, and retail. Most households in Shenandoah Estates and the surrounding streets juggle family SUVs, daily-driver trucks, and commuter sedans — vehicles that rack up miles fast and rarely get a free Saturday for shop detailing. AV Detailing brings a fully equipped mobile rig to your driveway anywhere in the Shenandoah / Siegen / Nicholson area, with System X products and professional paint correction. According to {{l1}}, consistent professional care extends a vehicle's life, and {{l2}} reminds residents that well-maintained vehicles are safer on the parish's busiest roads.",
     link1: CR,
@@ -123,7 +123,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Prairieville, LA",
     titleTag: "Car Detailing in Prairieville, LA",
     metaDescription:
-      "Mobile car detailing in Prairieville, LA — serving the Airline Highway and Hwy 73 corridors, Galvez, and newer Ascension Parish subdivisions with System X ceramic coating.",
+      "Mobile car detailing in Prairieville, LA — Airline Hwy & Hwy 73 corridors, Galvez & new Ascension Parish subdivisions. System X ceramic coating.",
     intro:
       "Prairieville is one of the fastest-growing communities in Louisiana, with new subdivisions springing up along Airline Highway and Hwy 73 every year. Most households here have late-model SUVs, trucks, and family sedans — vehicles that owners want to keep looking new for as long as possible. The combination of suburban driving, Hwy 73 construction grime, and Louisiana's UV makes professional detailing a smart long-term investment. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere in Prairieville, with System X ceramic coating, paint correction, and interior detailing. According to {{l1}}, consistent professional care preserves resale value, and {{l2}} encourages residents to keep vehicles well-maintained for safer roads throughout the parish.",
     link1: CR,
@@ -147,7 +147,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Denham Springs, LA",
     titleTag: "Car Detailing in Denham Springs, LA",
     metaDescription:
-      "Mobile car detailing in Denham Springs, LA — serving the I-12 corridor, Range Avenue, Bass Pro area, Juban Road, and Springfield Road with System X ceramic coating.",
+      "Mobile car detailing in Denham Springs, LA — I-12 corridor, Range Ave, Bass Pro, Juban Rd & Springfield Rd. System X ceramic coating.",
     intro:
       "Denham Springs in Livingston Parish is heavy truck and SUV country — work vehicles, family haulers, and commuter trucks that see real use on the I-12 corridor every day. The combination of highway road grime, lovebugs, and brutal Louisiana sun means vehicles here need serious detailing to stay protected. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Denham Springs — from the I-12 corridor and Range Avenue to the Bass Pro area, Juban Road, and Springfield Road. We work with System X ceramic coating, professional paint correction, and full interior services. According to {{l1}}, professional detailing preserves long-term value, and {{l2}} encourages residents to keep vehicles maintained for safer roads across the region.",
     link1: CR,
@@ -219,7 +219,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Central, LA",
     titleTag: "Car Detailing in Central, LA",
     metaDescription:
-      "Mobile car detailing in Central, LA — serving Greenwell Springs Road, Sullivan Road, Hooper Road, and the Livingston Parish border with System X ceramic coating.",
+      "Mobile car detailing in Central, LA — Greenwell Springs Rd, Sullivan Rd, Hooper Rd & Livingston Parish border. System X ceramic coating.",
     intro:
       "The City of Central is its own incorporated city northeast of Baton Rouge, with a strong community identity and residents who consistently prefer local, mobile service over driving into town. The Greenwell Springs Road corridor anchors the area, with family vehicles and trucks dominating the driveways throughout Central's neighborhoods. The combination of suburban-rural driving, Louisiana sun, and pollen-heavy seasons makes professional detailing a smart investment for vehicles here. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Central, with System X ceramic coating, paint correction, and full interior detailing. According to {{l1}}, consistent professional care preserves vehicle value, and {{l2}} encourages residents across the parish to keep vehicles maintained for safer travel.",
     link1: CR,

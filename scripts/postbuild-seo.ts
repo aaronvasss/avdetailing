@@ -82,7 +82,7 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/",
     title: "Car Detailing Service in Baton Rouge, LA | AV Detailing",
     description:
-      "AV Detailing — Baton Rouge's #1 mobile car detailing service. System X ceramic coating, paint correction, RV, boat & aircraft detailing. We come to you. Call (225) 521-6264.",
+      "Baton Rouge's #1 mobile car detailing. System X ceramic coating, paint correction, RV, boat & aircraft detailing. We come to you — (225) 521-6264.",
   },
   {
     path: "/about",
