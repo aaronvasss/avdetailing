@@ -154,7 +154,7 @@ export default function RatingPage() {
                   "h-12 w-12 transition-colors",
                   (hoveredRating || rating) >= star
                     ? "fill-yellow-400 text-yellow-400"
-                    : "text-muted-foreground/30"
+                    : "text-muted-foreground"
                 )}
               />
             </button>
