@@ -34,7 +34,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "mobile-car-detailing-baton-rouge",
     title: "Mobile Car Detailing in Baton Rouge, LA",
     metaDescription:
-      "Mobile car detailing in Baton Rouge — we come to your home or office with System X products and a fully equipped mobile rig. Serving Highland Road, Shenandoah, Gonzales & more.",
+      "Mobile car detailing in Baton Rouge — System X products, fully equipped rig at your home or office. Highland Rd, Shenandoah, Gonzales & more.",
     intro:
       "Driving across Baton Rouge for a detail appointment means I-10 traffic, Highland Road congestion, and a half day lost waiting at a shop. AV Detailing eliminates that entirely — our mobile car detailing service brings the same professional equipment, System X products, and trained technicians directly to your home, office, or jobsite anywhere in Greater Baton Rouge. We service every neighborhood from Shenandoah and Central to Gonzales and Prairieville with a fully self-contained mobile rig — power, water, and pro-grade tools on board. Louisiana's UV, humidity, and road grime make professional detailing essential, not optional, for keeping paint and interior in good condition. According to {{l1}}, regular professional care preserves long-term vehicle value, and {{l2}} encourages residents to maintain their vehicles for safer roads.",
     link1: { text: "Consumer Reports", url: "https://www.consumerreports.org/cars/car-care/" },
@@ -82,7 +82,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "paint-correction-baton-rouge",
     title: "Paint Correction in Baton Rouge, LA",
     metaDescription:
-      "Multi-stage paint correction in Baton Rouge — remove swirls, water spots, and oxidation. Required prep before System X ceramic coating. 1-step, 2-step, and 3-step pricing.",
+      "Multi-stage paint correction in Baton Rouge — remove swirls, water spots & oxidation. Required prep before System X ceramic coating. 1/2/3-step pricing.",
     intro:
       "Every car driven on Baton Rouge roads accumulates swirl marks, water spots, light scratches, and oxidation — and Louisiana's relentless UV makes the damage faster and more visible than in northern climates. Paint correction is a precise multi-stage machine polishing process that physically removes those defects from your clear coat, restoring a deep, glassy, mirror-like finish. It is also the mandatory prep step before any ceramic coating — applying a coating over swirls locks them in forever. AV Detailing performs 1-step, 2-step, and 3-step corrections depending on paint condition, using professional dual-action and rotary polishers with quality compounds and polishes. According to {{l1}}, well-maintained paint contributes to overall vehicle condition and safety, and {{l2}} notes how Louisiana's environmental conditions accelerate surface wear on parked vehicles.",
     link1: { text: "NHTSA", url: "https://www.nhtsa.gov/vehicle-safety" },
@@ -106,7 +106,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "interior-detailing-baton-rouge",
     title: "Interior Car Detailing in Baton Rouge, LA",
     metaDescription:
-      "Mobile interior car detailing in Baton Rouge — deep vacuum, leather conditioning, fabric shampoo, and odor neutralization. Built for Louisiana heat and humidity.",
+      "Mobile interior car detailing in Baton Rouge — deep vacuum, leather conditioning, fabric shampoo & odor removal. Built for Louisiana heat.",
     intro:
       "Baton Rouge summers regularly push interior cabin temperatures past 140°F — that heat plus Louisiana humidity turns car interiors into a textbook environment for bacteria, mold, and mildew growth, and accelerates leather cracking and dashboard fade. AV Detailing's interior service is a full top-to-bottom reset: deep vacuum of every crevice, hand-cleaning of dash and console, door panels, A/B/C pillars, headliner spot treatment, leather cleaning and conditioning, fabric seat shampooing, carpet extraction, glass, and odor neutralization. We come to your driveway or office and treat the cabin on-site. According to {{l1}}, indoor air quality directly impacts respiratory health, and your vehicle is one of the most-used indoor spaces in your day. {{l2}} also encourages residents to maintain clean, healthy living and travel environments.",
     link1: { text: "the EPA's indoor air quality guidance", url: "https://www.epa.gov/indoor-air-quality-iaq" },
@@ -130,7 +130,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "exterior-detailing-baton-rouge",
     title: "Exterior Car Detailing in Baton Rouge, LA",
     metaDescription:
-      "Mobile exterior car detailing in Baton Rouge — two-bucket hand wash, clay-bar decontamination, and full surface protection. Built for I-10, I-12, and Highland Road grime.",
+      "Mobile exterior car detailing in Baton Rouge — two-bucket hand wash, clay-bar decon & surface protection. Built for I-10, I-12 & Highland Rd grime.",
     intro:
       "Highland Road, I-10, I-12, and Baton Rouge's industrial corridor along the river coat every vehicle with tar, brake dust, road film, industrial fallout, tree sap, and love-bug residue that a regular drive-through wash never fully removes. AV Detailing's exterior detail is a true decontamination service — foam pre-soak, hand wash with the two-bucket method, clay-bar decontamination to pull embedded contaminants from the clear coat, iron remover treatment, wheel and tire deep clean, glass, and a finishing sealant or wax. Our mobile rig handles it at your home, office, or jobsite. According to {{l1}}, runoff from urban driving surfaces deposits significant contamination, and {{l2}} actively monitors air and surface contaminants across South Louisiana that settle on parked vehicles.",
     link1: { text: "the EPA", url: "https://www.epa.gov/nps/nonpoint-source-urban-areas" },
@@ -202,7 +202,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "pet-hair-removal-baton-rouge",
     title: "Pet Hair Removal in Baton Rouge, LA",
     metaDescription:
-      "Professional pet hair removal in Baton Rouge — specialized extraction tools and HEPA vacuum for carpet, upholstery, and crevices. Mobile across Greater Baton Rouge.",
+      "Professional pet hair removal in Baton Rouge — specialized extraction & HEPA vacuum for carpet, upholstery & crevices. Mobile service.",
     intro:
       "Pet hair embeds deep into carpet fibers and seat upholstery and resists ordinary vacuuming — and the static-heavy environment of a hot Louisiana vehicle interior makes the problem dramatically worse. Standard vacuums skim the top layer; the embedded hair stays put. AV Detailing uses specialized rubber extraction tools, dedicated pet-hair brushes, and powerful HEPA vacuums to physically lift hair out of every interior surface — seats, carpet, headliner, trunk, cargo areas, and tight crevices around seat tracks. We also follow with a full interior wipe-down and air-quality reset to clear allergens. Pet hair isn't just a cosmetic issue. According to {{l1}}, pet dander is a leading indoor allergen, and {{l2}} encourages residents to maintain healthy indoor environments for themselves and their families.",
     link1: { text: "the American Lung Association", url: "https://www.lung.org/clean-air/indoor-air" },
@@ -252,7 +252,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "mobile-rv-detailing-baton-rouge",
     title: "Mobile RV Detailing in Baton Rouge, LA",
     metaDescription:
-      "Mobile RV detailing in Baton Rouge — Class A, B, C, fifth wheels, and travel trailers serviced on-site. No hauling required. Denham Springs, Walker, Gonzales & more.",
+      "Mobile RV detailing in Baton Rouge — Class A/B/C, fifth wheels & travel trailers on-site. No hauling. Denham Springs, Walker, Gonzales & more.",
     intro:
       "Hauling a 30-foot Class A motorhome or 40-foot fifth wheel across Baton Rouge to a detail shop isn't practical — and most shops don't have the space anyway. AV Detailing brings the entire detailing operation directly to your RV, whether it's parked at your home, an off-site storage lot in Denham Springs, Walker, or Gonzales, or a campground in the Greater Baton Rouge area. We service every class: Class A diesel pushers, Class B vans, Class C motorhomes, fifth wheels, travel trailers, toy haulers, and pop-ups. Louisiana's UV, humidity, and rainfall punish RV finishes year-round and require regular professional care. According to {{l1}}, professional cleaning preserves an RV's structural integrity and resale value, and {{l2}} regulates the surface-wash and runoff standards we follow.",
     link1: { text: "the RV Industry Association", url: "https://www.rvia.org/" },
@@ -276,7 +276,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "rv-oxidation-removal-baton-rouge",
     title: "RV Oxidation Removal in Baton Rouge, LA",
     metaDescription:
-      "RV oxidation removal in Baton Rouge — multi-stage compounding and machine polishing to restore chalky, faded fiberglass sidewalls. Mobile service across Louisiana.",
+      "RV oxidation removal in Baton Rouge — multi-stage compounding & polishing to restore chalky, faded fiberglass sidewalls. Mobile across Louisiana.",
     intro:
       "Chalky, dull, faded fiberglass sidewalls are the most visible sign of UV damage on an RV — and Louisiana's UV exposure does it faster than almost any other state in the country. Left untreated, oxidation eats into the gelcoat permanently and can knock thousands off resale value. AV Detailing's RV oxidation removal is a true multi-stage restoration: heavy compounding to cut through the oxidized layer, machine polishing to restore gloss, and a protective sealant or System X ceramic coating to prevent it from coming back. The transformation between before and after on a heavily oxidized rig is dramatic. According to {{l1}}, surface restoration directly protects long-term RV value, and {{l2}} encourages responsible cleaning practices for runoff and surface contaminants across South Louisiana.",
     link1: { text: "the RV Industry Association", url: "https://www.rvia.org/" },
@@ -324,7 +324,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "rv-ceramic-coating-baton-rouge",
     title: "RV Ceramic Coating in Baton Rouge, LA",
     metaDescription:
-      "System X RV ceramic coating in Baton Rouge — hydrophobic protection against Louisiana UV, oxidation, black streaks, and water spots. Mobile service across the region.",
+      "System X RV ceramic coating in Baton Rouge — hydrophobic protection from UV, oxidation, black streaks & water spots. Mobile service.",
     intro:
       "An RV represents a significant investment — often comparable to a second home — and Louisiana's climate is one of the harshest in the country for protecting that investment. UV oxidizes gelcoat, humidity drives black streaks, and rainfall leaves hard-water spots on sidewalls and roof. AV Detailing applies System X ceramic coating designed for large fiberglass and gelcoat surfaces. The coating creates a hard hydrophobic layer that defends against UV, oxidation, black streaks, water spots, bird droppings, and road grime, and dramatically reduces cleaning time after every trip. Prep is critical: we perform full oxidation removal and polish before coating, because skipping that step locks defects in permanently. According to {{l1}}, regular surface protection is essential to RV longevity, and {{l2}} promotes responsible surface care across Louisiana.",
     link1: { text: "the RV Industry Association", url: "https://www.rvia.org/" },
@@ -422,7 +422,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "gelcoat-restoration-baton-rouge",
     title: "Gelcoat Restoration in Baton Rouge, LA",
     metaDescription:
-      "Gelcoat restoration in Baton Rouge — multi-stage compounding and machine polishing to reverse Louisiana UV oxidation on aged boats. Mobile at your marina or storage.",
+      "Gelcoat restoration in Baton Rouge — multi-stage compounding & polishing to reverse UV oxidation on aged boats. Mobile at your marina or storage.",
     intro:
       "Oxidized, chalky, faded gelcoat is the most common cosmetic problem on Louisiana boats over five years old — the state's UV index and humidity work fast on exposed marine surfaces. Once oxidation reaches the gelcoat layer, only proper compounding and machine polishing will reverse it; standard waxing won't touch heavy oxidation. AV Detailing's gelcoat restoration is a multi-stage process: heavy compounding to remove the oxidized layer, machine polishing to restore gloss and color depth, and a sealant or System X coating to lock in protection. The visual transformation on a chalky 10-year-old hull is often dramatic. According to {{l1}}, regular hull and surface maintenance preserves vessel safety and value, and {{l2}} encourages Louisiana boaters to keep their vessels in well-maintained condition.",
     link1: { text: "the US Coast Guard", url: "https://www.uscgboating.org/" },
@@ -446,7 +446,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "hull-cleaning-baton-rouge",
     title: "Boat Hull Cleaning in Baton Rouge, LA",
     metaDescription:
-      "Boat hull cleaning in Baton Rouge — waterline scum, algae, and hard-water deposit removal on fiberglass, aluminum, and painted hulls. Mobile at your marina or storage.",
+      "Boat hull cleaning in Baton Rouge — waterline scum, algae & hard-water deposit removal on fiberglass, aluminum & painted hulls. Mobile service.",
     intro:
       "Every outing on Baton Rouge area rivers and lakes leaves your hull coated in waterline scum, algae, hard-water mineral deposits, and oxidation that standard hosing and rinsing cannot remove. Left in place, those deposits stain permanently and degrade hull surface integrity. AV Detailing's hull cleaning service uses marine-safe cleaners, dedicated hull cleaner for hard-water stains, and methodical scrubbing tailored to your hull type — fiberglass, aluminum, or painted. We address the waterline, transom, hull sides, and below-rail surfaces. The result is a hull that looks new and a vessel that performs better in the water. According to {{l1}}, regular hull maintenance affects both safety and performance, and {{l2}} encourages Louisiana boaters to maintain their vessels in safe, well-kept condition.",
     link1: { text: "the US Coast Guard", url: "https://www.uscgboating.org/" },
@@ -470,7 +470,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "pontoon-cleaning-baton-rouge",
     title: "Pontoon Boat Detailing in Baton Rouge, LA",
     metaDescription:
-      "Pontoon boat detailing in Baton Rouge — aluminum oxidation removal, log polishing, vinyl seat restoration & UV protection. Mobile on False River, False River, and Baton Rouge area lakes.",
+      "Pontoon boat detailing in Baton Rouge — aluminum oxidation removal, log polishing, vinyl seat restoration & UV protection. Mobile on False River & area lakes.",
     intro:
       "Detailing a pontoon boat in South Louisiana is a different job than detailing a fiberglass hull — the aluminum logs, painted rails, vinyl seating, and bimini top each need their own products and technique. Heavy oxidation, water-line staining, and algae buildup form fast on aluminum logs sitting in False River, the Mississippi, and Baton Rouge area lakes, and a standard wash will not touch any of it. AV Detailing's pontoon boat detailing service covers full aluminum oxidation removal and log polishing with marine-grade acid cleaner, deck cleaning, vinyl seat shampoo and UV conditioning to prevent cracking, bimini and canvas cleaning, and a full interior wipe-down. The oxidation removal pass is what brings dull, chalky pontoon logs back to a bright, mirror-like shine. We perform pontoon detailing mobile at your lift, slip, storage lot, or driveway. According to {{l1}}, regular vessel maintenance is a recognized safety practice, and {{l2}} encourages all Louisiana pontoon owners to keep vessels in safe, well-maintained condition for Louisiana's lakes and rivers.",
     link1: { text: "the US Coast Guard", url: "https://www.uscgboating.org/" },
@@ -544,7 +544,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "aircraft-paint-protection-baton-rouge",
     title: "Aircraft Paint Protection Baton Rouge",
     metaDescription:
-      "Aircraft paint protection in Baton Rouge — aviation sealants and protective coatings that slow corrosion and protect resale value. Service at BTR, LFT, MSY, NEW.",
+      "Aircraft paint protection in Baton Rouge — aviation sealants & coatings that slow corrosion and protect resale value. BTR, LFT, MSY & NEW.",
     intro:
       "South Louisiana's UV, humidity, and coastal salt air degrade aircraft paint and aluminum surfaces noticeably faster than inland states or drier climates — and aircraft repaints are extremely expensive, so prevention matters. AV Detailing's aircraft paint protection service applies professional-grade aviation sealants and protective coatings designed for painted aluminum and composite surfaces. The result is a slick, hydrophobic protective layer that slows corrosion, repels environmental contamination, dramatically reduces cleaning time between services, and helps preserve your aircraft's long-term value at resale. All products are aviation-approved. We perform paint protection at hangar locations across BTR, LFT, MSY, and NEW. According to {{l1}}, surface care is a recognized component of aircraft maintenance, and {{l2}} hosts most of our Baton Rouge based fleet clients.",
     link1: { text: "the FAA", url: "https://www.faa.gov/aircraft" },
