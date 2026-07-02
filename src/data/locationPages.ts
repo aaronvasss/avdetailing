@@ -219,7 +219,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Central, LA",
     titleTag: "Car Detailing in Central, LA",
     metaDescription:
-      "Mobile car detailing in Central, LA — serving Greenwell Springs Road, Sullivan Road, Hooper Road, and the Livingston Parish border with System X ceramic coating.",
+      "Mobile car detailing in Central, LA — Greenwell Springs Rd, Sullivan Rd, Hooper Rd & Livingston Parish border. System X ceramic coating.",
     intro:
       "The City of Central is its own incorporated city northeast of Baton Rouge, with a strong community identity and residents who consistently prefer local, mobile service over driving into town. The Greenwell Springs Road corridor anchors the area, with family vehicles and trucks dominating the driveways throughout Central's neighborhoods. The combination of suburban-rural driving, Louisiana sun, and pollen-heavy seasons makes professional detailing a smart investment for vehicles here. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Central, with System X ceramic coating, paint correction, and full interior detailing. According to {{l1}}, consistent professional care preserves vehicle value, and {{l2}} encourages residents across the parish to keep vehicles maintained for safer travel.",
     link1: CR,
