@@ -147,7 +147,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Denham Springs, LA",
     titleTag: "Car Detailing in Denham Springs, LA",
     metaDescription:
-      "Mobile car detailing in Denham Springs, LA — serving the I-12 corridor, Range Avenue, Bass Pro area, Juban Road, and Springfield Road with System X ceramic coating.",
+      "Mobile car detailing in Denham Springs, LA — I-12 corridor, Range Ave, Bass Pro, Juban Rd & Springfield Rd. System X ceramic coating.",
     intro:
       "Denham Springs in Livingston Parish is heavy truck and SUV country — work vehicles, family haulers, and commuter trucks that see real use on the I-12 corridor every day. The combination of highway road grime, lovebugs, and brutal Louisiana sun means vehicles here need serious detailing to stay protected. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Denham Springs — from the I-12 corridor and Range Avenue to the Bass Pro area, Juban Road, and Springfield Road. We work with System X ceramic coating, professional paint correction, and full interior services. According to {{l1}}, professional detailing preserves long-term value, and {{l2}} encourages residents to keep vehicles maintained for safer roads across the region.",
     link1: CR,
