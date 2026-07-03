@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import {
   Plus,
   CalendarDays,
 } from "lucide-react";
-import { format, isAfter, startOfToday, parse as parseDate } from "date-fns";
+import { format, isAfter, startOfToday, parse as parseDate, subDays, addDays } from "date-fns";
 
 function formatTime12h(time: string): string {
   if (!time) return "";
@@ -43,12 +43,9 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
+  const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date } | null>(null);
 
-  useEffect(() => {
-    fetchBookings();
-  }, [userId]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     let query = supabase
       .from("bookings")
       .select(`
@@ -86,18 +83,38 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true });
 
-    // Admins see ALL bookings, regular users see only their own
     if (!isAdmin) {
+      // Customers only see their own bookings — small dataset, no window needed
       query = query.eq("user_id", userId);
+    } else {
+      // Admins: constrain by date window to avoid loading the entire history
+      let start: Date;
+      let end: Date;
+      if (activeView === "calendar" && calendarRange) {
+        // Load only the visible calendar range (month/week) with small padding
+        start = subDays(calendarRange.start, 1);
+        end = addDays(calendarRange.end, 1);
+      } else {
+        // List view: last 60 days + next 180 days
+        const today = startOfToday();
+        start = subDays(today, 60);
+        end = addDays(today, 180);
+      }
+      query = query
+        .gte("scheduled_date", format(start, "yyyy-MM-dd"))
+        .lte("scheduled_date", format(end, "yyyy-MM-dd"));
     }
 
-    const { data, error } = await query;
-
-    if (data) {
-      setBookings(data);
-    }
+    setLoading(true);
+    const { data } = await query;
+    if (data) setBookings(data);
     setLoading(false);
-  };
+  }, [userId, isAdmin, activeView, calendarRange]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
 
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -234,6 +251,16 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         <AppointmentsCalendarView
           bookings={bookings}
           onSelectBooking={handleViewDetails}
+          onVisibleRangeChange={
+            isAdmin
+              ? (start, end) =>
+                  setCalendarRange((prev) =>
+                    prev && prev.start.getTime() === start.getTime() && prev.end.getTime() === end.getTime()
+                      ? prev
+                      : { start, end }
+                  )
+              : undefined
+          }
         />
       )}
 

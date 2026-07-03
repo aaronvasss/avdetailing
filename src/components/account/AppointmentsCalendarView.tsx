@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { parse as parseDate, format as formatDate } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ import { Booking } from "./AppointmentCard";
 interface AppointmentsCalendarViewProps {
   bookings: Booking[];
   onSelectBooking: (booking: Booking) => void;
+  onVisibleRangeChange?: (start: Date, end: Date) => void;
 }
 
 type ViewMode = "month" | "week";
@@ -47,6 +48,7 @@ const statusColors: Record<string, string> = {
 export function AppointmentsCalendarView({
   bookings,
   onSelectBooking,
+  onVisibleRangeChange,
 }: AppointmentsCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
@@ -85,6 +87,12 @@ export function AppointmentsCalendarView({
       return eachDayOfInterval({ start: weekStart, end: weekEnd });
     }
   }, [currentDate, viewMode]);
+
+  useEffect(() => {
+    if (onVisibleRangeChange && calendarDays.length > 0) {
+      onVisibleRangeChange(calendarDays[0], calendarDays[calendarDays.length - 1]);
+    }
+  }, [calendarDays, onVisibleRangeChange]);
 
   const navigatePrev = () => {
     setCurrentDate(
