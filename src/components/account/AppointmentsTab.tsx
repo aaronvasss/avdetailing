@@ -38,6 +38,7 @@ interface AppointmentsTabProps {
 export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list" }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -109,6 +110,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     const { data } = await query;
     if (data) setBookings(data);
     setLoading(false);
+    setInitialLoaded(true);
   }, [userId, isAdmin, activeView, calendarRange]);
 
   useEffect(() => {
@@ -138,7 +140,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     setSelectedBooking(null);
   };
 
-  if (loading) {
+  if (loading && !initialLoaded) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
