@@ -82,9 +82,8 @@ export function useAuth(): AuthState {
       (_event, currentSession) => applySession(currentSession)
     );
 
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      applySession(initialSession);
-    });
+    // onAuthStateChange fires INITIAL_SESSION on subscribe.
+
 
     return () => {
       mounted = false;

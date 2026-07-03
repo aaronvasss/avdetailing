@@ -48,16 +48,14 @@ export function useAdminCheck() {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      applySession(session?.user ?? null);
-    });
+    // onAuthStateChange fires INITIAL_SESSION on subscribe.
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
 
   return { isAdmin, isLoading, user };
 }
