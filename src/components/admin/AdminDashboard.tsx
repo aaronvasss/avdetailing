@@ -1,26 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { AdminSidebar, type AdminSection } from "@/components/admin/AdminSidebar";
 import { AdminBookingModal } from "@/components/account/AdminBookingModal";
-
-// Content sections (lazy-loaded via existing components)
-import { AppointmentsTab } from "@/components/account/AppointmentsTab";
-import { AccountAnalyticsTab } from "@/components/account/AccountAnalyticsTab";
-import { MembershipsTab } from "@/components/account/MembershipsTab";
-import { ProfileTab } from "@/components/account/ProfileTab";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
-import { AdminClientsTab } from "@/components/admin/AdminClientsTab";
-import { AdminMembershipsTab } from "@/components/admin/AdminMembershipsTab";
-import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
-import { AdminTeamChatTab } from "@/components/admin/AdminTeamChatTab";
-import { AdminTeamTrackingTab } from "@/components/admin/AdminTeamTrackingTab";
+
+// Lazy-load heavy admin sections so switching tabs only loads what's needed
+const AppointmentsTab = lazy(() =>
+  import("@/components/account/AppointmentsTab").then((m) => ({ default: m.AppointmentsTab }))
+);
+const AccountAnalyticsTab = lazy(() =>
+  import("@/components/account/AccountAnalyticsTab").then((m) => ({ default: m.AccountAnalyticsTab }))
+);
+const AdminClientsTab = lazy(() =>
+  import("@/components/admin/AdminClientsTab").then((m) => ({ default: m.AdminClientsTab }))
+);
+const AdminMembershipsTab = lazy(() =>
+  import("@/components/admin/AdminMembershipsTab").then((m) => ({ default: m.AdminMembershipsTab }))
+);
+const AdminSettingsTab = lazy(() =>
+  import("@/components/admin/AdminSettingsTab").then((m) => ({ default: m.AdminSettingsTab }))
+);
+const AdminTeamChatTab = lazy(() =>
+  import("@/components/admin/AdminTeamChatTab").then((m) => ({ default: m.AdminTeamChatTab }))
+);
+const AdminTeamTrackingTab = lazy(() =>
+  import("@/components/admin/AdminTeamTrackingTab").then((m) => ({ default: m.AdminTeamTrackingTab }))
+);
 
 interface AdminDashboardProps {
   user: any;
@@ -149,7 +161,15 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
         {/* Content */}
         <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-background/50">
           <div className="p-4 sm:p-6">
-            {renderContent()}
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-24 text-muted-foreground">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              }
+            >
+              {renderContent()}
+            </Suspense>
           </div>
         </main>
       </div>
