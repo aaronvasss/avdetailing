@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "admin" | "staff" | "customer" | null;
@@ -15,67 +15,82 @@ export function useRoleCheck(): RoleCheckResult {
   const [role, setRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const checkRole = async () => {
-      setIsLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      if (!user) {
-        setRole(null);
-        setIsLoading(false);
-        return;
-      }
+    let mounted = true;
 
-      // Check for admin role first
+    const loadRole = async (userId: string) => {
       const { data: adminRole } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("role", "admin")
         .maybeSingle();
-
+      if (!mounted) return;
       if (adminRole) {
         setRole("admin");
         setIsLoading(false);
         return;
       }
 
-      // Check for staff role
       const { data: staffRole } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("role", "staff")
         .maybeSingle();
-
-      if (staffRole) {
-        setRole("staff");
-        setIsLoading(false);
-        return;
-      }
-
-      // Default to customer
-      setRole("customer");
+      if (!mounted) return;
+      setRole(staffRole ? "staff" : "customer");
       setIsLoading(false);
     };
 
-    checkRole();
+    const applySession = (sessionUser: any | null) => {
+      const newId = sessionUser?.id ?? null;
+      setUser(sessionUser);
+      if (newId === lastUserIdRef.current) {
+        // Same user (or still signed out) — no need to re-query roles on
+        // token refresh / other noisy auth events.
+        if (!newId) setIsLoading(false);
+        return;
+      }
+      lastUserIdRef.current = newId;
+      if (!newId) {
+        setRole(null);
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      // Defer the DB call to avoid deadlocks inside the auth callback.
+      setTimeout(() => {
+        if (mounted) loadRole(newId);
+      }, 0);
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      checkRole();
+    // Listener first, then initial session — avoids races.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!mounted) return;
+        applySession(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      applySession(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  return { 
-    role, 
-    isAdmin: role === "admin", 
+  return {
+    role,
+    isAdmin: role === "admin",
     isStaff: role === "admin" || role === "staff",
-    isLoading, 
-    user 
+    isLoading,
+    user,
   };
 }

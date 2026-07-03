@@ -43,61 +43,55 @@ export function useAuth(): AuthState {
 
   useEffect(() => {
     let mounted = true;
+    let lastUserId: string | null = null;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        if (!mounted) return;
-
-        if (event === "SIGNED_OUT" || !currentSession) {
-          setUser(null);
-          setSession(null);
-          setRole(null);
-          setLoading(false);
-          return;
-        }
-
-        setSession(currentSession);
-        setUser(currentSession.user);
-
-        // Fetch role with setTimeout to avoid Supabase deadlock
-        setTimeout(async () => {
-          if (!mounted) return;
-          const userRole = await fetchRole(currentSession.user.id);
-          if (mounted) {
-            setRole(userRole);
-            setLoading(false);
-          }
-        }, 0);
-      }
-    );
-
-    // THEN check initial session
-    const initSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
+    const applySession = (currentSession: Session | null) => {
       if (!mounted) return;
 
-      if (!initialSession) {
+      if (!currentSession) {
+        lastUserId = null;
+        setSession(null);
+        setUser(null);
+        setRole(null);
         setLoading(false);
         return;
       }
 
-      setSession(initialSession);
-      setUser(initialSession.user);
-      const userRole = await fetchRole(initialSession.user.id);
-      if (mounted) {
-        setRole(userRole);
+      setSession(currentSession);
+      setUser(currentSession.user);
+
+      // Only refetch role when the user actually changes — token refreshes
+      // should not re-query user_roles.
+      if (currentSession.user.id === lastUserId) {
         setLoading(false);
+        return;
       }
+      lastUserId = currentSession.user.id;
+
+      setTimeout(async () => {
+        if (!mounted) return;
+        const userRole = await fetchRole(currentSession.user.id);
+        if (mounted) {
+          setRole(userRole);
+          setLoading(false);
+        }
+      }, 0);
     };
 
-    initSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, currentSession) => applySession(currentSession)
+    );
+
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      applySession(initialSession);
+    });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, [fetchRole]);
+
 
   return {
     user,
