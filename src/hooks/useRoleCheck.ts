@@ -75,12 +75,14 @@ export function useRoleCheck(): RoleCheckResult {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      applySession(session?.user ?? null);
-    });
+    // onAuthStateChange fires INITIAL_SESSION on subscribe, so no extra
+    // getSession() call is needed (it would race with the role fetch).
 
     return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+
       mounted = false;
       subscription.unsubscribe();
     };
