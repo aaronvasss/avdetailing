@@ -82,11 +82,8 @@ export function useRoleCheck(): RoleCheckResult {
       mounted = false;
       subscription.unsubscribe();
     };
-
-      mounted = false;
-      subscription.unsubscribe();
-    };
   }, []);
+
 
   return {
     role,

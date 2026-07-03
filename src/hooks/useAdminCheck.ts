@@ -54,11 +54,8 @@ export function useAdminCheck() {
       mounted = false;
       subscription.unsubscribe();
     };
-
-      mounted = false;
-      subscription.unsubscribe();
-    };
   }, []);
+
 
   return { isAdmin, isLoading, user };
 }
