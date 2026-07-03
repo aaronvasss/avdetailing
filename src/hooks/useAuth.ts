@@ -142,8 +142,8 @@ function ensureAuthSubscription() {
 }
 
 function subscribe(listener: () => void) {
-  ensureAuthSubscription();
   listeners.add(listener);
+  ensureAuthSubscription();
   return () => {
     listeners.delete(listener);
   };
