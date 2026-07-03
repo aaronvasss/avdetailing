@@ -26,6 +26,7 @@ import {
   formatDuration
 } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
+import { useAuth } from "@/hooks/useAuth";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
 import { TipSection } from "@/components/booking/TipSection";
@@ -265,6 +266,7 @@ const toDbTime = (input: string): string | null => {
 
 const BookingPage = () => {
   const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [serviceType, setServiceType] = useState<string>("");
   const [vehicleSubType, setVehicleSubType] = useState<string>("");
@@ -456,7 +458,6 @@ const BookingPage = () => {
 
     // Fetch available referral credits for logged-in user
     const fetchCredits = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: rewards } = await supabase
         .from("referral_rewards")
@@ -470,7 +471,7 @@ const BookingPage = () => {
       }
     };
     fetchCredits();
-  }, []);
+  }, [user]);
 
   const validateReferralCode = async (code: string) => {
     if (!code.trim()) {
@@ -621,8 +622,6 @@ const BookingPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
       if (!selectedDate) {
         toast.error("Please select a date");
         return;

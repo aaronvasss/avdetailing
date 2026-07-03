@@ -16,7 +16,7 @@ import {
   Settings,
   Gift,
 } from "lucide-react";
-import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useAuth } from "@/hooks/useAuth";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { VehiclesTab } from "@/components/account/VehiclesTab";
 import { AddressesTab } from "@/components/account/AddressesTab";
@@ -28,59 +28,50 @@ import { SEOHead } from "@/components/seo/SEOHead";
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, role, isAdmin, loading: authLoading } = useAuth();
+  const [profileLoading, setProfileLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
-  const { isAdmin, isLoading: adminLoading } = useAdminCheck();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth?redirect=/account", { replace: true });
+      return;
+    }
+    if (role === "staff") {
+      navigate("/worker", { replace: true });
+    }
+  }, [authLoading, navigate, role, user]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProfile = async () => {
+      if (!user) {
+        setProfileName(null);
+        setProfileLoading(false);
         return;
       }
 
-      // Redirect staff-only workers to /worker
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id);
-      const roleSet = new Set((roles || []).map((r) => r.role));
-      if (roleSet.has("staff") && !roleSet.has("admin")) {
-        navigate("/worker", { replace: true });
-        return;
-      }
-
-      setUser(session.user);
-      
+      setProfileLoading(true);
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name")
-        .eq("user_id", session.user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
-      
-      if (profile?.full_name) {
-        setProfileName(profile.full_name);
+
+      if (!cancelled) {
+        setProfileName(profile?.full_name || null);
+        setProfileLoading(false);
       }
-      
-      setLoading(false);
     };
 
-    checkAuth();
+    loadProfile();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "SIGNED_OUT") {
-          navigate("/auth");
-        } else if (session) {
-          setUser(session.user);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -88,7 +79,7 @@ export default function AccountPage() {
     navigate("/");
   };
 
-  if (loading || adminLoading) {
+  if (authLoading || profileLoading) {
     return (
       <Layout>
         <div className="min-h-[60vh] flex items-center justify-center">

@@ -28,6 +28,7 @@ let initialized = false;
 let lastUserId: string | null = null;
 let roleRequestId = 0;
 let authSubscription: { unsubscribe: () => void } | null = null;
+let refreshingSession = false;
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -101,6 +102,19 @@ function applySession(currentSession: Session | null) {
   }, 0);
 }
 
+async function refreshSessionSnapshot() {
+  if (refreshingSession) return;
+  refreshingSession = true;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    applySession(session);
+  } finally {
+    refreshingSession = false;
+  }
+}
+
 function ensureAuthSubscription() {
   if (initialized) return;
   initialized = true;
@@ -112,6 +126,19 @@ function ensureAuthSubscription() {
   });
 
   authSubscription = subscription;
+
+  // In the Lovable preview iframe, session storage can hydrate just before or
+  // just after React mounts. The auth event is still primary, but this snapshot
+  // keeps the rendered login state in sync if that initial event is missed.
+  void refreshSessionSnapshot();
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("focus", refreshSessionSnapshot);
+    window.addEventListener("pageshow", refreshSessionSnapshot);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") void refreshSessionSnapshot();
+    });
+  }
 }
 
 function subscribe(listener: () => void) {
@@ -119,12 +146,6 @@ function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
-    if (listeners.size === 0) {
-      authSubscription?.unsubscribe();
-      authSubscription = null;
-      initialized = false;
-      authState = { ...authState, loading: true };
-    }
   };
 }
 
