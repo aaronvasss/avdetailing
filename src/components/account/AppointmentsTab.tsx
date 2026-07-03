@@ -140,7 +140,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     setSelectedBooking(null);
   };
 
-  if (loading) {
+  if (loading && !initialLoaded) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
