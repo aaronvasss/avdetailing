@@ -215,29 +215,33 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
       });
     }
 
-    const bookingsWithProfiles = await Promise.all(
-      (data || []).map(async (booking: any) => {
-        let profiles = null;
-        if (booking.user_id) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, phone")
-            .eq("user_id", booking.user_id)
-            .maybeSingle();
-          profiles = profile;
-        }
-        const pkg = booking.service_id && booking.vehicle_type
-          ? packageMap[`${booking.service_id}|${booking.vehicle_type}`]
-          : null;
-        return {
-          ...booking,
-          profiles,
-          worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
-          package_name: pkg?.name || null,
-          package_price: pkg?.price ?? null,
-        };
-      })
+    // Batch-fetch all customer profiles in a single query (fixes N+1)
+    const userIds = Array.from(
+      new Set((data || []).map((b: any) => b.user_id).filter(Boolean))
     );
+    const profileMap: Record<string, { full_name: string; phone: string }> = {};
+    if (userIds.length > 0) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", userIds);
+      (profs || []).forEach((p: any) => {
+        profileMap[p.user_id] = { full_name: p.full_name, phone: p.phone };
+      });
+    }
+
+    const bookingsWithProfiles = (data || []).map((booking: any) => {
+      const pkg = booking.service_id && booking.vehicle_type
+        ? packageMap[`${booking.service_id}|${booking.vehicle_type}`]
+        : null;
+      return {
+        ...booking,
+        profiles: booking.user_id ? profileMap[booking.user_id] || null : null,
+        worker_name: booking.assigned_worker_id ? workerNameMap[booking.assigned_worker_id] || null : null,
+        package_name: pkg?.name || null,
+        package_price: pkg?.price ?? null,
+      };
+    });
 
     setBookings(bookingsWithProfiles);
     setLoading(false);
