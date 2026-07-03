@@ -22,6 +22,19 @@ export const getStripeServiceType = (serviceType: string): string => {
 // Aircraft deposit price ID (fixed $500 deposit)
 export const AIRCRAFT_DEPOSIT_PRICE_ID = 'price_1StmLIDr7pQ6grsf1V0Mc2cl';
 
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} timed out`)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 // Get Stripe price ID via secure edge function (stripe_prices table is admin-only)
 export const getStripePriceIdFromDb = async (
   serviceType: string,
@@ -62,17 +75,21 @@ export const createBookingCheckout = async (
   metadata?: Record<string, string>,
   addOnIds?: string[]
 ): Promise<{ url: string; session_id: string }> => {
-  const { data, error } = await supabase.functions.invoke('create-checkout', {
-    body: {
-      booking_id: bookingId,
-      price_id: priceId || undefined, // Backend will look up from database if not provided
-      mode: 'payment',
-      success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
-      cancel_url: `${window.location.origin}/booking/canceled?booking_id=${bookingId}`,
-      metadata,
-      add_on_ids: addOnIds,
-    },
-  });
+  const { data, error } = await withTimeout(
+    supabase.functions.invoke('create-checkout', {
+      body: {
+        booking_id: bookingId,
+        price_id: priceId || undefined, // Backend will look up from database if not provided
+        mode: 'payment',
+        success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
+        cancel_url: `${window.location.origin}/booking/canceled?booking_id=${bookingId}`,
+        metadata,
+        add_on_ids: addOnIds,
+      },
+    }),
+    25000,
+    'Payment checkout',
+  );
 
   if (error) throw new Error(error.message);
   if (!data?.url) throw new Error('No checkout URL returned');

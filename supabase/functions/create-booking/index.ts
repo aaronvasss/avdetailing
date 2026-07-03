@@ -30,6 +30,16 @@ function getClientIp(req: Request): string {
   return req.headers.get("x-real-ip") || "unknown";
 }
 
+const runAfterResponse = (task: Promise<unknown>) => {
+  const edgeRuntime = (globalThis as any).EdgeRuntime;
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(task);
+    return;
+  }
+
+  task.catch((err) => console.error("Background booking task failed:", err));
+};
+
 interface CreateBookingRequest {
   service_id: string;
   package_slug?: string | null;
@@ -454,57 +464,64 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Skip notifications for past-date bookings (admin creating historical records)
+    // Skip notifications for past-date bookings (admin creating historical records).
+    // Customer-facing booking creation must return immediately after the booking is saved;
+    // worker/admin/customer notifications run in the background so slow email/SMS providers
+    // cannot trap the browser on the booking spinner or cause a false booking failure toast.
     if (!body.skip_notifications) {
-      // Notify workers about new booking
-      try {
-        const formatTime12 = (t: string) => {
-          const [h, m] = t.split(":");
-          const hour = parseInt(h);
-          return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
-        };
-        await fetch(`${SUPABASE_URL}/functions/v1/notify-workers`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({
-            type: "new_booking",
-            booking_id: booking.id,
-            service_name: service.name,
-            customer_name: insertPayload.guest_name || "Customer",
-            scheduled_date: body.scheduled_date,
-            scheduled_time: formatTime12(scheduled_time),
-            address: insertPayload.service_address || "",
-          }),
-        });
-      } catch (notifyErr) {
-        console.error("Failed to notify workers:", notifyErr);
-      }
-
-      // Send booking confirmation emails (customer + admin)
-      try {
-        console.log(`Triggering notifications for booking ${booking.id}...`);
-        const notifRes = await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({
-            booking_id: booking.id,
-            mode: "auto",
-          }),
-        });
-        const notifData = await notifRes.json().catch(() => ({}));
-        console.log(`Notification response ${notifRes.status}:`, JSON.stringify(notifData));
-        if (!notifRes.ok) {
-          console.error(`Notification function returned ${notifRes.status}:`, notifData);
+      const backgroundNotifications = (async () => {
+        // Notify workers about new booking
+        try {
+          const formatTime12 = (t: string) => {
+            const [h, m] = t.split(":");
+            const hour = parseInt(h);
+            return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+          };
+          await fetch(`${SUPABASE_URL}/functions/v1/notify-workers`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            },
+            body: JSON.stringify({
+              type: "new_booking",
+              booking_id: booking.id,
+              service_name: service.name,
+              customer_name: insertPayload.guest_name || "Customer",
+              scheduled_date: body.scheduled_date,
+              scheduled_time: formatTime12(scheduled_time),
+              address: insertPayload.service_address || "",
+            }),
+          });
+        } catch (notifyErr) {
+          console.error("Failed to notify workers:", notifyErr);
         }
-      } catch (emailErr) {
-        console.error("Failed to send booking notifications:", emailErr);
-      }
+
+        // Send booking confirmation emails (customer + admin)
+        try {
+          console.log(`Triggering notifications for booking ${booking.id}...`);
+          const notifRes = await fetch(`${SUPABASE_URL}/functions/v1/process-booking-notifications`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            },
+            body: JSON.stringify({
+              booking_id: booking.id,
+              mode: "auto",
+            }),
+          });
+          const notifData = await notifRes.json().catch(() => ({}));
+          console.log(`Notification response ${notifRes.status}:`, JSON.stringify(notifData));
+          if (!notifRes.ok) {
+            console.error(`Notification function returned ${notifRes.status}:`, notifData);
+          }
+        } catch (emailErr) {
+          console.error("Failed to send booking notifications:", emailErr);
+        }
+      })();
+
+      runAfterResponse(backgroundNotifications);
     } else {
       console.log(`Skipping notifications for past-date booking ${booking.id}`);
     }

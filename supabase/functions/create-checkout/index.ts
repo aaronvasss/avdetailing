@@ -115,6 +115,8 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
+    let baseLineItem: Stripe.Checkout.SessionCreateParams.LineItem | null = null;
+
     // If booking_id is provided but no price_id, create dynamic price from booking total
     // This is more reliable than looking up stripe_prices since the booking already has
     // the correct total calculated from the selected package + vehicle type
@@ -163,14 +165,13 @@ serve(async (req) => {
       const vehicleType = booking.vehicle_type || '';
 
       let serverBasePrice = 0;
-      let packageStripePriceId: string | null = null;
 
       if (packageSlug && (vehicleSubType || vehicleType)) {
         // Look up exact price from service_packages
         const packageVehicleType = vehicleSubType || vehicleType;
         const { data: pkg } = await serviceClient
           .from("service_packages")
-          .select("price, stripe_price_id")
+          .select("price")
           .eq("service_id", booking.service_id)
           .eq("slug", packageSlug)
           .eq("vehicle_type", packageVehicleType)
@@ -179,20 +180,7 @@ serve(async (req) => {
 
         if (pkg) {
           serverBasePrice = Number(pkg.price);
-          packageStripePriceId = pkg.stripe_price_id || null;
-          logStep("Price validated from service_packages", { serverBasePrice, packageSlug, packageVehicleType, packageStripePriceId });
-        }
-      }
-
-      // If service_packages has a stripe_price_id, verify it exists in this Stripe mode before using
-      if (packageStripePriceId) {
-        try {
-          await stripe.prices.retrieve(packageStripePriceId);
-          price_id = packageStripePriceId;
-          logStep("Using stripe_price_id from service_packages directly", { price_id });
-        } catch (e) {
-          logStep("Stored stripe_price_id invalid, will create dynamic price", { packageStripePriceId, error: (e as Error).message });
-          packageStripePriceId = null;
+          logStep("Price validated from service_packages", { serverBasePrice, packageSlug, packageVehicleType });
         }
       }
 
@@ -210,11 +198,11 @@ serve(async (req) => {
       const basePrice = serverBasePrice;
       
       if (!price_id && basePrice > 0) {
-        // No static stripe_price_id; create dynamic price.
+        // Use inline Stripe price_data for bookings so checkout starts with one Stripe API call.
         // Prices in service_packages already include any processing fee — do NOT add again.
         const amountCents = Math.round(basePrice * 100);
 
-        logStep("Creating dynamic price for base service", { basePrice, amountCents });
+        logStep("Creating inline price for base service", { basePrice, amountCents });
 
         const productName = packageSlug
           ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
@@ -222,20 +210,23 @@ serve(async (req) => {
 
         logStep("Stripe product name", { productName, packageSlug, vehicleSubType });
 
-        const dynamicPrice = await stripe.prices.create({
-          currency: 'usd',
-          unit_amount: amountCents,
-          product_data: {
-            name: productName,
+        baseLineItem = {
+          price_data: {
+            currency: 'usd',
+            unit_amount: amountCents,
+            product_data: {
+              name: productName,
+            },
           },
-        });
-
-        price_id = dynamicPrice.id;
-        logStep("Dynamic price created", { price_id, amountCents });
+          quantity: 1,
+        };
+        logStep("Inline base line item ready", { amountCents });
       }
-    }
 
-    if (!price_id) throw new Error("Missing price_id and unable to determine from booking");
+      if (!price_id && !baseLineItem) throw new Error("Missing price_id and unable to determine from booking");
+    } else if (!price_id) {
+      throw new Error("Missing price_id and unable to determine from booking");
+    }
 
     // Check for existing Stripe customer
     let customerId: string | undefined;
@@ -258,9 +249,9 @@ serve(async (req) => {
     if (membership_plan_id) sessionMetadata.membership_plan_id = membership_plan_id;
 
     // Build line items: base service + add-ons
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      { price: price_id, quantity: 1 }
-    ];
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = baseLineItem
+      ? [baseLineItem]
+      : [{ price: price_id, quantity: 1 }];
 
     // Add add-on line items if provided
     if (add_on_ids && add_on_ids.length > 0) {
@@ -277,28 +268,18 @@ serve(async (req) => {
 
       if (addOns && addOns.length > 0) {
         for (const addon of addOns) {
-          let useStoredPriceId: string | null = null;
-          if (addon.stripe_price_id) {
-            try {
-              await stripe.prices.retrieve(addon.stripe_price_id);
-              useStoredPriceId = addon.stripe_price_id;
-            } catch (e) {
-              logStep("Stored add-on stripe_price_id invalid, creating dynamic", { name: addon.name, error: (e as Error).message });
-            }
-          }
-          if (useStoredPriceId) {
-            lineItems.push({ price: useStoredPriceId, quantity: 1 });
-            logStep("Added add-on line item", { name: addon.name, price_id: useStoredPriceId });
-          } else {
-            const addonBasePrice = Number(addon.price);
-            const addonTotalCents = Math.round(addonBasePrice * 100);
-            const addonPrice = await stripe.prices.create({
-              currency: 'usd',
-              unit_amount: addonTotalCents,
-              product_data: { name: `${addon.name} (Add-on)` },
+          const addonBasePrice = Number(addon.price);
+          const addonTotalCents = Math.round(addonBasePrice * 100);
+          if (addonTotalCents > 0) {
+            lineItems.push({
+              price_data: {
+                currency: 'usd',
+                unit_amount: addonTotalCents,
+                product_data: { name: `${addon.name} (Add-on)` },
+              },
+              quantity: 1,
             });
-            lineItems.push({ price: addonPrice.id, quantity: 1 });
-            logStep("Created dynamic add-on price", { name: addon.name, price_id: addonPrice.id });
+            logStep("Added inline add-on line item", { name: addon.name, amountCents: addonTotalCents });
           }
         }
         // Add add-on names to metadata
