@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "bun scripts/generate-sitemap.ts",
+    "predev": "npx tsx scripts/generate-sitemap.ts",
     "dev": "vite",
-    "prebuild": "bun scripts/generate-sitemap.ts",
-    "build": "vite build && bun scripts/postbuild-seo.ts",
+    "prebuild": "npx tsx scripts/generate-sitemap.ts",
+    "build": "vite build && npx tsx scripts/postbuild-seo.ts",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
