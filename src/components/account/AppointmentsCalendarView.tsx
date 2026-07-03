@@ -48,6 +48,7 @@ const statusColors: Record<string, string> = {
 export function AppointmentsCalendarView({
   bookings,
   onSelectBooking,
+  onVisibleRangeChange,
 }: AppointmentsCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
