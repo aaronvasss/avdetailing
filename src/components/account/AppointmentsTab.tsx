@@ -110,6 +110,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     const { data } = await query;
     if (data) setBookings(data);
     setLoading(false);
+    setInitialLoaded(true);
   }, [userId, isAdmin, activeView, calendarRange]);
 
   useEffect(() => {
