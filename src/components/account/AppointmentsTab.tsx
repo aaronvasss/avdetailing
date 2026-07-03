@@ -10,7 +10,7 @@ import {
   Plus,
   CalendarDays,
 } from "lucide-react";
-import { format, isAfter, startOfToday, parse as parseDate } from "date-fns";
+import { format, isAfter, startOfToday, parse as parseDate, subDays, addDays } from "date-fns";
 
 function formatTime12h(time: string): string {
   if (!time) return "";
