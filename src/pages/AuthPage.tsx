@@ -14,6 +14,10 @@ import { SEOHead } from "@/components/seo/SEOHead";
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const requestedRedirect = searchParams.get("redirect");
+  const safeRedirect = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
+    ? requestedRedirect
+    : null;
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,7 +41,9 @@ export default function AuthPage() {
           .eq("user_id", session.user.id);
         const roleSet = new Set((roles || []).map((r) => r.role));
         if (roleSet.has("staff") && !roleSet.has("admin")) {
-          navigate("/worker");
+          navigate(safeRedirect?.startsWith("/worker") ? safeRedirect : "/worker");
+        } else if (safeRedirect) {
+          navigate(safeRedirect);
         } else {
           navigate("/account");
         }
@@ -97,7 +103,9 @@ export default function AuthPage() {
           .eq("user_id", data.user.id);
         const roleSet = new Set((roles || []).map((r) => r.role));
         if (roleSet.has("staff") && !roleSet.has("admin")) {
-          navigate("/worker");
+          navigate(safeRedirect?.startsWith("/worker") ? safeRedirect : "/worker");
+        } else if (safeRedirect) {
+          navigate(safeRedirect);
         } else {
           navigate("/account");
         }
@@ -116,7 +124,7 @@ export default function AuthPage() {
         if (error) throw error;
         clearRateLimit('auth-form');
         toast.success("Account created! You can now log in.");
-        navigate("/account");
+        navigate(safeRedirect || "/account");
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred");

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -13,91 +13,125 @@ interface AuthState {
   loading: boolean;
 }
 
-export function useAuth(): AuthState {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [role, setRole] = useState<AppRole>(null);
-  const [loading, setLoading] = useState(true);
+const listeners = new Set<() => void>();
 
-  const fetchRole = useCallback(async (userId: string) => {
-    const { data: adminRole } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
+let authState: AuthState = {
+  user: null,
+  session: null,
+  role: null,
+  isAdmin: false,
+  isStaff: false,
+  loading: true,
+};
 
-    if (adminRole) return "admin" as AppRole;
+let initialized = false;
+let lastUserId: string | null = null;
+let roleRequestId = 0;
+let authSubscription: { unsubscribe: () => void } | null = null;
 
-    const { data: staffRole } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "staff")
-      .maybeSingle();
+function emit() {
+  listeners.forEach((listener) => listener());
+}
 
-    if (staffRole) return "staff" as AppRole;
-
-    return "customer" as AppRole;
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    let lastUserId: string | null = null;
-
-    const applySession = (currentSession: Session | null) => {
-      if (!mounted) return;
-
-      if (!currentSession) {
-        lastUserId = null;
-        setSession(null);
-        setUser(null);
-        setRole(null);
-        setLoading(false);
-        return;
-      }
-
-      setSession(currentSession);
-      setUser(currentSession.user);
-
-      // Only refetch role when the user actually changes — token refreshes
-      // should not re-query user_roles.
-      if (currentSession.user.id === lastUserId) {
-        setLoading(false);
-        return;
-      }
-      lastUserId = currentSession.user.id;
-
-      setTimeout(async () => {
-        if (!mounted) return;
-        const userRole = await fetchRole(currentSession.user.id);
-        if (mounted) {
-          setRole(userRole);
-          setLoading(false);
-        }
-      }, 0);
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, currentSession) => applySession(currentSession)
-    );
-
-    // onAuthStateChange fires INITIAL_SESSION on subscribe.
-
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [fetchRole]);
-
-
-  return {
-    user,
-    session,
+function setAuthState(next: Partial<AuthState>) {
+  const role = next.role !== undefined ? next.role : authState.role;
+  authState = {
+    ...authState,
+    ...next,
     role,
     isAdmin: role === "admin",
     isStaff: role === "admin" || role === "staff",
-    loading,
   };
+  emit();
+}
+
+async function fetchRole(userId: string): Promise<AppRole> {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+
+  if (error) return "customer";
+
+  const roles = new Set((data ?? []).map((row) => row.role));
+  if (roles.has("admin")) return "admin";
+  if (roles.has("staff")) return "staff";
+  return "customer";
+}
+
+function applySession(currentSession: Session | null) {
+  if (!currentSession) {
+    lastUserId = null;
+    roleRequestId += 1;
+    setAuthState({
+      user: null,
+      session: null,
+      role: null,
+      loading: false,
+    });
+    return;
+  }
+
+  const currentUserId = currentSession.user.id;
+
+  if (currentUserId === lastUserId) {
+    setAuthState({
+      user: currentSession.user,
+      session: currentSession,
+      loading: authState.role ? false : authState.loading,
+    });
+    return;
+  }
+
+  lastUserId = currentUserId;
+  const requestId = roleRequestId + 1;
+  roleRequestId = requestId;
+
+  setAuthState({
+    user: currentSession.user,
+    session: currentSession,
+    role: null,
+    loading: true,
+  });
+
+  setTimeout(async () => {
+    const role = await fetchRole(currentUserId);
+    if (requestId !== roleRequestId || currentUserId !== lastUserId) return;
+    setAuthState({ role, loading: false });
+  }, 0);
+}
+
+function ensureAuthSubscription() {
+  if (initialized) return;
+  initialized = true;
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    applySession(currentSession);
+  });
+
+  authSubscription = subscription;
+}
+
+function subscribe(listener: () => void) {
+  ensureAuthSubscription();
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0) {
+      authSubscription?.unsubscribe();
+      authSubscription = null;
+      initialized = false;
+      authState = { ...authState, loading: true };
+    }
+  };
+}
+
+function getSnapshot() {
+  return authState;
+}
+
+export function useAuth(): AuthState {
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
