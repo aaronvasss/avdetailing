@@ -264,6 +264,19 @@ const toDbTime = (input: string): string | null => {
   return null;
 };
 
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} timed out`)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 const BookingPage = () => {
   const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const { user } = useAuth();
@@ -712,9 +725,10 @@ const BookingPage = () => {
       };
 
       // Use backend function to guarantee insert succeeds for guests (and return a booking ID)
-      const { data: createResp, error: createErr } = await supabase.functions.invoke(
-        "create-booking",
-        { body: createPayload },
+      const { data: createResp, error: createErr } = await withTimeout(
+        supabase.functions.invoke("create-booking", { body: createPayload }),
+        25000,
+        "Booking request",
       );
 
       if (createErr) {
@@ -801,13 +815,16 @@ const BookingPage = () => {
             duration: 8000,
           });
           setStripeAvailable(false);
-          // Revert the booking status since payment failed
-          await supabase.functions.invoke("manage-booking", {
+          // Revert the booking status in the background since payment failed.
+          // Do not block the customer on cleanup if the backend is slow.
+          supabase.functions.invoke("manage-booking", {
             body: {
               booking_id: createdId,
               action: "update",
               updates: { status: "cancelled", payment_status: "failed" }
             }
+          }).catch((cleanupError) => {
+            console.error("Failed to mark payment booking as cancelled:", cleanupError);
           });
           setBookingId("");
           return;
