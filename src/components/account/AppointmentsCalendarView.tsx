@@ -31,6 +31,7 @@ import { Booking } from "./AppointmentCard";
 interface AppointmentsCalendarViewProps {
   bookings: Booking[];
   onSelectBooking: (booking: Booking) => void;
+  onVisibleRangeChange?: (start: Date, end: Date) => void;
 }
 
 type ViewMode = "month" | "week";
