@@ -2,14 +2,14 @@ import { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
-import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { isAdmin } = useAdminCheck();
+  const { isAdmin } = useAuth();
   const location = useLocation();
   const hideFooter = isAdmin && location.pathname === "/account";
 
