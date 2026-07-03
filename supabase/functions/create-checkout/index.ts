@@ -115,6 +115,8 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
+    let baseLineItem: Stripe.Checkout.SessionCreateParams.LineItem | null = null;
+
     // If booking_id is provided but no price_id, create dynamic price from booking total
     // This is more reliable than looking up stripe_prices since the booking already has
     // the correct total calculated from the selected package + vehicle type
@@ -163,7 +165,6 @@ serve(async (req) => {
       const vehicleType = booking.vehicle_type || '';
 
       let serverBasePrice = 0;
-      let baseLineItem: Stripe.Checkout.SessionCreateParams.LineItem | null = null;
 
       if (packageSlug && (vehicleSubType || vehicleType)) {
         // Look up exact price from service_packages
