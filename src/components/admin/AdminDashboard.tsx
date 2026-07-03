@@ -161,7 +161,15 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
         {/* Content */}
         <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-background/50">
           <div className="p-4 sm:p-6">
-            {renderContent()}
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-24 text-muted-foreground">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              }
+            >
+              {renderContent()}
+            </Suspense>
           </div>
         </main>
       </div>
