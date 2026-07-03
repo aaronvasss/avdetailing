@@ -88,6 +88,12 @@ export function AppointmentsCalendarView({
     }
   }, [currentDate, viewMode]);
 
+  useEffect(() => {
+    if (onVisibleRangeChange && calendarDays.length > 0) {
+      onVisibleRangeChange(calendarDays[0], calendarDays[calendarDays.length - 1]);
+    }
+  }, [calendarDays, onVisibleRangeChange]);
+
   const navigatePrev = () => {
     setCurrentDate(
       viewMode === "month"
