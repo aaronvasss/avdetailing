@@ -251,6 +251,16 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         <AppointmentsCalendarView
           bookings={bookings}
           onSelectBooking={handleViewDetails}
+          onVisibleRangeChange={
+            isAdmin
+              ? (start, end) =>
+                  setCalendarRange((prev) =>
+                    prev && prev.start.getTime() === start.getTime() && prev.end.getTime() === end.getTime()
+                      ? prev
+                      : { start, end }
+                  )
+              : undefined
+          }
         />
       )}
 
