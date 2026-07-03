@@ -38,6 +38,7 @@ interface AppointmentsTabProps {
 export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list" }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
