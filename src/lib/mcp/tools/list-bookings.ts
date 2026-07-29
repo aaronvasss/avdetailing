@@ -42,7 +42,7 @@ export default defineTool({
     let query = supabaseForUser(ctx)
       .from("bookings")
       .select(
-        "id, scheduled_date, scheduled_time, service_type, package_name, status, payment_status, total_price, vehicle_make, vehicle_model, service_address, notes",
+        "id, scheduled_date, scheduled_time, service_id, status, payment_status, total_price, vehicle_year, vehicle_make, vehicle_model, service_address, service_city, service_state, customer_notes",
       )
       .eq("user_id", ctx.getUserId())
       .order("scheduled_date", { ascending: false })
