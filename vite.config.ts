@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { createRequire } from "module";
 import { componentTagger } from "lovable-tagger";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
 const require = createRequire(import.meta.url);
 
@@ -62,6 +63,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    mcpPlugin(),
     mode === "development" && componentTagger(),
     mode === "production" &&
       (() => {

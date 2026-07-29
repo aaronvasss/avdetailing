@@ -49,6 +49,7 @@ const WorkerTimesheetPage = lazy(() => import("./pages/WorkerTimesheetPage"));
 const WorkerProfilePage = lazy(() => import("./pages/WorkerProfilePage"));
 const WorkerChatPage = lazy(() => import("./pages/WorkerChatPage"));
 const RatingPage = lazy(() => import("./pages/RatingPage"));
+const OAuthConsentPage = lazy(() => import("./pages/OAuthConsentPage"));
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,7 @@ const App = () => (
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
                 <Route path="/rate/:bookingId" element={<RatingPage />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsentPage />} />
                 <Route path="/worker/login" element={<WorkerLoginPage />} />
 
                 {/* Protected: Customer + Admin */}
