@@ -27,9 +27,9 @@ export default defineTool({
       };
     }
     const { data, error } = await supabaseForUser(ctx)
-      .from("memberships")
+      .from("customer_memberships")
       .select(
-        "id, status, membership_plan_id, current_period_start, current_period_end, created_at",
+        "id, status, membership_plan_id, current_period_start, current_period_end, next_service_date, created_at",
       )
       .eq("user_id", ctx.getUserId())
       .order("created_at", { ascending: false });

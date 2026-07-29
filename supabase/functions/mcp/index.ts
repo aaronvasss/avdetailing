@@ -79,8 +79,8 @@ var list_memberships_default = defineTool2({
         isError: true
       };
     }
-    const { data, error } = await supabaseForUser2(ctx).from("memberships").select(
-      "id, status, membership_plan_id, current_period_start, current_period_end, created_at"
+    const { data, error } = await supabaseForUser2(ctx).from("customer_memberships").select(
+      "id, status, membership_plan_id, current_period_start, current_period_end, next_service_date, created_at"
     ).eq("user_id", ctx.getUserId()).order("created_at", { ascending: false });
     if (error) {
       return {
