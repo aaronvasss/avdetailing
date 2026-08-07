@@ -67,6 +67,7 @@ export function AdminPayrollTab() {
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [preset, setPreset] = useState<PresetId>("week");
   const initialRange = rangeForPreset("week");
   const [fromDate, setFromDate] = useState(initialRange.from);
