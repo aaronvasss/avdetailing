@@ -71,10 +71,13 @@ export default defineConfig(({ mode }) => ({
         return (prerender.default || prerender)({
           staticDir: path.join(__dirname, "dist"),
           routes: prerenderRoutes,
-          // Routes are code-split, so give the lazy page chunk time to mount
-          // before the HTML snapshot is taken. Without this the snapshot only
-          // captures the Suspense spinner.
-          renderAfterTime: 5000,
+          renderer: {
+            // Routes are code-split, so the snapshot must wait until the lazy
+            // page chunk has mounted real content (every public page renders an
+            // <h1>). Without this the snapshot only captures the loading spinner.
+            renderAfterElementExists: "h1",
+            maxConcurrentRoutes: 4,
+          },
         });
       })(),
   ].filter(Boolean),
