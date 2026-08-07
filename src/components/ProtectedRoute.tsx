@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, role, roles, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -26,15 +26,16 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   if (requiredRole) {
-    const allowed = Array.isArray(requiredRole)
-      ? requiredRole.includes(role)
-      : requiredRole === role;
+    const required = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    const held = new Set<string>([...(roles ?? []), ...(role ? [role] : [])]);
+    const allowed = required.some((r) => r && held.has(r));
 
     // Admin has access to everything
-    if (!allowed && role !== "admin") {
+    if (!allowed && !held.has("admin")) {
       return <Navigate to="/unauthorized" replace />;
     }
   }
 
   return <>{children}</>;
 }
+
