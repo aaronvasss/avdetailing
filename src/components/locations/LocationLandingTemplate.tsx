@@ -24,6 +24,7 @@ function renderIntro(config: LocationPageConfig) {
       );
     }
     if (part === "{{l2}}") {
+      if (!config.link2) return null;
       return (
         <a key={i} href={config.link2.url} target="_blank" rel="nofollow noopener noreferrer" className="text-primary underline hover:text-primary/80">
           {config.link2.text}
