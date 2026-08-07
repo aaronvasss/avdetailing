@@ -405,7 +405,7 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
         </Card>
       )}
 
-      <QuickHoursWeek worker-placeholder />
+      <QuickHoursWeek userId={worker.user_id} payRate={worker.pay_rate} onSaved={load} />
 
       <Card>
         <CardHeader>
