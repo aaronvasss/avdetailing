@@ -21,6 +21,7 @@ import {
   type ShiftApprovalStatus, type ShiftRecord,
 } from "@/lib/worker-pay";
 
+import { QuickHoursWeek } from "@/components/admin/QuickHoursWeek";
 import type { PayrollWorker } from "@/components/admin/AdminPayrollTab";
 
 interface Props {
