@@ -162,27 +162,27 @@ const App = () => (
                 } />
 
                 <Route path="/worker/jobs" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerAllJobsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/chat" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerChatPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/earnings" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerEarningsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/timesheet" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerTimesheetPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/profile" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerProfilePage />
                   </ProtectedRoute>
                 } />
