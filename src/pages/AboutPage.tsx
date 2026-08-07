@@ -87,7 +87,7 @@ const AboutPage = () => {
     <Layout>
       <SEOHead
         title="About AV Detailing | Baton Rouge Mobile Detailing"
-        description="Meet AV Detailing — Baton Rouge's premier mobile detailing service. Fully insured, 5-star rated craftsmanship for cars, boats, RVs & aircraft."
+        description="Meet AV Detailing — a family-run mobile detailing service in Baton Rouge. Fully insured, detail-obsessed care for cars, boats, RVs & aircraft."
         path="/about"
       />
       <JsonLd data={localBusinessSchema()} />
@@ -345,8 +345,8 @@ const AboutPage = () => {
             Ready to experience the difference?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Join hundreds of Baton Rouge drivers who trust AV Detailing with
-            their vehicles.
+            Book Baton Rouge's mobile detailing crew and let us come to your
+            driveway.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild size="lg" className="glow-red">

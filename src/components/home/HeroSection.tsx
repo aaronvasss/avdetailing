@@ -68,7 +68,7 @@ export function HeroSection() {
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Baton Rouge's #1 mobile car detailing service, System X ceramic coating, paint correction, interior detailing & more. We come to you across Highland Road, Shenandoah, Gonzales, Deham Springs, Perkins & Prairieville
+            Mobile car detailing, System X ceramic coating, paint correction, interior detailing & more. We come to you across Highland Road, Shenandoah, Gonzales, Denham Springs, Perkins & Prairieville
           </p>
 
           {/* CTAs */}
@@ -105,7 +105,7 @@ export function HeroSection() {
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Award className="h-5 w-5 text-primary" />
-              <span>5-Star Rated</span>
+              <span>Detail-Obsessed Work</span>
             </div>
           </div>
         </div>

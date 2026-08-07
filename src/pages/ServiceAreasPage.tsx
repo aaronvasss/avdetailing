@@ -39,7 +39,7 @@ const primaryAreas = [
   },
   {
     name: "Zachary",
-    description: "Award-winning city with award-winning detailing service.",
+    description: "Growing East Baton Rouge Parish city, fully covered by our mobile service.",
     zip: "70791",
   },
 ];

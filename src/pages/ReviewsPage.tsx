@@ -167,8 +167,8 @@ const ReviewsPage = () => {
             Ready to experience it yourself?
           </h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join hundreds of satisfied customers and see why we're Baton Rouge's top-rated
-            mobile detailing service.
+            See what our mobile detailing service can do for your vehicle — read the
+            verified Google reviews above, then book your detail.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">
             <Button asChild className="font-semibold tracking-wide">

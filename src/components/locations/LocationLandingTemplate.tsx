@@ -24,6 +24,7 @@ function renderIntro(config: LocationPageConfig) {
       );
     }
     if (part === "{{l2}}") {
+      if (!config.link2) return null;
       return (
         <a key={i} href={config.link2.url} target="_blank" rel="nofollow noopener noreferrer" className="text-primary underline hover:text-primary/80">
           {config.link2.text}
@@ -71,6 +72,17 @@ export function LocationLandingTemplate({ config }: Props) {
       <JsonLd data={[
         localBusinessSchema(),
         serviceSchema,
+        ...(config.faqs?.length
+          ? [{
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: config.faqs.map((f) => ({
+                "@type": "Question",
+                name: f.question,
+                acceptedAnswer: { "@type": "Answer", text: f.answer },
+              })),
+            }]
+          : []),
         breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Service Areas", path: "/service-areas" },
@@ -145,6 +157,36 @@ export function LocationLandingTemplate({ config }: Props) {
         </div>
       </section>
 
+      {/* City-specific service notes */}
+      {config.localNotes?.length ? (
+        <section className="section-padding">
+          <div className="container-custom max-w-4xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">
+              What Detailing in {config.city} Actually Looks Like
+            </h2>
+            <ul className="space-y-4">
+              {config.localNotes.map((note, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="flex-shrink-0 text-primary font-bold text-xl leading-none mt-1">·</span>
+                  <p className="text-muted-foreground leading-relaxed text-base md:text-lg">{note}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <Button asChild size="lg" className="text-base">
+                <Link to="/book">Book a Detail in {config.city}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="text-base">
+                <a href="tel:+12255216264">
+                  <Phone className="mr-2 h-5 w-5" />
+                  (225) 521-6264
+                </a>
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* Neighborhoods */}
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
@@ -185,6 +227,36 @@ export function LocationLandingTemplate({ config }: Props) {
         </div>
       </section>
 
+      {/* City FAQs */}
+      {config.faqs?.length ? (
+        <section className="section-padding">
+          <div className="container-custom max-w-4xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">
+              {config.city} Mobile Detailing FAQs
+            </h2>
+            <div className="space-y-6">
+              {config.faqs.map((faq, i) => (
+                <div key={i}>
+                  <h3 className="text-xl font-semibold mb-2">{faq.question}</h3>
+                  <p className="text-muted-foreground leading-relaxed text-base md:text-lg">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 text-muted-foreground text-base md:text-lg">
+              Still have a question?{" "}
+              <Link to="/contact" className="text-primary underline hover:text-primary/80">
+                Send us a message
+              </Link>{" "}
+              or{" "}
+              <Link to="/book" className="text-primary underline hover:text-primary/80">
+                book your detail online
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+      ) : null}
+
       {/* CTA */}
       <section className="section-padding">
         <div className="container-custom max-w-4xl text-center">
@@ -208,6 +280,22 @@ export function LocationLandingTemplate({ config }: Props) {
           </div>
         </div>
       </section>
+      {/* Local-proof placeholder: shown only in development so the team knows
+          what real local evidence still needs to be gathered for this city. */}
+      {config.proofPlaceholder && import.meta.env.DEV ? (
+        <section className="section-padding">
+          <div className="container-custom max-w-4xl">
+            <div className="rounded-lg border border-dashed border-primary/50 p-6">
+              <p className="text-sm font-semibold text-primary mb-2">
+                Local proof needed (dev-only note)
+              </p>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {config.proofPlaceholder}
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </Layout>
   );
 }
