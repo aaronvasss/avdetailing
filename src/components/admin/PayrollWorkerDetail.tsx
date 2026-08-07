@@ -230,21 +230,26 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
         toast.error("Hours can't be more than 24 in one day");
         return;
       }
-      // Keep other shifts on the day intact; the remainder goes on this shift.
-      const otherMinutes = Math.max(0, (editing.prevMinutes ?? 0) - (editing.id ? 0 : 0));
-      void otherMinutes;
+      // Other shifts on the same day keep their time; the remainder lands on this one.
+      const shiftTarget = dayMinutes - editing.otherMinutes;
+      if (shiftTarget <= 0) {
+        toast.error(
+          `Earlier shifts on this day already total ${formatHours(editing.otherMinutes)} — enter more than that`,
+        );
+        return;
+      }
 
       const baseIn =
-        fromLocalInput(editing.clockIn) ||
-        fromLocalInput(`${editing.date}T08:00`);
+        fromLocalInput(editing.clockIn) || fromLocalInput(`${editing.date}T08:00`);
       if (!baseIn) {
         toast.error("Pick a valid date for this shift");
         return;
       }
       clockIn = baseIn;
-      clockOut = new Date(new Date(baseIn).getTime() + dayMinutes * 60000).toISOString();
-      totals = dayMinutes;
+      clockOut = new Date(new Date(baseIn).getTime() + shiftTarget * 60000).toISOString();
+      totals = shiftTarget;
     } else {
+
       clockIn = fromLocalInput(editing.clockIn);
       if (!clockIn) {
         toast.error("Clock in time is required");
