@@ -2221,7 +2221,9 @@ const BookingPage = () => {
       <section className="pt-6 pb-12 bg-background min-h-[80vh]">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
-            {/* Simple step indicator */}
+            {/* Page-level H1 — visually hidden to preserve the step-driven design */}
+            <h1 className="sr-only">Book a Mobile Detailing Appointment</h1>
+
             {!bookingId && step <= getTotalSteps() && (
               <div className="mb-4 text-center">
                 <span className="text-sm font-semibold text-primary">
