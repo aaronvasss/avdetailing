@@ -31,6 +31,9 @@ export default function AccountPage() {
   const { user, role, isAdmin, loading: authLoading } = useAuth();
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
 
   useEffect(() => {
     if (authLoading) return;
@@ -49,20 +52,44 @@ export default function AccountPage() {
     const loadProfile = async () => {
       if (!user) {
         setProfileName(null);
+        setProfileError(null);
         setProfileLoading(false);
         return;
       }
 
       setProfileLoading(true);
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      setProfileError(null);
 
-      if (!cancelled) {
-        setProfileName(profile?.full_name || null);
-        setProfileLoading(false);
+      try {
+        const request = supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out")), 15000)
+        );
+
+        const { data: profile, error } = (await Promise.race([request, timeout])) as Awaited<
+          typeof request
+        >;
+
+        if (cancelled) return;
+
+        if (error) {
+          setProfileError(error.message || "Could not load your account.");
+        } else {
+          setProfileName(profile?.full_name || null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setProfileError(
+            err instanceof Error ? err.message : "Could not load your account."
+          );
+        }
+      } finally {
+        if (!cancelled) setProfileLoading(false);
       }
     };
 
@@ -71,7 +98,7 @@ export default function AccountPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, reloadKey]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -91,6 +118,26 @@ export default function AccountPage() {
       </Layout>
     );
   }
+
+  if (profileError) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="flex flex-col items-center gap-4 text-center max-w-md">
+            <h1 className="text-xl font-bold">We couldn't load your account</h1>
+            <p className="text-muted-foreground text-sm">{profileError}</p>
+            <div className="flex gap-3">
+              <Button onClick={() => setReloadKey((k) => k + 1)}>Retry</Button>
+              <Button variant="outline" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
 
   // Admin gets the full dashboard layout
   if (isAdmin) {
