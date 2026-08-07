@@ -56,20 +56,21 @@ export function HeroSection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6 animate-fade-in">
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             <span className="text-sm font-medium text-primary">
-              Mobile Detailing Experts in Baton Rouge
+              Professional Mobile Detailing in Baton Rouge
             </span>
           </div>
 
           {/* Headline - Single H1 */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 animate-fade-in-up">
-            Mobile <span className="text-primary">Car</span> Detailing
-            <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2 font-semibold text-muted-foreground">in Baton Rouge</span>
+            Car <span className="text-primary">Detailing</span> in Baton Rouge
+            <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2 font-semibold text-muted-foreground">Mobile — we come to you</span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Mobile car detailing, System X ceramic coating, paint correction, interior detailing & more. We come to you across Highland Road, Shenandoah, Gonzales, Denham Springs, Perkins & Prairieville
+            Professional mobile car detailing in Baton Rouge — System X ceramic coating, paint correction, interior detailing and more, booked 24/7. We come to you across Highland Road, Shenandoah, Gonzales, Denham Springs, Perkins & Prairieville.
           </p>
+
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>

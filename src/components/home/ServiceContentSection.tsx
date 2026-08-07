@@ -7,7 +7,7 @@ const services = [
     icon: Car,
     heading: "Car Detailing in Baton Rouge, LA",
     sentence:
-      "Mobile car detailing at your home or office — paint correction, System X ceramic coating, interior deep clean & more.",
+      "Professional mobile car detailing in Baton Rouge at your home or office — paint correction, System X ceramic coating, interior deep clean & more.",
     link: {
       to: "/car-detailing-baton-rouge",
       text: "car detailing services in Baton Rouge",
