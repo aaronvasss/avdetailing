@@ -18,7 +18,8 @@ import { AdminRemindersTab } from "@/components/admin/AdminRemindersTab";
 import { AdminSmsDebugTab } from "@/components/admin/AdminSmsDebugTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { AdminDataAuditTab } from "@/components/admin/AdminDataAuditTab";
-import { Loader2, ShieldAlert, Calendar, Clock, MapPin, Phone, Mail, Camera } from "lucide-react";
+import { AdminBookingModal } from "@/components/account/AdminBookingModal";
+import { Loader2, ShieldAlert, Calendar, Clock, MapPin, Phone, Mail, Camera, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
@@ -52,6 +53,8 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const { isAdmin, isStaff, isLoading, user, role } = useRoleCheck();
   const [currentTab, setCurrentTab] = useState("overview");
+  const [newBookingOpen, setNewBookingOpen] = useState(false);
+  const [bookingRefreshKey, setBookingRefreshKey] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(null);
   const [replyPhone, setReplyPhone] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
@@ -226,6 +229,13 @@ export default function AdminPage() {
         onTabChange={setCurrentTab}
         isAdmin={isAdmin}
         userName={user?.email}
+        headerAction={
+          <Button size="sm" onClick={() => setNewBookingOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">New Booking</span>
+            <span className="sm:hidden">New</span>
+          </Button>
+        }
       >
         <div className="mb-6">
           <h1 className="text-2xl font-bold">{getTabTitle()}</h1>
@@ -247,8 +257,14 @@ export default function AdminPage() {
             {currentTab === "settings" && "Manage phone numbers, emails, and business configuration"}
           </p>
         </div>
-        {renderTab()}
+        <div key={bookingRefreshKey}>{renderTab()}</div>
       </AdminLayout>
+
+      <AdminBookingModal
+        open={newBookingOpen}
+        onOpenChange={setNewBookingOpen}
+        onSuccess={() => setBookingRefreshKey(k => k + 1)}
+      />
 
       {/* Booking Details Dialog */}
       <Dialog open={!!selectedBooking} onOpenChange={() => { setSelectedBooking(null); setBookingPhotos([]); }}>

@@ -33,6 +33,7 @@ interface AdminLayoutProps {
   onTabChange: (tab: string) => void;
   isAdmin: boolean;
   userName?: string;
+  headerAction?: ReactNode;
 }
 
 interface NavItem {
@@ -65,7 +66,8 @@ export function AdminLayout({
   currentTab, 
   onTabChange, 
   isAdmin,
-  userName 
+  userName,
+  headerAction
 }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quotesAttentionCount, setQuotesAttentionCount] = useState(0);
@@ -152,6 +154,7 @@ export function AdminLayout({
           </div>
 
           <div className="flex items-center gap-4">
+            {headerAction}
             <span className="text-sm text-muted-foreground hidden md:inline">
               {userName}
             </span>
