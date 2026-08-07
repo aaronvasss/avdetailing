@@ -15,6 +15,7 @@ import {
   ChevronRight,
   MessageSquare,
   Navigation,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,6 +28,7 @@ export type AdminSection =
   | "memberships"
   | "analytics"
   | "team-chat"
+  | "payroll"
   | "team-tracking"
   | "settings";
 
@@ -46,9 +48,11 @@ const navItems: { id: AdminSection; label: string; icon: React.ElementType }[] =
   { id: "memberships", label: "Memberships", icon: CreditCard },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "team-chat", label: "Team Chat", icon: MessageSquare },
+  { id: "payroll", label: "Team & Payroll", icon: Wallet },
   { id: "team-tracking", label: "Team Tracking", icon: Navigation },
   { id: "settings", label: "Settings", icon: Settings },
 ];
+
 
 export function AdminSidebar({
   activeSection,
