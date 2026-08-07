@@ -1,7 +1,17 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, ClipboardList, DollarSign, User, LogOut, MessageSquare, Clock } from "lucide-react";
+import {
+  CalendarDays,
+  ClipboardList,
+  DollarSign,
+  User,
+  LogOut,
+  MessageSquare,
+  Clock,
+  ShieldCheck,
+  Wrench,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,14 +23,18 @@ interface WorkerLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
+const baseNavItems = [
   { path: "/worker", label: "Today", icon: CalendarDays },
-  { path: "/worker/jobs", label: "All Jobs", icon: ClipboardList },
+  { path: "/worker/ops", label: "Jobs", icon: Wrench },
+  { path: "/worker/jobs", label: "Bookings", icon: ClipboardList },
   { path: "/worker/timesheet", label: "Timesheet", icon: Clock },
   { path: "/worker/chat", label: "Chat", icon: MessageSquare },
   { path: "/worker/earnings", label: "Earnings", icon: DollarSign },
   { path: "/worker/profile", label: "Profile", icon: User },
 ];
+
+const qcNavItem = { path: "/worker/qc", label: "QC", icon: ShieldCheck };
+
 
 export function WorkerLayout({ children }: WorkerLayoutProps) {
   const navigate = useNavigate();
