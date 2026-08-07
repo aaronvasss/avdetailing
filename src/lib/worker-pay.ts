@@ -158,3 +158,26 @@ export async function fetchShifts(opts: {
   const { data } = await query;
   return (data as ShiftRecord[]) || [];
 }
+
+/**
+ * Admin action: approve or reject shifts so they count (or stop counting) toward payroll.
+ * Only admins can change these fields — enforced by a database trigger.
+ */
+export async function setShiftApproval(
+  shiftIds: string[],
+  status: ShiftApprovalStatus,
+  note?: string | null,
+): Promise<{ error: string | null; count: number }> {
+  if (shiftIds.length === 0) return { error: null, count: 0 };
+  const { data: { user } } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from("worker_shifts")
+    .update({
+      approval_status: status,
+      approved_by: status === "pending" ? null : user?.id ?? null,
+      approved_at: status === "pending" ? null : new Date().toISOString(),
+      approval_note: note ?? null,
+    })
+    .in("id", shiftIds);
+  return { error: error?.message ?? null, count: shiftIds.length };
+}
