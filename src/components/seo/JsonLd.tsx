@@ -61,7 +61,7 @@ export function localBusinessSchema() {
       "Premium mobile detailing for cars, boats, RVs, and aircraft in Baton Rouge, Louisiana.",
     url: SITE_URL,
     telephone: "+12255216264",
-    email: "aaronvasquez@avdetailingg.com",
+    email: "info@avdetailing.com",
     areaServed: [
       { "@type": "State", name: "Louisiana" },
       ...SERVICE_AREA_SCHEMA,
@@ -69,10 +69,8 @@ export function localBusinessSchema() {
     serviceArea: SERVICE_AREA_GEO,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "418 E State St",
       addressLocality: "Baton Rouge",
       addressRegion: "LA",
-      postalCode: "70802",
       addressCountry: "US",
     },
     geo: {
@@ -81,30 +79,16 @@ export function localBusinessSchema() {
       longitude: -91.1871,
     },
     hasMap: "https://www.google.com/maps/place/Baton+Rouge,+LA",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "5.0",
-      reviewCount: "114",
-      bestRating: "5",
-      worstRating: "1",
-    },
     priceRange: "$$",
     currenciesAccepted: "USD",
     paymentAccepted: "Cash, Credit Card, Zelle, Venmo",
-    openingHours: "Mo-Su 00:00-23:59",
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        opens: "00:00",
-        closes: "23:59",
-      },
-    ],
     sameAs: [
-      "https://www.instagram.com/avdetailing",
-      "https://www.facebook.com/avdetailing",
+      "https://www.facebook.com/avdetailingg",
+      "https://www.instagram.com/avdetailinngg/",
+      "https://www.tiktok.com/@avdetailinngg",
+      "https://www.youtube.com/@avdetailing",
     ],
-    image: `${SITE_URL}/favicon.png`,
+    image: `${SITE_URL}/og-image.jpg`,
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Auto Detailing Services",
