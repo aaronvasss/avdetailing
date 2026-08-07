@@ -25,7 +25,18 @@ var list_bookings_default = defineTool({
   description: "List detailing bookings for the signed-in AV Detailing customer, most recent first.",
   inputSchema: {
     limit: z.number().int().min(1).max(50).optional().describe("Maximum number of bookings to return (default 10)."),
-    status: z.enum(["pending", "confirmed", "in_progress", "completed", "canceled"]).optional().describe("Optional status filter.")
+    status: z.enum([
+      "pending",
+      "pending_payment",
+      "confirmed",
+      "in_progress",
+      "completed",
+      "cancelled",
+      "canceled",
+      "no_show"
+    ]).optional().describe(
+      'Optional status filter. Use "cancelled" for cancelled bookings ("canceled" is accepted as an alias).'
+    )
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit, status }, ctx) => {
@@ -38,7 +49,7 @@ var list_bookings_default = defineTool({
     let query = supabaseForUser(ctx).from("bookings").select(
       "id, scheduled_date, scheduled_time, service_id, status, payment_status, total_price, vehicle_year, vehicle_make, vehicle_model, service_address, service_city, service_state, customer_notes"
     ).eq("user_id", ctx.getUserId()).order("scheduled_date", { ascending: false }).limit(limit ?? 10);
-    if (status) query = query.eq("status", status);
+    if (status) query = query.eq("status", status === "canceled" ? "cancelled" : status);
     const { data, error } = await query;
     if (error) {
       return {

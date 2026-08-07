@@ -45,6 +45,8 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [cancelOpen, setCancelOpen] = useState(false);
   const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
   const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date } | null>(null);
+  const [historyDaysBack, setHistoryDaysBack] = useState(60);
+
 
   const fetchBookings = useCallback(async () => {
     let query = supabase
@@ -96,9 +98,9 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         start = subDays(calendarRange.start, 1);
         end = addDays(calendarRange.end, 1);
       } else {
-        // List view: last 60 days + next 180 days
+        // List view: recent window by default, expandable via "Load older"
         const today = startOfToday();
-        start = subDays(today, 60);
+        start = subDays(today, historyDaysBack);
         end = addDays(today, 180);
       }
       query = query
@@ -111,7 +113,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     if (data) setBookings(data);
     setLoading(false);
     setInitialLoaded(true);
-  }, [userId, isAdmin, activeView, calendarRange]);
+  }, [userId, isAdmin, activeView, calendarRange, historyDaysBack]);
 
   useEffect(() => {
     fetchBookings();
@@ -336,7 +338,25 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
                 />
               ))
             )}
+
+            {isAdmin && (
+              <div className="pt-2 text-center space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Showing history from the last {historyDaysBack} days
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={loading}
+                  onClick={() => setHistoryDaysBack((d) => d + 180)}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  {loading ? "Loading…" : "Load older appointments"}
+                </Button>
+              </div>
+            )}
           </TabsContent>
+
         </Tabs>
       )}
 
