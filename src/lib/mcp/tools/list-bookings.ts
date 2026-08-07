@@ -60,7 +60,7 @@ export default defineTool({
       .order("scheduled_date", { ascending: false })
       .limit(limit ?? 10);
 
-    if (status) query = query.eq("status", status);
+    if (status) query = query.eq("status", status === "canceled" ? "cancelled" : status);
 
     const { data, error } = await query;
     if (error) {
