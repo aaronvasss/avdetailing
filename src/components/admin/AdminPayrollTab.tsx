@@ -89,7 +89,15 @@ export function AdminPayrollTab() {
   const weekStart = toISODate(startOfWeek(new Date()));
   const monthStart = toISODate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
+  // Widest window we need: selected range, current month-to-date buckets and the
+  // timesheet grid's current week (so the grid can reuse this single fetch).
+  const weekEnd = toISODate(new Date(startOfWeek(new Date()).getTime() + 6 * 86400000));
+  const windowFrom = [fromDate, monthStart].sort()[0];
+  const windowTo = [toDate, today, weekEnd].sort().slice(-1)[0];
+
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
+    const isStale = () => seq !== loadSeq.current;
     setRefreshing(true);
     setLoadError(null);
     try {
@@ -98,6 +106,7 @@ export function AdminPayrollTab() {
         .select("user_id")
         .eq("role", "staff");
       if (rolesError) throw rolesError;
+      if (isStale()) return;
 
       const userIds = (staffRoles || []).map((r) => r.user_id);
       if (userIds.length === 0) {
@@ -106,12 +115,15 @@ export function AdminPayrollTab() {
         return;
       }
 
-      const [workerRes, profileRes] = await Promise.all([
+      const [workerRes, profileRes, shiftRes] = await Promise.all([
         supabase.from("worker_profiles").select("*").in("user_id", userIds),
         supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
+        fetchShiftsResult({ fromDate: windowFrom, toDate: windowTo }),
       ]);
       if (workerRes.error) throw workerRes.error;
       if (profileRes.error) throw profileRes.error;
+      if (shiftRes.error) throw new Error(shiftRes.error);
+      if (isStale()) return;
       const workerProfiles = workerRes.data;
       const profiles = profileRes.data;
 
@@ -132,19 +144,26 @@ export function AdminPayrollTab() {
       merged.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
       setWorkers(merged);
       setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
-
-      // Widest window we need: selected range plus current month-to-date buckets
-      const windowFrom = [fromDate, monthStart].sort()[0];
-      const windowTo = [toDate, today].sort().slice(-1)[0];
-      const rows = await fetchShifts({ fromDate: windowFrom, toDate: windowTo });
-      setShifts(rows);
+      setShifts(shiftRes.data);
     } catch (e: any) {
-      setLoadError(e?.message || "Could not load payroll data");
+      if (isStale()) return;
+      const message = e?.message || "Could not load payroll data";
+      setLoadError(message);
+      void logAppError({
+        message,
+        code: e?.code || "payroll_load_failed",
+        severity: "error",
+        context: { area: "admin_payroll", windowFrom, windowTo },
+        stack: e?.stack,
+      });
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (!isStale()) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [fromDate, toDate, monthStart, today]);
+  }, [windowFrom, windowTo]);
+
 
 
   useEffect(() => {
