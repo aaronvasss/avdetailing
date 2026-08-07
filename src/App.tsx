@@ -139,12 +139,28 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                {/* Protected: Worker (staff + admin) */}
+                {/* Protected: Worker portal (staff, manager, marketing + admin) */}
                 <Route path="/worker" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerDashboardPage />
                   </ProtectedRoute>
                 } />
+                <Route path="/worker/ops" element={
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
+                    <OpsJobsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/worker/ops/:jobId" element={
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
+                    <OpsJobDetailPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/worker/qc" element={
+                  <ProtectedRoute requiredRole={["manager", "admin"]}>
+                    <OpsQcQueuePage />
+                  </ProtectedRoute>
+                } />
+
                 <Route path="/worker/jobs" element={
                   <ProtectedRoute requiredRole={["staff", "admin"]}>
                     <WorkerAllJobsPage />
