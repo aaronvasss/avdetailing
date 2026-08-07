@@ -90,51 +90,61 @@ export function AdminPayrollTab() {
 
   const load = useCallback(async () => {
     setRefreshing(true);
-    const { data: staffRoles } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "staff");
+    setLoadError(null);
+    try {
+      const { data: staffRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "staff");
+      if (rolesError) throw rolesError;
 
-    const userIds = (staffRoles || []).map((r) => r.user_id);
-    if (userIds.length === 0) {
-      setWorkers([]);
-      setShifts([]);
+      const userIds = (staffRoles || []).map((r) => r.user_id);
+      if (userIds.length === 0) {
+        setWorkers([]);
+        setShifts([]);
+        return;
+      }
+
+      const [workerRes, profileRes] = await Promise.all([
+        supabase.from("worker_profiles").select("*").in("user_id", userIds),
+        supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
+      ]);
+      if (workerRes.error) throw workerRes.error;
+      if (profileRes.error) throw profileRes.error;
+      const workerProfiles = workerRes.data;
+      const profiles = profileRes.data;
+
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+      const merged: PayrollWorker[] = userIds.map((uid) => {
+        const wp = workerProfiles?.find((w) => w.user_id === uid);
+        const prof = profileMap.get(uid);
+        const rate = Number(wp?.pay_rate);
+        return {
+          user_id: uid,
+          phone: wp?.phone ?? null,
+          pay_rate: Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_HOURLY_RATE,
+          is_active: wp?.is_active ?? true,
+          full_name: prof?.full_name ?? null,
+          email: prof?.email ?? null,
+        };
+      });
+      merged.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
+      setWorkers(merged);
+      setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
+
+      // Widest window we need: selected range plus current month-to-date buckets
+      const windowFrom = [fromDate, monthStart].sort()[0];
+      const windowTo = [toDate, today].sort().slice(-1)[0];
+      const rows = await fetchShifts({ fromDate: windowFrom, toDate: windowTo });
+      setShifts(rows);
+    } catch (e: any) {
+      setLoadError(e?.message || "Could not load payroll data");
+    } finally {
       setLoading(false);
       setRefreshing(false);
-      return;
     }
-
-    const [{ data: workerProfiles }, { data: profiles }] = await Promise.all([
-      supabase.from("worker_profiles").select("*").in("user_id", userIds),
-      supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
-    ]);
-
-    const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
-    const merged: PayrollWorker[] = userIds.map((uid) => {
-      const wp = workerProfiles?.find((w) => w.user_id === uid);
-      const prof = profileMap.get(uid);
-      const rate = Number(wp?.pay_rate);
-      return {
-        user_id: uid,
-        phone: wp?.phone ?? null,
-        pay_rate: Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_HOURLY_RATE,
-        is_active: wp?.is_active ?? true,
-        full_name: prof?.full_name ?? null,
-        email: prof?.email ?? null,
-      };
-    });
-    merged.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
-    setWorkers(merged);
-    setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
-
-    // Widest window we need: selected range plus current month-to-date buckets
-    const windowFrom = [fromDate, monthStart].sort()[0];
-    const windowTo = [toDate, today].sort().slice(-1)[0];
-    const rows = await fetchShifts({ fromDate: windowFrom, toDate: windowTo });
-    setShifts(rows);
-    setLoading(false);
-    setRefreshing(false);
   }, [fromDate, toDate, monthStart, today]);
+
 
   useEffect(() => {
     load();
