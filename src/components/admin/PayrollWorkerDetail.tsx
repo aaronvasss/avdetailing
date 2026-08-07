@@ -21,6 +21,7 @@ import {
   type ShiftApprovalStatus, type ShiftRecord,
 } from "@/lib/worker-pay";
 
+import { QuickHoursWeek } from "@/components/admin/QuickHoursWeek";
 import type { PayrollWorker } from "@/components/admin/AdminPayrollTab";
 
 interface Props {
@@ -403,6 +404,8 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
           </CardContent>
         </Card>
       )}
+
+      <QuickHoursWeek userId={worker.user_id} payRate={worker.pay_rate} onSaved={load} />
 
       <Card>
         <CardHeader>
