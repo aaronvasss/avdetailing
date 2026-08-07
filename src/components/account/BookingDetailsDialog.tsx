@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
 import { BookingEditDialog } from "@/components/admin/BookingEditDialog";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
+import { formatTime12h } from "@/lib/time-format";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -472,7 +473,7 @@ export function BookingDetailsDialog({
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    {booking.scheduled_time}
+                    {formatTime12h(booking.scheduled_time)}
                     {booking.duration_minutes && (
                       <span className="text-sm">
                         ({Math.floor(booking.duration_minutes / 60)}h

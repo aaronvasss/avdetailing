@@ -1,4 +1,11 @@
 import { format, parse, addMinutes, isBefore, isAfter, areIntervalsOverlapping } from "date-fns";
+import {
+  parseTimeToMinutes,
+  minutesToDbTime,
+  minutesTo12h,
+  businessNowMinutes,
+  isBusinessToday,
+} from "@/lib/time-format";
 
 // ============= SCHEDULING CONSTANTS (defaults — overridden by DB settings) =============
 
@@ -81,42 +88,14 @@ export function getTotalBlockedTime(packageSlug: string): number {
  * Converts time string to minutes from midnight
  */
 export function timeToMinutes(time: string): number {
-  // Handle "HH:mm:ss" or "HH:mm" format
-  const match24 = time.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (match24) {
-    return parseInt(match24[1]) * 60 + parseInt(match24[2]);
-  }
-  
-  // Handle "h:mm AM/PM" format
-  const match12 = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (match12) {
-    let hours = parseInt(match12[1]);
-    const minutes = parseInt(match12[2]);
-    const period = match12[3].toUpperCase();
-    
-    if (period === "PM" && hours < 12) hours += 12;
-    if (period === "AM" && hours === 12) hours = 0;
-    
-    return hours * 60 + minutes;
-  }
-  
-  return 0;
+  return parseTimeToMinutes(time) ?? 0;
 }
 
 /**
  * Converts minutes from midnight to time string
  */
 export function minutesToTime(minutes: number, format12h = true): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  
-  if (format12h) {
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
-  }
-  
-  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+  return format12h ? minutesTo12h(minutes) : minutesToDbTime(minutes);
 }
 
 /**
@@ -159,7 +138,8 @@ export function generateTimeSlots(
     scheduled_time: string;
     duration_minutes: number | null;
   }> = [],
-  config?: SchedulingConfig
+  config?: SchedulingConfig,
+  options?: { dateStr?: string }
 ): string[] {
   const slots: string[] = [];
   const workStart = getWorkingStartMinutes(config);
@@ -168,8 +148,13 @@ export function generateTimeSlots(
   const buffer = config?.bufferMinutes ?? BUFFER_MINUTES;
   const defaultDur = config?.defaultDuration ?? DEFAULT_DURATION;
   
+  // Hide past times when generating slots for the current business day
+  const minMinutes =
+    options?.dateStr && isBusinessToday(options.dateStr) ? businessNowMinutes() : -1;
+
   for (let minutes = workStart; minutes <= workEnd; minutes += interval) {
     if (!isSlotValid(minutes, serviceDuration, config)) continue;
+    if (minutes < minMinutes) continue;
     
     let isAvailable = true;
     
@@ -187,7 +172,8 @@ export function generateTimeSlots(
     }
     
     if (isAvailable) {
-      slots.push(minutesToTime(minutes, true));
+      // Canonical 24-hour value — UI formats it for display with formatTime12h()
+      slots.push(minutesToDbTime(minutes));
     }
   }
   

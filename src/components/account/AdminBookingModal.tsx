@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,7 +19,10 @@ import { format, startOfDay, isBefore } from "date-fns";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
 import { fetchClientVehicles, findOrCreateClientVehicle, describeVehicle, type CustomerVehicle } from "@/lib/customerVehicles";
-import { Car, CheckCircle2 } from "lucide-react";
+import { Car, CheckCircle2, Clock } from "lucide-react";
+import { generateTimeSlots, getPackageDuration, formatDuration, DEFAULT_DURATION } from "@/lib/scheduling";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
+import { toDbTime, formatTime12h, toDateString, addMinutesTo12h, groupSlotsByPeriod } from "@/lib/time-format";
 
 interface AdminBookingModalProps {
   open: boolean;
@@ -44,12 +47,6 @@ const vehicleTypes = [
   { id: "suv-8", label: "SUV (8 seats / 3-row)" },
   { id: "truck", label: "Truck" },
 ];
-
-const timeSlots = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? "00" : "30";
-  return `${h.toString().padStart(2, "0")}:${m}`;
-});
 
 // Package rows fetched from service_packages table
 interface PackageRow {
@@ -185,6 +182,11 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [savedVehicles, setSavedVehicles] = useState<CustomerVehicle[]>([]);
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+
+  // Scheduling (shared business hours / buffer / blocked dates / conflicts)
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   const defaultForm = {
     firstName: "", lastName: "", email: "", phone: "",
@@ -503,9 +505,83 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     );
   };
 
+  // Service duration comes from the selected package (falls back to business default)
+  const serviceDurationMinutes = useMemo(() => {
+    if (pricingMode === "package" && selectedPackageId) {
+      return getPackageDuration(selectedPackageId);
+    }
+    return schedulingConfig.defaultDuration ?? DEFAULT_DURATION;
+  }, [pricingMode, selectedPackageId, schedulingConfig.defaultDuration]);
+
+  // Time slots use the SAME business hours, interval, buffer, blocked dates and
+  // active-booking conflict rules as every other scheduling screen.
+  useEffect(() => {
+    if (!open || !form.scheduledDate) {
+      setAvailableSlots([]);
+      return;
+    }
+    let cancelled = false;
+    const dateStr = toDateString(form.scheduledDate);
+    (async () => {
+      setLoadingSlots(true);
+      try {
+        const { data: existing } = await supabase
+          .from("bookings")
+          .select("id, scheduled_time, duration_minutes")
+          .eq("scheduled_date", dateStr)
+          .in("status", ["pending", "confirmed", "in_progress"]);
+        if (cancelled) return;
+        setAvailableSlots(
+          generateTimeSlots(serviceDurationMinutes, existing || [], schedulingConfig, { dateStr })
+        );
+      } catch (err) {
+        if (!cancelled) {
+          setAvailableSlots(
+            generateTimeSlots(serviceDurationMinutes, [], schedulingConfig, { dateStr })
+          );
+        }
+      } finally {
+        if (!cancelled) setLoadingSlots(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, form.scheduledDate, serviceDurationMinutes, schedulingConfig]);
+
+  const timeOptions = useMemo(() => {
+    const slots = [...availableSlots];
+    // keep an already-chosen time visible (e.g. restored draft)
+    if (form.scheduledTime && !slots.includes(form.scheduledTime)) slots.unshift(form.scheduledTime);
+    return groupSlotsByPeriod(slots);
+  }, [availableSlots, form.scheduledTime]);
+
+  // Required-field map used for the review summary + scroll-to-incomplete
+  const requiredIssues = useMemo(() => {
+    const issues: Array<{ id: string; label: string }> = [];
+    if (!form.firstName || !form.lastName) issues.push({ id: "section-customer", label: "Customer name" });
+    if (!form.serviceType) issues.push({ id: "section-service", label: "Service" });
+    if (!form.scheduledDate) issues.push({ id: "section-schedule", label: "Date" });
+    if (!form.scheduledTime) issues.push({ id: "section-schedule", label: "Time" });
+    return issues;
+  }, [form.firstName, form.lastName, form.serviceType, form.scheduledDate, form.scheduledTime]);
+
+  const focusFirstIssue = () => {
+    const first = requiredIssues[0];
+    if (!first) return;
+    const el = document.getElementById(first.id);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const handleSubmit = async () => {
-    if (!form.firstName || !form.lastName || !form.serviceType || !form.scheduledDate || !form.scheduledTime) {
-      toast.error("Please fill in required fields: name, service, date, and time");
+    if (requiredIssues.length > 0) {
+      toast.error(`Missing required: ${requiredIssues.map(i => i.label).join(", ")}`);
+      focusFirstIssue();
+      return;
+    }
+    if (!toDbTime(form.scheduledTime)) {
+      toast.error(`Invalid time: ${form.scheduledTime}`);
+      focusFirstIssue();
       return;
     }
     if (!selectedService) return;
@@ -521,8 +597,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
           service_id: selectedService.serviceId,
-          scheduled_date: format(form.scheduledDate!, "yyyy-MM-dd"),
-          scheduled_time: form.scheduledTime + ":00",
+          scheduled_date: toDateString(form.scheduledDate!),
+          scheduled_time: toDbTime(form.scheduledTime)!,
           guest_name: `${form.firstName} ${form.lastName}`,
           guest_email: form.email || null,
           guest_phone: form.phone.replace(/\D/g, "") || null,
@@ -696,7 +772,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
         <div className="space-y-5 mt-2">
           {/* Customer Info */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Customer Info</h3>
+            <h3 id="section-customer" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Customer Info</h3>
             
             {/* Customer Search */}
             <div ref={searchRef} className="relative mb-3">
@@ -775,13 +851,13 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
           {/* Address */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Service Location</h3>
+            <h3 id="section-location" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Service Location</h3>
             <Input value={form.address} onChange={e => handleChange("address", e.target.value)} placeholder="Street address" />
           </div>
 
           {/* Service Selection */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Service *</h3>
+            <h3 id="section-service" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Service *</h3>
             <Select value={form.serviceType} onValueChange={v => handleChange("serviceType", v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select service type" />
@@ -950,7 +1026,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
           {/* Schedule */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Schedule *</h3>
+            <h3 id="section-schedule" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Schedule *</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Date</Label>
@@ -968,6 +1044,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                     <Calendar
                       mode="single"
                       selected={form.scheduledDate}
+                      disabled={(date) => isDateBlocked(date)}
                       onSelect={(date) => {
                         setForm(prev => ({ ...prev, scheduledDate: date }));
                         setCalendarOpen(false);
@@ -979,19 +1056,31 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 </Popover>
               </div>
               <div>
-                <Label>Time</Label>
+                <Label htmlFor="admin-booking-time">Time *</Label>
                 <Select value={form.scheduledTime} onValueChange={v => handleChange("scheduledTime", v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
+                  <SelectTrigger id="admin-booking-time" className="h-11">
+                    <SelectValue placeholder={loadingSlots ? "Loading times..." : "Select time"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {timeSlots.map(time => (
-                      <SelectItem key={time} value={time}>
-                        {format(new Date(`2000-01-01T${time}`), "h:mm a")}
-                      </SelectItem>
+                    {timeOptions.map(({ period, slots }) => (
+                      <SelectGroup key={period}>
+                        <SelectLabel>{period}</SelectLabel>
+                        {slots.map(time => (
+                          <SelectItem key={time} value={time}>
+                            {formatTime12h(time)}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>
+                {form.scheduledTime && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {formatDuration(serviceDurationMinutes)} · ends around{" "}
+                    {addMinutesTo12h(form.scheduledTime, serviceDurationMinutes)}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -999,7 +1088,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {/* ── Pricing Section ── */}
           {form.serviceType && (
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pricing</h3>
+              <h3 id="section-pricing" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pricing</h3>
 
               {/* Mode toggle */}
               <RadioGroup
@@ -1183,7 +1272,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
           {/* Assign Technician */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assign Technician</h3>
+            <h3 id="section-technician" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assign Technician</h3>
             <Select value={assignedWorkerId} onValueChange={handleWorkerAssign}>
               <SelectTrigger>
                 <SelectValue placeholder="Select technician" />
@@ -1245,7 +1334,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
           {/* Payment */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Payment Method</h3>
+            <h3 id="section-payment" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Payment Method</h3>
             <Select value={form.paymentMethod} onValueChange={v => handleChange("paymentMethod", v)}>
               <SelectTrigger>
                 <SelectValue />
@@ -1296,7 +1385,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
           {/* Notes */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Notes</h3>
+            <h3 id="section-notes" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Notes</h3>
             <div className="space-y-3">
               <div>
                 <Label>Customer Notes</Label>
@@ -1319,8 +1408,44 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           </div>
 
-          {/* Submit */}
-          <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting}>
+          {/* Review + Submit (sticky) */}
+          <div className="sticky bottom-0 -mx-6 px-6 pt-3 pb-4 bg-background/95 backdrop-blur border-t border-border space-y-3">
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm space-y-1">
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Customer</span>
+                <span className="font-medium text-right truncate">
+                  {form.firstName || form.lastName ? `${form.firstName} ${form.lastName}`.trim() : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Service</span>
+                <span className="font-medium text-right truncate">
+                  {serviceTypes.find(t => t.id === form.serviceType)?.label || "—"}
+                </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Date &amp; Time</span>
+                <span className="font-medium text-right">
+                  {form.scheduledDate ? format(form.scheduledDate, "EEE, MMM d") : "—"}
+                  {form.scheduledTime ? ` · ${formatTime12h(form.scheduledTime)}` : ""}
+                </span>
+              </div>
+              <Separator className="my-1" />
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-semibold text-primary">${totalPrice.toFixed(2)}</span>
+              </div>
+              {requiredIssues.length > 0 && (
+                <button
+                  type="button"
+                  onClick={focusFirstIssue}
+                  className="text-xs text-destructive underline underline-offset-2"
+                >
+                  Missing: {requiredIssues.map(i => i.label).join(", ")}
+                </button>
+              )}
+            </div>
+            <Button className="w-full h-12" size="lg" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1332,7 +1457,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                 Create Booking {totalPrice > 0 ? `— $${totalPrice.toFixed(2)}` : ""}
               </>
             )}
-          </Button>
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

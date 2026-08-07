@@ -30,6 +30,7 @@ import { PhotoGallery } from "@/components/photos/PhotoGallery";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { formatTime12h } from "@/lib/time-format";
 
 interface BookingDetails {
   id: string;
@@ -281,7 +282,7 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedBooking.scheduled_time}</span>
+                  <span>{formatTime12h(selectedBooking.scheduled_time)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />

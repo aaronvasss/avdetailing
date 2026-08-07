@@ -16,6 +16,7 @@ import {
   formatDuration
 } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
+import { toDbTime, formatTime12h, toDateString } from "@/lib/time-format";
 import { SEOHead } from "@/components/seo/SEOHead";
 
 interface BookingDetails {
@@ -85,7 +86,8 @@ export default function BookingManagePage() {
       const slots = generateTimeSlots(
         serviceDuration,
         existingBookings || [],
-        schedulingConfig
+        schedulingConfig,
+        { dateStr }
       );
       
       setAvailableSlots(slots);
@@ -143,7 +145,7 @@ export default function BookingManagePage() {
           token,
           action: "reschedule",
           newDate: format(selectedDate, "yyyy-MM-dd"),
-          newTime: selectedTime,
+          newTime: toDbTime(selectedTime) ?? selectedTime,
         },
       });
 
@@ -219,7 +221,7 @@ export default function BookingManagePage() {
               <CardDescription>
                 Your new appointment is scheduled for{" "}
                 <span className="font-semibold text-foreground">
-                  {selectedDate && format(selectedDate, "MMMM d, yyyy")} at {selectedTime}
+                  {selectedDate && format(selectedDate, "MMMM d, yyyy")} at {formatTime12h(selectedTime)}
                 </span>
               </CardDescription>
             </CardHeader>
@@ -340,7 +342,7 @@ export default function BookingManagePage() {
                         <SelectContent>
                           {availableSlots.map((time) => (
                             <SelectItem key={time} value={time}>
-                              {time}
+                              {formatTime12h(time)}
                             </SelectItem>
                           ))}
                         </SelectContent>

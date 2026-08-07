@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { businessToday, toDateString } from "@/lib/time-format";
 
 export interface SchedulingConfig {
   startHour: number;
@@ -48,7 +49,7 @@ export function useSchedulingSettings() {
           supabase
             .from("blocked_dates" as any)
             .select("blocked_date")
-            .gte("blocked_date", new Date().toISOString().split("T")[0]),
+            .gte("blocked_date", businessToday()),
         ]);
 
         if (settingsRes.data) {
@@ -84,7 +85,7 @@ export function useSchedulingSettings() {
   }, []);
 
   const isDateBlocked = (date: Date): boolean => {
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = toDateString(date);
     return blockedDates.includes(dateStr);
   };
 

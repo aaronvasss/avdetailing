@@ -26,6 +26,7 @@ import {
   formatDuration
 } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
+import { toDbTime, formatTime12h, toDateString } from "@/lib/time-format";
 import { useAuth } from "@/hooks/useAuth";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
@@ -242,28 +243,6 @@ const getRecommendations = (vehicleType: string, selectedPackage: string) => {
 // Time slots are now generated dynamically based on service duration and availability
 // See generateTimeSlots() in src/lib/scheduling.ts
 
-const toDbTime = (input: string): string | null => {
-  const trimmed = String(input || "").trim();
-  const m12 = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (m12) {
-    let hours = Number(m12[1]);
-    const minutes = Number(m12[2]);
-    const ampm = m12[3].toUpperCase();
-    if (ampm === "PM" && hours < 12) hours += 12;
-    if (ampm === "AM" && hours === 12) hours = 0;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
-  }
-
-  const m24 = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (m24) {
-    const hours = Number(m24[1]);
-    const minutes = Number(m24[2]);
-    const seconds = m24[3] ? Number(m24[3]) : 0;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  }
-
-  return null;
-};
 
 const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -524,7 +503,8 @@ const BookingPage = () => {
       const slots = generateTimeSlots(
         slotDurationForDisplay,
         existingBookings || [],
-        schedulingConfig
+        schedulingConfig,
+        { dateStr }
       );
       
       setAvailableSlots(slots);
@@ -644,7 +624,7 @@ const BookingPage = () => {
         toast.error("Please select a time");
         return;
       }
-      const scheduledDateStr = selectedDate.toISOString().split("T")[0];
+      const scheduledDateStr = toDateString(selectedDate);
       const scheduledTimeDb = toDbTime(selectedTime);
       if (!scheduledTimeDb) {
         toast.error(`Invalid time: ${selectedTime}`);
@@ -691,7 +671,7 @@ const BookingPage = () => {
         package_slug: selectedPackage || null,
         vehicle_sub_type: vehicleSubType || null,
         scheduled_date: scheduledDateStr,
-        scheduled_time: selectedTime, // backend normalizes (also accepts HH:MM:SS)
+        scheduled_time: scheduledTimeDb,
         duration_minutes: selectedPackageDuration, // Include service duration for scheduling
 
         // Always store customer contact info on the booking, even if admin is creating it
@@ -868,7 +848,7 @@ const BookingPage = () => {
         customerName: customerInfo.firstName,
         serviceName: serviceName,
         scheduledDate: selectedDate?.toISOString() || "",
-        scheduledTime: selectedTime,
+        scheduledTime: formatTime12h(selectedTime),
         serviceAddress: customerInfo.address,
         serviceCity: customerInfo.city,
         totalPrice: totalPrice + addOnsTotal,
@@ -1565,7 +1545,7 @@ const BookingPage = () => {
                               : "border-border hover:border-primary/50"
                           )}
                         >
-                          {time}
+                          {formatTime12h(time)}
                         </button>
                       ))}
                     </div>
@@ -1825,7 +1805,7 @@ const BookingPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Time</span>
-                  <span className="font-medium">{selectedTime}</span>
+                  <span className="font-medium">{formatTime12h(selectedTime)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
@@ -2043,7 +2023,7 @@ const BookingPage = () => {
                   <Clock className="h-5 w-5 text-primary mt-0.5" />
                   <div>
                     <p className="text-xs text-muted-foreground uppercase">Time</p>
-                    <p className="font-medium">{selectedTime}</p>
+                    <p className="font-medium">{formatTime12h(selectedTime)}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50">

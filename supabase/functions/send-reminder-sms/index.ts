@@ -126,6 +126,19 @@ interface ReminderRequest {
   sendAll?: boolean;  // Send all due reminders (for cron job)
 }
 
+function formatTime12(time: string): string {
+  const v = String(time || "").trim();
+  const m12 = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp])\.?[Mm]\.?$/);
+  if (m12) {
+    const h = parseInt(m12[1]) % 12 || 12;
+    return `${h}:${m12[2]} ${m12[3].toLowerCase() === "p" ? "PM" : "AM"}`;
+  }
+  const m24 = v.match(/^(\d{1,2}):(\d{2})/);
+  if (!m24) return v;
+  const h = parseInt(m24[1]);
+  return `${h % 12 || 12}:${m24[2]} ${h >= 12 ? "PM" : "AM"}`;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -250,7 +263,7 @@ const handler = async (req: Request): Promise<Response> => {
 Your AV Detailing appointment is TOMORROW:
 
 📅 ${formattedDate}
-⏰ ${booking.scheduled_time}
+⏰ ${formatTime12(booking.scheduled_time)}
 📍 ${address}
 
 ✅ Please ensure vehicle is accessible
@@ -267,7 +280,7 @@ See you soon!
           message = `🚗 AV Detailing arriving in ~2 hours!
 
 📍 ${address}
-⏰ ${booking.scheduled_time}
+⏰ ${formatTime12(booking.scheduled_time)}
 
 We'll text when we're on our way!
 
@@ -327,7 +340,7 @@ We'll text when we're on our way!
 Your AV Detailing appointment is TOMORROW:
 
 📅 ${formattedDate}
-⏰ ${booking.scheduled_time}
+⏰ ${formatTime12(booking.scheduled_time)}
 📍 ${address}
 
 ✅ Please ensure vehicle is accessible
@@ -342,7 +355,7 @@ See you soon!
         message = `🚗 AV Detailing arriving in ~2 hours!
 
 📍 ${address}
-⏰ ${booking.scheduled_time}
+⏰ ${formatTime12(booking.scheduled_time)}
 
 We'll text when we're on our way!
 

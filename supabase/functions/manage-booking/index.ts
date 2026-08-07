@@ -48,9 +48,23 @@ function formatDate(dateStr: string): string {
 }
 
 // Format time for display
+function toDbTime(timeStr: string): string {
+  const v = String(timeStr || "").trim();
+  const m12 = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp])\.?[Mm]\.?$/);
+  if (m12) {
+    let h = parseInt(m12[1]) % 12;
+    if (m12[3].toLowerCase() === "p") h += 12;
+    return `${String(h).padStart(2, "0")}:${m12[2]}`;
+  }
+  const m24 = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (m24) return `${String(parseInt(m24[1])).padStart(2, "0")}:${m24[2]}`;
+  return v;
+}
+
+// Format time for display (always friendly 12-hour)
 function formatTime(timeStr: string): string {
   try {
-    const [hours, minutes] = timeStr.split(":");
+    const [hours, minutes] = toDbTime(timeStr).split(":");
     let hour = parseInt(hours);
     const ampm = hour >= 12 ? "PM" : "AM";
     if (hour > 12) hour -= 12;
@@ -201,7 +215,7 @@ const handler = async (req: Request): Promise<Response> => {
           booking: {
             id: booking.id,
             scheduledDate: booking.scheduled_date,
-            scheduledTime: booking.scheduled_time,
+            scheduledTime: formatTime(booking.scheduled_time),
             serviceName: booking.services?.name || "Detailing Service",
             serviceAddress: booking.service_address,
             serviceCity: booking.service_city,
@@ -269,7 +283,7 @@ const handler = async (req: Request): Promise<Response> => {
         .from("bookings")
         .update({
           scheduled_date: newDate,
-          scheduled_time: newTime,
+          scheduled_time: toDbTime(newTime),
           status: "pending",
         })
         .eq("id", booking.id);
