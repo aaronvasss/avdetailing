@@ -16,7 +16,7 @@ import {
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { formatHm } from "@/lib/duration-format";
-import { DEFAULT_HOURLY_RATE, hourlyRateFor, payForMinutes } from "@/lib/worker-pay";
+import { DEFAULT_HOURLY_RATE, hourlyRateFor, payForMinutes, shiftApprovalStatus } from "@/lib/worker-pay";
 import { SEOHead } from "@/components/seo/SEOHead";
 
 
@@ -32,6 +32,7 @@ interface ShiftRow {
   clock_out_lng: number | null;
   total_minutes: number | null;
   notes: string | null;
+  approval_status: string | null;
 }
 
 function googleMapsUrl(lat: number, lng: number) {
@@ -79,7 +80,7 @@ export default function WorkerTimesheetPage() {
       const toIso = format(range.to!, "yyyy-MM-dd");
       const { data } = await supabase
         .from("worker_shifts")
-        .select("id, clock_in_at, clock_out_at, clock_in_lat, clock_in_lng, clock_out_lat, clock_out_lng, total_minutes, notes")
+        .select("id, clock_in_at, clock_out_at, clock_in_lat, clock_in_lng, clock_out_lat, clock_out_lng, total_minutes, notes, approval_status")
         .eq("user_id", user.id)
         .gte("clock_in_at", `${fromIso}T00:00:00`)
         .lte("clock_in_at", `${toIso}T23:59:59`)
@@ -92,23 +93,30 @@ export default function WorkerTimesheetPage() {
 
   const summary = useMemo(() => {
     let totalMin = 0;
+    let pendingMin = 0;
     let completed = 0;
     let inProgress = 0;
+    let pendingShifts = 0;
     for (const r of rows) {
       if (r.clock_out_at && r.total_minutes != null) {
-        totalMin += Number(r.total_minutes);
+        if (shiftApprovalStatus(r) === "approved") {
+          totalMin += Number(r.total_minutes);
+        } else if (shiftApprovalStatus(r) === "pending") {
+          pendingMin += Number(r.total_minutes);
+          pendingShifts++;
+        }
         completed++;
       } else {
         inProgress++;
       }
     }
-    return { totalMin, completed, inProgress, shifts: rows.length };
+    return { totalMin, pendingMin, pendingShifts, completed, inProgress, shifts: rows.length };
   }, [rows]);
 
   const dailyTotals = useMemo(() => {
     const map = new Map<string, number>();
     for (const r of rows) {
-      if (r.total_minutes == null) continue;
+      if (r.total_minutes == null || shiftApprovalStatus(r) !== "approved") continue;
       const key = shiftDateKey(r.clock_in_at);
       map.set(key, (map.get(key) || 0) + Number(r.total_minutes));
     }

@@ -10,6 +10,9 @@ import { SEOHead } from "@/components/seo/SEOHead";
 import {
   fetchShifts,
   shiftMinutes,
+  sumShiftMinutes,
+  sumApprovedShiftMinutes,
+  pendingShifts,
   hourlyRateFor,
   bookingHourlyRate,
   hasHourlyOverride,
@@ -96,13 +99,15 @@ export default function WorkerEarningsPage() {
   const period = useCallback((from: string, to: string) => {
     const periodShifts = shifts.filter((s) => inRange(shiftDay(s), from, to));
     const periodJobs = completedBookings.filter((b) => inRange(b.scheduled_date, from, to));
-    const shiftMins = periodShifts.reduce((sum, s) => sum + shiftMinutes(s), 0);
+    const shiftMins = sumApprovedShiftMinutes(periodShifts);
+    const pendingMins = sumShiftMinutes(pendingShifts(periodShifts));
     const jobMins = periodJobs.reduce((sum, b) => sum + jobMinutes(b), 0);
     const tips = periodJobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
     return {
       shifts: periodShifts,
       jobs: periodJobs,
       shiftMins,
+      pendingMins,
       jobMins,
       tips,
       pay: payForMinutes(shiftMins, hourlyRate),
