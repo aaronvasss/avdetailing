@@ -31,6 +31,9 @@ export default function AccountPage() {
   const { user, role, isAdmin, loading: authLoading } = useAuth();
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
 
   useEffect(() => {
     if (authLoading) return;
