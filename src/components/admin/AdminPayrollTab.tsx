@@ -71,6 +71,8 @@ export function AdminPayrollTab() {
   const [fromDate, setFromDate] = useState(initialRange.from);
   const [toDate, setToDate] = useState(initialRange.to);
   const [selected, setSelected] = useState<PayrollWorker | null>(null);
+  const [hoursWorker, setHoursWorker] = useState<PayrollWorker | null>(null);
+
 
   const [editingPay, setEditingPay] = useState<Record<string, string>>({});
   const [savingPay, setSavingPay] = useState<string | null>(null);
