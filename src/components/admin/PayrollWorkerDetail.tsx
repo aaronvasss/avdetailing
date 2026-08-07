@@ -566,28 +566,112 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing?.id ? "Edit Shift" : "Add Shift"}</DialogTitle>
+            <DialogTitle>
+              {editing?.id ? "Edit Hours" : "Add Hours"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Clock In *</Label>
-              <Input
-                type="datetime-local"
-                value={editing?.clockIn || ""}
-                onChange={(e) => setEditing((p) => (p ? { ...p, clockIn: e.target.value } : p))}
-              />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={editing?.mode === "hours" ? "default" : "outline"}
+                onClick={() => setEditing((p) => (p ? { ...p, mode: "hours" } : p))}
+              >
+                Hours worked
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={editing?.mode === "times" ? "default" : "outline"}
+                onClick={() =>
+                  setEditing((p) => {
+                    if (!p) return p;
+                    const minutes = parseHoursInput(p.hours);
+                    const baseIn = p.clockIn || `${p.date}T08:00`;
+                    const derivedOut =
+                      minutes && minutes > 0
+                        ? toLocalInput(
+                            new Date(
+                              new Date(baseIn).getTime() +
+                                Math.max(0, minutes - p.otherMinutes) * 60000,
+                            ).toISOString(),
+                          )
+                        : p.clockOut;
+                    return { ...p, mode: "times", clockIn: baseIn, clockOut: derivedOut };
+                  })
+                }
+              >
+                Clock times
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label>Clock Out</Label>
-              <Input
-                type="datetime-local"
-                value={editing?.clockOut || ""}
-                onChange={(e) => setEditing((p) => (p ? { ...p, clockOut: e.target.value } : p))}
-              />
-              <p className="text-xs text-muted-foreground">
-                Leave empty to keep the shift open (still clocked in).
+
+            {editing?.hint && (
+              <p className="rounded-md border border-dashed p-2 text-xs text-muted-foreground">
+                {editing.hint}
               </p>
-            </div>
+            )}
+
+            {editing?.mode === "hours" ? (
+              <>
+                <div className="space-y-2">
+                  <Label>Date *</Label>
+                  <Input
+                    type="date"
+                    value={editing?.date || ""}
+                    onChange={(e) =>
+                      setEditing((p) =>
+                        p
+                          ? {
+                              ...p,
+                              date: e.target.value,
+                              clockIn: p.clockIn
+                                ? `${e.target.value}T${p.clockIn.slice(11) || "08:00"}`
+                                : `${e.target.value}T08:00`,
+                            }
+                          : p,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hours worked *</Label>
+                  <Input
+                    inputMode="decimal"
+                    placeholder="7.5 or 7h 30m"
+                    value={editing?.hours || ""}
+                    onChange={(e) => setEditing((p) => (p ? { ...p, hours: e.target.value } : p))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Total hours for this day. Accepts 7.5, 7:30 or 7h 30m. Saved time is approved
+                    right away and counts toward payroll.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label>Clock In *</Label>
+                  <Input
+                    type="datetime-local"
+                    value={editing?.clockIn || ""}
+                    onChange={(e) => setEditing((p) => (p ? { ...p, clockIn: e.target.value } : p))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Clock Out</Label>
+                  <Input
+                    type="datetime-local"
+                    value={editing?.clockOut || ""}
+                    onChange={(e) => setEditing((p) => (p ? { ...p, clockOut: e.target.value } : p))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to keep the shift open (still clocked in).
+                  </p>
+                </div>
+              </>
+            )}
+
             <div className="space-y-2">
               <Label>Note</Label>
               <Textarea
@@ -604,11 +688,12 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Shift
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
