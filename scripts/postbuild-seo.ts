@@ -284,9 +284,9 @@ function rewrite(html: string, m: RouteMeta): string {
   // Keep the prerendered markup when it already contains real page content;
   // only fall back to the synthetic SEO body when prerendering produced an
   // empty shell.
-  const rootMatch = out.match(/<div\s+id=["']root["'][^>]*>([\s\S]*?)<\/div>/i);
-  const prerendered = rootMatch?.[1] ?? "";
-  const hasRealContent = prerendered.length > 2000 && /<h1[\s>]/i.test(prerendered);
+  const bodyStart = out.search(/<div\s+id=["']root["'][^>]*>/i);
+  const prerendered = bodyStart >= 0 ? out.slice(bodyStart) : "";
+  const hasRealContent = prerendered.length > 5000 && /<h1[\s>]/i.test(prerendered);
 
   // Inject SEO body content inside #root (React will replace on hydration).
   if (m.body && !hasRealContent) {
