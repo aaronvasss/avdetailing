@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { WORKING_HOURS, BUFFER_MINUTES, formatDuration, PACKAGE_DURATIONS } from "@/lib/scheduling";
 import { PaymentDetailsSection, getPaymentBadge, getStatusBadge, getPaymentMethodIcon, formatPaymentMethod } from "@/lib/payment-display";
+import { formatTime12h } from "@/lib/time-format";
 
 interface BookingAddOn {
   id: string;
@@ -573,7 +574,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 getServiceColorClass(booking.services?.slug)
                               )}
                             >
-                              {booking.scheduled_time.slice(0, 5)} {getCustomerName(booking)}
+                              {formatTime12h(booking.scheduled_time)} {getCustomerName(booking)}
                             </button>
                           ))}
                           {dayBookings.length > 4 && (
@@ -677,7 +678,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 >
                                   <div className="font-medium truncate">{getCustomerName(booking)}</div>
                                   <div className="text-muted-foreground truncate">
-                                    {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name || "Detailing Service"}
+                                    {formatTime12h(booking.scheduled_time)} • {booking.package_name || booking.custom_service_description || booking.services?.name || "Detailing Service"}
                                   </div>
                                   {booking.booking_add_ons && booking.booking_add_ons.length > 0 && (
                                     <div className="text-[10px] text-muted-foreground truncate">
@@ -738,7 +739,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                                 </div>
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                {booking.scheduled_time.slice(0, 5)} • {booking.package_name || booking.custom_service_description || booking.services?.name || "Detailing Service"} • {booking.vehicle_type}
+                                {formatTime12h(booking.scheduled_time)} • {booking.package_name || booking.custom_service_description || booking.services?.name || "Detailing Service"} • {booking.vehicle_type}
                                 <span className="ml-2 text-xs">({formatDuration(duration)})</span>
                               </div>
                               {booking.booking_add_ons && booking.booking_add_ons.length > 0 && (
@@ -824,7 +825,7 @@ export function AdminCalendarView({ isAdmin }: AdminCalendarViewProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Time</span>
-                  <span>{selectedBooking.scheduled_time}</span>
+                  <span>{formatTime12h(selectedBooking.scheduled_time)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Service Location</span>
