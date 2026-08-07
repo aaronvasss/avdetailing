@@ -64,6 +64,7 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [initial, setInitial] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState<"week" | "today" | null>(null);
 
   const days = useMemo(
@@ -78,27 +79,34 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const rows = await fetchShifts({ fromDate, toDate });
-    const ids = new Set(workerIds ? workerIds.split(",") : []);
-    const mine = rows.filter((s) => ids.has(s.user_id));
-    setShifts(mine);
+    setLoadError(null);
+    try {
+      const rows = await fetchShifts({ fromDate, toDate });
+      const ids = new Set(workerIds ? workerIds.split(",") : []);
+      const mine = rows.filter((s) => ids.has(s.user_id));
+      setShifts(mine);
 
-    const byCell: Record<string, number> = {};
-    mine.forEach((s) => {
-      const k = cellKey(s.user_id, s.clock_in_at.slice(0, 10));
-      byCell[k] = (byCell[k] || 0) + shiftMinutes(s);
-    });
-    const values: Record<string, string> = {};
-    ids.forEach((uid) => {
-      dayKeys.forEach((day) => {
-        const k = cellKey(uid, day);
-        values[k] = minutesToHoursInput(byCell[k] || 0);
+      const byCell: Record<string, number> = {};
+      mine.forEach((s) => {
+        const k = cellKey(s.user_id, s.clock_in_at.slice(0, 10));
+        byCell[k] = (byCell[k] || 0) + shiftMinutes(s);
       });
-    });
-    setDrafts(values);
-    setInitial(values);
-    setLoading(false);
+      const values: Record<string, string> = {};
+      ids.forEach((uid) => {
+        dayKeys.forEach((day) => {
+          const k = cellKey(uid, day);
+          values[k] = minutesToHoursInput(byCell[k] || 0);
+        });
+      });
+      setDrafts(values);
+      setInitial(values);
+    } catch (e: any) {
+      setLoadError(e?.message || "Could not load timesheet data");
+    } finally {
+      setLoading(false);
+    }
   }, [fromDate, toDate, dayKeys, workerIds]);
+
 
   useEffect(() => {
     load();
@@ -244,6 +252,14 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-sm font-semibold">We couldn't load these hours</p>
+            <p className="text-sm text-muted-foreground max-w-md">{loadError}</p>
+            <Button size="sm" variant="outline" onClick={() => load()}>
+              Retry
+            </Button>
           </div>
         ) : (
           <>
