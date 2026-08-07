@@ -14,7 +14,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { localBusinessSchema } from "../src/components/seo/JsonLd";
+import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
 import { LOCATION_PAGES } from "../src/data/locationPages";
 
