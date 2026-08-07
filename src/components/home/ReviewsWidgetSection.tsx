@@ -1,4 +1,7 @@
+import { DeferUntilVisible } from "@/components/common/DeferUntilVisible";
+
 export function ReviewsWidgetSection() {
+
   return (
     <section className="section-padding bg-card">
       <div className="container-custom">
