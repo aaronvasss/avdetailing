@@ -74,12 +74,43 @@ export function formatMoney(amount: number): string {
   return `$${(Number.isFinite(amount) ? amount : 0).toFixed(2)}`;
 }
 
+export type ShiftApprovalStatus = "pending" | "approved" | "rejected";
+
 export interface ShiftRecord {
   id: string;
   user_id: string;
   clock_in_at: string;
   clock_out_at: string | null;
   total_minutes: number | null;
+  approval_status?: ShiftApprovalStatus | string | null;
+  approved_at?: string | null;
+  approved_by?: string | null;
+  approval_note?: string | null;
+}
+
+export const SHIFT_APPROVAL_LABELS: Record<ShiftApprovalStatus, string> = {
+  pending: "Pending approval",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+/** Normalized approval status of a shift (defaults to pending). */
+export function shiftApprovalStatus(shift: ShiftRecord | { approval_status?: string | null } | null | undefined): ShiftApprovalStatus {
+  const status = shift?.approval_status;
+  return status === "approved" || status === "rejected" ? status : "pending";
+}
+
+export function isApprovedShift(shift: ShiftRecord): boolean {
+  return shiftApprovalStatus(shift) === "approved";
+}
+
+/** Only approved shifts count toward payroll totals. */
+export function approvedShifts(shifts: ShiftRecord[]): ShiftRecord[] {
+  return shifts.filter(isApprovedShift);
+}
+
+export function pendingShifts(shifts: ShiftRecord[]): ShiftRecord[] {
+  return shifts.filter((s) => shiftApprovalStatus(s) === "pending");
 }
 
 /** Total paid minutes from clock-in/clock-out shifts (open shifts counted live). */
@@ -97,6 +128,15 @@ export function sumShiftMinutes(shifts: ShiftRecord[]): number {
   return shifts.reduce((sum, s) => sum + shiftMinutes(s), 0);
 }
 
+/** Payable minutes: approved shifts only. */
+export function sumApprovedShiftMinutes(shifts: ShiftRecord[]): number {
+  return sumShiftMinutes(approvedShifts(shifts));
+}
+
+export function sumPendingShiftMinutes(shifts: ShiftRecord[]): number {
+  return sumShiftMinutes(pendingShifts(shifts));
+}
+
 /**
  * Fetch shifts for a worker (or everyone, for admins) inside an inclusive date range.
  * Dates are `yyyy-MM-dd` strings in local business time.
@@ -108,7 +148,7 @@ export async function fetchShifts(opts: {
 }): Promise<ShiftRecord[]> {
   let query = supabase
     .from("worker_shifts")
-    .select("id, user_id, clock_in_at, clock_out_at, total_minutes")
+    .select("id, user_id, clock_in_at, clock_out_at, total_minutes, approval_status, approved_at, approved_by, approval_note")
     .order("clock_in_at", { ascending: false });
 
   if (opts.userId) query = query.eq("user_id", opts.userId);
