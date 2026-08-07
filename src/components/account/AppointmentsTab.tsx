@@ -338,7 +338,25 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
                 />
               ))
             )}
+
+            {isAdmin && (
+              <div className="pt-2 text-center space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Showing history from the last {historyDaysBack} days
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={loading}
+                  onClick={() => setHistoryDaysBack((d) => d + 180)}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  {loading ? "Loading…" : "Load older appointments"}
+                </Button>
+              </div>
+            )}
           </TabsContent>
+
         </Tabs>
       )}
 
