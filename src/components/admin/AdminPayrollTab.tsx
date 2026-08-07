@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { logAppError } from "@/lib/error-log";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import {
   Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2, CalendarPlus,
 } from "lucide-react";
 import {
-  DEFAULT_HOURLY_RATE, fetchShifts, formatHours, formatDecimalHours, formatMoney,
+  DEFAULT_HOURLY_RATE, fetchShifts, fetchShiftsResult, formatHours, formatDecimalHours, formatMoney,
   payForMinutes, shiftMinutes, sumShiftMinutes, sumApprovedShiftMinutes,
   pendingShifts, setShiftApproval, type ShiftRecord,
 } from "@/lib/worker-pay";
@@ -68,6 +69,7 @@ export function AdminPayrollTab() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const loadSeq = useRef(0);
   const [preset, setPreset] = useState<PresetId>("week");
   const initialRange = rangeForPreset("week");
   const [fromDate, setFromDate] = useState(initialRange.from);
@@ -89,7 +91,15 @@ export function AdminPayrollTab() {
   const weekStart = toISODate(startOfWeek(new Date()));
   const monthStart = toISODate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
+  // Widest window we need: selected range, current month-to-date buckets and the
+  // timesheet grid's current week (so the grid can reuse this single fetch).
+  const weekEnd = toISODate(new Date(startOfWeek(new Date()).getTime() + 6 * 86400000));
+  const windowFrom = [fromDate, monthStart].sort()[0];
+  const windowTo = [toDate, today, weekEnd].sort().slice(-1)[0];
+
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
+    const isStale = () => seq !== loadSeq.current;
     setRefreshing(true);
     setLoadError(null);
     try {
@@ -98,6 +108,7 @@ export function AdminPayrollTab() {
         .select("user_id")
         .eq("role", "staff");
       if (rolesError) throw rolesError;
+      if (isStale()) return;
 
       const userIds = (staffRoles || []).map((r) => r.user_id);
       if (userIds.length === 0) {
@@ -106,12 +117,15 @@ export function AdminPayrollTab() {
         return;
       }
 
-      const [workerRes, profileRes] = await Promise.all([
+      const [workerRes, profileRes, shiftRes] = await Promise.all([
         supabase.from("worker_profiles").select("*").in("user_id", userIds),
         supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
+        fetchShiftsResult({ fromDate: windowFrom, toDate: windowTo }),
       ]);
       if (workerRes.error) throw workerRes.error;
       if (profileRes.error) throw profileRes.error;
+      if (shiftRes.error) throw new Error(shiftRes.error);
+      if (isStale()) return;
       const workerProfiles = workerRes.data;
       const profiles = profileRes.data;
 
@@ -132,19 +146,26 @@ export function AdminPayrollTab() {
       merged.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
       setWorkers(merged);
       setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
-
-      // Widest window we need: selected range plus current month-to-date buckets
-      const windowFrom = [fromDate, monthStart].sort()[0];
-      const windowTo = [toDate, today].sort().slice(-1)[0];
-      const rows = await fetchShifts({ fromDate: windowFrom, toDate: windowTo });
-      setShifts(rows);
+      setShifts(shiftRes.data);
     } catch (e: any) {
-      setLoadError(e?.message || "Could not load payroll data");
+      if (isStale()) return;
+      const message = e?.message || "Could not load payroll data";
+      setLoadError(message);
+      void logAppError({
+        message,
+        code: e?.code || "payroll_load_failed",
+        severity: "error",
+        context: { area: "admin_payroll", windowFrom, windowTo },
+        stack: e?.stack,
+      });
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (!isStale()) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [fromDate, toDate, monthStart, today]);
+  }, [windowFrom, windowTo]);
+
 
 
   useEffect(() => {
@@ -541,8 +562,12 @@ export function AdminPayrollTab() {
           email: w.email,
           pay_rate: w.pay_rate,
         }))}
+        sharedShifts={shifts}
+        sharedFrom={windowFrom}
+        sharedTo={windowTo}
         onSaved={load}
       />
+
 
       {rows.length === 0 ? (
         <Card>
