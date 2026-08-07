@@ -71,6 +71,10 @@ export default defineConfig(({ mode }) => ({
         return (prerender.default || prerender)({
           staticDir: path.join(__dirname, "dist"),
           routes: prerenderRoutes,
+          // Routes are code-split, so give the lazy page chunk time to mount
+          // before the HTML snapshot is taken. Without this the snapshot only
+          // captures the Suspense spinner.
+          renderAfterTime: 5000,
         });
       })(),
   ].filter(Boolean),
