@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw,
+  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2,
 } from "lucide-react";
 import {
   DEFAULT_HOURLY_RATE, fetchShifts, formatHours, formatDecimalHours, formatMoney,
-  payForMinutes, shiftMinutes, sumShiftMinutes, type ShiftRecord,
+  payForMinutes, shiftMinutes, sumShiftMinutes, sumApprovedShiftMinutes,
+  pendingShifts, setShiftApproval, type ShiftRecord,
 } from "@/lib/worker-pay";
 import { PayrollWorkerDetail } from "@/components/admin/PayrollWorkerDetail";
 
@@ -71,6 +72,7 @@ export function AdminPayrollTab() {
 
   const [editingPay, setEditingPay] = useState<Record<string, string>>({});
   const [savingPay, setSavingPay] = useState<string | null>(null);
+  const [approving, setApproving] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newWorker, setNewWorker] = useState({
@@ -155,15 +157,19 @@ export function AdminPayrollTab() {
     () =>
       workers.map((w) => {
         const rangeShifts = shiftsInWindow(w.user_id, fromDate, toDate);
-        const rangeMinutes = sumShiftMinutes(rangeShifts);
+        const rangeMinutes = sumApprovedShiftMinutes(rangeShifts);
+        const pending = pendingShifts(rangeShifts);
         return {
           worker: w,
-          todayMinutes: sumShiftMinutes(shiftsInWindow(w.user_id, today, today)),
-          weekMinutes: sumShiftMinutes(shiftsInWindow(w.user_id, weekStart, today)),
-          monthMinutes: sumShiftMinutes(shiftsInWindow(w.user_id, monthStart, today)),
+          todayMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, today, today)),
+          weekMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, weekStart, today)),
+          monthMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, monthStart, today)),
           rangeMinutes,
           rangePay: payForMinutes(rangeMinutes, w.pay_rate),
           openShift: rangeShifts.some((s) => !s.clock_out_at),
+          pendingCount: pending.length,
+          pendingMinutes: sumShiftMinutes(pending),
+          pendingIds: pending.map((s) => s.id),
         };
       }),
     [workers, shiftsInWindow, fromDate, toDate, today, weekStart, monthStart],
@@ -173,9 +179,24 @@ export function AdminPayrollTab() {
     () => ({
       minutes: rows.reduce((s, r) => s + r.rangeMinutes, 0),
       pay: rows.reduce((s, r) => s + r.rangePay, 0),
+      pendingCount: rows.reduce((s, r) => s + r.pendingCount, 0),
+      pendingMinutes: rows.reduce((s, r) => s + r.pendingMinutes, 0),
     }),
     [rows],
   );
+
+  const approveAll = async (userId: string | null, ids: string[]) => {
+    if (ids.length === 0) return;
+    setApproving(userId ?? "all");
+    const { error } = await setShiftApproval(ids, "approved");
+    setApproving(null);
+    if (error) {
+      toast.error(error || "Failed to approve shifts");
+      return;
+    }
+    toast.success(`Approved ${ids.length} shift${ids.length === 1 ? "" : "s"}`);
+    load();
+  };
 
   const handleSavePayRate = async (userId: string) => {
     const rate = parseFloat(editingPay[userId] ?? "");
@@ -241,7 +262,10 @@ export function AdminPayrollTab() {
   };
 
   const exportCsv = () => {
-    const header = ["Worker", "Email", "Hourly Rate", "Hours", "Estimated Pay", "From", "To"];
+    const header = [
+      "Worker", "Email", "Hourly Rate", "Approved Hours", "Approved Pay",
+      "Pending Hours", "Pending Shifts", "From", "To",
+    ];
     const lines = rows.map((r) =>
       [
         r.worker.full_name || "Unknown",
@@ -249,6 +273,8 @@ export function AdminPayrollTab() {
         r.worker.pay_rate.toFixed(2),
         formatDecimalHours(r.rangeMinutes),
         r.rangePay.toFixed(2),
+        formatDecimalHours(r.pendingMinutes),
+        r.pendingCount,
         fromDate,
         toDate,
       ]
@@ -297,7 +323,9 @@ export function AdminPayrollTab() {
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" /> Team & Payroll
               </CardTitle>
-              <CardDescription>Hours worked and hourly rates for every worker</CardDescription>
+              <CardDescription>
+                Approve shifts before they count toward hours and pay
+              </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={() => load()} disabled={refreshing}>
@@ -436,18 +464,40 @@ export function AdminPayrollTab() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Total hours in range</p>
+              <p className="text-xs text-muted-foreground">Approved hours in range</p>
               <p className="text-2xl font-bold">{formatHours(totals.minutes)}</p>
               <p className="text-xs text-muted-foreground">{formatDecimalHours(totals.minutes)} hrs</p>
             </div>
             <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Estimated labor cost</p>
+              <p className="text-xs text-muted-foreground">Approved labor cost</p>
               <p className="text-2xl font-bold">{formatMoney(totals.pay)}</p>
               <p className="text-xs text-muted-foreground">
                 {fromDate} → {toDate}
               </p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Awaiting approval</p>
+              <p className="text-2xl font-bold">{formatHours(totals.pendingMinutes)}</p>
+              <p className="text-xs text-muted-foreground">
+                {totals.pendingCount} shift{totals.pendingCount === 1 ? "" : "s"} not counted yet
+              </p>
+              {totals.pendingCount > 0 && (
+                <Button
+                  size="sm"
+                  className="mt-2"
+                  disabled={approving !== null}
+                  onClick={() => approveAll(null, rows.flatMap((r) => r.pendingIds))}
+                >
+                  {approving === "all" ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                  )}
+                  Approve all
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -471,6 +521,11 @@ export function AdminPayrollTab() {
                       {r.worker.is_active ? "Active" : "Inactive"}
                     </Badge>
                     {r.openShift && <Badge variant="outline">Clocked in</Badge>}
+                    {r.pendingCount > 0 && (
+                      <Badge variant="destructive">
+                        {r.pendingCount} pending approval
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground">{r.worker.email}</p>
                   {r.worker.phone && (
@@ -485,6 +540,20 @@ export function AdminPayrollTab() {
                       onCheckedChange={(v) => handleToggleActive(r.worker, v)}
                     />
                   </div>
+                  {r.pendingCount > 0 && (
+                    <Button
+                      size="sm"
+                      disabled={approving !== null}
+                      onClick={() => approveAll(r.worker.user_id, r.pendingIds)}
+                    >
+                      {approving === r.worker.user_id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                      )}
+                      Approve {formatHours(r.pendingMinutes)}
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={() => setSelected(r.worker)}>
                     Hours & Shifts <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
@@ -493,7 +562,7 @@ export function AdminPayrollTab() {
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  ["Today", r.todayMinutes],
+                  ["Today (approved)", r.todayMinutes],
                   ["This Week", r.weekMinutes],
                   ["This Month", r.monthMinutes],
                   ["Selected Range", r.rangeMinutes],
@@ -535,7 +604,7 @@ export function AdminPayrollTab() {
                   Save Rate
                 </Button>
                 <div className="rounded-md border px-3 py-2">
-                  <p className="text-[11px] text-muted-foreground">Est. pay for range</p>
+                  <p className="text-[11px] text-muted-foreground">Approved pay for range</p>
                   <p className="text-lg font-semibold">{formatMoney(r.rangePay)}</p>
                 </div>
               </div>
