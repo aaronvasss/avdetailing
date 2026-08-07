@@ -1848,6 +1848,10 @@ export type Database = {
       }
       worker_shifts: {
         Row: {
+          approval_note: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           clock_in_accuracy: number | null
           clock_in_at: string
           clock_in_lat: number | null
@@ -1864,6 +1868,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approval_note?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           clock_in_accuracy?: number | null
           clock_in_at?: string
           clock_in_lat?: number | null
@@ -1880,6 +1888,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approval_note?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           clock_in_accuracy?: number | null
           clock_in_at?: string
           clock_in_lat?: number | null
