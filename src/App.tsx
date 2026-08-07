@@ -48,8 +48,12 @@ const WorkerEarningsPage = lazy(() => import("./pages/WorkerEarningsPage"));
 const WorkerTimesheetPage = lazy(() => import("./pages/WorkerTimesheetPage"));
 const WorkerProfilePage = lazy(() => import("./pages/WorkerProfilePage"));
 const WorkerChatPage = lazy(() => import("./pages/WorkerChatPage"));
+const OpsJobsPage = lazy(() => import("./pages/OpsJobsPage"));
+const OpsJobDetailPage = lazy(() => import("./pages/OpsJobDetailPage"));
+const OpsQcQueuePage = lazy(() => import("./pages/OpsQcQueuePage"));
 const RatingPage = lazy(() => import("./pages/RatingPage"));
 const OAuthConsentPage = lazy(() => import("./pages/OAuthConsentPage"));
+
 
 const queryClient = new QueryClient();
 
@@ -135,34 +139,50 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                {/* Protected: Worker (staff + admin) */}
+                {/* Protected: Worker portal (staff, manager, marketing + admin) */}
                 <Route path="/worker" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerDashboardPage />
                   </ProtectedRoute>
                 } />
+                <Route path="/worker/ops" element={
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
+                    <OpsJobsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/worker/ops/:jobId" element={
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
+                    <OpsJobDetailPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/worker/qc" element={
+                  <ProtectedRoute requiredRole={["manager", "admin"]}>
+                    <OpsQcQueuePage />
+                  </ProtectedRoute>
+                } />
+
                 <Route path="/worker/jobs" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerAllJobsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/chat" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerChatPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/earnings" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerEarningsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/timesheet" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerTimesheetPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/profile" element={
-                  <ProtectedRoute requiredRole={["staff", "admin"]}>
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerProfilePage />
                   </ProtectedRoute>
                 } />

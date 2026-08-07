@@ -1043,6 +1043,245 @@ export type Database = {
           },
         ]
       }
+      ops_job_checklist: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          is_required: boolean
+          item_text: string
+          job_id: string
+          sort_order: number
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          is_required?: boolean
+          item_text: string
+          job_id: string
+          sort_order?: number
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          is_required?: boolean
+          item_text?: string
+          job_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_job_checklist_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "ops_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_job_damage: {
+        Row: {
+          created_at: string
+          damage_type: string
+          id: string
+          job_id: string
+          location_note: string | null
+          note: string | null
+          photo_path: string | null
+          recorded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          damage_type: string
+          id?: string
+          job_id: string
+          location_note?: string | null
+          note?: string | null
+          photo_path?: string | null
+          recorded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          damage_type?: string
+          id?: string
+          job_id?: string
+          location_note?: string | null
+          note?: string | null
+          photo_path?: string | null
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_job_damage_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "ops_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_job_media: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          caption: string | null
+          category: string | null
+          created_at: string
+          id: string
+          job_id: string
+          manager_approved: boolean
+          media_type: string
+          phase: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          manager_approved?: boolean
+          media_type?: string
+          phase: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          manager_approved?: boolean
+          media_type?: string
+          phase?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_job_media_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "ops_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_jobs: {
+        Row: {
+          assigned_technician_id: string | null
+          booking_id: string | null
+          checked_in_at: string | null
+          checked_in_by: string | null
+          created_at: string
+          customer_concerns: string | null
+          delivered_at: string | null
+          fuel_level: string | null
+          id: string
+          job_number: string
+          license_plate: string | null
+          marketing_consent: boolean
+          no_prior_damage: boolean
+          odometer: string | null
+          qc_approved_at: string | null
+          qc_notes: string | null
+          qc_reviewed_by: string | null
+          rework_count: number
+          rework_notes: string | null
+          status: string
+          technician_completed_at: string | null
+          technician_notes: string | null
+          technician_signature: string | null
+          updated_at: string
+          vehicle_color: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_year: number | null
+        }
+        Insert: {
+          assigned_technician_id?: string | null
+          booking_id?: string | null
+          checked_in_at?: string | null
+          checked_in_by?: string | null
+          created_at?: string
+          customer_concerns?: string | null
+          delivered_at?: string | null
+          fuel_level?: string | null
+          id?: string
+          job_number?: string
+          license_plate?: string | null
+          marketing_consent?: boolean
+          no_prior_damage?: boolean
+          odometer?: string | null
+          qc_approved_at?: string | null
+          qc_notes?: string | null
+          qc_reviewed_by?: string | null
+          rework_count?: number
+          rework_notes?: string | null
+          status?: string
+          technician_completed_at?: string | null
+          technician_notes?: string | null
+          technician_signature?: string | null
+          updated_at?: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: number | null
+        }
+        Update: {
+          assigned_technician_id?: string | null
+          booking_id?: string | null
+          checked_in_at?: string | null
+          checked_in_by?: string | null
+          created_at?: string
+          customer_concerns?: string | null
+          delivered_at?: string | null
+          fuel_level?: string | null
+          id?: string
+          job_number?: string
+          license_plate?: string | null
+          marketing_consent?: boolean
+          no_prior_damage?: boolean
+          odometer?: string | null
+          qc_approved_at?: string | null
+          qc_notes?: string | null
+          qc_reviewed_by?: string | null
+          rework_count?: number
+          rework_notes?: string | null
+          status?: string
+          technician_completed_at?: string | null
+          technician_notes?: string | null
+          technician_signature?: string | null
+          updated_at?: string
+          vehicle_color?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_jobs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_records: {
         Row: {
           amount_cents: number
@@ -1933,6 +2172,9 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_manager: { Args: never; Returns: boolean }
+      is_marketing: { Args: never; Returns: boolean }
+      is_ops_employee: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       move_to_dlq: {
         Args: {
@@ -1943,6 +2185,7 @@ export type Database = {
         }
         Returns: number
       }
+      next_ops_job_number: { Args: never; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -1960,7 +2203,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "customer" | "staff"
+      app_role: "admin" | "customer" | "staff" | "manager" | "marketing"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2088,7 +2331,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "customer", "staff"],
+      app_role: ["admin", "customer", "staff", "manager", "marketing"],
     },
   },
 } as const

@@ -2,14 +2,17 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-export type AppRole = "admin" | "staff" | "customer" | null;
+export type AppRole = "admin" | "manager" | "staff" | "marketing" | "customer" | null;
 
 interface AuthState {
   user: User | null;
   session: Session | null;
   role: AppRole;
+  roles: Exclude<AppRole, null>[];
   isAdmin: boolean;
   isStaff: boolean;
+  isManager: boolean;
+  isMarketing: boolean;
   loading: boolean;
 }
 
@@ -19,10 +22,14 @@ let authState: AuthState = {
   user: null,
   session: null,
   role: null,
+  roles: [],
   isAdmin: false,
   isStaff: false,
+  isManager: false,
+  isMarketing: false,
   loading: true,
 };
+
 
 let initialized = false;
 let lastUserId: string | null = null;
@@ -36,29 +43,46 @@ function emit() {
 
 function setAuthState(next: Partial<AuthState>) {
   const role = next.role !== undefined ? next.role : authState.role;
+  const roles = next.roles !== undefined ? next.roles : authState.roles;
+  const has = (r: Exclude<AppRole, null>) => role === r || roles.includes(r);
   authState = {
     ...authState,
     ...next,
     role,
-    isAdmin: role === "admin",
-    isStaff: role === "admin" || role === "staff",
+    roles,
+    isAdmin: has("admin"),
+    isStaff: has("admin") || has("manager") || has("staff"),
+    isManager: has("admin") || has("manager"),
+    isMarketing: has("admin") || has("marketing"),
   };
   emit();
 }
 
-async function fetchRole(userId: string): Promise<AppRole> {
+type RoleSnapshot = { role: AppRole; roles: Exclude<AppRole, null>[] };
+
+const ROLE_PRECEDENCE: Exclude<AppRole, null>[] = [
+  "admin",
+  "manager",
+  "staff",
+  "marketing",
+  "customer",
+];
+
+async function fetchRole(userId: string): Promise<RoleSnapshot> {
   const { data, error } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", userId);
 
-  if (error) return "customer";
+  if (error) return { role: "customer", roles: ["customer"] };
 
-  const roles = new Set((data ?? []).map((row) => row.role));
-  if (roles.has("admin")) return "admin";
-  if (roles.has("staff")) return "staff";
-  return "customer";
+  const roles = ROLE_PRECEDENCE.filter((r) =>
+    (data ?? []).some((row) => row.role === r),
+  );
+  const primary = roles[0] ?? "customer";
+  return { role: primary, roles: roles.length ? roles : ["customer"] };
 }
+
 
 function applySession(currentSession: Session | null) {
   if (!currentSession) {
@@ -68,8 +92,10 @@ function applySession(currentSession: Session | null) {
       user: null,
       session: null,
       role: null,
+      roles: [],
       loading: false,
     });
+
     return;
   }
 
@@ -92,14 +118,17 @@ function applySession(currentSession: Session | null) {
     user: currentSession.user,
     session: currentSession,
     role: null,
+    roles: [],
     loading: true,
   });
 
+
   setTimeout(async () => {
-    const role = await fetchRole(currentUserId);
+    const snapshot = await fetchRole(currentUserId);
     if (requestId !== roleRequestId || currentUserId !== lastUserId) return;
-    setAuthState({ role, loading: false });
+    setAuthState({ role: snapshot.role, roles: snapshot.roles, loading: false });
   }, 0);
+
 }
 
 async function refreshSessionSnapshot() {

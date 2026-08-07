@@ -1,7 +1,17 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, ClipboardList, DollarSign, User, LogOut, MessageSquare, Clock } from "lucide-react";
+import {
+  CalendarDays,
+  ClipboardList,
+  DollarSign,
+  User,
+  LogOut,
+  MessageSquare,
+  Clock,
+  ShieldCheck,
+  Wrench,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,20 +23,27 @@ interface WorkerLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
+const baseNavItems = [
   { path: "/worker", label: "Today", icon: CalendarDays },
-  { path: "/worker/jobs", label: "All Jobs", icon: ClipboardList },
+  { path: "/worker/ops", label: "Jobs", icon: Wrench },
+  { path: "/worker/jobs", label: "Bookings", icon: ClipboardList },
   { path: "/worker/timesheet", label: "Timesheet", icon: Clock },
   { path: "/worker/chat", label: "Chat", icon: MessageSquare },
   { path: "/worker/earnings", label: "Earnings", icon: DollarSign },
   { path: "/worker/profile", label: "Profile", icon: User },
 ];
 
+const qcNavItem = { path: "/worker/qc", label: "QC", icon: ShieldCheck };
+
+
 export function WorkerLayout({ children }: WorkerLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [workerName, setWorkerName] = useState("");
   const [showNotifPrompt, setShowNotifPrompt] = useState(true);
+  const [canReviewQc, setCanReviewQc] = useState(false);
+
+  const navItems = canReviewQc ? [...baseNavItems, qcNavItem] : baseNavItems;
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -42,11 +59,18 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
         .eq("user_id", user.id);
 
       const roleSet = new Set((roles || []).map((r) => r.role));
-      if (!roleSet.has("staff") && !roleSet.has("admin")) {
+      const hasPortalAccess =
+        roleSet.has("staff") ||
+        roleSet.has("admin") ||
+        roleSet.has("manager") ||
+        roleSet.has("marketing");
+      if (!hasPortalAccess) {
         toast.error("You don't have worker access");
         navigate("/account");
         return;
       }
+      setCanReviewQc(roleSet.has("admin") || roleSet.has("manager"));
+
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -98,9 +122,12 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
 
       {/* Bottom mobile nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur lg:relative lg:border-t-0 lg:border-b">
-        <div className="flex justify-around max-w-4xl mx-auto">
+        <div className="flex max-w-4xl mx-auto overflow-x-auto lg:justify-around">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== "/worker" && location.pathname.startsWith(`${item.path}/`));
+
             return (
               <button
                 key={item.path}
