@@ -1282,6 +1282,106 @@ export type Database = {
           },
         ]
       }
+      ops_service_templates: {
+        Row: {
+          aftercare_instructions: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          instructions: string | null
+          is_active: boolean
+          required_chemicals: string[]
+          required_tools: string[]
+          safety_warnings: string | null
+          service_id: string | null
+          title: string
+          training_video_url: string | null
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          aftercare_instructions?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          required_chemicals?: string[]
+          required_tools?: string[]
+          safety_warnings?: string | null
+          service_id?: string | null
+          title: string
+          training_video_url?: string | null
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          aftercare_instructions?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          required_chemicals?: string[]
+          required_tools?: string[]
+          safety_warnings?: string | null
+          service_id?: string | null
+          title?: string
+          training_video_url?: string | null
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_service_templates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_template_items: {
+        Row: {
+          created_at: string
+          id: string
+          is_required: boolean
+          item_type: string
+          label: string
+          phase: string | null
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          item_type: string
+          label: string
+          phase?: string | null
+          sort_order?: number
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          item_type?: string
+          label?: string
+          phase?: string | null
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ops_service_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_records: {
         Row: {
           amount_cents: number
