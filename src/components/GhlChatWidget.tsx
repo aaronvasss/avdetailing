@@ -58,15 +58,51 @@ function injectWidget() {
   document.body.appendChild(s);
 }
 
+/**
+ * Runs `cb` once the page is idle after load, or immediately on the first user
+ * interaction — whichever happens first. Keeps the third-party chat bundle off
+ * the critical path without changing behaviour.
+ */
+function whenIdleOrInteraction(cb: () => void): () => void {
+  let done = false;
+  let timer: number | undefined;
+  const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+
+  const run = () => {
+    if (done) return;
+    done = true;
+    cleanup();
+    cb();
+  };
+
+  const cleanup = () => {
+    if (timer) window.clearTimeout(timer);
+    events.forEach((e) => window.removeEventListener(e, run));
+    window.removeEventListener("load", schedule);
+  };
+
+  const schedule = () => {
+    timer = window.setTimeout(run, 1500);
+  };
+
+  events.forEach((e) => window.addEventListener(e, run, { passive: true, once: true }));
+
+  if (document.readyState === "complete") schedule();
+  else window.addEventListener("load", schedule);
+
+  return cleanup;
+}
+
 export function GhlChatWidget() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     if (isExcludedPath(pathname)) {
       removeWidget();
-    } else {
-      injectWidget();
+      return;
     }
+    if (document.getElementById(WIDGET_SCRIPT_ID)) return;
+    return whenIdleOrInteraction(injectWidget);
   }, [pathname]);
 
   return null;

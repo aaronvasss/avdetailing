@@ -68,9 +68,19 @@ export default defineConfig(({ mode }) => ({
     mode === "production" &&
       (() => {
         const prerender = require("vite-plugin-prerender");
-        return (prerender.default || prerender)({
+        const vitePrerender = prerender.default || prerender;
+        const PuppeteerRenderer =
+          vitePrerender.PuppeteerRenderer || prerender.PuppeteerRenderer;
+        return vitePrerender({
           staticDir: path.join(__dirname, "dist"),
           routes: prerenderRoutes,
+          renderer: new PuppeteerRenderer({
+            // Routes are code-split, so the snapshot must wait until the lazy
+            // page chunk has mounted real content (every public page renders an
+            // <h1>). Without this the snapshot only captures the loading spinner.
+            renderAfterElementExists: "h1",
+            maxConcurrentRoutes: 4,
+          }),
         });
       })(),
   ].filter(Boolean),

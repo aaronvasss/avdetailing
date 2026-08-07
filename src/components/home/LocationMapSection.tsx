@@ -1,4 +1,5 @@
 import { MapPin, Phone } from "lucide-react";
+import { DeferUntilVisible } from "@/components/common/DeferUntilVisible";
 
 export function LocationMapSection() {
   return (
@@ -15,6 +16,7 @@ export function LocationMapSection() {
 
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 rounded-2xl overflow-hidden border border-border shadow-lg">
+            <DeferUntilVisible minHeight={400}>
             <iframe
               title="AV Detailing Baton Rouge on Google Maps"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d569051.7110736609!2d-91.26148367307754!3d30.383755354933573!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x69297093817ae99b%3A0x61fddda493a8908c!2sAV%20Detailing!5e1!3m2!1sen!2sus!4v1781853068552!5m2!1sen!2sus"
@@ -25,6 +27,7 @@ export function LocationMapSection() {
               referrerPolicy="no-referrer-when-downgrade"
               allowFullScreen
             />
+            </DeferUntilVisible>
           </div>
           <div className="space-y-6 bg-card rounded-2xl p-6 border border-border">
             <div>

@@ -1,10 +1,49 @@
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync, statSync } from "fs";
 import { resolve } from "path";
+import { execFileSync } from "child_process";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages.ts";
 import { LOCATION_PAGES } from "../src/data/locationPages.ts";
 
 const BASE_URL = "https://avdetailing.net";
-const LASTMOD = "2026-05-28";
+
+/**
+ * Real last-modification date (YYYY-MM-DD) for the source files that render a
+ * page. Uses the git commit date when available and falls back to the file
+ * mtime, so every URL gets its own page-specific <lastmod>.
+ */
+const lastmodCache = new Map<string, string>();
+
+function fileLastmod(file: string): string | undefined {
+  if (lastmodCache.has(file)) return lastmodCache.get(file);
+  const abs = resolve(file);
+  if (!existsSync(abs)) return undefined;
+
+  let date: string | undefined;
+  try {
+    const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", file], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(out)) date = out;
+  } catch {
+    // git unavailable (e.g. fresh checkout) — fall back to mtime below
+  }
+  if (!date) date = statSync(abs).mtime.toISOString().slice(0, 10);
+
+  lastmodCache.set(file, date);
+  return date;
+}
+
+/** Most recent lastmod across the given source files. */
+function sourcesLastmod(sources: string[] | undefined): string | undefined {
+  const dates = (sources ?? []).map(fileLastmod).filter((d): d is string => Boolean(d));
+  if (!dates.length) return undefined;
+  return dates.sort().at(-1);
+}
+
+function pageFile(name: string) {
+  return `src/pages/${name}.tsx`;
+}
 
 const REDIRECT_PATHS = new Set([
   "/services/car-detailing",
@@ -29,6 +68,8 @@ const PRIVATE_OR_UTILITY_PREFIXES = [
 
 interface SitemapEntry {
   path: string;
+  /** Source files whose modification dates determine this page's <lastmod>. */
+  sources?: string[];
   lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
@@ -36,25 +77,25 @@ interface SitemapEntry {
 
 const staticEntries: SitemapEntry[] = [
   // Homepage
-  { path: "/", changefreq: "weekly", priority: "1.0" },
+  { path: "/", sources: [pageFile("Index"), "src/components/home"], changefreq: "weekly", priority: "1.0" },
 
   // Category pages
-  { path: "/car-detailing-baton-rouge", changefreq: "monthly", priority: "0.95" },
-  { path: "/rv-detailing-baton-rouge", changefreq: "monthly", priority: "0.90" },
-  { path: "/boat-detailing-baton-rouge", changefreq: "monthly", priority: "0.90" },
-  { path: "/aircraft-detailing-baton-rouge", changefreq: "monthly", priority: "0.85" },
+  { path: "/car-detailing-baton-rouge", sources: [pageFile("CarDetailingBatonRougePage")], changefreq: "monthly", priority: "0.95" },
+  { path: "/rv-detailing-baton-rouge", sources: [pageFile("RVDetailingBatonRougePage")], changefreq: "monthly", priority: "0.90" },
+  { path: "/boat-detailing-baton-rouge", sources: [pageFile("BoatDetailingBatonRougePage")], changefreq: "monthly", priority: "0.90" },
+  { path: "/aircraft-detailing-baton-rouge", sources: [pageFile("AircraftDetailingBatonRougePage")], changefreq: "monthly", priority: "0.85" },
 
   // Supporting pages
-  { path: "/services", changefreq: "monthly", priority: "0.60" },
-  { path: "/about", changefreq: "monthly", priority: "0.65" },
-  { path: "/memberships", changefreq: "monthly", priority: "0.75" },
-  { path: "/gallery", changefreq: "weekly", priority: "0.70" },
-  { path: "/reviews", changefreq: "weekly", priority: "0.70" },
-  { path: "/contact", changefreq: "monthly", priority: "0.65" },
-  { path: "/service-areas", changefreq: "monthly", priority: "0.65" },
+  { path: "/services", sources: [pageFile("ServicesPage")], changefreq: "monthly", priority: "0.60" },
+  { path: "/about", sources: [pageFile("AboutPage")], changefreq: "monthly", priority: "0.65" },
+  { path: "/memberships", sources: [pageFile("MembershipsPage")], changefreq: "monthly", priority: "0.75" },
+  { path: "/gallery", sources: [pageFile("GalleryPage")], changefreq: "weekly", priority: "0.70" },
+  { path: "/reviews", sources: [pageFile("ReviewsPage")], changefreq: "weekly", priority: "0.70" },
+  { path: "/contact", sources: [pageFile("ContactPage")], changefreq: "monthly", priority: "0.65" },
+  { path: "/service-areas", sources: [pageFile("ServiceAreasPage")], changefreq: "monthly", priority: "0.65" },
   
-  { path: "/privacy-policy", changefreq: "yearly", priority: "0.30" },
-  { path: "/terms-and-conditions", changefreq: "yearly", priority: "0.30" },
+  { path: "/privacy-policy", sources: [pageFile("PrivacyPolicyPage")], changefreq: "yearly", priority: "0.30" },
+  { path: "/terms-and-conditions", sources: [pageFile("TermsAndConditionsPage")], changefreq: "yearly", priority: "0.30" },
 ];
 
 function generateSitemap(entries: SitemapEntry[]) {
@@ -100,7 +141,8 @@ function validateAndNormalize(entries: SitemapEntry[]) {
     }
 
     seen.add(path);
-    return { ...entry, path, lastmod: entry.lastmod ?? LASTMOD };
+    const lastmod = entry.lastmod ?? sourcesLastmod(entry.sources);
+    return { ...entry, path, ...(lastmod ? { lastmod } : {}) };
   });
 }
 
@@ -115,14 +157,24 @@ const allEntries: SitemapEntry[] = validateAndNormalize([
       ["ceramic", "paint"].some(k => p.slug.includes(k)) ? "0.85" :
       ["interior", "exterior", "mobile-rv", "mobile-boat"].some(k => p.slug.includes(k)) ? "0.80" :
       "0.75";
-    return { path: `/${p.slug}`, changefreq: "monthly", priority };
+    return {
+      path: `/${p.slug}`,
+      sources: ["src/data/serviceLandingPages.ts", pageFile("ServiceLandingPage")],
+      changefreq: "monthly",
+      priority,
+    };
   }),
   // Location landing pages
   ...LOCATION_PAGES.map((p): SitemapEntry => {
     const priority =
       ["highland-road", "shenandoah", "gonzales", "prairieville", "denham-springs"]
         .some(k => p.slug.includes(k)) ? "0.80" : "0.75";
-    return { path: `/${p.slug}`, changefreq: "monthly", priority };
+    return {
+      path: `/${p.slug}`,
+      sources: ["src/data/locationPages.ts", pageFile("LocationLandingPage")],
+      changefreq: "monthly",
+      priority,
+    };
   }),
 ]);
 

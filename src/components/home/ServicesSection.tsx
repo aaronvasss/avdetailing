@@ -1,10 +1,50 @@
 import { Link } from "react-router-dom";
 import { Car, Droplets, Ship, Caravan, Plane, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import rvDetailingImage from "@/assets/rv-detailing.jpg";
-import carDetailingImage from "@/assets/car-detailing-service.jpg";
-import ceramicCoatingImage from "@/assets/ceramic-coating-service.jpg";
-import paintCorrectionImage from "@/assets/paint-correction-service.jpg";
+import carAvif400 from "@/assets/optimized/car-detailing-service-400.avif";
+import carAvif800 from "@/assets/optimized/car-detailing-service-800.avif";
+import carAvif1200 from "@/assets/optimized/car-detailing-service-1200.avif";
+import carWebp400 from "@/assets/optimized/car-detailing-service-400.webp";
+import carWebp800 from "@/assets/optimized/car-detailing-service-800.webp";
+import carWebp1200 from "@/assets/optimized/car-detailing-service-1200.webp";
+import paintAvif400 from "@/assets/optimized/paint-correction-service-400.avif";
+import paintAvif800 from "@/assets/optimized/paint-correction-service-800.avif";
+import paintAvif1200 from "@/assets/optimized/paint-correction-service-1200.avif";
+import paintWebp400 from "@/assets/optimized/paint-correction-service-400.webp";
+import paintWebp800 from "@/assets/optimized/paint-correction-service-800.webp";
+import paintWebp1200 from "@/assets/optimized/paint-correction-service-1200.webp";
+import rvAvif400 from "@/assets/optimized/rv-detailing-400.avif";
+import rvAvif800 from "@/assets/optimized/rv-detailing-800.avif";
+import rvWebp400 from "@/assets/optimized/rv-detailing-400.webp";
+import rvWebp800 from "@/assets/optimized/rv-detailing-800.webp";
+import ceramicAvif400 from "@/assets/optimized/ceramic-coating-service-400.avif";
+import ceramicAvif800 from "@/assets/optimized/ceramic-coating-service-800.avif";
+import ceramicWebp400 from "@/assets/optimized/ceramic-coating-service-400.webp";
+import ceramicWebp800 from "@/assets/optimized/ceramic-coating-service-800.webp";
+
+const srcSet = (entries: [string, number][]) =>
+  entries.map(([url, w]) => `${url} ${w}w`).join(", ");
+
+const carDetailingImage = carWebp800;
+const carDetailingSources = {
+  avif: srcSet([[carAvif400, 400], [carAvif800, 800], [carAvif1200, 1200]]),
+  webp: srcSet([[carWebp400, 400], [carWebp800, 800], [carWebp1200, 1200]]),
+};
+const paintCorrectionImage = paintWebp800;
+const paintCorrectionSources = {
+  avif: srcSet([[paintAvif400, 400], [paintAvif800, 800], [paintAvif1200, 1200]]),
+  webp: srcSet([[paintWebp400, 400], [paintWebp800, 800], [paintWebp1200, 1200]]),
+};
+const rvDetailingImage = rvWebp800;
+const rvDetailingSources = {
+  avif: srcSet([[rvAvif400, 400], [rvAvif800, 800]]),
+  webp: srcSet([[rvWebp400, 400], [rvWebp800, 800]]),
+};
+const ceramicCoatingImage = ceramicWebp800;
+const ceramicCoatingSources = {
+  avif: srcSet([[ceramicAvif400, 400], [ceramicAvif800, 800]]),
+  webp: srcSet([[ceramicWebp400, 400], [ceramicWebp800, 800]]),
+};
 import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 
 const services = [
@@ -15,6 +55,7 @@ const services = [
     description: "Complete interior and exterior detailing for sedans, SUVs, and trucks.",
     href: "/car-detailing-baton-rouge",
     image: carDetailingImage,
+    sources: carDetailingSources,
     alt: "Mobile car detailing service in Baton Rouge Louisiana",
   },
   {
@@ -24,6 +65,7 @@ const services = [
     description: "Long-lasting paint protection with professional-grade ceramic coating.",
     href: "/ceramic-coating-baton-rouge",
     image: ceramicCoatingImage,
+    sources: ceramicCoatingSources,
     alt: "AV Detailing ceramic coating application on vehicle",
   },
   {
@@ -34,6 +76,7 @@ const services = [
     description: "Remove swirls, scratches, and oxidation to restore your paint's clarity.",
     href: "/paint-correction-baton-rouge",
     image: paintCorrectionImage,
+    sources: paintCorrectionSources,
     alt: "Professional paint correction service removing swirls and scratches",
   },
   {
@@ -52,6 +95,7 @@ const services = [
     description: "Comprehensive detailing for motorhomes and travel trailers of all sizes.",
     href: "/rv-detailing-baton-rouge",
     image: rvDetailingImage,
+    sources: rvDetailingSources,
     alt: "RV and motorhome detailing service in Louisiana",
   },
   {
@@ -64,6 +108,8 @@ const services = [
     alt: "Aircraft detailing service for private planes in Baton Rouge",
   },
 ];
+
+const IMAGE_SIZES = "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
 
 export function ServicesSection() {
   return (
@@ -97,14 +143,24 @@ export function ServicesSection() {
             >
               {/* Image */}
               <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={service.image}
-                  alt={service.alt}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
-                  width={800}
-                  height={600}
-                />
+                <picture>
+                  {service.sources?.avif && (
+                    <source type="image/avif" srcSet={service.sources.avif} sizes={IMAGE_SIZES} />
+                  )}
+                  {service.sources?.webp && (
+                    <source type="image/webp" srcSet={service.sources.webp} sizes={IMAGE_SIZES} />
+                  )}
+                  <img
+                    src={service.image}
+                    alt={service.alt}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                    decoding="async"
+                    sizes={IMAGE_SIZES}
+                    width={800}
+                    height={600}
+                  />
+                </picture>
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
               </div>
