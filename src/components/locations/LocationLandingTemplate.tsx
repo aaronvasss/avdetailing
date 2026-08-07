@@ -280,8 +280,21 @@ export function LocationLandingTemplate({ config }: Props) {
           </div>
         </div>
       </section>
-      {config.proofPlaceholder ? (
-        <Fragment>{`\n`}</Fragment>
+      {/* Local-proof placeholder: shown only in development so the team knows
+          what real local evidence still needs to be gathered for this city. */}
+      {config.proofPlaceholder && import.meta.env.DEV ? (
+        <section className="section-padding">
+          <div className="container-custom max-w-4xl">
+            <div className="rounded-lg border border-dashed border-primary/50 p-6">
+              <p className="text-sm font-semibold text-primary mb-2">
+                Local proof needed (dev-only note)
+              </p>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {config.proofPlaceholder}
+              </p>
+            </div>
+          </div>
+        </section>
       ) : null}
     </Layout>
   );

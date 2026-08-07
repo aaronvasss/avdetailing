@@ -242,6 +242,8 @@ const ContactPage = () => {
                     <Label htmlFor="firstName">First Name</Label>
                     <Input 
                       id="firstName" 
+                      name="firstName"
+                      autoComplete="given-name"
                       placeholder="John" 
                       required 
                       maxLength={50}
@@ -255,6 +257,8 @@ const ContactPage = () => {
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input 
                       id="lastName" 
+                      name="lastName"
+                      autoComplete="family-name"
                       placeholder="Doe" 
                       required 
                       maxLength={50}
@@ -270,6 +274,8 @@ const ContactPage = () => {
                   <Label htmlFor="email">Email</Label>
                   <Input 
                     id="email" 
+                    name="email"
+                    autoComplete="email"
                     type="email" 
                     placeholder="john@example.com" 
                     required 
@@ -285,6 +291,8 @@ const ContactPage = () => {
                   <Label htmlFor="phone">Phone</Label>
                   <Input 
                     id="phone" 
+                    name="phone"
+                    autoComplete="tel"
                     type="tel" 
                     placeholder="(225) 555-1234" 
                     required 
@@ -297,12 +305,12 @@ const ContactPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="service">Service Interest</Label>
+                  <Label id="service-label" htmlFor="service">Service Interest</Label>
                   <Select 
                     value={formData.service} 
                     onValueChange={(value) => setFormData({ ...formData, service: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="service" aria-labelledby="service-label">
                       <SelectValue placeholder="Select a service" />
                     </SelectTrigger>
                     <SelectContent>
@@ -319,6 +327,8 @@ const ContactPage = () => {
                   <Label htmlFor="message">Message</Label>
                   <Textarea 
                     id="message" 
+                    name="message"
+                    autoComplete="off" 
                     placeholder="Tell us about your vehicle and what you're looking for..."
                     rows={4}
                     required
