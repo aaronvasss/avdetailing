@@ -131,10 +131,10 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
         </div>
       </main>
 
-      {/* Bottom mobile nav */}
+      {/* Bottom mobile nav — exactly 5 items */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur lg:relative lg:border-t-0 lg:border-b">
-        <div className="flex max-w-4xl mx-auto overflow-x-auto lg:justify-around">
-          {navItems.map((item) => {
+        <div className="flex max-w-4xl mx-auto lg:justify-around">
+          {primaryNavItems.map((item) => {
             const isActive =
               location.pathname === item.path ||
               (item.path !== "/worker" && location.pathname.startsWith(`${item.path}/`));
@@ -144,7 +144,7 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-3 px-3 text-xs transition-colors min-w-[56px]",
+                  "flex-1 flex flex-col items-center gap-1 py-3 px-2 text-xs transition-colors min-w-0",
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
@@ -155,8 +155,46 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
               </button>
             );
           })}
+          <button
+            onClick={() => setMoreOpen(true)}
+            className={cn(
+              "flex-1 flex flex-col items-center gap-1 py-3 px-2 text-xs transition-colors min-w-0",
+              moreItems.some((i) => location.pathname.startsWith(i.path))
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            More
+          </button>
         </div>
       </nav>
+
+      {/* More menu */}
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader className="text-left">
+            <SheetTitle>More</SheetTitle>
+          </SheetHeader>
+          <div className="mt-3 space-y-1 pb-4">
+            {moreItems.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => {
+                  setMoreOpen(false);
+                  navigate(item.path);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
+              >
+                <item.icon className="h-5 w-5 text-primary" />
+                <span>{item.label}</span>
+                <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+
     </div>
   );
 }
