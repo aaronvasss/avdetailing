@@ -1,0 +1,548 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw,
+} from "lucide-react";
+import {
+  DEFAULT_HOURLY_RATE, fetchShifts, formatHours, formatDecimalHours, formatMoney,
+  payForMinutes, shiftMinutes, sumShiftMinutes, type ShiftRecord,
+} from "@/lib/worker-pay";
+import { PayrollWorkerDetail } from "@/components/admin/PayrollWorkerDetail";
+
+export interface PayrollWorker {
+  user_id: string;
+  phone: string | null;
+  pay_rate: number;
+  is_active: boolean;
+  full_name: string | null;
+  email: string | null;
+}
+
+type PresetId = "today" | "week" | "month" | "last-month" | "custom";
+
+function toISODate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function startOfWeek(d: Date) {
+  const copy = new Date(d);
+  const dow = (copy.getDay() + 6) % 7; // Monday start
+  copy.setDate(copy.getDate() - dow);
+  return copy;
+}
+
+function rangeForPreset(preset: PresetId): { from: string; to: string } {
+  const now = new Date();
+  if (preset === "today") return { from: toISODate(now), to: toISODate(now) };
+  if (preset === "week") return { from: toISODate(startOfWeek(now)), to: toISODate(now) };
+  if (preset === "month") {
+    return { from: toISODate(new Date(now.getFullYear(), now.getMonth(), 1)), to: toISODate(now) };
+  }
+  // last month
+  const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const last = new Date(now.getFullYear(), now.getMonth(), 0);
+  return { from: toISODate(first), to: toISODate(last) };
+}
+
+export function AdminPayrollTab() {
+  const [workers, setWorkers] = useState<PayrollWorker[]>([]);
+  const [shifts, setShifts] = useState<ShiftRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [preset, setPreset] = useState<PresetId>("week");
+  const initialRange = rangeForPreset("week");
+  const [fromDate, setFromDate] = useState(initialRange.from);
+  const [toDate, setToDate] = useState(initialRange.to);
+  const [selected, setSelected] = useState<PayrollWorker | null>(null);
+
+  const [editingPay, setEditingPay] = useState<Record<string, string>>({});
+  const [savingPay, setSavingPay] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newWorker, setNewWorker] = useState({
+    fullName: "", email: "", password: "", phone: "", payRate: String(DEFAULT_HOURLY_RATE),
+  });
+
+  const today = toISODate(new Date());
+  const weekStart = toISODate(startOfWeek(new Date()));
+  const monthStart = toISODate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+
+  const load = useCallback(async () => {
+    setRefreshing(true);
+    const { data: staffRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "staff");
+
+    const userIds = (staffRoles || []).map((r) => r.user_id);
+    if (userIds.length === 0) {
+      setWorkers([]);
+      setShifts([]);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    const [{ data: workerProfiles }, { data: profiles }] = await Promise.all([
+      supabase.from("worker_profiles").select("*").in("user_id", userIds),
+      supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
+    ]);
+
+    const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+    const merged: PayrollWorker[] = userIds.map((uid) => {
+      const wp = workerProfiles?.find((w) => w.user_id === uid);
+      const prof = profileMap.get(uid);
+      const rate = Number(wp?.pay_rate);
+      return {
+        user_id: uid,
+        phone: wp?.phone ?? null,
+        pay_rate: Number.isFinite(rate) && rate > 0 ? rate : DEFAULT_HOURLY_RATE,
+        is_active: wp?.is_active ?? true,
+        full_name: prof?.full_name ?? null,
+        email: prof?.email ?? null,
+      };
+    });
+    merged.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
+    setWorkers(merged);
+    setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
+
+    // Widest window we need: selected range plus current month-to-date buckets
+    const windowFrom = [fromDate, monthStart].sort()[0];
+    const windowTo = [toDate, today].sort().slice(-1)[0];
+    const rows = await fetchShifts({ fromDate: windowFrom, toDate: windowTo });
+    setShifts(rows);
+    setLoading(false);
+    setRefreshing(false);
+  }, [fromDate, toDate, monthStart, today]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const applyPreset = (p: PresetId) => {
+    setPreset(p);
+    if (p === "custom") return;
+    const r = rangeForPreset(p);
+    setFromDate(r.from);
+    setToDate(r.to);
+  };
+
+  const shiftsInWindow = useCallback(
+    (userId: string, from: string, to: string) =>
+      shifts.filter((s) => {
+        if (s.user_id !== userId) return false;
+        const day = s.clock_in_at.slice(0, 10);
+        return day >= from && day <= to;
+      }),
+    [shifts],
+  );
+
+  const rows = useMemo(
+    () =>
+      workers.map((w) => {
+        const rangeShifts = shiftsInWindow(w.user_id, fromDate, toDate);
+        const rangeMinutes = sumShiftMinutes(rangeShifts);
+        return {
+          worker: w,
+          todayMinutes: sumShiftMinutes(shiftsInWindow(w.user_id, today, today)),
+          weekMinutes: sumShiftMinutes(shiftsInWindow(w.user_id, weekStart, today)),
+          monthMinutes: sumShiftMinutes(shiftsInWindow(w.user_id, monthStart, today)),
+          rangeMinutes,
+          rangePay: payForMinutes(rangeMinutes, w.pay_rate),
+          openShift: rangeShifts.some((s) => !s.clock_out_at),
+        };
+      }),
+    [workers, shiftsInWindow, fromDate, toDate, today, weekStart, monthStart],
+  );
+
+  const totals = useMemo(
+    () => ({
+      minutes: rows.reduce((s, r) => s + r.rangeMinutes, 0),
+      pay: rows.reduce((s, r) => s + r.rangePay, 0),
+    }),
+    [rows],
+  );
+
+  const handleSavePayRate = async (userId: string) => {
+    const rate = parseFloat(editingPay[userId] ?? "");
+    if (!Number.isFinite(rate) || rate <= 0) {
+      toast.error("Enter a valid hourly rate");
+      return;
+    }
+    setSavingPay(userId);
+    const { error } = await supabase
+      .from("worker_profiles")
+      .update({ pay_type: "hourly", pay_rate: rate })
+      .eq("user_id", userId);
+    setSavingPay(null);
+    if (error) {
+      toast.error("Failed to update hourly rate");
+      return;
+    }
+    toast.success("Hourly rate updated");
+    load();
+  };
+
+  const handleToggleActive = async (worker: PayrollWorker, next: boolean) => {
+    const { error } = await supabase
+      .from("worker_profiles")
+      .update({ is_active: next })
+      .eq("user_id", worker.user_id);
+    if (error) {
+      toast.error("Failed to update status");
+      return;
+    }
+    toast.success(next ? "Worker activated" : "Worker deactivated");
+    load();
+  };
+
+  const handleCreateWorker = async () => {
+    if (!newWorker.email || !newWorker.password || !newWorker.fullName) {
+      toast.error("Name, email, and password are required");
+      return;
+    }
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-worker", {
+        body: {
+          email: newWorker.email,
+          password: newWorker.password,
+          fullName: newWorker.fullName,
+          phone: newWorker.phone,
+          payType: "hourly",
+          payRate: parseFloat(newWorker.payRate) || DEFAULT_HOURLY_RATE,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Worker account created!");
+      setCreateOpen(false);
+      setNewWorker({ fullName: "", email: "", password: "", phone: "", payRate: String(DEFAULT_HOURLY_RATE) });
+      load();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create worker");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const exportCsv = () => {
+    const header = ["Worker", "Email", "Hourly Rate", "Hours", "Estimated Pay", "From", "To"];
+    const lines = rows.map((r) =>
+      [
+        r.worker.full_name || "Unknown",
+        r.worker.email || "",
+        r.worker.pay_rate.toFixed(2),
+        formatDecimalHours(r.rangeMinutes),
+        r.rangePay.toFixed(2),
+        fromDate,
+        toDate,
+      ]
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(","),
+    );
+    const csv = [header.join(","), ...lines].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `payroll-${fromDate}-to-${toDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (selected) {
+    return (
+      <PayrollWorkerDetail
+        worker={selected}
+        fromDate={fromDate}
+        toDate={toDate}
+        onBack={() => {
+          setSelected(null);
+          load();
+        }}
+      />
+    );
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-10 flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" /> Team & Payroll
+              </CardTitle>
+              <CardDescription>Hours worked and hourly rates for every worker</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => load()} disabled={refreshing}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportCsv}>
+                <Download className="mr-2 h-4 w-4" /> Export CSV
+              </Button>
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <UserPlus className="mr-2 h-4 w-4" /> Add Worker
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create Worker Account</DialogTitle>
+                    <DialogDescription>
+                      This creates a new account with worker access to the portal at /worker
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                      <Label>Full Name *</Label>
+                      <Input
+                        value={newWorker.fullName}
+                        onChange={(e) => setNewWorker({ ...newWorker, fullName: e.target.value })}
+                        placeholder="John Smith"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email *</Label>
+                      <Input
+                        type="email"
+                        value={newWorker.email}
+                        onChange={(e) => setNewWorker({ ...newWorker, email: e.target.value })}
+                        placeholder="john@avdetailing.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Password *</Label>
+                      <Input
+                        type="password"
+                        value={newWorker.password}
+                        onChange={(e) => setNewWorker({ ...newWorker, password: e.target.value })}
+                        placeholder="Min 6 characters"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone</Label>
+                      <Input
+                        type="tel"
+                        value={newWorker.phone}
+                        onChange={(e) => setNewWorker({ ...newWorker, phone: e.target.value })}
+                        placeholder="(225) 555-1234"
+                      />
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" /> Hourly Rate ($/hr)
+                      </Label>
+                      <Input
+                        type="number"
+                        value={newWorker.payRate}
+                        onChange={(e) => setNewWorker({ ...newWorker, payRate: e.target.value })}
+                        min="0"
+                        step="0.5"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Default is ${DEFAULT_HOURLY_RATE.toFixed(2)}/hr. Pay is based on clocked hours.
+                      </p>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleCreateWorker} disabled={creating}>
+                      {creating ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <UserPlus className="mr-2 h-4 w-4" />
+                      )}
+                      Create Worker
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["today", "Today"],
+                ["week", "This Week"],
+                ["month", "This Month"],
+                ["last-month", "Last Month"],
+                ["custom", "Custom"],
+              ] as [PresetId, string][]).map(([id, label]) => (
+                <Button
+                  key={id}
+                  size="sm"
+                  variant={preset === id ? "default" : "outline"}
+                  onClick={() => applyPreset(id)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">From</Label>
+                <Input
+                  type="date"
+                  className="h-8 w-[150px] text-xs"
+                  value={fromDate}
+                  onChange={(e) => {
+                    setPreset("custom");
+                    setFromDate(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">To</Label>
+                <Input
+                  type="date"
+                  className="h-8 w-[150px] text-xs"
+                  value={toDate}
+                  onChange={(e) => {
+                    setPreset("custom");
+                    setToDate(e.target.value);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Total hours in range</p>
+              <p className="text-2xl font-bold">{formatHours(totals.minutes)}</p>
+              <p className="text-xs text-muted-foreground">{formatDecimalHours(totals.minutes)} hrs</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Estimated labor cost</p>
+              <p className="text-2xl font-bold">{formatMoney(totals.pay)}</p>
+              <p className="text-xs text-muted-foreground">
+                {fromDate} → {toDate}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {rows.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            No workers added yet
+          </CardContent>
+        </Card>
+      ) : (
+        rows.map((r) => (
+          <Card key={r.worker.user_id}>
+            <CardContent className="space-y-4 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{r.worker.full_name || "Unknown"}</p>
+                    <Badge variant={r.worker.is_active ? "default" : "secondary"}>
+                      {r.worker.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    {r.openShift && <Badge variant="outline">Clocked in</Badge>}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{r.worker.email}</p>
+                  {r.worker.phone && (
+                    <p className="text-sm text-muted-foreground">{r.worker.phone}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-muted-foreground">Active</Label>
+                    <Switch
+                      checked={r.worker.is_active}
+                      onCheckedChange={(v) => handleToggleActive(r.worker, v)}
+                    />
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setSelected(r.worker)}>
+                    Hours & Shifts <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  ["Today", r.todayMinutes],
+                  ["This Week", r.weekMinutes],
+                  ["This Month", r.monthMinutes],
+                  ["Selected Range", r.rangeMinutes],
+                ].map(([label, minutes]) => (
+                  <div key={label as string} className="rounded-md border p-2">
+                    <p className="text-[11px] text-muted-foreground">{label as string}</p>
+                    <p className="text-lg font-semibold">{formatHours(minutes as number)}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[160px] space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Hourly Rate ($/hr)
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    className="h-8 text-xs"
+                    value={editingPay[r.worker.user_id] ?? ""}
+                    onChange={(e) =>
+                      setEditingPay((prev) => ({ ...prev, [r.worker.user_id]: e.target.value }))
+                    }
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleSavePayRate(r.worker.user_id)}
+                  disabled={savingPay === r.worker.user_id}
+                >
+                  {savingPay === r.worker.user_id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save Rate
+                </Button>
+                <div className="rounded-md border px-3 py-2">
+                  <p className="text-[11px] text-muted-foreground">Est. pay for range</p>
+                  <p className="text-lg font-semibold">{formatMoney(r.rangePay)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </div>
+  );
+}

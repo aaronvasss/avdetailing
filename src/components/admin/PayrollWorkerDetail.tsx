@@ -1,0 +1,401 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  ArrowLeft, Clock, Loader2, Pencil, Plus, Trash2, Briefcase,
+} from "lucide-react";
+import {
+  fetchShifts, formatHours, formatDecimalHours, formatMoney, payForMinutes,
+  shiftMinutes, sumShiftMinutes, type ShiftRecord,
+} from "@/lib/worker-pay";
+import type { PayrollWorker } from "@/components/admin/AdminPayrollTab";
+
+interface Props {
+  worker: PayrollWorker;
+  fromDate: string;
+  toDate: string;
+  onBack: () => void;
+}
+
+interface JobRow {
+  id: string;
+  scheduled_date: string;
+  completed_at: string | null;
+  actual_duration_minutes: number | null;
+  duration_minutes: number | null;
+  guest_name: string | null;
+  status: string;
+}
+
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromLocalInput(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function timeLabel(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function dayLabel(iso: string) {
+  return new Date(iso).toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function weekKey(iso: string) {
+  const d = new Date(iso);
+  const dow = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dow);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().slice(0, 10);
+}
+
+export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props) {
+  const [shifts, setShifts] = useState<ShiftRecord[]>([]);
+  const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState<{
+    id: string | null;
+    clockIn: string;
+    clockOut: string;
+    notes: string;
+  } | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [rows, { data: bookings }] = await Promise.all([
+      fetchShifts({ userId: worker.user_id, fromDate, toDate }),
+      supabase
+        .from("bookings")
+        .select(
+          "id, scheduled_date, completed_at, actual_duration_minutes, duration_minutes, guest_name, status",
+        )
+        .eq("assigned_worker_id", worker.user_id)
+        .gte("scheduled_date", fromDate)
+        .lte("scheduled_date", toDate)
+        .order("scheduled_date", { ascending: false }),
+    ]);
+    setShifts(rows);
+    setJobs((bookings as JobRow[]) || []);
+    setLoading(false);
+  }, [worker.user_id, fromDate, toDate]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const totalMinutes = useMemo(() => sumShiftMinutes(shifts), [shifts]);
+  const totalPay = payForMinutes(totalMinutes, worker.pay_rate);
+
+  const byDay = useMemo(() => {
+    const map = new Map<string, ShiftRecord[]>();
+    [...shifts]
+      .sort((a, b) => (a.clock_in_at < b.clock_in_at ? 1 : -1))
+      .forEach((s) => {
+        const key = s.clock_in_at.slice(0, 10);
+        map.set(key, [...(map.get(key) || []), s]);
+      });
+    return [...map.entries()];
+  }, [shifts]);
+
+  const byWeek = useMemo(() => {
+    const map = new Map<string, number>();
+    shifts.forEach((s) => {
+      const key = weekKey(s.clock_in_at);
+      map.set(key, (map.get(key) || 0) + shiftMinutes(s));
+    });
+    return [...map.entries()].sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  }, [shifts]);
+
+  const jobMinutesTotal = useMemo(
+    () => jobs.reduce((sum, j) => sum + (Number(j.actual_duration_minutes) || 0), 0),
+    [jobs],
+  );
+
+  const openEditor = (shift?: ShiftRecord) => {
+    setEditing({
+      id: shift?.id ?? null,
+      clockIn: shift ? toLocalInput(shift.clock_in_at) : toLocalInput(new Date().toISOString()),
+      clockOut: shift ? toLocalInput(shift.clock_out_at) : "",
+      notes: "",
+    });
+  };
+
+  const handleSave = async () => {
+    if (!editing) return;
+    const clockIn = fromLocalInput(editing.clockIn);
+    if (!clockIn) {
+      toast.error("Clock in time is required");
+      return;
+    }
+    const clockOut = fromLocalInput(editing.clockOut);
+    if (clockOut && new Date(clockOut) <= new Date(clockIn)) {
+      toast.error("Clock out must be after clock in");
+      return;
+    }
+    const totals = clockOut
+      ? Math.round((new Date(clockOut).getTime() - new Date(clockIn).getTime()) / 60000)
+      : null;
+
+    setSaving(true);
+    let error;
+    if (editing.id) {
+      ({ error } = await supabase
+        .from("worker_shifts")
+        .update({
+          clock_in_at: clockIn,
+          clock_out_at: clockOut,
+          total_minutes: totals,
+          ...(editing.notes ? { notes: editing.notes } : {}),
+        })
+        .eq("id", editing.id));
+    } else {
+      ({ error } = await supabase.from("worker_shifts").insert({
+        user_id: worker.user_id,
+        clock_in_at: clockIn,
+        clock_out_at: clockOut,
+        total_minutes: totals,
+        notes: editing.notes || "Added by admin",
+      }));
+    }
+    setSaving(false);
+
+    if (error) {
+      toast.error(error.message || "Failed to save shift");
+      return;
+    }
+    toast.success(editing.id ? "Shift updated" : "Shift added");
+    setEditing(null);
+    load();
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("worker_shifts").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete shift");
+      return;
+    }
+    toast.success("Shift deleted");
+    load();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to payroll
+        </Button>
+        <Button size="sm" onClick={() => openEditor()}>
+          <Plus className="mr-2 h-4 w-4" /> Add Shift
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{worker.full_name || "Unknown"}</CardTitle>
+          <CardDescription>
+            {fromDate} → {toDate} · {formatMoney(worker.pay_rate)}/hr
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Clocked hours</p>
+            <p className="text-2xl font-bold">{formatHours(totalMinutes)}</p>
+            <p className="text-xs text-muted-foreground">{formatDecimalHours(totalMinutes)} hrs</p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Estimated pay</p>
+            <p className="text-2xl font-bold">{formatMoney(totalPay)}</p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Time logged on jobs</p>
+            <p className="text-2xl font-bold">{formatHours(jobMinutesTotal)}</p>
+            <p className="text-xs text-muted-foreground">{jobs.length} jobs assigned</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {byWeek.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Weekly totals</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {byWeek.map(([wk, minutes]) => (
+              <div key={wk} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Week of {dayLabel(`${wk}T12:00:00`)}</span>
+                <span className="font-medium">
+                  {formatHours(minutes)} · {formatMoney(payForMinutes(minutes, worker.pay_rate))}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Clock className="h-4 w-4" /> Shifts
+          </CardTitle>
+          <CardDescription>Edit clock in/out times to correct a worker's hours</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : byDay.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No shifts recorded in this range
+            </p>
+          ) : (
+            byDay.map(([day, dayShifts]) => {
+              const dayMinutes = sumShiftMinutes(dayShifts);
+              return (
+                <div key={day} className="space-y-2">
+                  <div className="flex items-center justify-between border-b pb-1">
+                    <p className="text-sm font-medium">{dayLabel(`${day}T12:00:00`)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatHours(dayMinutes)} · {formatMoney(payForMinutes(dayMinutes, worker.pay_rate))}
+                    </p>
+                  </div>
+                  {dayShifts.map((s) => {
+                    const minutes = shiftMinutes(s);
+                    return (
+                      <div
+                        key={s.id}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3"
+                      >
+                        <div className="text-sm">
+                          <p className="font-medium">
+                            {timeLabel(s.clock_in_at)} → {timeLabel(s.clock_out_at)}
+                            {!s.clock_out_at && (
+                              <Badge variant="outline" className="ml-2">
+                                Open
+                              </Badge>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatHours(minutes)} · {formatMoney(payForMinutes(minutes, worker.pay_rate))}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" onClick={() => openEditor(s)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDelete(s.id)}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Briefcase className="h-4 w-4" /> Jobs in range
+          </CardTitle>
+          <CardDescription>Cross-check clocked hours against time logged per job</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {jobs.length === 0 ? (
+            <p className="py-2 text-center text-sm text-muted-foreground">No jobs assigned in this range</p>
+          ) : (
+            jobs.map((j) => (
+              <div key={j.id} className="flex items-center justify-between gap-2 text-sm">
+                <div>
+                  <p className="font-medium">{j.guest_name || "Customer"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {j.scheduled_date} · {j.status}
+                  </p>
+                </div>
+                <span className="text-muted-foreground">
+                  {j.actual_duration_minutes
+                    ? formatHours(Number(j.actual_duration_minutes))
+                    : "no time logged"}
+                </span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editing?.id ? "Edit Shift" : "Add Shift"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Clock In *</Label>
+              <Input
+                type="datetime-local"
+                value={editing?.clockIn || ""}
+                onChange={(e) => setEditing((p) => (p ? { ...p, clockIn: e.target.value } : p))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Clock Out</Label>
+              <Input
+                type="datetime-local"
+                value={editing?.clockOut || ""}
+                onChange={(e) => setEditing((p) => (p ? { ...p, clockOut: e.target.value } : p))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to keep the shift open (still clocked in).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Note</Label>
+              <Textarea
+                rows={2}
+                placeholder="Reason for the manual change"
+                value={editing?.notes || ""}
+                onChange={(e) => setEditing((p) => (p ? { ...p, notes: e.target.value } : p))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Shift
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -10,7 +10,6 @@ import { Save, Phone, Mail, Settings2, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { CsvImportSection } from "./CsvImportSection";
 import { DangerZoneSection } from "./DangerZoneSection";
-import { WorkerManagementSection } from "./WorkerManagementSection";
 import { BusinessHoursSettings } from "./BusinessHoursSettings";
 import { BlockedDatesManager } from "./BlockedDatesManager";
 
@@ -308,9 +307,8 @@ export function AdminSettingsTab() {
         </CardContent>
       </Card>
 
-      {/* Workers Section */}
-      <Separator className="my-8" />
-      <WorkerManagementSection />
+      {/* Workers are managed in the Team & Payroll section */}
+
 
       {/* CSV Import Section */}
       <Separator className="my-8" />
