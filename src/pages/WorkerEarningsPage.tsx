@@ -18,7 +18,7 @@ import {
   hasHourlyOverride,
   payForMinutes,
   jobMinutes,
-  jobMinutes,
+
   formatHours,
   formatDecimalHours,
   type ShiftRecord,
