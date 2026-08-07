@@ -91,8 +91,26 @@ export const createBookingCheckout = async (
     'Payment checkout',
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Surface typed backend errors (e.g. booking_not_found) to the caller
+    let code: string | undefined;
+    let message = error.message;
+    try {
+      const res = (error as any)?.context;
+      if (res && typeof res.json === "function") {
+        const body = await res.clone().json();
+        code = body?.code;
+        if (body?.error) message = body.error;
+      }
+    } catch {
+      // ignore body parse failures
+    }
+    const err = new Error(message) as Error & { code?: string };
+    if (code) err.code = code;
+    throw err;
+  }
   if (!data?.url) throw new Error('No checkout URL returned');
+
   
   return data;
 };

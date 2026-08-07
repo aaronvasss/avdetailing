@@ -806,15 +806,29 @@ const BookingPage = () => {
             window.location.href = checkoutResult.url;
             return; // Exit early, user will be redirected
           }
-        } catch (checkoutError) {
+        } catch (checkoutError: any) {
           console.error("Stripe checkout error:", checkoutError);
           toast.dismiss();
+
+          // The booking record is gone (stale tab or removed record): reset the flow.
+          if (checkoutError?.code === "booking_not_found") {
+            toast.error("This booking is no longer available", {
+              description:
+                "Please start a new booking — your previous request could not be found.",
+              duration: 8000,
+            });
+            setBookingId("");
+            setStep(1);
+            return;
+          }
+
           toast.error("Online payment unavailable", {
             description:
               "Please choose \"Pay in Person\" to lock in your appointment, or try again in a moment.",
             duration: 8000,
           });
           setStripeAvailable(false);
+
           // Revert the booking status in the background since payment failed.
           // Do not block the customer on cleanup if the backend is slow.
           supabase.functions.invoke("manage-booking", {

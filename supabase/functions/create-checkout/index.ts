@@ -123,9 +123,7 @@ serve(async (req) => {
     if (booking_id && !price_id) {
       logStep("Looking up booking details", { booking_id });
       
-      const { data: booking, error: bookingError } = await serviceClient
-        .from("bookings")
-        .select(`
+      const bookingSelect = `
           id,
           service_id,
           vehicle_type,
@@ -134,14 +132,42 @@ serve(async (req) => {
           add_ons_total,
           guest_email,
           services (slug, name)
-        `)
-        .eq("id", booking_id)
-        .single();
+        `;
 
-      if (bookingError || !booking) {
-        logStep("Booking lookup failed", { error: bookingError });
-        throw new Error("Booking not found");
+      let { data: booking, error: bookingError } = await serviceClient
+        .from("bookings")
+        .select(bookingSelect)
+        .eq("id", booking_id)
+        .maybeSingle();
+
+      // One short retry to rule out a timing gap right after booking creation
+      if (!booking && !bookingError) {
+        await new Promise((r) => setTimeout(r, 500));
+        const retry = await serviceClient
+          .from("bookings")
+          .select(bookingSelect)
+          .eq("id", booking_id)
+          .maybeSingle();
+        booking = retry.data;
+        bookingError = retry.error;
       }
+
+      if (bookingError) {
+        logStep("Booking lookup errored", { booking_id, hasSession: !!user, error: bookingError });
+        throw new Error("Booking lookup failed");
+      }
+
+      if (!booking) {
+        logStep("Booking not found", { booking_id, hasSession: !!user });
+        return new Response(
+          JSON.stringify({
+            code: "booking_not_found",
+            error: "This booking no longer exists — please start a new booking.",
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 },
+        );
+      }
+
 
       const serviceName = (booking.services as any)?.name || 'Detailing Service';
       
