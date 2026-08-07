@@ -10,6 +10,9 @@ import { SEOHead } from "@/components/seo/SEOHead";
 import {
   fetchShifts,
   shiftMinutes,
+  sumShiftMinutes,
+  sumApprovedShiftMinutes,
+  pendingShifts,
   hourlyRateFor,
   bookingHourlyRate,
   hasHourlyOverride,
@@ -96,13 +99,15 @@ export default function WorkerEarningsPage() {
   const period = useCallback((from: string, to: string) => {
     const periodShifts = shifts.filter((s) => inRange(shiftDay(s), from, to));
     const periodJobs = completedBookings.filter((b) => inRange(b.scheduled_date, from, to));
-    const shiftMins = periodShifts.reduce((sum, s) => sum + shiftMinutes(s), 0);
+    const shiftMins = sumApprovedShiftMinutes(periodShifts);
+    const pendingMins = sumShiftMinutes(pendingShifts(periodShifts));
     const jobMins = periodJobs.reduce((sum, b) => sum + jobMinutes(b), 0);
     const tips = periodJobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
     return {
       shifts: periodShifts,
       jobs: periodJobs,
       shiftMins,
+      pendingMins,
       jobMins,
       tips,
       pay: payForMinutes(shiftMins, hourlyRate),
@@ -144,14 +149,17 @@ export default function WorkerEarningsPage() {
     icon: Icon,
     label,
     stats,
-  }: { icon: any; label: string; stats: { shiftMins: number; pay: number; tips: number } }) => (
+  }: { icon: any; label: string; stats: { shiftMins: number; pendingMins: number; pay: number; tips: number } }) => (
     <Card>
       <CardContent className="pt-4 pb-3 px-4">
         <div className="text-xs text-muted-foreground flex items-center gap-1">
           <Icon className="h-3 w-3" /> {label}
         </div>
         <p className="text-2xl font-bold mt-1">{formatHours(stats.shiftMins)}</p>
-        <p className="text-xs text-muted-foreground">{formatDecimalHours(stats.shiftMins)} hrs worked</p>
+        <p className="text-xs text-muted-foreground">{formatDecimalHours(stats.shiftMins)} approved hrs</p>
+        {stats.pendingMins > 0 && (
+          <p className="text-xs text-amber-500">{formatHours(stats.pendingMins)} pending approval</p>
+        )}
         <p className="text-sm font-semibold text-primary mt-1">${stats.pay.toFixed(2)}</p>
         {stats.tips > 0 && (
           <p className="text-xs text-emerald-600 font-medium">+${stats.tips.toFixed(2)} tips</p>
