@@ -127,6 +127,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
           <Label htmlFor={`${source}-firstName`}>First Name</Label>
           <Input
             id={`${source}-firstName`}
+            name="firstName"
+            autoComplete="given-name"
             placeholder="John"
             required
             maxLength={50}
@@ -140,6 +142,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
           <Label htmlFor={`${source}-lastName`}>Last Name</Label>
           <Input
             id={`${source}-lastName`}
+            name="lastName"
+            autoComplete="family-name"
             placeholder="Doe"
             required
             maxLength={50}
@@ -156,6 +160,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
           <Label htmlFor={`${source}-email`}>Email</Label>
           <Input
             id={`${source}-email`}
+            name="email"
+            autoComplete="email"
             type="email"
             placeholder="john@example.com"
             required
@@ -170,6 +176,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
           <Label htmlFor={`${source}-phone`}>Phone</Label>
           <Input
             id={`${source}-phone`}
+            name="phone"
+            autoComplete="tel"
             type="tel"
             placeholder="(225) 555-1234"
             required
@@ -188,6 +196,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
         </Label>
         <Textarea
           id={`${source}-message`}
+          name="message"
+          autoComplete="off"
           placeholder="Tell us about your vehicle and what you're looking for..."
           rows={4}
           required
