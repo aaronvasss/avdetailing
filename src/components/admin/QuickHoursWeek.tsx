@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import {
-  fetchShifts, formatHours, formatMoney, payForMinutes, shiftMinutes, sumShiftMinutes,
-  parseHoursInput, minutesToHoursInput, setShiftApproval,
+  fetchShifts, formatHours, formatMoney, payForMinutes, shiftMinutes,
+  parseHoursInput, minutesToHoursInput, saveDayHours,
   type ShiftRecord,
 } from "@/lib/worker-pay";
 
