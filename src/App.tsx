@@ -46,6 +46,7 @@ const WorkerDashboardPage = lazy(() => import("./pages/WorkerDashboardPage"));
 const WorkerAllJobsPage = lazy(() => import("./pages/WorkerAllJobsPage"));
 const WorkerEarningsPage = lazy(() => import("./pages/WorkerEarningsPage"));
 const WorkerTimesheetPage = lazy(() => import("./pages/WorkerTimesheetPage"));
+const WorkerPayPage = lazy(() => import("./pages/WorkerPayPage"));
 const WorkerProfilePage = lazy(() => import("./pages/WorkerProfilePage"));
 const WorkerChatPage = lazy(() => import("./pages/WorkerChatPage"));
 const OpsJobsPage = lazy(() => import("./pages/OpsJobsPage"));
@@ -187,6 +188,12 @@ const App = () => (
                     <WorkerTimesheetPage />
                   </ProtectedRoute>
                 } />
+                <Route path="/worker/pay" element={
+                  <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
+                    <WorkerPayPage />
+                  </ProtectedRoute>
+                } />
+
                 <Route path="/worker/profile" element={
                   <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <WorkerProfilePage />
