@@ -176,11 +176,11 @@ export function sumPendingShiftMinutes(shifts: ShiftRecord[]): number {
  * Fetch shifts for a worker (or everyone, for admins) inside an inclusive date range.
  * Dates are `yyyy-MM-dd` strings in local business time.
  */
-export async function fetchShifts(opts: {
+export async function fetchShiftsResult(opts: {
   userId?: string | null;
   fromDate?: string;
   toDate?: string;
-}): Promise<ShiftRecord[]> {
+}): Promise<{ data: ShiftRecord[]; error: string | null }> {
   let query = supabase
     .from("worker_shifts")
     .select("id, user_id, clock_in_at, clock_out_at, total_minutes, approval_status, approved_at, approved_by, approval_note")
@@ -190,9 +190,19 @@ export async function fetchShifts(opts: {
   if (opts.fromDate) query = query.gte("clock_in_at", `${opts.fromDate}T00:00:00`);
   if (opts.toDate) query = query.lte("clock_in_at", `${opts.toDate}T23:59:59`);
 
-  const { data } = await query;
-  return (data as ShiftRecord[]) || [];
+  const { data, error } = await query;
+  return { data: (data as ShiftRecord[]) || [], error: error?.message || null };
 }
+
+export async function fetchShifts(opts: {
+  userId?: string | null;
+  fromDate?: string;
+  toDate?: string;
+}): Promise<ShiftRecord[]> {
+  const { data } = await fetchShiftsResult(opts);
+  return data;
+}
+
 
 /**
  * Admin action: approve or reject shifts so they count (or stop counting) toward payroll.
