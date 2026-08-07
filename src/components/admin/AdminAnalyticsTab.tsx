@@ -57,6 +57,8 @@ interface Booking {
   assigned_worker_id: string | null;
   worker_pay_type: string | null;
   worker_pay_rate: number | null;
+  actual_duration_minutes?: number | null;
+  duration_minutes?: number | null;
   service_packages?: { name: string } | null;
   rating?: number | null;
 }
@@ -149,6 +151,8 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
             assigned_worker_id,
             worker_pay_type,
             worker_pay_rate,
+            actual_duration_minutes,
+            duration_minutes,
             services (name, category)
           `)
           .gte("scheduled_date", format(fromDate, "yyyy-MM-dd"))
@@ -426,17 +430,22 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
     { name: "In-Person", value: inPersonRevenue, count: inPersonPayments.length },
   ];
 
-  // Labor cost calculation
+  // Labor cost calculation (hourly: hours worked x hourly rate)
+  const bookingLaborMinutes = (b: Booking): number =>
+    Number(b.actual_duration_minutes) || Number(b.duration_minutes) || 0;
+
   const calcBookingLaborCost = (b: Booking): number => {
-    if (b.worker_pay_type && b.worker_pay_rate != null) {
-      if (b.worker_pay_type === "percentage") return (b.total_price || 0) * (Number(b.worker_pay_rate) / 100);
-      return Number(b.worker_pay_rate);
+    const minutes = bookingLaborMinutes(b);
+    if (minutes <= 0) return 0;
+    let rate: number | null = null;
+    if (b.worker_pay_rate != null && Number(b.worker_pay_rate) > 0) {
+      rate = Number(b.worker_pay_rate);
+    } else if (b.assigned_worker_id) {
+      const wp = workerProfiles.find((w: any) => w.user_id === b.assigned_worker_id);
+      if (wp && Number(wp.pay_rate) > 0) rate = Number(wp.pay_rate);
     }
-    if (!b.assigned_worker_id) return 0;
-    const wp = workerProfiles.find((w: any) => w.user_id === b.assigned_worker_id);
-    if (!wp) return 0;
-    if (wp.pay_type === "percentage") return (b.total_price || 0) * (wp.pay_rate / 100);
-    return wp.pay_rate;
+    if (rate == null) return 0;
+    return (minutes / 60) * rate;
   };
 
   const completedWithWorker = paidBookings.filter(b => b.assigned_worker_id);

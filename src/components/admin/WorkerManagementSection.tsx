@@ -4,20 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Users, UserPlus, Loader2, DollarSign, Save } from "lucide-react";
+import { Users, UserPlus, Loader2, Clock, Save } from "lucide-react";
+import { DEFAULT_HOURLY_RATE } from "@/lib/worker-pay";
 
 interface Worker {
   id: string;
   user_id: string;
   phone: string | null;
-  pay_type: string;
   pay_rate: number;
   is_active: boolean;
   profile?: { full_name: string | null; email: string | null };
@@ -33,11 +32,11 @@ export function WorkerManagementSection() {
     email: "",
     password: "",
     phone: "",
-    payType: "flat",
-    payRate: "0",
+    payRate: String(DEFAULT_HOURLY_RATE),
   });
-  const [editingPay, setEditingPay] = useState<Record<string, { type: string; rate: string }>>({});
+  const [editingPay, setEditingPay] = useState<Record<string, string>>({});
   const [savingPay, setSavingPay] = useState<string | null>(null);
+
 
   useEffect(() => {
     fetchWorkers();
@@ -79,8 +78,7 @@ export function WorkerManagementSection() {
         id: wp?.id || uid,
         user_id: uid,
         phone: wp?.phone || null,
-        pay_type: wp?.pay_type || "flat",
-        pay_rate: wp?.pay_rate || 0,
+        pay_rate: Number(wp?.pay_rate) > 0 ? Number(wp?.pay_rate) : DEFAULT_HOURLY_RATE,
         is_active: wp?.is_active ?? true,
         profile: prof ? { full_name: prof.full_name, email: prof.email } : undefined,
       };
@@ -88,9 +86,9 @@ export function WorkerManagementSection() {
 
     setWorkers(merged);
 
-    const payEdits: Record<string, { type: string; rate: string }> = {};
+    const payEdits: Record<string, string> = {};
     merged.forEach((w) => {
-      payEdits[w.user_id] = { type: w.pay_type, rate: String(w.pay_rate) };
+      payEdits[w.user_id] = String(w.pay_rate);
     });
     setEditingPay(payEdits);
 
@@ -111,8 +109,8 @@ export function WorkerManagementSection() {
           password: newWorker.password,
           fullName: newWorker.fullName,
           phone: newWorker.phone,
-          payType: newWorker.payType,
-          payRate: parseFloat(newWorker.payRate) || 0,
+          payType: "hourly",
+          payRate: parseFloat(newWorker.payRate) || DEFAULT_HOURLY_RATE,
         },
       });
 
@@ -121,7 +119,7 @@ export function WorkerManagementSection() {
 
       toast.success("Worker account created!");
       setCreateOpen(false);
-      setNewWorker({ fullName: "", email: "", password: "", phone: "", payType: "flat", payRate: "0" });
+      setNewWorker({ fullName: "", email: "", password: "", phone: "", payRate: String(DEFAULT_HOURLY_RATE) });
       fetchWorkers();
     } catch (err: any) {
       toast.error(err.message || "Failed to create worker");
@@ -131,24 +129,28 @@ export function WorkerManagementSection() {
   };
 
   const handleSavePayRate = async (userId: string) => {
-    const edit = editingPay[userId];
-    if (!edit) return;
+    const rate = parseFloat(editingPay[userId] ?? "");
+    if (!Number.isFinite(rate) || rate <= 0) {
+      toast.error("Enter a valid hourly rate");
+      return;
+    }
 
     setSavingPay(userId);
     try {
       const { error } = await supabase
         .from("worker_profiles")
-        .update({ pay_type: edit.type, pay_rate: parseFloat(edit.rate) || 0 })
+        .update({ pay_type: "hourly", pay_rate: rate })
         .eq("user_id", userId);
 
       if (error) throw error;
-      toast.success("Pay rate updated");
+      toast.success("Hourly rate updated");
       fetchWorkers();
     } catch (err) {
-      toast.error("Failed to update pay rate");
+      toast.error("Failed to update hourly rate");
     } finally {
       setSavingPay(null);
     }
+
   };
 
   if (loading) {
@@ -170,7 +172,7 @@ export function WorkerManagementSection() {
               <Users className="h-5 w-5" />
               Workers
             </CardTitle>
-            <CardDescription>Manage worker accounts and pay rates</CardDescription>
+            <CardDescription>Manage worker accounts and hourly rates</CardDescription>
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
@@ -221,31 +223,22 @@ export function WorkerManagementSection() {
                   />
                 </div>
                 <Separator />
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Pay Type</Label>
-                    <Select
-                      value={newWorker.payType}
-                      onValueChange={(v) => setNewWorker({ ...newWorker, payType: v })}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="flat">Flat per job</SelectItem>
-                        <SelectItem value="percentage">% of job value</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{newWorker.payType === "percentage" ? "Percentage" : "Amount ($)"}</Label>
-                    <Input
-                      type="number"
-                      value={newWorker.payRate}
-                      onChange={(e) => setNewWorker({ ...newWorker, payRate: e.target.value })}
-                      min="0"
-                      step={newWorker.payType === "percentage" ? "1" : "5"}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" /> Hourly Rate ($/hr)
+                  </Label>
+                  <Input
+                    type="number"
+                    value={newWorker.payRate}
+                    onChange={(e) => setNewWorker({ ...newWorker, payRate: e.target.value })}
+                    min="0"
+                    step="0.5"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Default is ${DEFAULT_HOURLY_RATE.toFixed(2)}/hr. Pay is based on clocked hours.
+                  </p>
                 </div>
+
               </div>
               <DialogFooter>
                 <Button onClick={handleCreateWorker} disabled={creating}>
@@ -274,45 +267,22 @@ export function WorkerManagementSection() {
                 </Badge>
               </div>
               <div className="flex items-end gap-3">
-                <div className="flex-1 grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" /> Pay Type
-                    </Label>
-                    <Select
-                      value={editingPay[worker.user_id]?.type || "flat"}
-                      onValueChange={(v) =>
-                        setEditingPay((prev) => ({
-                          ...prev,
-                          [worker.user_id]: { ...prev[worker.user_id], type: v },
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="flat">Flat per job</SelectItem>
-                        <SelectItem value="percentage">% of value</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">
-                      {editingPay[worker.user_id]?.type === "percentage" ? "%" : "$"}
-                    </Label>
-                    <Input
-                      type="number"
-                      className="h-8 text-xs"
-                      value={editingPay[worker.user_id]?.rate || "0"}
-                      onChange={(e) =>
-                        setEditingPay((prev) => ({
-                          ...prev,
-                          [worker.user_id]: { ...prev[worker.user_id], rate: e.target.value },
-                        }))
-                      }
-                      min="0"
-                    />
-                  </div>
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Hourly Rate ($/hr)
+                  </Label>
+                  <Input
+                    type="number"
+                    className="h-8 text-xs"
+                    value={editingPay[worker.user_id] ?? ""}
+                    onChange={(e) =>
+                      setEditingPay((prev) => ({ ...prev, [worker.user_id]: e.target.value }))
+                    }
+                    min="0"
+                    step="0.5"
+                  />
                 </div>
+
                 <Button
                   size="sm"
                   variant="outline"

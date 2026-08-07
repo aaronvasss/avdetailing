@@ -751,33 +751,30 @@ export function BookingDetailsDialog({
                   </h4>
                   {(() => {
                     const bAny = booking as any;
-                    const hasOverride = bAny.worker_pay_type && bAny.worker_pay_rate != null;
-                    const payType = hasOverride ? bAny.worker_pay_type : null;
-                    const payRate = hasOverride ? Number(bAny.worker_pay_rate) : null;
-                    const jobValue = booking.total_price || 0;
-
-                    let rateLabel = "Default rate";
-                    let earnedAmount = 0;
-
-                    if (hasOverride && payType === "percentage") {
-                      rateLabel = `Custom: ${payRate}% of value`;
-                      earnedAmount = jobValue * (payRate! / 100);
-                    } else if (hasOverride && payType === "flat") {
-                      rateLabel = `Custom: $${payRate!.toFixed(2)} flat`;
-                      earnedAmount = payRate!;
-                    }
+                    const payRate = bAny.worker_pay_rate != null ? Number(bAny.worker_pay_rate) : null;
+                    const minutes = Number(bAny.actual_duration_minutes) || Number(bAny.duration_minutes) || 0;
+                    const hours = minutes / 60;
+                    const rateLabel = payRate != null
+                      ? `Custom rate: $${payRate.toFixed(2)}/hr`
+                      : "Default hourly rate";
 
                     return (
                       <div className="text-sm space-y-1">
                         <p className="text-muted-foreground">{rateLabel}</p>
-                        {hasOverride && (
+                        {hours > 0 && (
+                          <p className="text-muted-foreground">
+                            Hours on job: {hours.toFixed(2)}
+                          </p>
+                        )}
+                        {payRate != null && hours > 0 && (
                           <p className="font-medium">
-                            Worker earns: <span className="text-primary">${earnedAmount.toFixed(2)}</span>
+                            Worker earns: <span className="text-primary">${(hours * payRate).toFixed(2)}</span>
                           </p>
                         )}
                       </div>
                     );
                   })()}
+
                 </div>
               </>
             )}

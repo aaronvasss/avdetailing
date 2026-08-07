@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
+import { DEFAULT_HOURLY_RATE } from "@/lib/worker-pay";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
 
 interface Booking {
@@ -139,10 +140,10 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [editAssignedWorkerId, setEditAssignedWorkerId] = useState<string>("unassigned");
   const [editUseCustomPayRate, setEditUseCustomPayRate] = useState(false);
-  const [editCustomPayType, setEditCustomPayType] = useState<"percentage" | "flat">("percentage");
+  const [editCustomPayType, setEditCustomPayType] = useState<"hourly">("hourly");
   const [editCustomPayRate, setEditCustomPayRate] = useState("");
   const [editTipAmount, setEditTipAmount] = useState("");
-  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
+  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"hourly">("hourly");
   const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
 
   // Editable customer fields
@@ -251,7 +252,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
           setEditTotalPrice(draft.editTotalPrice ?? (booking.total_price != null ? String(booking.total_price) : ""));
           setEditAssignedWorkerId(draft.editAssignedWorkerId ?? resolveAssignedWorkerUserId(booking.assigned_worker_id, workers) ?? "unassigned");
           setEditUseCustomPayRate(draft.editUseCustomPayRate ?? false);
-          setEditCustomPayType(draft.editCustomPayType ?? "percentage");
+          setEditCustomPayType("hourly");
           setEditCustomPayRate(draft.editCustomPayRate ?? "");
           setEditTipAmount(draft.editTipAmount ?? "");
           setNewNote(draft.newNote ?? "");
@@ -293,10 +294,10 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
 
         const bAny = booking as any;
         if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
-          setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
+          setEditCustomPayType("hourly");
           setEditCustomPayRate(String(bAny.worker_pay_rate));
         } else {
-          setEditCustomPayType("percentage");
+          setEditCustomPayType("hourly");
           setEditCustomPayRate("");
         }
         setEditUseCustomPayRate(false);
@@ -311,7 +312,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         const bAny = booking as any;
         fetchWorkerPayRate(booking.assigned_worker_id, bAny.worker_pay_type, bAny.worker_pay_rate);
       } else {
-        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayType("hourly");
         setWorkerDefaultPayRate("");
       }
 
@@ -339,7 +340,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     else setPackageInfo(null);
   };
 
-  // Fetch a worker's default pay rate from worker_profiles
+  // Fetch a worker's default hourly rate from worker_profiles
   const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
     const { data: wp } = await supabase
       .from("worker_profiles")
@@ -348,23 +349,21 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .maybeSingle();
 
     if (wp) {
-      setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
-      setWorkerDefaultPayRate(String(wp.pay_rate));
+      const defaultRate = Number(wp.pay_rate) > 0 ? Number(wp.pay_rate) : DEFAULT_HOURLY_RATE;
+      setWorkerDefaultPayType("hourly");
+      setWorkerDefaultPayRate(String(defaultRate));
 
-      // If booking has a saved rate that differs from default, mark as custom override
-      if (savedPayType && savedPayRate != null) {
-        const isCustom = savedPayType !== wp.pay_type || Number(savedPayRate) !== Number(wp.pay_rate);
+      if (savedPayRate != null) {
+        const isCustom = Number(savedPayRate) !== defaultRate;
         setEditUseCustomPayRate(isCustom);
         if (!isCustom) {
-          // Using default rate - sync display
-          setEditCustomPayType(wp.pay_type as "percentage" | "flat");
-          setEditCustomPayRate(String(wp.pay_rate));
+          setEditCustomPayType("hourly");
+          setEditCustomPayRate(String(defaultRate));
         }
       } else {
-        // No saved rate - use default
         setEditUseCustomPayRate(false);
-        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
-        setEditCustomPayRate(String(wp.pay_rate));
+        setEditCustomPayType("hourly");
+        setEditCustomPayRate(String(defaultRate));
       }
     }
   };
@@ -373,7 +372,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const handleWorkerChange = async (workerId: string) => {
     setEditAssignedWorkerId(workerId);
     setEditUseCustomPayRate(false);
-    
+
     if (workerId !== "unassigned") {
       const { data: wp } = await supabase
         .from("worker_profiles")
@@ -381,23 +380,18 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         .eq("user_id", workerId)
         .maybeSingle();
 
-      if (wp) {
-        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
-        setWorkerDefaultPayRate(String(wp.pay_rate));
-        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
-        setEditCustomPayRate(String(wp.pay_rate));
-      } else {
-        setWorkerDefaultPayType("percentage");
-        setWorkerDefaultPayRate("");
-        setEditCustomPayType("percentage");
-        setEditCustomPayRate("");
-      }
+      const defaultRate = Number(wp?.pay_rate) > 0 ? Number(wp?.pay_rate) : DEFAULT_HOURLY_RATE;
+      setWorkerDefaultPayType("hourly");
+      setWorkerDefaultPayRate(String(defaultRate));
+      setEditCustomPayType("hourly");
+      setEditCustomPayRate(String(defaultRate));
     } else {
-      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayType("hourly");
       setWorkerDefaultPayRate("");
-      setEditCustomPayType("percentage");
+      setEditCustomPayType("hourly");
       setEditCustomPayRate("");
     }
+
   };
 
   const fetchBookingAddOns = async (bookingId: string) => {
@@ -554,7 +548,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
-      worker_pay_type: newAssignedWorkerId && editCustomPayRate ? editCustomPayType : null,
+      worker_pay_type: newAssignedWorkerId && editCustomPayRate ? "hourly" : null,
       worker_pay_rate: newAssignedWorkerId && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
       tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
     };
@@ -903,26 +897,18 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                     </p>
                   )}
 
-                  {/* Pay Rate - shows default rate automatically */}
+                  {/* Hourly rate - shows worker default automatically */}
                   {editAssignedWorkerId !== "unassigned" && (
                     <div className="space-y-3 pt-2 border-t border-border">
-                      {/* Default rate display */}
                       {workerDefaultPayRate && !editUseCustomPayRate && (
                         <div className="p-2 bg-muted rounded-md">
-                          <p className="text-xs text-muted-foreground">Default Pay Rate</p>
+                          <p className="text-xs text-muted-foreground">Default Hourly Rate</p>
                           <p className="text-sm font-semibold">
-                            {workerDefaultPayType === "percentage"
-                              ? `${workerDefaultPayRate}% of job value`
-                              : `$${Number(workerDefaultPayRate).toFixed(2)} flat per job`}
+                            ${Number(workerDefaultPayRate).toFixed(2)} / hour
                           </p>
-                          {workerDefaultPayType === "percentage" && (editTotalPrice || booking.total_price) && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Worker earns: <span className="font-semibold text-foreground">
-                                ${((parseFloat(editTotalPrice) || booking.total_price || 0) * (parseFloat(workerDefaultPayRate) / 100)).toFixed(2)}
-                              </span>
-                              {` (${workerDefaultPayRate}% of $${parseFloat(editTotalPrice) || booking.total_price || 0})`}
-                            </p>
-                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Pay comes from the worker's clocked hours on their shift.
+                          </p>
                         </div>
                       )}
 
@@ -933,54 +919,36 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                             const isCustom = !!checked;
                             setEditUseCustomPayRate(isCustom);
                             if (!isCustom && workerDefaultPayRate) {
-                              // Reset to default rate
-                              setEditCustomPayType(workerDefaultPayType);
                               setEditCustomPayRate(workerDefaultPayRate);
                             }
                           }}
                         />
-                        <span className="text-sm">Custom rate for this job</span>
+                        <span className="text-sm">Custom hourly rate for this job</span>
                       </label>
                       {editUseCustomPayRate && (
-                        <div className="flex gap-3 items-end">
-                          <div className="flex-1 space-y-1">
-                            <Label className="text-xs">Pay Type</Label>
-                            <Select value={editCustomPayType} onValueChange={(v) => setEditCustomPayType(v as "percentage" | "flat")}>
-                              <SelectTrigger className="h-9">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="percentage">% of job value</SelectItem>
-                                <SelectItem value="flat">Flat amount ($)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <Label className="text-xs">{editCustomPayType === "percentage" ? "Percentage" : "Amount ($)"}</Label>
-                            <Input
-                              type="number"
-                              step={editCustomPayType === "percentage" ? "1" : "0.01"}
-                              value={editCustomPayRate}
-                              onChange={(e) => setEditCustomPayRate(e.target.value)}
-                              placeholder={editCustomPayType === "percentage" ? "25" : "50.00"}
-                              className="h-9"
-                            />
-                          </div>
+                        <div className="space-y-1 max-w-[220px]">
+                          <Label className="text-xs">Hourly Rate ($/hr)</Label>
+                          <Input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            value={editCustomPayRate}
+                            onChange={(e) => setEditCustomPayRate(e.target.value)}
+                            placeholder="18"
+                            className="h-9"
+                          />
                         </div>
                       )}
-                      {editUseCustomPayRate && editCustomPayRate && (editTotalPrice || booking.total_price) && (
+                      {editUseCustomPayRate && editCustomPayRate && (
                         <p className="text-xs text-muted-foreground">
-                          Worker earns: <span className="font-semibold text-foreground">
-                            ${editCustomPayType === "percentage"
-                              ? ((parseFloat(editTotalPrice) || booking.total_price || 0) * (parseFloat(editCustomPayRate) / 100)).toFixed(2)
-                              : parseFloat(editCustomPayRate).toFixed(2)
-                            }
-                          </span>
-                          {editCustomPayType === "percentage" && ` (${editCustomPayRate}% of $${parseFloat(editTotalPrice) || booking.total_price || 0})`}
+                          This job pays <span className="font-semibold text-foreground">
+                            ${parseFloat(editCustomPayRate).toFixed(2)}/hr
+                          </span> for the hours logged on it.
                         </p>
                       )}
                     </div>
                   )}
+
                 </CardContent>
               </Card>
             )}

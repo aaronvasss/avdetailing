@@ -16,7 +16,9 @@ import {
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { formatHm } from "@/lib/duration-format";
+import { DEFAULT_HOURLY_RATE, hourlyRateFor, payForMinutes } from "@/lib/worker-pay";
 import { SEOHead } from "@/components/seo/SEOHead";
+
 
 type Preset = "week" | "month" | "custom";
 
@@ -43,6 +45,7 @@ function shiftDateKey(iso: string) {
 export default function WorkerTimesheetPage() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ShiftRow[]>([]);
+  const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
   const [preset, setPreset] = useState<Preset>("week");
   const [range, setRange] = useState<DateRange | undefined>({
     from: startOfWeek(new Date(), { weekStartsOn: 1 }),
@@ -66,6 +69,12 @@ export default function WorkerTimesheetPage() {
         if (!cancelled) { setRows([]); setLoading(false); }
         return;
       }
+      const { data: wp } = await supabase
+        .from("worker_profiles")
+        .select("pay_rate")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) setHourlyRate(hourlyRateFor(wp));
       const fromIso = format(range.from!, "yyyy-MM-dd");
       const toIso = format(range.to!, "yyyy-MM-dd");
       const { data } = await supabase
@@ -95,6 +104,20 @@ export default function WorkerTimesheetPage() {
     }
     return { totalMin, completed, inProgress, shifts: rows.length };
   }, [rows]);
+
+  const dailyTotals = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rows) {
+      if (r.total_minutes == null) continue;
+      const key = shiftDateKey(r.clock_in_at);
+      map.set(key, (map.get(key) || 0) + Number(r.total_minutes));
+    }
+    return Array.from(map.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  }, [rows]);
+
+  const avgDayMinutes = dailyTotals.length > 0 ? summary.totalMin / dailyTotals.length : 0;
+  const estimatedPay = payForMinutes(summary.totalMin, hourlyRate);
+
 
   const exportCsv = () => {
     const escape = (v: any) => {
@@ -254,10 +277,44 @@ export default function WorkerTimesheetPage() {
         {/* Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryStat label="Total Shifts" value={String(summary.shifts)} />
-          <SummaryStat label="Completed" value={String(summary.completed)} />
-          <SummaryStat label="In Progress" value={String(summary.inProgress)} />
+          <SummaryStat label="Days Worked" value={String(dailyTotals.length)} />
+          <SummaryStat label="Avg / Day" value={formatHm(avgDayMinutes)} />
           <SummaryStat label="Total Hours" value={formatHm(summary.totalMin)} accent />
         </div>
+
+        {/* Pay estimate */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-3 px-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">Estimated Pay ({hourlyRate.toFixed(2)}/hr)</p>
+              <p className="text-lg font-bold text-primary tabular-nums">${estimatedPay.toFixed(2)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Hours</p>
+              <p className="text-lg font-bold tabular-nums">{(summary.totalMin / 60).toFixed(2)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Daily breakdown */}
+        {dailyTotals.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Daily Hours</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              {dailyTotals.map(([day, mins]) => (
+                <div key={day} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{format(parseISO(`${day}T00:00:00`), "EEE, MMM d")}</span>
+                  <span className="font-medium tabular-nums">
+                    {formatHm(mins)} · ${payForMinutes(mins, hourlyRate).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
       </div>
     </WorkerLayout>
   );

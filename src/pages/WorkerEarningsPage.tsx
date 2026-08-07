@@ -4,16 +4,29 @@ import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, DollarSign, Briefcase, TrendingUp, Calendar, Star, Clock } from "lucide-react";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
-import { formatHm } from "@/lib/duration-format";
 import { SEOHead } from "@/components/seo/SEOHead";
+import {
+  fetchShifts,
+  shiftMinutes,
+  hourlyRateFor,
+  bookingHourlyRate,
+  hasHourlyOverride,
+  payForMinutes,
+  jobMinutes,
+  jobPay,
+  formatHours,
+  formatDecimalHours,
+  type ShiftRecord,
+} from "@/lib/worker-pay";
 
 type TimeFilter = "today" | "week" | "month" | "all";
 
 export default function WorkerEarningsPage() {
   const [loading, setLoading] = useState(true);
   const [completedBookings, setCompletedBookings] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const [workerProfile, setWorkerProfile] = useState<any>(null);
   const [activeFilter, setActiveFilter] = useState<TimeFilter>("month");
 
@@ -22,6 +35,7 @@ export default function WorkerEarningsPage() {
     const workerIdentity = await getCurrentWorkerIdentity();
     if (!workerIdentity) {
       setCompletedBookings([]);
+      setShifts([]);
       setWorkerProfile(null);
       setLoading(false);
       return;
@@ -33,6 +47,11 @@ export default function WorkerEarningsPage() {
       .eq("user_id", workerIdentity.authUserId)
       .maybeSingle();
     setWorkerProfile(wp);
+
+    const shiftRows = await fetchShifts({
+      userId: workerIdentity.isAdmin ? null : workerIdentity.authUserId,
+    });
+    setShifts(shiftRows);
 
     const { data: bookings } = await supabase
       .from("bookings")
@@ -58,6 +77,7 @@ export default function WorkerEarningsPage() {
     const channel = supabase
       .channel("worker-earnings")
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => fetchData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "worker_shifts" }, () => fetchData())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [fetchData]);
@@ -68,63 +88,40 @@ export default function WorkerEarningsPage() {
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-  const todayJobs = useMemo(() => completedBookings.filter((b) => b.scheduled_date === today), [completedBookings, today]);
-  const weekJobs = useMemo(() => completedBookings.filter((b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd), [completedBookings, weekStart, weekEnd]);
-  const monthJobs = useMemo(() => completedBookings.filter((b) => b.scheduled_date >= monthStart && b.scheduled_date <= monthEnd), [completedBookings, monthStart, monthEnd]);
+  const hourlyRate = hourlyRateFor(workerProfile);
 
-  const calcBookingEarnings = useCallback((b: any): number => {
-    const jobValue = Number(b.total_price) || 0;
-    if (b.worker_pay_type && b.worker_pay_rate != null) {
-      return b.worker_pay_type === "percentage" ? jobValue * (Number(b.worker_pay_rate) / 100) : Number(b.worker_pay_rate);
-    }
-    if (!workerProfile) return 0;
-    return workerProfile.pay_type === "percentage" ? jobValue * (workerProfile.pay_rate / 100) : workerProfile.pay_rate;
-  }, [workerProfile]);
+  const inRange = (dateStr: string, from: string, to: string) => dateStr >= from && dateStr <= to;
+  const shiftDay = (s: ShiftRecord) => format(parseISO(s.clock_in_at), "yyyy-MM-dd");
 
-  const calcEarnings = useCallback((jobs: any[]) => {
-    const totalValue = jobs.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
-    const earnings = jobs.reduce((sum, b) => sum + calcBookingEarnings(b), 0);
-    const tips = jobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
-    return { totalValue, earnings, tips };
-  }, [calcBookingEarnings]);
+  const period = useCallback((from: string, to: string) => {
+    const periodShifts = shifts.filter((s) => inRange(shiftDay(s), from, to));
+    const periodJobs = completedBookings.filter((b) => inRange(b.scheduled_date, from, to));
+    const shiftMins = periodShifts.reduce((sum, s) => sum + shiftMinutes(s), 0);
+    const jobMins = periodJobs.reduce((sum, b) => sum + jobMinutes(b), 0);
+    const tips = periodJobs.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0);
+    return {
+      shifts: periodShifts,
+      jobs: periodJobs,
+      shiftMins,
+      jobMins,
+      tips,
+      pay: payForMinutes(shiftMins, hourlyRate),
+    };
+  }, [shifts, completedBookings, hourlyRate]);
 
-  const getBookingRateLabel = (b: any): string => {
-    if (b.worker_pay_type && b.worker_pay_rate != null) {
-      return b.worker_pay_type === "percentage" ? `${b.worker_pay_rate}%` : `$${Number(b.worker_pay_rate).toFixed(2)} flat`;
-    }
-    if (!workerProfile) return "—";
-    return workerProfile.pay_type === "percentage" ? `${workerProfile.pay_rate}%` : `$${workerProfile.pay_rate} flat`;
-  };
+  const todayStats = useMemo(() => period(today, today), [period, today]);
+  const weekStats = useMemo(() => period(weekStart, weekEnd), [period, weekStart, weekEnd]);
+  const monthStats = useMemo(() => period(monthStart, monthEnd), [period, monthStart, monthEnd]);
+  const allStats = useMemo(() => period("0000-01-01", "9999-12-31"), [period]);
 
-  const todayEarnings = useMemo(() => calcEarnings(todayJobs), [calcEarnings, todayJobs]);
-  const weekEarnings = useMemo(() => calcEarnings(weekJobs), [calcEarnings, weekJobs]);
-  const monthEarnings = useMemo(() => calcEarnings(monthJobs), [calcEarnings, monthJobs]);
-  const allEarnings = useMemo(() => calcEarnings(completedBookings), [calcEarnings, completedBookings]);
-
-  const filteredJobs = useMemo(() => {
+  const filtered = useMemo(() => {
     switch (activeFilter) {
-      case "today": return todayJobs;
-      case "week": return weekJobs;
-      case "month": return monthJobs;
-      case "all": return completedBookings;
+      case "today": return todayStats;
+      case "week": return weekStats;
+      case "month": return monthStats;
+      case "all": return allStats;
     }
-  }, [activeFilter, todayJobs, weekJobs, monthJobs, completedBookings]);
-
-  const filteredEarnings = useMemo(() => {
-    switch (activeFilter) {
-      case "today": return todayEarnings;
-      case "week": return weekEarnings;
-      case "month": return monthEarnings;
-      case "all": return allEarnings;
-    }
-  }, [activeFilter, todayEarnings, weekEarnings, monthEarnings, allEarnings]);
-
-  const avgDurationMinutes = useMemo(() => {
-    const withDur = filteredJobs.filter((b) => b.actual_duration_minutes != null && b.actual_duration_minutes > 0);
-    if (withDur.length === 0) return null;
-    const total = withDur.reduce((sum, b) => sum + Number(b.actual_duration_minutes), 0);
-    return total / withDur.length;
-  }, [filteredJobs]);
+  }, [activeFilter, todayStats, weekStats, monthStats, allStats]);
 
   const filterTabs: { key: TimeFilter; label: string }[] = [
     { key: "today", label: "Today" },
@@ -143,25 +140,21 @@ export default function WorkerEarningsPage() {
     );
   }
 
-  const StatCard = ({ icon: Icon, label, jobs, earnings }: { icon: any; label: string; jobs: any[]; earnings: { earnings: number; tips: number } }) => (
+  const StatCard = ({
+    icon: Icon,
+    label,
+    stats,
+  }: { icon: any; label: string; stats: { shiftMins: number; pay: number; tips: number } }) => (
     <Card>
       <CardContent className="pt-4 pb-3 px-4">
         <div className="text-xs text-muted-foreground flex items-center gap-1">
           <Icon className="h-3 w-3" /> {label}
         </div>
-        <p className="text-2xl font-bold mt-1">{jobs.length}</p>
-        <p className="text-xs text-muted-foreground">jobs</p>
-        {workerProfile && (
-          <>
-            <p className="text-sm font-semibold text-primary mt-1">
-              ${earnings.earnings.toFixed(2)}
-            </p>
-            {earnings.tips > 0 && (
-              <p className="text-xs text-emerald-600 font-medium">
-                +${earnings.tips.toFixed(2)} tips
-              </p>
-            )}
-          </>
+        <p className="text-2xl font-bold mt-1">{formatHours(stats.shiftMins)}</p>
+        <p className="text-xs text-muted-foreground">{formatDecimalHours(stats.shiftMins)} hrs worked</p>
+        <p className="text-sm font-semibold text-primary mt-1">${stats.pay.toFixed(2)}</p>
+        {stats.tips > 0 && (
+          <p className="text-xs text-emerald-600 font-medium">+${stats.tips.toFixed(2)} tips</p>
         )}
       </CardContent>
     </Card>
@@ -176,27 +169,24 @@ export default function WorkerEarningsPage() {
           <h1 className="text-xl font-bold">Earnings</h1>
         </div>
 
-        {/* Stats cards */}
+        {/* Hours + pay cards */}
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon={Calendar} label="Today" jobs={todayJobs} earnings={todayEarnings} />
-          <StatCard icon={Briefcase} label="This Week" jobs={weekJobs} earnings={weekEarnings} />
-          <StatCard icon={TrendingUp} label="This Month" jobs={monthJobs} earnings={monthEarnings} />
-          <StatCard icon={Star} label="All Time" jobs={completedBookings} earnings={allEarnings} />
+          <StatCard icon={Calendar} label="Today" stats={todayStats} />
+          <StatCard icon={Briefcase} label="This Week" stats={weekStats} />
+          <StatCard icon={TrendingUp} label="This Month" stats={monthStats} />
+          <StatCard icon={Star} label="All Time" stats={allStats} />
         </div>
 
-        {/* Pay rate info */}
-        {workerProfile && (
-          <Card>
-            <CardContent className="pt-4 pb-3 px-4">
-              <p className="text-sm text-muted-foreground">Your default pay rate</p>
-              <p className="font-semibold">
-                {workerProfile.pay_type === "percentage"
-                  ? `${workerProfile.pay_rate}% per job`
-                  : `$${workerProfile.pay_rate} flat per job`}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Hourly rate */}
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-sm text-muted-foreground">Your hourly rate</p>
+            <p className="font-semibold">${hourlyRate.toFixed(2)} / hour</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Pay is calculated from your clock-in / clock-out shifts, including drive time.
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Time filter tabs */}
         <div className="flex gap-1 bg-card border border-border/50 rounded-lg p-1">
@@ -215,39 +205,50 @@ export default function WorkerEarningsPage() {
           ))}
         </div>
 
-        {/* Earnings summary bar */}
-        {workerProfile && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="py-3 px-4">
-              <div className="flex items-center justify-between text-sm">
-                <div className="text-center flex-1">
-                  <p className="text-xs text-muted-foreground">Base Pay</p>
-                  <p className="font-bold">${filteredEarnings.earnings.toFixed(2)}</p>
-                </div>
-                <div className="w-px h-8 bg-border" />
-                <div className="text-center flex-1">
-                  <p className="text-xs text-muted-foreground">Tips</p>
-                  <p className="font-bold text-emerald-600">${filteredEarnings.tips.toFixed(2)}</p>
-                </div>
-                <div className="w-px h-8 bg-border" />
-                <div className="text-center flex-1">
-                  <p className="text-xs text-muted-foreground">Total Earned</p>
-                  <p className="font-bold text-primary">${(filteredEarnings.earnings + filteredEarnings.tips).toFixed(2)}</p>
-                </div>
+        {/* Pay summary bar */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center justify-between text-sm">
+              <div className="text-center flex-1">
+                <p className="text-xs text-muted-foreground">Hourly Pay</p>
+                <p className="font-bold">${filtered.pay.toFixed(2)}</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="w-px h-8 bg-border" />
+              <div className="text-center flex-1">
+                <p className="text-xs text-muted-foreground">Tips</p>
+                <p className="font-bold text-emerald-600">${filtered.tips.toFixed(2)}</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div className="text-center flex-1">
+                <p className="text-xs text-muted-foreground">Total Earned</p>
+                <p className="font-bold text-primary">${(filtered.pay + filtered.tips).toFixed(2)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Avg Job Duration */}
+        {/* Shift hours vs job hours */}
         <Card>
-          <CardContent className="py-3 px-4 flex items-center gap-3">
-            <Clock className="h-5 w-5 text-primary shrink-0" />
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Avg Job Duration</p>
-              <p className="font-bold">
-                {avgDurationMinutes != null ? formatHm(avgDurationMinutes) : "No data yet"}
-              </p>
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="h-4 w-4 text-primary shrink-0" />
+              <p className="text-sm font-semibold">Shift Hours vs Job Hours</p>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <div className="text-center flex-1">
+                <p className="text-xs text-muted-foreground">Shift (paid)</p>
+                <p className="font-bold">{formatHours(filtered.shiftMins)}</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div className="text-center flex-1">
+                <p className="text-xs text-muted-foreground">On Jobs</p>
+                <p className="font-bold">{formatHours(filtered.jobMins)}</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div className="text-center flex-1">
+                <p className="text-xs text-muted-foreground">Other Time</p>
+                <p className="font-bold">{formatHours(Math.max(0, filtered.shiftMins - filtered.jobMins))}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -255,15 +256,15 @@ export default function WorkerEarningsPage() {
         {/* Completed jobs list */}
         <div className="space-y-2">
           <h2 className="font-semibold text-sm text-muted-foreground">
-            {activeFilter === "all" ? "All" : filterTabs.find((t) => t.key === activeFilter)?.label} — {filteredJobs.length} job{filteredJobs.length !== 1 ? "s" : ""}
+            {activeFilter === "all" ? "All" : filterTabs.find((t) => t.key === activeFilter)?.label} — {filtered.jobs.length} job{filtered.jobs.length !== 1 ? "s" : ""}
           </h2>
-          {filteredJobs.length === 0 ? (
+          {filtered.jobs.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">No completed jobs for this period</p>
           ) : (
-            filteredJobs.slice(0, 50).map((b) => {
-              const earnings = calcBookingEarnings(b);
-              const rateLabel = getBookingRateLabel(b);
-              const hasOverride = b.worker_pay_type && b.worker_pay_rate != null;
+            filtered.jobs.slice(0, 50).map((b) => {
+              const mins = jobMinutes(b);
+              const rate = bookingHourlyRate(b, workerProfile);
+              const estimate = jobPay(b, workerProfile);
               const tipAmount = Number(b.tip_amount) || 0;
               return (
                 <Card key={b.id}>
@@ -276,19 +277,18 @@ export default function WorkerEarningsPage() {
                         {format(new Date(b.scheduled_date), "MMM d, yyyy")}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Rate: {rateLabel}
-                        {hasOverride && (
+                        Rate: ${rate.toFixed(2)}/hr
+                        {hasHourlyOverride(b) && (
                           <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Custom</Badge>
                         )}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold">${(Number(b.total_price) || 0).toFixed(2)}</p>
-                      <p className="text-xs text-primary font-medium">Pay: ${earnings.toFixed(2)}</p>
+                      <p className="text-sm font-semibold">{mins > 0 ? formatHours(mins) : "No time logged"}</p>
+                      <p className="text-xs text-primary font-medium">Job pay: ${estimate.toFixed(2)}</p>
                       {tipAmount > 0 && (
                         <p className="text-xs text-emerald-600 font-medium">Tip: ${tipAmount.toFixed(2)}</p>
                       )}
-                      <p className="text-xs font-bold mt-0.5">Total: ${(earnings + tipAmount).toFixed(2)}</p>
                     </div>
                   </CardContent>
                 </Card>
