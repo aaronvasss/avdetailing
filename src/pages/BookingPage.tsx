@@ -34,6 +34,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { getFriendlyBookingError } from "@/lib/booking-errors";
+import { logAppError } from "@/lib/error-log";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
 const serviceTypes = [
@@ -809,6 +810,19 @@ const BookingPage = () => {
         } catch (checkoutError: any) {
           console.error("Stripe checkout error:", checkoutError);
           toast.dismiss();
+
+          void logAppError({
+            message: checkoutError?.message || "Stripe checkout failed",
+            code: checkoutError?.code || "checkout_failed",
+            severity: checkoutError?.code === "booking_not_found" ? "warning" : "error",
+            bookingId: createdId || null,
+            stack: checkoutError?.stack,
+            context: {
+              step: "stripe_checkout",
+              service_type: serviceType,
+              package_slug: selectedPackage,
+            },
+          });
 
           // The booking record is gone (stale tab or removed record): reset the flow.
           if (checkoutError?.code === "booking_not_found") {
