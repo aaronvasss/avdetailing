@@ -405,6 +405,8 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
         </Card>
       )}
 
+      <QuickHoursWeek worker-placeholder />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
