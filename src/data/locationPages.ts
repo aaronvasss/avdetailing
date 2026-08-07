@@ -29,6 +29,15 @@ export interface LocationPageConfig {
   surroundingParagraph: React.ReactNode | string; // brief w/ internal link
   lat: number;
   lng: number;
+  /** Optional city-specific service notes (logistics, conditions, scheduling). */
+  localNotes?: string[];
+  /** Optional city-specific FAQs rendered with FAQPage structured data. */
+  faqs?: { question: string; answer: string }[];
+  /**
+   * Optional internal reminder rendered as an HTML comment placeholder where
+   * real local proof (photos, named jobs, reviews) still needs to be added.
+   */
+  proofPlaceholder?: string;
 }
 
 const CR: ExtLink = { text: "Consumer Reports", url: "https://www.consumerreports.org/cars/car-care/" };
@@ -101,7 +110,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     metaDescription:
       "Mobile car detailing in Gonzales, LA — serving Prairieville Road, Hwy 30, Tanger Outlets, and Burnside with System X ceramic coating and paint correction.",
     intro:
-      "Gonzales sits right on the I-10 corridor in Ascension Parish — known as the Jambalaya Capital of the World, and one of the fastest-growing communities in the Greater Baton Rouge region. Residents here drive a mix of trucks, family SUVs, and commuter vehicles that take a beating from I-10 highway grime, lovebugs, and the relentless Louisiana sun. AV Detailing brings full mobile detailing service directly to driveways throughout Gonzales, from the Prairieville Road area and the Hwy 30 corridor to Tanger Outlets and out toward Burnside. We arrive with a self-contained rig, System X ceramic coating, and pro-grade paint correction tools. According to {{l1}}, regular professional care protects long-term value, and {{l2}} encourages residents to keep vehicles well-maintained for safer travel across the parish.",
+      "Gonzales sits right on the I-10 corridor in Ascension Parish — known as the Jambalaya Capital of the World, and one of the fastest-growing communities in the Greater Baton Rouge region. Residents here drive a mix of trucks, family SUVs, and commuter vehicles that take a beating from I-10 highway grime, lovebugs, and the relentless Louisiana sun. AV Detailing brings full mobile detailing service directly to driveways throughout Gonzales, from the Prairieville Road area and the Hwy 30 corridor to Tanger Outlets and out toward Burnside. We arrive with a self-contained rig, System X ceramic coating, and pro-grade paint correction tools. For general car-care background, {{l1}} publishes independent guidance on washing, waxing, and interior upkeep.",
     link1: CR,
     link2: BRLA,
     services: COMMON_SERVICES,
@@ -149,7 +158,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     metaDescription:
       "Mobile car detailing in Denham Springs, LA — I-12 corridor, Range Ave, Bass Pro, Juban Rd & Springfield Rd. System X ceramic coating.",
     intro:
-      "Denham Springs in Livingston Parish is heavy truck and SUV country — work vehicles, family haulers, and commuter trucks that see real use on the I-12 corridor every day. The combination of highway road grime, lovebugs, and brutal Louisiana sun means vehicles here need serious detailing to stay protected. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Denham Springs — from the I-12 corridor and Range Avenue to the Bass Pro area, Juban Road, and Springfield Road. We work with System X ceramic coating, professional paint correction, and full interior services. According to {{l1}}, professional detailing preserves long-term value, and {{l2}} encourages residents to keep vehicles maintained for safer roads across the region.",
+      "Denham Springs in Livingston Parish is heavy truck and SUV country — work vehicles, family haulers, and commuter trucks that see real use on the I-12 corridor every day. The combination of highway road grime, lovebugs, and brutal Louisiana sun means vehicles here need serious detailing to stay protected. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Denham Springs — from the I-12 corridor and Range Avenue to the Bass Pro area, Juban Road, and Springfield Road, plus jobsites and office lots for work trucks. Because our rig carries its own water and power, we can detail in a driveway, an apartment lot off Range Avenue, or a business parking lot without needing a spigot. For general car-care background, {{l1}} publishes independent guidance on washing, waxing, and interior upkeep.",
     link1: CR,
     link2: BRLA,
     services: COMMON_SERVICES,
@@ -160,7 +169,53 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Flexible scheduling around work, hunting, and family weekends.",
     ],
     neighborhoods:
-      "We regularly service the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, and the residential streets throughout Denham Springs and Livingston Parish. Whether you're near the Bass Pro, off Juban, or out toward Watson, our mobile team comes to you.",
+      "We regularly service the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, Pete's Highway, Florida Boulevard (Hwy 190), the Antique Village / downtown Denham Springs area, and the residential streets stretching out toward Watson and Livingston. Whether you're near the Bass Pro, off Juban, or in a subdivision along Springfield Road, our mobile team comes to you.",
+    localNotes: [
+      "Self-contained rig: we bring our own water and power, so we can work in driveways, apartment lots, and business parking lots around Range Avenue and Juban Road without a hose hookup.",
+      "Truck- and SUV-friendly pricing tiers, including lifted trucks and 3-row family haulers that are common on the I-12 commute into Baton Rouge.",
+      "Heavy lovebug, tar, and I-12 road-film decontamination is built into every exterior service — spring and late-summer lovebug seasons hit Livingston Parish especially hard.",
+      "Boat and RV detailing available for Tickfaw and Amite River trailer setups stored at home, including gelcoat oxidation removal.",
+      "Flexible 24/7 scheduling with a 30-minute arrival window text, so you don't lose a work day waiting on us.",
+    ],
+    faqs: [
+      {
+        question: "Do you actually come to Denham Springs, or do I have to drive to Baton Rouge?",
+        answer:
+          "We come to you. AV Detailing is fully mobile and covers Denham Springs and Livingston Parish, including the I-12 corridor, Range Avenue, Juban Road, Springfield Road, and out toward Watson. You can book online and we arrive at your home, office, or jobsite.",
+      },
+      {
+        question: "Do you need to use my water or electricity?",
+        answer:
+          "No. Our rig carries its own water and power, so we can detail at a Denham Springs apartment complex, an office lot, or a driveway with no outdoor spigot.",
+      },
+      {
+        question: "Can you detail a lifted truck or a 3-row SUV?",
+        answer:
+          "Yes. Trucks and large SUVs are a big share of the vehicles we detail in Livingston Parish, and pricing is tiered by vehicle size so a lifted truck or large SUV is quoted accurately before we arrive.",
+      },
+      {
+        question: "How long does a full detail take in my driveway?",
+        answer:
+          "Most car and SUV details run about 2 to 2.5 hours. Paint correction and ceramic coating take considerably longer — ceramic coating is a full-day appointment — and we confirm the time window when you book.",
+      },
+      {
+        question: "Can you get lovebugs and I-12 road film off without damaging paint?",
+        answer:
+          "Yes. Exterior services include a dedicated bug and tar decontamination step with proper chemical dwell time and lubrication instead of aggressive scrubbing, which is what causes marring on front bumpers and mirrors.",
+      },
+      {
+        question: "Do you detail boats and RVs parked at a Denham Springs home?",
+        answer:
+          "We do, as long as there's room to work around the unit. Boat gelcoat restoration and RV exterior detailing are both available at your residence in Livingston Parish.",
+      },
+      {
+        question: "How do I book a detail in Denham Springs?",
+        answer:
+          "Book online through our booking page or call (225) 521-6264. You'll get a confirmation with your appointment time plus a 30-minute arrival window text on the day of service.",
+      },
+    ],
+    proofPlaceholder:
+      "PLACEHOLDER — add real local proof for Denham Springs here: before/after photos from actual Denham Springs jobs, named neighborhoods serviced, and verified customer reviews. Do not publish invented examples.",
     surroundingParagraph: "denham-link",
     lat: 30.4855,
     lng: -90.9559,
