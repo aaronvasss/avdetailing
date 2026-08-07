@@ -51,6 +51,7 @@ const WorkerChatPage = lazy(() => import("./pages/WorkerChatPage"));
 const OpsJobsPage = lazy(() => import("./pages/OpsJobsPage"));
 const OpsJobDetailPage = lazy(() => import("./pages/OpsJobDetailPage"));
 const OpsQcQueuePage = lazy(() => import("./pages/OpsQcQueuePage"));
+const OpsSopLibraryPage = lazy(() => import("./pages/OpsSopLibraryPage"));
 const RatingPage = lazy(() => import("./pages/RatingPage"));
 const OAuthConsentPage = lazy(() => import("./pages/OAuthConsentPage"));
 
@@ -153,6 +154,11 @@ const App = () => (
                 <Route path="/worker/ops/:jobId" element={
                   <ProtectedRoute requiredRole={["staff", "manager", "admin"]}>
                     <OpsJobDetailPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/worker/sop" element={
+                  <ProtectedRoute requiredRole={["staff", "manager", "marketing", "admin"]}>
+                    <OpsSopLibraryPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/worker/qc" element={

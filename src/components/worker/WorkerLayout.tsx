@@ -11,6 +11,7 @@ import {
   Clock,
   ShieldCheck,
   Wrench,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const baseNavItems = [
   { path: "/worker", label: "Today", icon: CalendarDays },
   { path: "/worker/ops", label: "Jobs", icon: Wrench },
   { path: "/worker/jobs", label: "Bookings", icon: ClipboardList },
+  { path: "/worker/sop", label: "SOPs", icon: BookOpen },
   { path: "/worker/timesheet", label: "Timesheet", icon: Clock },
   { path: "/worker/chat", label: "Chat", icon: MessageSquare },
   { path: "/worker/earnings", label: "Earnings", icon: DollarSign },

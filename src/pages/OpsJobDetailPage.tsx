@@ -24,6 +24,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Loader2, Phone, MapPin, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { JobSopPanel } from "@/components/ops/JobSopPanel";
 
 export default function OpsJobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -255,6 +256,14 @@ export default function OpsJobDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        <JobSopPanel
+          jobId={job.id}
+          bookingId={job.booking_id}
+          existingChecklist={checklist.map((i) => i.item_text)}
+          onChecklistAdded={ops.reload ?? (() => {})}
+          canEditChecklist={job.status !== "delivered" && job.status !== "approved"}
+        />
 
         <Accordion type="multiple" defaultValue={["checkin"]} className="space-y-3">
           {/* 1. Vehicle check-in */}
