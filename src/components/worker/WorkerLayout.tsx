@@ -8,13 +8,15 @@ import {
   User,
   LogOut,
   MessageSquare,
-  Clock,
   ShieldCheck,
   Wrench,
   BookOpen,
+  MoreHorizontal,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { WorkerNotificationBell } from "./WorkerNotificationBell";
 import { NotificationPermissionPrompt } from "./NotificationPermissionPrompt";
@@ -24,18 +26,23 @@ interface WorkerLayoutProps {
   children: ReactNode;
 }
 
-const baseNavItems = [
+const primaryNavItems = [
   { path: "/worker", label: "Today", icon: CalendarDays },
   { path: "/worker/ops", label: "Jobs", icon: Wrench },
-  { path: "/worker/jobs", label: "Bookings", icon: ClipboardList },
   { path: "/worker/sop", label: "SOPs", icon: BookOpen },
-  { path: "/worker/timesheet", label: "Timesheet", icon: Clock },
   { path: "/worker/chat", label: "Chat", icon: MessageSquare },
-  { path: "/worker/earnings", label: "Earnings", icon: DollarSign },
-  { path: "/worker/profile", label: "Profile", icon: User },
 ];
 
-const qcNavItem = { path: "/worker/qc", label: "QC", icon: ShieldCheck };
+const moreNavItems = [
+  { path: "/worker/pay", label: "Pay & Hours", icon: DollarSign },
+  { path: "/worker/profile", label: "Profile", icon: User },
+  { path: "/worker/jobs", label: "Bookings", icon: ClipboardList },
+];
+
+const managerMoreItems = [
+  { path: "/worker/qc", label: "QC", icon: ShieldCheck },
+  { path: "/admin", label: "Booking Calendar", icon: CalendarDays },
+];
 
 
 export function WorkerLayout({ children }: WorkerLayoutProps) {
@@ -44,8 +51,10 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
   const [workerName, setWorkerName] = useState("");
   const [showNotifPrompt, setShowNotifPrompt] = useState(true);
   const [canReviewQc, setCanReviewQc] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const navItems = canReviewQc ? [...baseNavItems, qcNavItem] : baseNavItems;
+  const moreItems = canReviewQc ? [...moreNavItems, ...managerMoreItems] : moreNavItems;
+
 
   useEffect(() => {
     const checkAccess = async () => {
