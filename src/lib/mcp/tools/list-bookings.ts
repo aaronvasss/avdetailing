@@ -27,9 +27,21 @@ export default defineTool({
       .optional()
       .describe("Maximum number of bookings to return (default 10)."),
     status: z
-      .enum(["pending", "confirmed", "in_progress", "completed", "canceled"])
+      .enum([
+        "pending",
+        "pending_payment",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "canceled",
+        "no_show",
+      ])
       .optional()
-      .describe("Optional status filter."),
+      .describe(
+        'Optional status filter. Use "cancelled" for cancelled bookings ("canceled" is accepted as an alias).',
+      ),
+
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit, status }, ctx) => {
