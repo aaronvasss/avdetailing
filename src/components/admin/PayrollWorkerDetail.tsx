@@ -180,7 +180,9 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
       clockOut: shift ? toLocalInput(shift.clock_out_at) : "",
       notes: "",
       prevMinutes: shift ? minutes : null,
+      otherMinutes: 0,
       hint: null,
+
     });
   };
 
