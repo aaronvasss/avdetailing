@@ -62,7 +62,7 @@ function longDay(d: Date) {
 
 const cellKey = (userId: string, day: string) => `${userId}|${day}`;
 
-export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
+export function PayrollTimesheetGrid({ workers, sharedShifts, sharedFrom, sharedTo, onSaved }: Props) {
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -70,6 +70,7 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState<"week" | "today" | null>(null);
+  const loadSeq = useRef(0);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -81,11 +82,16 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
   const todayKey = dateKey(new Date());
   const workerIds = useMemo(() => workers.map((w) => w.user_id).join(","), [workers]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const rows = await fetchShifts({ fromDate, toDate });
+  // The parent payroll tab already fetched a wider window — reuse it instead of
+  // firing a duplicate worker_shifts request for the same days.
+  const sharedCovers =
+    !!sharedShifts && !!sharedFrom && !!sharedTo && sharedFrom <= fromDate && sharedTo >= toDate;
+  const sharedKey = sharedCovers
+    ? `shared:${sharedFrom}:${sharedTo}:${sharedShifts!.length}`
+    : "fetch";
+
+  const apply = useCallback(
+    (rows: ShiftRecord[]) => {
       const ids = new Set(workerIds ? workerIds.split(",") : []);
       const mine = rows.filter((s) => ids.has(s.user_id));
       setShifts(mine);
@@ -102,19 +108,61 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
           values[k] = minutesToHoursInput(byCell[k] || 0);
         });
       });
-      setDrafts(values);
       setInitial(values);
-    } catch (e: any) {
-      setLoadError(e?.message || "Could not load timesheet data");
-    } finally {
-      setLoading(false);
-    }
-  }, [fromDate, toDate, dayKeys, workerIds]);
+      // Keep any unsaved edits the admin is still typing
+      setDrafts((prev) => {
+        const next = { ...values };
+        Object.keys(values).forEach((k) => {
+          if (prev[k] !== undefined && prev[k] !== (initialRef.current[k] ?? "")) next[k] = prev[k];
+        });
+        initialRef.current = values;
+        return next;
+      });
+    },
+    [dayKeys, workerIds],
+  );
 
+  const initialRef = useRef<Record<string, string>>({});
+
+  const load = useCallback(
+    async (force = false) => {
+      const seq = ++loadSeq.current;
+      setLoadError(null);
+      if (!force && sharedCovers) {
+        apply(sharedShifts!);
+        if (seq === loadSeq.current) setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const { data, error } = await fetchShiftsResult({ fromDate, toDate });
+        if (error) throw new Error(error);
+        if (seq !== loadSeq.current) return;
+        apply(data);
+      } catch (e: any) {
+        if (seq !== loadSeq.current) return;
+        const message = e?.message || "Could not load timesheet data";
+        setLoadError(message);
+        void logAppError({
+          message,
+          code: e?.code || "payroll_timesheet_load_failed",
+          severity: "error",
+          context: { area: "admin_payroll_timesheet", fromDate, toDate },
+          stack: e?.stack,
+        });
+      } finally {
+        if (seq === loadSeq.current) setLoading(false);
+      }
+    },
+    // sharedKey stands in for the shared shift payload
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fromDate, toDate, apply, sharedCovers, sharedKey],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
 
   const shiftsForCell = useCallback(
     (userId: string, day: string) =>
