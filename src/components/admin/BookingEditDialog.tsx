@@ -339,7 +339,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     else setPackageInfo(null);
   };
 
-  // Fetch a worker's default pay rate from worker_profiles
+  // Fetch a worker's default hourly rate from worker_profiles
   const fetchWorkerPayRate = async (workerId: string, savedPayType?: string, savedPayRate?: number) => {
     const { data: wp } = await supabase
       .from("worker_profiles")
@@ -348,23 +348,21 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .maybeSingle();
 
     if (wp) {
-      setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
-      setWorkerDefaultPayRate(String(wp.pay_rate));
+      const defaultRate = Number(wp.pay_rate) > 0 ? Number(wp.pay_rate) : DEFAULT_HOURLY_RATE;
+      setWorkerDefaultPayType("hourly");
+      setWorkerDefaultPayRate(String(defaultRate));
 
-      // If booking has a saved rate that differs from default, mark as custom override
-      if (savedPayType && savedPayRate != null) {
-        const isCustom = savedPayType !== wp.pay_type || Number(savedPayRate) !== Number(wp.pay_rate);
+      if (savedPayRate != null) {
+        const isCustom = Number(savedPayRate) !== defaultRate;
         setEditUseCustomPayRate(isCustom);
         if (!isCustom) {
-          // Using default rate - sync display
-          setEditCustomPayType(wp.pay_type as "percentage" | "flat");
-          setEditCustomPayRate(String(wp.pay_rate));
+          setEditCustomPayType("hourly");
+          setEditCustomPayRate(String(defaultRate));
         }
       } else {
-        // No saved rate - use default
         setEditUseCustomPayRate(false);
-        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
-        setEditCustomPayRate(String(wp.pay_rate));
+        setEditCustomPayType("hourly");
+        setEditCustomPayRate(String(defaultRate));
       }
     }
   };
@@ -373,7 +371,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const handleWorkerChange = async (workerId: string) => {
     setEditAssignedWorkerId(workerId);
     setEditUseCustomPayRate(false);
-    
+
     if (workerId !== "unassigned") {
       const { data: wp } = await supabase
         .from("worker_profiles")
@@ -381,23 +379,18 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         .eq("user_id", workerId)
         .maybeSingle();
 
-      if (wp) {
-        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
-        setWorkerDefaultPayRate(String(wp.pay_rate));
-        setEditCustomPayType(wp.pay_type as "percentage" | "flat");
-        setEditCustomPayRate(String(wp.pay_rate));
-      } else {
-        setWorkerDefaultPayType("percentage");
-        setWorkerDefaultPayRate("");
-        setEditCustomPayType("percentage");
-        setEditCustomPayRate("");
-      }
+      const defaultRate = Number(wp?.pay_rate) > 0 ? Number(wp?.pay_rate) : DEFAULT_HOURLY_RATE;
+      setWorkerDefaultPayType("hourly");
+      setWorkerDefaultPayRate(String(defaultRate));
+      setEditCustomPayType("hourly");
+      setEditCustomPayRate(String(defaultRate));
     } else {
-      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayType("hourly");
       setWorkerDefaultPayRate("");
-      setEditCustomPayType("percentage");
+      setEditCustomPayType("hourly");
       setEditCustomPayRate("");
     }
+
   };
 
   const fetchBookingAddOns = async (bookingId: string) => {
