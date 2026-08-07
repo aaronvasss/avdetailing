@@ -508,6 +508,16 @@ export function AdminPayrollTab() {
         </CardContent>
       </Card>
 
+      <PayrollTimesheetGrid
+        workers={workers.map((w) => ({
+          user_id: w.user_id,
+          full_name: w.full_name,
+          email: w.email,
+          pay_rate: w.pay_rate,
+        }))}
+        onSaved={load}
+      />
+
       {rows.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
