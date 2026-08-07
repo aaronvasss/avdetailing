@@ -265,12 +265,14 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
         : null;
     }
 
+    const newDayMinutes = (totals ?? 0) + editing.otherMinutes;
     const auditNote = [
       editing.notes.trim(),
-      `Admin set hours: ${formatHours(editing.prevMinutes ?? 0)} → ${formatHours(totals ?? 0)}`,
+      `Admin set hours: ${formatHours(editing.prevMinutes ?? 0)} → ${formatHours(newDayMinutes)}`,
     ]
       .filter(Boolean)
       .join(" — ");
+
 
     setSaving(true);
     let error;
