@@ -27,6 +27,7 @@ import {
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Booking } from "./AppointmentCard";
+import { formatTime12h } from "@/lib/time-format";
 
 interface AppointmentsCalendarViewProps {
   bookings: Booking[];
@@ -168,19 +169,7 @@ export function AppointmentsCalendarView({
                     )}
                   />
                     <span className="truncate">
-                    {(() => {
-                      try {
-                        const t = parseDate(booking.scheduled_time, "HH:mm:ss", new Date());
-                        return formatDate(t, "h:mm a");
-                      } catch {
-                        try {
-                          const t = parseDate(booking.scheduled_time, "HH:mm", new Date());
-                          return formatDate(t, "h:mm a");
-                        } catch {
-                          return booking.scheduled_time;
-                        }
-                      }
-                    })()} - {customerName}
+                    {formatTime12h(booking.scheduled_time)} - {customerName}
                   </span>
                 </div>
                 <div className="truncate text-muted-foreground pl-3.5">

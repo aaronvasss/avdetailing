@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
+import { toDbTime, formatTime12h, toDateString, parseDateString, addMinutesTo12h } from "@/lib/time-format";
+import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
 import { updateCustomerVehicle, findOrCreateClientVehicle } from "@/lib/customerVehicles";
@@ -143,6 +145,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [notes, setNotes] = useState<InternalNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [editAssignedWorkerId, setEditAssignedWorkerId] = useState<string>("unassigned");
   const [editUseCustomPayRate, setEditUseCustomPayRate] = useState(false);
   const [editCustomPayType, setEditCustomPayType] = useState<"hourly">("hourly");
@@ -240,8 +243,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       if (savedDraft) {
         try {
           const draft = JSON.parse(savedDraft);
-          setScheduledDate(draft.scheduledDate ? new Date(draft.scheduledDate) : parseISO(booking.scheduled_date));
-          setScheduledTime(draft.scheduledTime ?? booking.scheduled_time);
+          setScheduledDate(draft.scheduledDate ? new Date(draft.scheduledDate) : parseDateString(booking.scheduled_date));
+          setScheduledTime(toDbTime(draft.scheduledTime ?? booking.scheduled_time) ?? "");
           setStatus(draft.status ?? booking.status);
           setPaymentStatus(draft.paymentStatus ?? booking.payment_status ?? "unpaid");
           setPaymentMethod(draft.paymentMethod ?? booking.payment_method ?? "in_person");
@@ -277,8 +280,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
 
       if (!savedDraft) {
         // Default initialization from booking data
-        setScheduledDate(parseISO(booking.scheduled_date));
-        setScheduledTime(booking.scheduled_time);
+        setScheduledDate(parseDateString(booking.scheduled_date));
+        setScheduledTime(toDbTime(booking.scheduled_time) ?? "");
         setStatus(booking.status);
         setPaymentStatus(booking.payment_status || "unpaid");
         setPaymentMethod(booking.payment_method || "in_person");
@@ -454,9 +457,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .neq("status", "cancelled");
     
     const duration = booking.duration_minutes || getPackageDuration(booking.services?.slug || "") || 120;
-    const slots = generateTimeSlots(duration, existingBookings || []);
+    const slots = generateTimeSlots(duration, existingBookings || [], schedulingConfig, { dateStr: date });
     
-    const currentTimeFormatted = booking.scheduled_time;
+    const currentTimeFormatted = toDbTime(booking.scheduled_time) ?? "";
     if (!slots.includes(currentTimeFormatted)) {
       slots.unshift(currentTimeFormatted);
     }
@@ -467,7 +470,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const handleDateChange = async (date: Date | undefined) => {
     setScheduledDate(date);
     if (date && booking) {
-      await fetchAvailableSlots(format(date, "yyyy-MM-dd"), booking.id);
+      await fetchAvailableSlots(toDateString(date), booking.id);
     }
   };
 
@@ -537,12 +540,13 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
     const newAssignedWorkerId = resolveAssignedWorkerUserId(editAssignedWorkerId, workers);
     const previousWorkerId = booking.assigned_worker_id;
 
-    const newDateStr = format(scheduledDate, "yyyy-MM-dd");
-    const dateOrTimeChanged = newDateStr !== booking.scheduled_date || scheduledTime !== booking.scheduled_time;
+    const newDateStr = toDateString(scheduledDate);
+    const newTimeDb = toDbTime(scheduledTime) ?? scheduledTime;
+    const dateOrTimeChanged = newDateStr !== booking.scheduled_date || newTimeDb !== toDbTime(booking.scheduled_time);
 
     const updates: Record<string, any> = {
       scheduled_date: newDateStr,
-      scheduled_time: scheduledTime,
+      scheduled_time: newTimeDb,
       status,
       payment_status: paymentStatus,
       payment_method: paymentMethod,
@@ -652,11 +656,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       const customerName = editGuestName || booking.profile_name || booking.guest_name || "Customer";
       const firstName = customerName.split(" ")[0];
       const serviceName = booking.custom_service_description || booking.services?.name || "Detailing";
-      const formatTime12 = (t: string) => {
-        const [h, m] = t.split(":");
-        const hour = parseInt(h);
-        return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
-      };
+      const formatTime12 = formatTime12h;
       try {
         await supabase.from("worker_notifications").insert({
           user_id: newAssignedWorkerId,
@@ -1090,6 +1090,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                     <Calendar
                       mode="single"
                       selected={scheduledDate}
+                      disabled={(date) => isDateBlocked(date)}
                       onSelect={handleDateChange}
                       className="pointer-events-auto"
                     />
@@ -1106,7 +1107,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                   <SelectContent>
                     {availableSlots.map(slot => (
                       <SelectItem key={slot} value={slot}>
-                        {slot}
+                        {formatTime12h(slot)}
                       </SelectItem>
                     ))}
                   </SelectContent>

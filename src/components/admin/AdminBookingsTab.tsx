@@ -26,6 +26,7 @@ import {
   PaymentDetailsSection,
 } from "@/lib/payment-display";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
+import { formatTime12h } from "@/lib/time-format";
 import {
   checkRecentNotification,
   logNotification,
@@ -725,7 +726,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                           {format(new Date(booking.scheduled_date), "MMM d, yyyy")}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {booking.scheduled_time.slice(0, 5)}
+                          {formatTime12h(booking.scheduled_time)}
                         </span>
                       </div>
                     </TableCell>
@@ -879,7 +880,7 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedBooking.scheduled_time}</span>
+                  <span>{formatTime12h(selectedBooking.scheduled_time)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />

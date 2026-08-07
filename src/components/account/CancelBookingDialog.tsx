@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AlertTriangle, Loader2, XCircle } from "lucide-react";
+import { formatTime12h } from "@/lib/time-format";
 
 interface Booking {
   id: string;
@@ -103,7 +104,7 @@ export function CancelBookingDialog({
                 <strong>
                   {format(new Date(booking.scheduled_date), "MMMM d, yyyy")}
                 </strong>{" "}
-                at <strong>{booking.scheduled_time}</strong>?
+                at <strong>{formatTime12h(booking.scheduled_time)}</strong>?
               </p>
 
               {isLastMinute && (

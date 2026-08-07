@@ -40,11 +40,16 @@ function shortDate(dateStr: string): string {
 }
 
 function formatTime12(time: string): string {
-  const parts = time.match(/(\d+):(\d+)/);
-  if (!parts) return time;
+  const v = String(time || "").trim();
+  const m12 = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp])\.?[Mm]\.?$/);
+  if (m12) {
+    const h = parseInt(m12[1]) % 12 || 12;
+    return `${h}:${m12[2]} ${m12[3].toLowerCase() === "p" ? "PM" : "AM"}`;
+  }
+  const parts = v.match(/(\d+):(\d+)/);
+  if (!parts) return v;
   const h = parseInt(parts[1]);
-  const m = parts[2];
-  return `${h % 12 || 12}:${m} ${h >= 12 ? "PM" : "AM"}`;
+  return `${h % 12 || 12}:${parts[2]} ${h >= 12 ? "PM" : "AM"}`;
 }
 
 function isQuoteBasedService(vehicleType?: string): boolean {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, addDays, isBefore, startOfToday } from "date-fns";
 import {
   Dialog,
@@ -10,15 +10,24 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CalendarClock, Clock, Loader2, AlertCircle } from "lucide-react";
-import { 
-  generateTimeSlots, 
+import { CalendarClock, Clock, Loader2, AlertCircle, ArrowRight } from "lucide-react";
+import {
+  generateTimeSlots,
   DEFAULT_DURATION,
   getWorkingHoursDisplay,
-  formatDuration
+  formatDuration,
 } from "@/lib/scheduling";
+import {
+  formatTime12h,
+  toDbTime,
+  toDateString,
+  parseDateString,
+  addMinutesTo12h,
+  groupSlotsByPeriod,
+} from "@/lib/time-format";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 
 interface Booking {
@@ -37,15 +46,16 @@ interface RescheduleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  /** Admin view shows the "notify customer" option */
+  showNotifyOption?: boolean;
 }
-
-// Time slots are now generated dynamically based on service duration and availability
 
 export function RescheduleDialog({
   booking,
   open,
   onOpenChange,
   onSuccess,
+  showNotifyOption = true,
 }: RescheduleDialogProps) {
   const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -53,8 +63,8 @@ export function RescheduleDialog({
   const [loading, setLoading] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
 
-  // Get service duration for this booking
   const serviceDuration = booking?.duration_minutes || DEFAULT_DURATION;
 
   useEffect(() => {
@@ -62,6 +72,7 @@ export function RescheduleDialog({
       setSelectedDate(undefined);
       setSelectedTime("");
       setAvailableSlots([]);
+      setNotifyCustomer(true);
     }
   }, [booking, open]);
 
@@ -69,14 +80,14 @@ export function RescheduleDialog({
     if (selectedDate && booking) {
       checkAvailability(selectedDate);
     }
-  }, [selectedDate, booking]);
+  }, [selectedDate, booking, schedulingConfig]);
 
   const checkAvailability = async (date: Date) => {
     setLoadingSlots(true);
-    const dateStr = format(date, "yyyy-MM-dd");
-    
+    setSelectedTime("");
+    const dateStr = toDateString(date);
+
     try {
-      // Fetch existing bookings for this date (excluding current booking)
       const { data: existingBookings } = await supabase
         .from("bookings")
         .select("id, scheduled_time, duration_minutes")
@@ -84,26 +95,41 @@ export function RescheduleDialog({
         .neq("id", booking?.id || "")
         .in("status", ["pending", "confirmed", "in_progress"]);
 
-      // Generate available time slots based on service duration and existing bookings
-      const slots = generateTimeSlots(
-        serviceDuration,
-        existingBookings || [],
-        schedulingConfig
+      setAvailableSlots(
+        generateTimeSlots(serviceDuration, existingBookings || [], schedulingConfig, { dateStr })
       );
-      
-      setAvailableSlots(slots);
     } catch (error) {
       console.error("Error checking availability:", error);
-      // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(serviceDuration, [], schedulingConfig));
+      setAvailableSlots(
+        generateTimeSlots(serviceDuration, [], schedulingConfig, { dateStr })
+      );
     } finally {
       setLoadingSlots(false);
     }
   };
 
+  const grouped = useMemo(() => groupSlotsByPeriod(availableSlots), [availableSlots]);
+
+  const currentLabel = booking
+    ? `${format(parseDateString(booking.scheduled_date), "EEEE, MMM d")} at ${formatTime12h(
+        booking.scheduled_time
+      )}`
+    : "";
+
+  const newLabel =
+    selectedDate && selectedTime
+      ? `${format(selectedDate, "EEEE, MMM d")} at ${formatTime12h(selectedTime)}`
+      : "";
+
   const handleReschedule = async () => {
     if (!booking || !selectedDate || !selectedTime) {
       toast.error("Please select a date and time");
+      return;
+    }
+
+    const dbTime = toDbTime(selectedTime);
+    if (!dbTime) {
+      toast.error(`Invalid time: ${selectedTime}`);
       return;
     }
 
@@ -113,8 +139,8 @@ export function RescheduleDialog({
       const { error } = await supabase
         .from("bookings")
         .update({
-          scheduled_date: format(selectedDate, "yyyy-MM-dd"),
-          scheduled_time: selectedTime,
+          scheduled_date: toDateString(selectedDate),
+          scheduled_time: dbTime,
           status: "pending",
         })
         .eq("id", booking.id);
@@ -122,7 +148,7 @@ export function RescheduleDialog({
       if (error) throw error;
 
       toast.success("Booking rescheduled successfully!", {
-        description: `New date: ${format(selectedDate, "MMM d, yyyy")} at ${selectedTime}`,
+        description: `Moved from ${currentLabel} to ${newLabel}`,
       });
       onSuccess();
       onOpenChange(false);
@@ -138,25 +164,34 @@ export function RescheduleDialog({
 
   if (!booking) return null;
 
-  const today = startOfToday();
-  const minDate = addDays(today, 1); // At least 24 hours notice
+  const minDate = addDays(startOfToday(), 1); // at least 24 hours notice
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarClock className="h-5 w-5 text-primary" />
             Reschedule Booking
           </DialogTitle>
           <DialogDescription>
-            Select a new date and time for your {booking.services?.name || "appointment"}.
-            Current: {format(new Date(booking.scheduled_date), "MMM d, yyyy")} at{" "}
-            {booking.scheduled_time}
+            Pick a new date and time for this {booking.services?.name || "appointment"}.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-2">
+          {/* Current appointment */}
+          <div className="rounded-lg border bg-muted/40 p-3">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+              Current appointment
+            </p>
+            <p className="font-semibold">{currentLabel}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatDuration(serviceDuration)} · ends around{" "}
+              {addMinutesTo12h(booking.scheduled_time, serviceDuration)}
+            </p>
+          </div>
+
           {/* Date Picker */}
           <div>
             <label className="text-sm font-medium mb-2 block">Select New Date</label>
@@ -165,49 +200,89 @@ export function RescheduleDialog({
               selected={selectedDate}
               onSelect={setSelectedDate}
               disabled={(date) => isBefore(date, minDate) || isDateBlocked(date)}
-              className="rounded-md border mx-auto"
+              className="rounded-md border mx-auto pointer-events-auto"
             />
           </div>
 
           {/* Time Slots */}
           {selectedDate && (
             <div>
-              <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+              <div className="text-sm font-medium mb-3 flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 Select Time
                 <span className="text-xs text-muted-foreground ml-auto">
                   Hours: {getWorkingHoursDisplay(schedulingConfig)}
                 </span>
-              </label>
+              </div>
+
               {loadingSlots ? (
-                <div className="flex items-center justify-center py-4">
+                <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
               ) : availableSlots.length === 0 ? (
                 <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
                   <AlertCircle className="h-4 w-4 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    No available times for this date. This service requires {formatDuration(serviceDuration)}.
+                    No available times for this date. This service requires{" "}
+                    {formatDuration(serviceDuration)}.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                  {availableSlots.map((time) => (
-                    <Button
-                      key={time}
-                      type="button"
-                      variant={selectedTime === time ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedTime(time)}
-                    >
-                      {time}
-                    </Button>
+                <div className="space-y-4">
+                  {grouped.map(({ period, slots }) => (
+                    <div key={period}>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        {period}
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {slots.map((time) => (
+                          <Button
+                            key={time}
+                            type="button"
+                            variant={selectedTime === time ? "default" : "outline"}
+                            className="h-12 text-base font-semibold"
+                            onClick={() => setSelectedTime(time)}
+                          >
+                            {formatTime12h(time)}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
-              <p className="text-xs text-muted-foreground mt-2">
-                Duration: {formatDuration(serviceDuration)} + 30min buffer
+
+              {selectedTime && (
+                <p className="text-xs text-muted-foreground mt-3">
+                  {formatDuration(serviceDuration)} · ends around{" "}
+                  {addMinutesTo12h(selectedTime, serviceDuration)} (+
+                  {schedulingConfig.bufferMinutes} min buffer)
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Confirmation summary */}
+          {newLabel && (
+            <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
+              <p className="text-sm font-medium flex flex-wrap items-center gap-2">
+                Move from <span className="font-semibold">{currentLabel}</span>
+                <ArrowRight className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-primary">{newLabel}</span>
               </p>
+            </div>
+          )}
+
+          {showNotifyOption && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="reschedule-notify"
+                checked={notifyCustomer}
+                onCheckedChange={(v) => setNotifyCustomer(Boolean(v))}
+              />
+              <label htmlFor="reschedule-notify" className="text-sm">
+                Notify the customer about this change
+              </label>
             </div>
           )}
         </div>

@@ -10,6 +10,7 @@ import { format, isAfter, isBefore, startOfToday } from "date-fns";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
 import { RescheduleDialog } from "./RescheduleDialog";
 import { CancelBookingDialog } from "./CancelBookingDialog";
+import { formatTime12h } from "@/lib/time-format";
 
 interface BookingsTabProps {
   userId: string;
@@ -195,7 +196,7 @@ export function BookingsTab({ userId }: BookingsTabProps) {
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {booking.scheduled_time}
+                  {formatTime12h(booking.scheduled_time)}
                 </span>
               </CardDescription>
             </div>

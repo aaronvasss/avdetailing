@@ -9,6 +9,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function formatTime12(time: string): string {
+  const v = String(time || "").trim();
+  const m12 = v.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp])\.?[Mm]\.?$/);
+  if (m12) {
+    const h = parseInt(m12[1]) % 12 || 12;
+    return `${h}:${m12[2]} ${m12[3].toLowerCase() === "p" ? "PM" : "AM"}`;
+  }
+  const m24 = v.match(/^(\d{1,2}):(\d{2})/);
+  if (!m24) return v;
+  const h = parseInt(m24[1]);
+  return `${h % 12 || 12}:${m24[2]} ${h >= 12 ? "PM" : "AM"}`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -58,10 +71,10 @@ serve(async (req) => {
 
     if (type === "new_booking") {
       title = "New Job Assigned! 🚗";
-      body = `${service_name} for ${firstName} on ${scheduled_date} at ${scheduled_time}${address ? ` — ${address}` : ""}`;
+      body = `${service_name} for ${firstName} on ${scheduled_date} at ${formatTime12(scheduled_time)}${address ? ` — ${address}` : ""}`;
     } else if (type === "cancelled") {
       title = "Job Cancelled ❌";
-      body = `${service_name} on ${scheduled_date} at ${scheduled_time} has been cancelled.`;
+      body = `${service_name} on ${scheduled_date} at ${formatTime12(scheduled_time)} has been cancelled.`;
     } else {
       title = "Booking Update";
       body = `${service_name} for ${firstName} has been updated.`;

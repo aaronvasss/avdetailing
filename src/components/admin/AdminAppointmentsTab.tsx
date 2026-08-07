@@ -48,6 +48,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { BookingEditDialog } from "./BookingEditDialog";
+import { formatTime12h } from "@/lib/time-format";
 
 interface Booking {
   id: string;
@@ -510,7 +511,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                         {format(parseISO(booking.scheduled_date), "MMM d, yyyy")}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {booking.scheduled_time}
+                        {formatTime12h(booking.scheduled_time)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -584,7 +585,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
                   </div>
                   <div className="text-muted-foreground flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    {selectedBooking.scheduled_time}
+                    {formatTime12h(selectedBooking.scheduled_time)}
                     <span className="text-xs">({getServiceDuration(selectedBooking)} min)</span>
                   </div>
                 </div>
