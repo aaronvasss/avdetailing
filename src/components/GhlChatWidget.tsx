@@ -29,6 +29,22 @@ function isExcludedPath(pathname: string): boolean {
   );
 }
 
+const WIDGET_DOM_SELECTOR = [
+  "chat-widget",
+  "lc-chat-widget",
+  "[id^='lc_chat']",
+  "[id^='lc_']",
+  "[id^='leadconnector']",
+  ".lc_text-widget",
+  "ion-loading",
+  "ion-backdrop",
+  "ion-app",
+  "iframe[src*='leadconnectorhq']",
+  "iframe[src*='msgsndr']",
+].join(", ");
+
+const HIDE_STYLE_ID = "ghl-chat-widget-hide";
+
 function removeWidget() {
   // Remove the loader script
   document.getElementById(WIDGET_SCRIPT_ID)?.remove();
@@ -38,13 +54,52 @@ function removeWidget() {
       'script[src*="leadconnectorhq.com/chat-widget"], script[src*="beta.leadconnectorhq.com"]'
     )
     .forEach((el) => el.remove());
-  // Remove any widget DOM the loader injected (covers <chat-widget>, lc-* prefixes, and stray ion-loading overlays from the widget)
-  document
-    .querySelectorAll(
-      "chat-widget, [id^='lc_chat'], [id^='leadconnector'], .lc_text-widget, lc-chat-widget, ion-loading, ion-app"
-    )
-    .forEach((el) => el.remove());
+  // Remove any widget DOM the loader injected (custom elements, lc-* prefixes,
+  // and the Ionic loading/backdrop overlays the widget shell can leave behind)
+  document.querySelectorAll(WIDGET_DOM_SELECTOR).forEach((el) => el.remove());
 }
+
+/** Belt-and-braces: hide widget DOM instantly so nothing can flash on screen. */
+function addHideStyle() {
+  if (document.getElementById(HIDE_STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = HIDE_STYLE_ID;
+  style.textContent = `${WIDGET_DOM_SELECTOR} { display: none !important; }`;
+  document.head.appendChild(style);
+}
+
+function removeHideStyle() {
+  document.getElementById(HIDE_STYLE_ID)?.remove();
+}
+
+/**
+ * The widget script keeps running after its <script> tag is removed, so a
+ * one-shot cleanup can be undone. Watch the body and re-remove anything the
+ * already-loaded bundle re-creates while we're on an excluded route.
+ */
+function watchAndRemoveWidget(): () => void {
+  addHideStyle();
+  removeWidget();
+
+  let frame: number | undefined;
+  const schedule = () => {
+    if (frame) return;
+    frame = window.requestAnimationFrame(() => {
+      frame = undefined;
+      removeWidget();
+    });
+  };
+
+  const observer = new MutationObserver(schedule);
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  return () => {
+    observer.disconnect();
+    if (frame) window.cancelAnimationFrame(frame);
+    removeHideStyle();
+  };
+}
+
 
 
 function injectWidget() {
