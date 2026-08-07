@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
+import { fetchClientVehicles, findOrCreateClientVehicle, describeVehicle, type CustomerVehicle } from "@/lib/customerVehicles";
+import { Car, CheckCircle2 } from "lucide-react";
 
 interface AdminBookingModalProps {
   open: boolean;
@@ -96,6 +98,7 @@ interface DraftData {
     firstName: string; lastName: string; email: string; phone: string;
     address: string; city: string; zip: string; serviceType: string;
     vehicleType: string; vehicleMake: string; vehicleModel: string; vehicleYear: string;
+    vehicleColor?: string; licensePlate?: string;
     scheduledDate?: string; scheduledTime: string; paymentMethod: string;
     internalNotes: string; customerNotes: string; tipAmount: string;
     customServiceDescription?: string;
@@ -178,10 +181,16 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [selectedClientName, setSelectedClientName] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  // Saved vehicles for the selected customer
+  const [savedVehicles, setSavedVehicles] = useState<CustomerVehicle[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+
   const defaultForm = {
     firstName: "", lastName: "", email: "", phone: "",
     address: "", city: "", zip: "",
     serviceType: "", vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
+    vehicleColor: "", licensePlate: "",
     scheduledDate: undefined as Date | undefined, scheduledTime: "",
     paymentMethod: "in_person", internalNotes: "", customerNotes: "",
     tipAmount: "", customServiceDescription: "",
@@ -294,6 +303,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     setCustomPayRate("");
     setSelectedClientId(null);
     setSelectedClientName(null);
+    setSavedVehicles([]);
+    setSelectedVehicleId(null);
     setCustomerSearch("");
     toast.info("Form cleared");
   };
@@ -359,6 +370,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       zip: client.zip || prev.zip,
     }));
     setSelectedClientId(client.id);
+    setSelectedVehicleId(null);
     setSelectedClientName(client.full_name || `${firstName} ${lastName}`);
     setCustomerSearch("");
     setShowResults(false);
@@ -368,6 +380,48 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const clearSelectedClient = () => {
     setSelectedClientId(null);
     setSelectedClientName(null);
+    setSavedVehicles([]);
+    setSelectedVehicleId(null);
+  };
+
+  // Load the selected customer's saved vehicles
+  useEffect(() => {
+    if (!open || !selectedClientId) {
+      setSavedVehicles([]);
+      return;
+    }
+    let cancelled = false;
+    setVehiclesLoading(true);
+    fetchClientVehicles(selectedClientId)
+      .then(rows => { if (!cancelled) setSavedVehicles(rows); })
+      .catch(err => {
+        console.error("Failed to load customer vehicles:", err);
+        if (!cancelled) setSavedVehicles([]);
+      })
+      .finally(() => { if (!cancelled) setVehiclesLoading(false); });
+    return () => { cancelled = true; };
+  }, [open, selectedClientId]);
+
+  const applySavedVehicle = (vehicle: CustomerVehicle) => {
+    setSelectedVehicleId(vehicle.id);
+    setForm(prev => ({
+      ...prev,
+      vehicleType: vehicle.vehicle_type || prev.vehicleType,
+      vehicleMake: vehicle.make || "",
+      vehicleModel: vehicle.model || "",
+      vehicleYear: vehicle.year ? String(vehicle.year) : "",
+      vehicleColor: vehicle.color || "",
+      licensePlate: vehicle.license_plate || "",
+    }));
+    setSelectedPackageId("");
+  };
+
+  const startNewVehicle = () => {
+    setSelectedVehicleId(null);
+    setForm(prev => ({
+      ...prev,
+      vehicleMake: "", vehicleModel: "", vehicleYear: "", vehicleColor: "", licensePlate: "",
+    }));
   };
 
   const selectedService = serviceTypes.find(s => s.id === form.serviceType);
@@ -430,6 +484,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setForm(prev => ({
         ...prev,
         vehicleType: "", vehicleMake: "", vehicleModel: "", vehicleYear: "",
+        vehicleColor: "", licensePlate: "",
         boatType: "", boatLength: "", boatBrand: "",
         aircraftType: "", tailNumber: "",
       }));
@@ -476,6 +531,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           vehicle_model: form.vehicleModel || null,
           vehicle_year: form.vehicleYear ? parseInt(form.vehicleYear) : null,
           vehicle_size: form.vehicleType || null,
+          vehicle_color: form.vehicleColor || null,
+          license_plate: form.licensePlate || null,
           service_address: form.address || null,
           service_city: form.city || null,
           service_zip: form.zip || null,
@@ -514,6 +571,47 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
       const bookingId = data?.booking?.id || data?.booking_id;
 
+      // ── Persist the vehicle on the customer record and link it to the booking ──
+      if (bookingId && showCarVehicleFields && (form.vehicleMake || form.vehicleModel || form.vehicleYear)) {
+        try {
+          let vehicleId = selectedVehicleId;
+          let clientIdForVehicle = selectedClientId;
+
+          if (!clientIdForVehicle) {
+            const { data: bookingRow } = await supabase
+              .from("bookings")
+              .select("client_id")
+              .eq("id", bookingId)
+              .maybeSingle();
+            clientIdForVehicle = (bookingRow as any)?.client_id || null;
+          }
+
+          if (clientIdForVehicle && !vehicleId) {
+            const { vehicle, created } = await findOrCreateClientVehicle(clientIdForVehicle, {
+              vehicleType: form.vehicleType,
+              make: form.vehicleMake,
+              model: form.vehicleModel,
+              year: form.vehicleYear,
+              color: form.vehicleColor,
+              licensePlate: form.licensePlate,
+            });
+            vehicleId = vehicle.id;
+            if (created) toast.success(`Saved ${describeVehicle(vehicle)} to this customer`);
+          }
+
+          if (vehicleId) {
+            const { error: linkError } = await supabase
+              .from("bookings")
+              .update({ vehicle_id: vehicleId })
+              .eq("id", bookingId);
+            if (linkError) throw linkError;
+          }
+        } catch (vehicleErr: any) {
+          console.error("Vehicle save failed:", vehicleErr);
+          toast.error(`Booking created, but the vehicle could not be saved: ${vehicleErr?.message || "unknown error"}`);
+        }
+      }
+
       if (form.internalNotes && bookingId) {
         await supabase.from("booking_internal_notes").insert({
           booking_id: bookingId,
@@ -548,6 +646,8 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
 
       // Reset
       setForm(defaultForm);
+      setSelectedVehicleId(null);
+      setSavedVehicles([]);
       setSelectedPackageId("");
       setSelectedAddOns([]);
       setCustomPrice("");
@@ -721,20 +821,95 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
             </div>
           )}
 
+          {/* Saved vehicles for the selected customer */}
+          {showCarVehicleFields && !isBoat && !isAircraft && !isCustomService && selectedClientId && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                Customer's Vehicles
+              </h3>
+              {vehiclesLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading saved vehicles…
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {savedVehicles.map(v => {
+                    const isActive = selectedVehicleId === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => applySavedVehicle(v)}
+                        aria-pressed={isActive}
+                        className={cn(
+                          "relative text-left rounded-lg border p-4 transition-colors min-h-24",
+                          isActive
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50 hover:bg-accent"
+                        )}
+                      >
+                        {isActive && (
+                          <CheckCircle2 className="absolute right-3 top-3 h-5 w-5 text-primary" />
+                        )}
+                        <div className="flex items-center gap-2 mb-1">
+                          <Car className="h-4 w-4 text-primary" />
+                          <span className="font-semibold text-base">{describeVehicle(v)}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {[
+                            v.vehicle_type,
+                            v.color ? `Color: ${v.color}` : null,
+                            v.license_plate ? `Plate: ${v.license_plate}` : null,
+                          ].filter(Boolean).join(" · ") || "No extra details saved"}
+                        </p>
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={startNewVehicle}
+                    aria-pressed={selectedVehicleId === null}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed p-4 min-h-24 transition-colors",
+                      selectedVehicleId === null
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 hover:bg-accent"
+                    )}
+                  >
+                    <Plus className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium">Add New Vehicle</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Car/RV Vehicle Details */}
           {showCarVehicleFields && !isBoat && !isAircraft && !isCustomService && (
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label>Make</Label>
-                <Input value={form.vehicleMake} onChange={e => handleChange("vehicleMake", e.target.value)} placeholder="Toyota" />
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>Make</Label>
+                  <Input value={form.vehicleMake} onChange={e => handleChange("vehicleMake", e.target.value)} placeholder="Toyota" />
+                </div>
+                <div>
+                  <Label>Model</Label>
+                  <Input value={form.vehicleModel} onChange={e => handleChange("vehicleModel", e.target.value)} placeholder="Camry" />
+                </div>
+                <div>
+                  <Label>Year</Label>
+                  <Input value={form.vehicleYear} onChange={e => handleChange("vehicleYear", e.target.value)} placeholder="2024" maxLength={4} />
+                </div>
               </div>
-              <div>
-                <Label>Model</Label>
-                <Input value={form.vehicleModel} onChange={e => handleChange("vehicleModel", e.target.value)} placeholder="Camry" />
-              </div>
-              <div>
-                <Label>Year</Label>
-                <Input value={form.vehicleYear} onChange={e => handleChange("vehicleYear", e.target.value)} placeholder="2024" maxLength={4} />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Color</Label>
+                  <Input value={form.vehicleColor} onChange={e => handleChange("vehicleColor", e.target.value)} placeholder="Black" />
+                </div>
+                <div>
+                  <Label>License Plate</Label>
+                  <Input value={form.licensePlate} onChange={e => handleChange("licensePlate", e.target.value)} placeholder="ABC 1234" />
+                </div>
               </div>
             </div>
           )}

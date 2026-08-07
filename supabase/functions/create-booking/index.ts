@@ -56,6 +56,8 @@ interface CreateBookingRequest {
   vehicle_year?: number | null;
   vehicle_make?: string | null;
   vehicle_model?: string | null;
+  vehicle_color?: string | null;
+  license_plate?: string | null;
 
   // Boat-specific fields
   boat_type?: string | null;
@@ -301,6 +303,8 @@ const handler = async (req: Request): Promise<Response> => {
       vehicle_year: body.vehicle_year != null ? Math.min(Math.max(1900, Number(body.vehicle_year)), 2100) : null,
       vehicle_make: sanitize(body.vehicle_make, 50),
       vehicle_model: sanitize(body.vehicle_model, 50),
+      vehicle_color: sanitize(body.vehicle_color, 40),
+      license_plate: sanitize(body.license_plate, 20),
 
       service_address: sanitize(body.service_address, 200),
       service_city: sanitize(body.service_city, 100),

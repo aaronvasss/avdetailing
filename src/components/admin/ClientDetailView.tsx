@@ -70,6 +70,7 @@ interface Vehicle {
   model: string | null;
   year: number | null;
   color: string | null;
+  license_plate?: string | null;
   is_default: boolean | null;
 }
 
@@ -229,9 +230,17 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
             model: v.model || null,
             year: v.year ? Number(v.year) : null,
             color: v.color || null,
+            license_plate: v.license_plate || null,
             is_default: i === 0,
           }))
         : [];
+
+      // Vehicles linked directly to this client record (customers without a login)
+      const { data: clientLinkedVehicles } = await supabase
+        .from('customer_vehicles')
+        .select('*')
+        .eq('client_id', client.id)
+        .order('created_at', { ascending: false });
 
       if (userId) {
         const { data: vehiclesData } = await supabase
@@ -239,7 +248,11 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
           .select('*')
           .eq('user_id', userId)
           .order('is_default', { ascending: false });
-        setVehicles([...clientVehicles, ...(vehiclesData || [])]);
+        const byId = new Map<string, Vehicle>();
+        for (const v of [...(clientLinkedVehicles || []), ...(vehiclesData || [])] as Vehicle[]) {
+          byId.set(v.id, v);
+        }
+        setVehicles([...clientVehicles, ...Array.from(byId.values())]);
 
         const { data: membershipsData } = await supabase
           .from('customer_memberships')
@@ -248,7 +261,7 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
           .order('created_at', { ascending: false });
         setMemberships(membershipsData || []);
       } else {
-        setVehicles(clientVehicles);
+        setVehicles([...clientVehicles, ...((clientLinkedVehicles || []) as Vehicle[])]);
       }
 
     } catch (error) {
@@ -593,6 +606,11 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
                               <div className="text-sm text-muted-foreground capitalize">{vehicle.vehicle_type}</div>
                               {vehicle.color && (
                                 <div className="text-sm text-muted-foreground">{vehicle.color}</div>
+                              )}
+                              {vehicle.license_plate && (
+                                <div className="text-sm text-muted-foreground font-mono">
+                                  Plate: {vehicle.license_plate}
+                                </div>
                               )}
                             </div>
                           </div>

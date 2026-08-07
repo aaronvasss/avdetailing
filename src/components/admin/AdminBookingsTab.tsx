@@ -52,6 +52,10 @@ interface Booking {
   vehicle_type: string;
   vehicle_make: string;
   vehicle_model: string;
+  vehicle_color: string | null;
+  license_plate: string | null;
+  vehicle_id: string | null;
+  client_id: string | null;
   service_address: string;
   service_city: string;
   address_notes: string | null;
@@ -120,6 +124,10 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
         vehicle_type,
         vehicle_make,
         vehicle_model,
+        vehicle_color,
+        license_plate,
+        vehicle_id,
+        client_id,
         service_address,
         service_city,
         address_notes,
@@ -921,6 +929,18 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
                   <span className="text-muted-foreground">Vehicle</span>
                   <span>{selectedBooking.vehicle_type} {selectedBooking.vehicle_make} {selectedBooking.vehicle_model}</span>
                 </div>
+                {selectedBooking.vehicle_color && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Color</span>
+                    <span>{selectedBooking.vehicle_color}</span>
+                  </div>
+                )}
+                {selectedBooking.license_plate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">License Plate</span>
+                    <span className="font-mono">{selectedBooking.license_plate}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
                   {getStatusBadge(selectedBooking.status)}

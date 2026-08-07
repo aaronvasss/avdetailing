@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
+import { updateCustomerVehicle, findOrCreateClientVehicle } from "@/lib/customerVehicles";
 import { DEFAULT_HOURLY_RATE } from "@/lib/worker-pay";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
 
@@ -43,6 +44,10 @@ interface Booking {
   vehicle_model: string | null;
   vehicle_year: number | null;
   vehicle_size: string | null;
+  vehicle_color?: string | null;
+  license_plate?: string | null;
+  vehicle_id?: string | null;
+  client_id?: string | null;
   service_address: string | null;
   service_city: string | null;
   service_state: string | null;
@@ -156,6 +161,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [editVehicleModel, setEditVehicleModel] = useState("");
   const [editVehicleYear, setEditVehicleYear] = useState("");
   const [editVehicleType, setEditVehicleType] = useState("");
+  const [editVehicleColor, setEditVehicleColor] = useState("");
+  const [editLicensePlate, setEditLicensePlate] = useState("");
+  const [syncVehicleRecord, setSyncVehicleRecord] = useState(false);
 
   // Editable address fields
   const [editAddress, setEditAddress] = useState("");
@@ -245,6 +253,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
           setEditVehicleModel(draft.editVehicleModel ?? booking.vehicle_model ?? "");
           setEditVehicleYear(draft.editVehicleYear ?? (booking.vehicle_year ? String(booking.vehicle_year) : ""));
           setEditVehicleType(draft.editVehicleType ?? booking.vehicle_type ?? "");
+          setEditVehicleColor(draft.editVehicleColor ?? booking.vehicle_color ?? "");
+          setEditLicensePlate(draft.editLicensePlate ?? booking.license_plate ?? "");
+          setSyncVehicleRecord(false);
           setEditAddress(draft.editAddress ?? booking.service_address ?? "");
           setEditCity(draft.editCity ?? booking.service_city ?? "");
           setEditState(draft.editState ?? booking.service_state ?? "LA");
@@ -282,6 +293,9 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         setEditVehicleModel(booking.vehicle_model || "");
         setEditVehicleYear(booking.vehicle_year ? String(booking.vehicle_year) : "");
         setEditVehicleType(booking.vehicle_type || "");
+        setEditVehicleColor(booking.vehicle_color || "");
+        setEditLicensePlate(booking.license_plate || "");
+        setSyncVehicleRecord(false);
 
         setEditAddress(booking.service_address || "");
         setEditCity(booking.service_city || "");
@@ -540,6 +554,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       vehicle_model: editVehicleModel.trim() || null,
       vehicle_year: editVehicleYear ? parseInt(editVehicleYear) : null,
       vehicle_type: editVehicleType.trim() || null,
+      vehicle_color: editVehicleColor.trim() || null,
+      license_plate: editLicensePlate.trim() || null,
       service_address: editAddress.trim() || null,
       service_city: editCity.trim() || null,
       service_state: editState.trim() || null,
@@ -557,6 +573,33 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .from("bookings")
       .update(updates)
       .eq("id", booking.id);
+
+    // Only touch the customer's saved vehicle when the admin explicitly opted in.
+    if (!error && syncVehicleRecord) {
+      const vehicleInput = {
+        vehicleType: editVehicleType,
+        make: editVehicleMake,
+        model: editVehicleModel,
+        year: editVehicleYear,
+        color: editVehicleColor,
+        licensePlate: editLicensePlate,
+      };
+      try {
+        if (booking.vehicle_id) {
+          await updateCustomerVehicle(booking.vehicle_id, vehicleInput);
+          toast.success("Customer's saved vehicle updated");
+        } else if (booking.client_id) {
+          const { vehicle } = await findOrCreateClientVehicle(booking.client_id, vehicleInput);
+          await supabase.from("bookings").update({ vehicle_id: vehicle.id }).eq("id", booking.id);
+          toast.success("Vehicle saved to the customer record");
+        } else {
+          toast.error("No customer record linked to this booking — saved vehicle not updated");
+        }
+      } catch (vehicleErr: any) {
+        console.error("Vehicle record update failed:", vehicleErr);
+        toast.error(`Booking saved, but the customer vehicle could not be updated: ${vehicleErr?.message || "unknown error"}`);
+      }
+    }
     
     if (error) {
       toast.error(`Failed to save: ${error.message}`);
@@ -1000,6 +1043,31 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs" htmlFor="edit-vehicle-color">Color</Label>
+                    <Input id="edit-vehicle-color" value={editVehicleColor} onChange={e => setEditVehicleColor(e.target.value)} placeholder="Black" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs" htmlFor="edit-license-plate">License Plate</Label>
+                    <Input id="edit-license-plate" value={editLicensePlate} onChange={e => setEditLicensePlate(e.target.value)} placeholder="ABC 1234" />
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 rounded-md border border-border p-3">
+                  <Checkbox
+                    id="sync-vehicle-record"
+                    checked={syncVehicleRecord}
+                    onCheckedChange={v => setSyncVehicleRecord(v === true)}
+                  />
+                  <div>
+                    <Label htmlFor="sync-vehicle-record" className="text-sm font-medium cursor-pointer">
+                      Also update this vehicle in the customer record
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Leave unchecked to change this job only. The customer's saved vehicle stays as it is.
+                    </p>
                   </div>
                 </div>
               </CardContent>

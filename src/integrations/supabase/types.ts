@@ -350,6 +350,7 @@ export type Database = {
           id: string
           in_progress_at: string | null
           in_progress_sms_sent: boolean | null
+          license_plate: string | null
           manage_token: string | null
           membership_id: string | null
           payment_method: string | null
@@ -371,6 +372,7 @@ export type Database = {
           total_price: number | null
           updated_at: string
           user_id: string | null
+          vehicle_color: string | null
           vehicle_id: string | null
           vehicle_make: string | null
           vehicle_model: string | null
@@ -405,6 +407,7 @@ export type Database = {
           id?: string
           in_progress_at?: string | null
           in_progress_sms_sent?: boolean | null
+          license_plate?: string | null
           manage_token?: string | null
           membership_id?: string | null
           payment_method?: string | null
@@ -426,6 +429,7 @@ export type Database = {
           total_price?: number | null
           updated_at?: string
           user_id?: string | null
+          vehicle_color?: string | null
           vehicle_id?: string | null
           vehicle_make?: string | null
           vehicle_model?: string | null
@@ -460,6 +464,7 @@ export type Database = {
           id?: string
           in_progress_at?: string | null
           in_progress_sms_sent?: boolean | null
+          license_plate?: string | null
           manage_token?: string | null
           membership_id?: string | null
           payment_method?: string | null
@@ -481,6 +486,7 @@ export type Database = {
           total_price?: number | null
           updated_at?: string
           user_id?: string | null
+          vehicle_color?: string | null
           vehicle_id?: string | null
           vehicle_make?: string | null
           vehicle_model?: string | null
@@ -758,6 +764,7 @@ export type Database = {
       }
       customer_vehicles: {
         Row: {
+          client_id: string | null
           color: string | null
           created_at: string
           id: string
@@ -768,11 +775,12 @@ export type Database = {
           notes: string | null
           size_category: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           vehicle_type: string
           year: number | null
         }
         Insert: {
+          client_id?: string | null
           color?: string | null
           created_at?: string
           id?: string
@@ -783,11 +791,12 @@ export type Database = {
           notes?: string | null
           size_category?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           vehicle_type: string
           year?: number | null
         }
         Update: {
+          client_id?: string | null
           color?: string | null
           created_at?: string
           id?: string
@@ -798,11 +807,19 @@ export type Database = {
           notes?: string | null
           size_category?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           vehicle_type?: string
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customer_vehicles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_send_log: {
         Row: {
