@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { logEdgeError } from "../_shared/error-log.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -154,11 +155,28 @@ serve(async (req) => {
 
       if (bookingError) {
         logStep("Booking lookup errored", { booking_id, hasSession: !!user, error: bookingError });
+        await logEdgeError({
+          functionName: "create-checkout",
+          code: "booking_lookup_failed",
+          message: `Booking lookup failed: ${bookingError.message}`,
+          bookingId: booking_id,
+          userId: user?.id ?? null,
+          context: { hasSession: !!user },
+        });
         throw new Error("Booking lookup failed");
       }
 
       if (!booking) {
         logStep("Booking not found", { booking_id, hasSession: !!user });
+        await logEdgeError({
+          functionName: "create-checkout",
+          code: "booking_not_found",
+          severity: "warning",
+          message: "Booking no longer exists at checkout",
+          bookingId: booking_id,
+          userId: user?.id ?? null,
+          context: { hasSession: !!user },
+        });
         return new Response(
           JSON.stringify({
             code: "booking_not_found",
@@ -353,6 +371,14 @@ serve(async (req) => {
     const errorId = crypto.randomUUID();
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { errorId, message: errorMessage });
+    await logEdgeError({
+      functionName: "create-checkout",
+      code: "checkout_failed",
+      severity: "fatal",
+      errorId,
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : null,
+    });
     return new Response(JSON.stringify({ error: "Checkout failed. Please try again.", errorId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

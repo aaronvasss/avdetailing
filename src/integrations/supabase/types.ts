@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_error_logs: {
+        Row: {
+          booking_id: string | null
+          code: string | null
+          context: Json
+          error_id: string | null
+          function_name: string | null
+          id: string
+          message: string
+          occurred_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          route: string | null
+          severity: string
+          source: string
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          code?: string | null
+          context?: Json
+          error_id?: string | null
+          function_name?: string | null
+          id?: string
+          message: string
+          occurred_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          severity?: string
+          source?: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          code?: string | null
+          context?: Json
+          error_id?: string | null
+          function_name?: string | null
+          id?: string
+          message?: string
+          occurred_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          severity?: string
+          source?: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       blocked_dates: {
         Row: {
           blocked_date: string

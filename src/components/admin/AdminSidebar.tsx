@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Navigation,
   Wallet,
+  Bug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,6 +31,7 @@ export type AdminSection =
   | "team-chat"
   | "payroll"
   | "team-tracking"
+  | "error-logs"
   | "settings";
 
 interface AdminSidebarProps {
@@ -50,6 +52,7 @@ const navItems: { id: AdminSection; label: string; icon: React.ElementType }[] =
   { id: "team-chat", label: "Team Chat", icon: MessageSquare },
   { id: "payroll", label: "Team & Payroll", icon: Wallet },
   { id: "team-tracking", label: "Team Tracking", icon: Navigation },
+  { id: "error-logs", label: "Error Logs", icon: Bug },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
