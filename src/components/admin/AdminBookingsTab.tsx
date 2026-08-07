@@ -26,8 +26,8 @@ import {
   PaymentDetailsSection,
 } from "@/lib/payment-display";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
-import {
 import { formatTime12h } from "@/lib/time-format";
+import {
   checkRecentNotification,
   logNotification,
   formatBlockedToast,
