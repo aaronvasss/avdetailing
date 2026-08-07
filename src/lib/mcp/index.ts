@@ -9,8 +9,8 @@ const projectRef =
   import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
-  name: "av-detailing-mcp",
-  title: "AV Detailing",
+  name: "av-detailing-pro",
+  title: "AV Detailing Pro",
   version: "0.1.0",
   instructions:
     "Read-only tools for the signed-in AV Detailing customer. Use `list_bookings` for detailing appointments, `list_memberships` for active plans, and `get_profile` for the customer's contact info.",
