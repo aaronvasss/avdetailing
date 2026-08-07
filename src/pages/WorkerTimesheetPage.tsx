@@ -215,6 +215,7 @@ export default function WorkerTimesheetPage() {
                       <TableHead>Clock In</TableHead>
                       <TableHead>Clock Out</TableHead>
                       <TableHead>Duration</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="hidden sm:table-cell">Location</TableHead>
                       <TableHead className="hidden md:table-cell">Notes</TableHead>
                     </TableRow>
@@ -241,6 +242,18 @@ export default function WorkerTimesheetPage() {
                           </TableCell>
                           <TableCell>
                             {r.total_minutes != null ? formatHm(r.total_minutes) : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {(() => {
+                              const status = shiftApprovalStatus(r);
+                              if (status === "approved") {
+                                return <span className="text-xs font-medium text-primary">Approved</span>;
+                              }
+                              if (status === "rejected") {
+                                return <span className="text-xs text-muted-foreground">Rejected</span>;
+                              }
+                              return <span className="text-xs font-medium text-amber-500">Pending</span>;
+                            })()}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
                             <div className="flex items-center gap-1.5">
@@ -287,15 +300,21 @@ export default function WorkerTimesheetPage() {
           <SummaryStat label="Total Shifts" value={String(summary.shifts)} />
           <SummaryStat label="Days Worked" value={String(dailyTotals.length)} />
           <SummaryStat label="Avg / Day" value={formatHm(avgDayMinutes)} />
-          <SummaryStat label="Total Hours" value={formatHm(summary.totalMin)} accent />
+          <SummaryStat label="Approved Hours" value={formatHm(summary.totalMin)} accent />
         </div>
 
         {/* Pay estimate */}
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="py-3 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Estimated Pay ({hourlyRate.toFixed(2)}/hr)</p>
+              <p className="text-xs text-muted-foreground">Approved Pay ({hourlyRate.toFixed(2)}/hr)</p>
               <p className="text-lg font-bold text-primary tabular-nums">${estimatedPay.toFixed(2)}</p>
+              {summary.pendingShifts > 0 && (
+                <p className="text-xs text-amber-500">
+                  {formatHm(summary.pendingMin)} pending approval ({summary.pendingShifts} shift
+                  {summary.pendingShifts === 1 ? "" : "s"})
+                </p>
+              )}
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Hours</p>
