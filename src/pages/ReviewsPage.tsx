@@ -16,15 +16,13 @@ import { ReviewsWidgetSection } from "@/components/home/ReviewsWidgetSection";
 const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/place/AV+Detailing+LLC";
 
 const TRUST_STATS = [
-  { icon: Star, value: "5.0", label: "Average Rating" },
-  { icon: ThumbsUp, value: "115+", label: "Google Reviews" },
-  { icon: Award, value: "#1", label: "Rated in Baton Rouge" },
-  { icon: CheckCircle2, value: "100%", label: "Recommend Us" },
+  { icon: Star, value: "Google", label: "Verified Reviews" },
+  { icon: ThumbsUp, value: "Mobile", label: "We Come To You" },
+  { icon: Award, value: "Baton Rouge", label: "Locally Owned" },
+  { icon: CheckCircle2, value: "Insured", label: "Licensed & Insured" },
 ];
 
 const ReviewsPage = () => {
-  const averageRating = "5.0";
-
   const reviewsJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -33,18 +31,9 @@ const ReviewsPage = () => {
     telephone: "+12255216264",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "418 E State St",
       addressLocality: "Baton Rouge",
       addressRegion: "LA",
-      postalCode: "70802",
       addressCountry: "US",
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "5.0",
-      reviewCount: 115,
-      bestRating: "5",
-      worstRating: "1",
     },
   };
 
@@ -52,7 +41,7 @@ const ReviewsPage = () => {
     <Layout>
       <SEOHead
         title="Customer Reviews & Testimonials | AV Detailing Baton Rouge"
-        description="Read 115+ five-star Google reviews from AV Detailing customers in Baton Rouge, LA. See why we're the top-rated mobile auto, RV, boat & aircraft detailing service."
+        description="Read verified Google reviews from AV Detailing customers in Baton Rouge, LA — mobile auto, RV, boat & aircraft detailing that comes to you."
         path="/reviews"
       />
       <script
@@ -106,16 +95,14 @@ const ReviewsPage = () => {
             {/* Rating panel */}
             <aside className="lg:col-span-4">
               <div className="rounded-2xl border border-border bg-card p-6 text-center">
-                <div className="flex justify-center mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-7 w-7 fill-primary text-primary" />
-                  ))}
+                <div className="flex justify-center mb-3">
+                  <Star className="h-8 w-8 fill-primary text-primary" />
                 </div>
-                <div className="text-5xl font-bold text-foreground leading-none mb-2">
-                  {averageRating}
+                <div className="text-2xl font-bold text-foreground leading-tight mb-2">
+                  Verified Google Reviews
                 </div>
                 <div className="text-sm text-muted-foreground mb-4">
-                  Based on 115+ verified Google reviews
+                  Read our live review feed below — straight from our Google Business Profile.
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -153,15 +140,13 @@ const ReviewsPage = () => {
         <div className="container-custom max-w-4xl">
           <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-8 md:p-10 text-center">
             <div className="flex justify-center mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-6 w-6 fill-primary text-primary" />
-              ))}
+              <Star className="h-7 w-7 fill-primary text-primary" />
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
-              115+ Five-Star Reviews on Google
+              Read Our Reviews on Google
             </h2>
             <p className="text-muted-foreground mb-7 max-w-2xl mx-auto">
-              AV Detailing is Baton Rouge's top-rated mobile detailing service. Don't just
+              AV Detailing is a locally owned mobile detailing service in Baton Rouge. Don't just
               take our word for it — see what your neighbors are saying.
             </p>
             <Button asChild className="font-semibold tracking-wide">

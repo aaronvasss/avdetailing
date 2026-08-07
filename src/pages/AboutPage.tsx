@@ -54,8 +54,8 @@ const values = [
 
 const stats = [
   { value: "3+", label: "Years Detailing" },
-  { value: "5.0★", label: "Google Rating" },
-  { value: "115+", label: "5-Star Reviews" },
+  { value: "Google", label: "Verified Reviews" },
+  { value: "Mobile", label: "We Come To You" },
   { value: "100%", label: "Mobile Service" },
 ];
 
@@ -164,8 +164,8 @@ const AboutPage = () => {
                       />
                     ))}
                   </div>
-                  <div className="text-2xl font-bold leading-none">5.0</div>
-                  <div className="text-xs opacity-90">115+ Google Reviews</div>
+                  <div className="text-2xl font-bold leading-none">Google</div>
+                  <div className="text-xs opacity-90">Verified Reviews</div>
                 </div>
                 <div className="hidden md:flex absolute -top-4 -right-4 bg-card border border-border rounded-2xl px-4 py-3 shadow-xl items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />

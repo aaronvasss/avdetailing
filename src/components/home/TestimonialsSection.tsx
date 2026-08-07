@@ -65,7 +65,7 @@ export function TestimonialsSection() {
               <div>
                 <p className="text-sm font-semibold text-muted-foreground">Google Reviews</p>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-2xl font-bold">5.0</span>
+                  <span className="text-2xl font-bold">Reviews</span>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
@@ -75,7 +75,7 @@ export function TestimonialsSection() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Based on <span className="font-medium text-foreground">85 reviews</span>
+              Verified on our <span className="font-medium text-foreground">Google Business Profile</span>
             </p>
             <span className="inline-flex items-center gap-1 text-xs text-primary font-medium group-hover:underline">
               Leave us a review <ExternalLink className="h-3 w-3" />
@@ -97,7 +97,7 @@ export function TestimonialsSection() {
                 <Star key={i} className="h-6 w-6 fill-primary text-primary" />
               ))}
             </div>
-            <span className="text-lg font-medium">5.0 out of 5</span>
+            <span className="text-lg font-medium">Verified Google reviews</span>
             <span className="text-muted-foreground">• 85 Reviews</span>
           </div>
         </div>

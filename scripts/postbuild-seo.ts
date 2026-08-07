@@ -73,7 +73,7 @@ function bodyForStatic(m: { title: string; description: string }): string {
     `<h1>${esc(m.title)}</h1>`,
     `<p>${esc(m.description)}</p>`,
     `<p>AV Detailing is Baton Rouge's premier mobile detailing service — bringing System X ceramic coating, paint correction, interior shampoo, RV, boat, and aircraft detailing directly to your driveway, office, or storage location. We proudly serve Highland Road, Shenandoah, Gonzales, Prairieville, Central, Walker, Denham Springs, and Zachary, Louisiana.</p>`,
-    `<p>Call (225) 521-6264 or visit avdetailing.net/book to schedule. Fully insured. 115+ five-star Google reviews. Family-owned and operated in Baton Rouge, LA.</p>`,
+    `<p>Call (225) 521-6264 or visit avdetailing.net/book to schedule. Fully insured. Family-owned and operated in Baton Rouge, LA.</p>`,
   ].join("");
 }
 
@@ -88,7 +88,7 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/about",
     title: "About AV Detailing | Baton Rouge Mobile Detailing",
     description:
-      "Meet the family behind AV Detailing — a fully-insured mobile detailing crew serving Baton Rouge with 115+ five-star reviews.",
+      "Meet the family behind AV Detailing — a fully-insured mobile detailing crew serving Baton Rouge and the surrounding parishes.",
   },
   {
     path: "/services",
@@ -112,7 +112,7 @@ const STATIC_ROUTES: RouteMeta[] = [
     path: "/reviews",
     title: "Customer Reviews & Testimonials | AV Detailing Baton Rouge",
     description:
-      "Read 115+ five-star Google reviews from AV Detailing customers in Baton Rouge, LA — top-rated mobile car, RV, boat & aircraft detailing.",
+      "Read verified Google reviews from AV Detailing customers in Baton Rouge, LA — mobile car, RV, boat & aircraft detailing that comes to you.",
   },
   {
     path: "/contact",
