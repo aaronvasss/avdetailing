@@ -14,6 +14,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { localBusinessSchema } from "../src/components/seo/JsonLd";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
 import { LOCATION_PAGES } from "../src/data/locationPages";
 
@@ -270,8 +271,25 @@ function rewrite(html: string, m: RouteMeta): string {
     `<meta name="twitter:description" content="${d}" />`,
   );
 
+  // Structured data must exist in the initial HTML for crawlers that don't run
+  // JS. Helmet-rendered JSON-LD isn't reliably captured by the prerenderer, so
+  // inject the public LocalBusiness schema here when it's missing.
+  if (!/application\/ld\+json/i.test(out)) {
+    out = out.replace(
+      /<\/head>/i,
+      `  <script type="application/ld+json">${JSON.stringify(localBusinessSchema()).replace(/</g, "\\u003c")}</script>\n  </head>`,
+    );
+  }
+
+  // Keep the prerendered markup when it already contains real page content;
+  // only fall back to the synthetic SEO body when prerendering produced an
+  // empty shell.
+  const rootMatch = out.match(/<div\s+id=["']root["'][^>]*>([\s\S]*?)<\/div>/i);
+  const prerendered = rootMatch?.[1] ?? "";
+  const hasRealContent = prerendered.length > 2000 && /<h1[\s>]/i.test(prerendered);
+
   // Inject SEO body content inside #root (React will replace on hydration).
-  if (m.body) {
+  if (m.body && !hasRealContent) {
     out = out.replace(
       /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
       `<div id="root"><div data-seo-content>${m.body}</div></div>`,
