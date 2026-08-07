@@ -90,10 +90,10 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
     clockOut: string;
     notes: string;
     prevMinutes: number | null;
-    prevMinutes: number | null;
     otherMinutes: number;
     hint: string | null;
   } | null>(null);
+
 
 
 
