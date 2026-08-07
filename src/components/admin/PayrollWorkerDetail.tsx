@@ -11,11 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Clock, Loader2, Pencil, Plus, Trash2, Briefcase,
+  ArrowLeft, Clock, Loader2, Pencil, Plus, Trash2, Briefcase, CheckCircle2, XCircle, Undo2,
 } from "lucide-react";
 import {
   fetchShifts, formatHours, formatDecimalHours, formatMoney, payForMinutes,
-  shiftMinutes, sumShiftMinutes, type ShiftRecord,
+  shiftMinutes, sumShiftMinutes, sumApprovedShiftMinutes, approvedShifts,
+  pendingShifts, shiftApprovalStatus, setShiftApproval,
+  type ShiftApprovalStatus, type ShiftRecord,
 } from "@/lib/worker-pay";
 import type { PayrollWorker } from "@/components/admin/AdminPayrollTab";
 
@@ -76,6 +78,7 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updatingApproval, setUpdatingApproval] = useState<string | null>(null);
   const [editing, setEditing] = useState<{
     id: string | null;
     clockIn: string;
@@ -106,8 +109,29 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
     load();
   }, [load]);
 
-  const totalMinutes = useMemo(() => sumShiftMinutes(shifts), [shifts]);
+  const totalMinutes = useMemo(() => sumApprovedShiftMinutes(shifts), [shifts]);
   const totalPay = payForMinutes(totalMinutes, worker.pay_rate);
+  const pending = useMemo(() => pendingShifts(shifts), [shifts]);
+  const pendingMinutes = useMemo(() => sumShiftMinutes(pending), [pending]);
+
+  const changeApproval = async (ids: string[], status: ShiftApprovalStatus, key: string) => {
+    if (ids.length === 0) return;
+    setUpdatingApproval(key);
+    const { error } = await setShiftApproval(ids, status);
+    setUpdatingApproval(null);
+    if (error) {
+      toast.error(error || "Failed to update approval");
+      return;
+    }
+    toast.success(
+      status === "approved"
+        ? `Approved ${ids.length} shift${ids.length === 1 ? "" : "s"}`
+        : status === "rejected"
+          ? "Shift rejected"
+          : "Shift set back to pending",
+    );
+    load();
+  };
 
   const byDay = useMemo(() => {
     const map = new Map<string, ShiftRecord[]>();
@@ -122,7 +146,7 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
 
   const byWeek = useMemo(() => {
     const map = new Map<string, number>();
-    shifts.forEach((s) => {
+    approvedShifts(shifts).forEach((s) => {
       const key = weekKey(s.clock_in_at);
       map.set(key, (map.get(key) || 0) + shiftMinutes(s));
     });
@@ -207,9 +231,25 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to payroll
         </Button>
-        <Button size="sm" onClick={() => openEditor()}>
-          <Plus className="mr-2 h-4 w-4" /> Add Shift
-        </Button>
+        <div className="flex items-center gap-2">
+          {pending.length > 0 && (
+            <Button
+              size="sm"
+              disabled={updatingApproval !== null}
+              onClick={() => changeApproval(pending.map((s) => s.id), "approved", "bulk")}
+            >
+              {updatingApproval === "bulk" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
+              Approve {pending.length} pending
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => openEditor()}>
+            <Plus className="mr-2 h-4 w-4" /> Add Shift
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -221,13 +261,18 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border p-3">
-            <p className="text-xs text-muted-foreground">Clocked hours</p>
+            <p className="text-xs text-muted-foreground">Approved hours</p>
             <p className="text-2xl font-bold">{formatHours(totalMinutes)}</p>
             <p className="text-xs text-muted-foreground">{formatDecimalHours(totalMinutes)} hrs</p>
           </div>
           <div className="rounded-lg border p-3">
-            <p className="text-xs text-muted-foreground">Estimated pay</p>
+            <p className="text-xs text-muted-foreground">Approved pay</p>
             <p className="text-2xl font-bold">{formatMoney(totalPay)}</p>
+            <p className="text-xs text-muted-foreground">
+              {pending.length > 0
+                ? `${formatHours(pendingMinutes)} awaiting approval`
+                : "Nothing awaiting approval"}
+            </p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Time logged on jobs</p>
@@ -260,7 +305,9 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
           <CardTitle className="flex items-center gap-2 text-base">
             <Clock className="h-4 w-4" /> Shifts
           </CardTitle>
-          <CardDescription>Edit clock in/out times to correct a worker's hours</CardDescription>
+          <CardDescription>
+            Approve shifts so they count toward payroll, or edit clock in/out times to correct hours
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {loading ? (
@@ -273,7 +320,7 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
             </p>
           ) : (
             byDay.map(([day, dayShifts]) => {
-              const dayMinutes = sumShiftMinutes(dayShifts);
+              const dayMinutes = sumApprovedShiftMinutes(dayShifts);
               return (
                 <div key={day} className="space-y-2">
                   <div className="flex items-center justify-between border-b pb-1">
@@ -284,6 +331,7 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
                   </div>
                   {dayShifts.map((s) => {
                     const minutes = shiftMinutes(s);
+                    const status = shiftApprovalStatus(s);
                     return (
                       <div
                         key={s.id}
@@ -297,12 +345,62 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
                                 Open
                               </Badge>
                             )}
+                            <Badge
+                              variant={
+                                status === "approved"
+                                  ? "default"
+                                  : status === "rejected"
+                                    ? "secondary"
+                                    : "destructive"
+                              }
+                              className="ml-2"
+                            >
+                              {status === "approved"
+                                ? "Approved"
+                                : status === "rejected"
+                                  ? "Rejected"
+                                  : "Pending"}
+                            </Badge>
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {formatHours(minutes)} · {formatMoney(payForMinutes(minutes, worker.pay_rate))}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
+                          {status !== "approved" ? (
+                            <Button
+                              size="sm"
+                              disabled={updatingApproval !== null}
+                              onClick={() => changeApproval([s.id], "approved", s.id)}
+                            >
+                              {updatingApproval === s.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              )}
+                              <span className="ml-1">Approve</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={updatingApproval !== null}
+                              onClick={() => changeApproval([s.id], "pending", s.id)}
+                            >
+                              <Undo2 className="h-3.5 w-3.5" />
+                              <span className="ml-1">Unapprove</span>
+                            </Button>
+                          )}
+                          {status !== "rejected" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={updatingApproval !== null}
+                              onClick={() => changeApproval([s.id], "rejected", s.id)}
+                            >
+                              <XCircle className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
                           <Button size="sm" variant="outline" onClick={() => openEditor(s)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
