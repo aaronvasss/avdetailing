@@ -923,6 +923,16 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               )}
             </div>
 
+            {selectedClientId && (
+              <div className="mb-4">
+                <RecentAppointmentsPanel
+                  bookings={recentBookings}
+                  loading={recentLoading}
+                  onUse={applyPastBooking}
+                />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>First Name *</Label>
@@ -1185,6 +1195,45 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {form.serviceType && (
             <div>
               <h3 id="section-pricing" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pricing</h3>
+
+              {repeatSource && (
+                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <p className="text-sm font-medium">
+                    Repeating appointment from{" "}
+                    {(() => {
+                      try { return format(parseDateString(repeatSource.date), "MMM d, yyyy"); }
+                      catch { return repeatSource.date; }
+                    })()}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                    <span className="text-muted-foreground">
+                      Previous price: <span className="line-through">${repeatSource.total.toFixed(2)}</span>
+                    </span>
+                    <span className="font-semibold">
+                      Current price: <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.abs(totalPrice - repeatSource.total) >= 0.01
+                      ? "Prices have changed since the last appointment. This booking uses today's service and add-on prices."
+                      : "Today's prices match the previous appointment."}
+                  </p>
+                  {pricingMode === "package" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 h-9"
+                      onClick={() => {
+                        setPricingMode("custom");
+                        setCustomPrice(totalPrice ? totalPrice.toFixed(2) : "");
+                      }}
+                    >
+                      Enter a custom price instead
+                    </Button>
+                  )}
+                </div>
+              )}
 
               {/* Mode toggle */}
               <RadioGroup
