@@ -165,32 +165,102 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
   );
 
   const openEditor = (shift?: ShiftRecord) => {
+    const minutes = shift ? shiftMinutes(shift) : 0;
     setEditing({
       id: shift?.id ?? null,
+      mode: "hours",
+      date: shift ? shift.clock_in_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
+      hours: minutesToHoursInput(minutes),
       clockIn: shift ? toLocalInput(shift.clock_in_at) : toLocalInput(new Date().toISOString()),
       clockOut: shift ? toLocalInput(shift.clock_out_at) : "",
       notes: "",
+      prevMinutes: shift ? minutes : null,
+      hint: null,
+    });
+  };
+
+  /** Quick "hours worked" edit for a whole day. */
+  const openDayEditor = (day: string, dayShifts: ShiftRecord[]) => {
+    const sorted = [...dayShifts].sort((a, b) => (a.clock_in_at < b.clock_in_at ? -1 : 1));
+    const target = sorted[sorted.length - 1];
+    const dayMinutes = sumShiftMinutes(dayShifts);
+    const otherMinutes = dayMinutes - (target ? shiftMinutes(target) : 0);
+
+    setEditing({
+      id: target?.id ?? null,
+      mode: "hours",
+      date: day,
+      hours: minutesToHoursInput(dayMinutes),
+      clockIn: target ? toLocalInput(target.clock_in_at) : `${day}T08:00`,
+      clockOut: target ? toLocalInput(target.clock_out_at) : "",
+      notes: "",
+      prevMinutes: dayMinutes || null,
+      hint:
+        dayShifts.length > 1
+          ? `This day has ${dayShifts.length} shifts (${formatHours(otherMinutes)} on the earlier ones). The new total is applied to the last shift of the day.`
+          : dayShifts.length === 0
+            ? "No shift exists for this day yet — a new one will be created."
+            : null,
     });
   };
 
   const handleSave = async () => {
     if (!editing) return;
-    const clockIn = fromLocalInput(editing.clockIn);
-    if (!clockIn) {
-      toast.error("Clock in time is required");
-      return;
+
+    let clockIn: string | null;
+    let clockOut: string | null;
+    let totals: number | null;
+
+    if (editing.mode === "hours") {
+      const dayMinutes = parseHoursInput(editing.hours);
+      if (dayMinutes === null || dayMinutes <= 0) {
+        toast.error("Enter hours worked, e.g. 7.5 or 7h 30m");
+        return;
+      }
+      if (dayMinutes > 24 * 60) {
+        toast.error("Hours can't be more than 24 in one day");
+        return;
+      }
+      // Keep other shifts on the day intact; the remainder goes on this shift.
+      const otherMinutes = Math.max(0, (editing.prevMinutes ?? 0) - (editing.id ? 0 : 0));
+      void otherMinutes;
+
+      const baseIn =
+        fromLocalInput(editing.clockIn) ||
+        fromLocalInput(`${editing.date}T08:00`);
+      if (!baseIn) {
+        toast.error("Pick a valid date for this shift");
+        return;
+      }
+      clockIn = baseIn;
+      clockOut = new Date(new Date(baseIn).getTime() + dayMinutes * 60000).toISOString();
+      totals = dayMinutes;
+    } else {
+      clockIn = fromLocalInput(editing.clockIn);
+      if (!clockIn) {
+        toast.error("Clock in time is required");
+        return;
+      }
+      clockOut = fromLocalInput(editing.clockOut);
+      if (clockOut && new Date(clockOut) <= new Date(clockIn)) {
+        toast.error("Clock out must be after clock in");
+        return;
+      }
+      totals = clockOut
+        ? Math.round((new Date(clockOut).getTime() - new Date(clockIn).getTime()) / 60000)
+        : null;
     }
-    const clockOut = fromLocalInput(editing.clockOut);
-    if (clockOut && new Date(clockOut) <= new Date(clockIn)) {
-      toast.error("Clock out must be after clock in");
-      return;
-    }
-    const totals = clockOut
-      ? Math.round((new Date(clockOut).getTime() - new Date(clockIn).getTime()) / 60000)
-      : null;
+
+    const auditNote = [
+      editing.notes.trim(),
+      `Admin set hours: ${formatHours(editing.prevMinutes ?? 0)} → ${formatHours(totals ?? 0)}`,
+    ]
+      .filter(Boolean)
+      .join(" — ");
 
     setSaving(true);
     let error;
+    let savedId = editing.id;
     if (editing.id) {
       ({ error } = await supabase
         .from("worker_shifts")
@@ -198,17 +268,28 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
           clock_in_at: clockIn,
           clock_out_at: clockOut,
           total_minutes: totals,
-          ...(editing.notes ? { notes: editing.notes } : {}),
+          notes: auditNote,
         })
         .eq("id", editing.id));
     } else {
-      ({ error } = await supabase.from("worker_shifts").insert({
-        user_id: worker.user_id,
-        clock_in_at: clockIn,
-        clock_out_at: clockOut,
-        total_minutes: totals,
-        notes: editing.notes || "Added by admin",
-      }));
+      const { data, error: insertError } = await supabase
+        .from("worker_shifts")
+        .insert({
+          user_id: worker.user_id,
+          clock_in_at: clockIn,
+          clock_out_at: clockOut,
+          total_minutes: totals,
+          notes: auditNote || "Added by admin",
+        })
+        .select("id")
+        .maybeSingle();
+      error = insertError;
+      savedId = data?.id ?? null;
+    }
+
+    if (!error && savedId && totals != null) {
+      // Admin-entered time is trusted, so it counts toward payroll right away.
+      await setShiftApproval([savedId], "approved", editing.notes.trim() || "Hours entered by admin");
     }
     setSaving(false);
 
@@ -216,10 +297,11 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
       toast.error(error.message || "Failed to save shift");
       return;
     }
-    toast.success(editing.id ? "Shift updated" : "Shift added");
+    toast.success(editing.id ? "Hours updated" : "Shift added");
     setEditing(null);
     load();
   };
+
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("worker_shifts").delete().eq("id", id);
