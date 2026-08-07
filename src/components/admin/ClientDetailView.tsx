@@ -361,13 +361,19 @@ export function ClientDetailView({ client, onBack, onUpdate }: ClientDetailViewP
         </div>
       ) : (
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="bookings">Bookings ({bookings.length})</TabsTrigger>
             <TabsTrigger value="vehicles">Vehicles ({vehicles.length})</TabsTrigger>
             <TabsTrigger value="memberships">Memberships ({memberships.length})</TabsTrigger>
             <TabsTrigger value="notes">Internal Notes</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="history">
+            <CustomerHistoryPanel clientId={client.id} email={client.email} phone={client.phone} />
+          </TabsContent>
+
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
