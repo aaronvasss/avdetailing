@@ -21,6 +21,7 @@ import {
 } from "@/lib/worker-pay";
 import { PayrollWorkerDetail } from "@/components/admin/PayrollWorkerDetail";
 import { QuickHoursWeek } from "@/components/admin/QuickHoursWeek";
+import { PayrollTimesheetGrid } from "@/components/admin/PayrollTimesheetGrid";
 
 
 export interface PayrollWorker {
@@ -506,6 +507,16 @@ export function AdminPayrollTab() {
           </div>
         </CardContent>
       </Card>
+
+      <PayrollTimesheetGrid
+        workers={workers.map((w) => ({
+          user_id: w.user_id,
+          full_name: w.full_name,
+          email: w.email,
+          pay_rate: w.pay_rate,
+        }))}
+        onSaved={load}
+      />
 
       {rows.length === 0 ? (
         <Card>

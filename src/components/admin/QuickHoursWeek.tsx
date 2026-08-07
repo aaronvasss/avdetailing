@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import {
-  fetchShifts, formatHours, formatMoney, payForMinutes, shiftMinutes, sumShiftMinutes,
-  parseHoursInput, minutesToHoursInput, setShiftApproval,
+  fetchShifts, formatHours, formatMoney, payForMinutes, shiftMinutes,
+  parseHoursInput, minutesToHoursInput, saveDayHours,
   type ShiftRecord,
 } from "@/lib/worker-pay";
 
@@ -116,60 +116,12 @@ export function QuickHoursWeek({ userId, payRate, onSaved }: Props) {
   const saveDay = async (key: string) => {
     const raw = (drafts[key] || "").trim();
     const target = raw ? parseHoursInput(raw) ?? 0 : 0;
-    const existing = shiftsForDay(key);
-
-    // Clearing / zeroing the day removes its recorded hours.
-    if (target <= 0) {
-      if (existing.length === 0) return;
-      const { error } = await supabase
-        .from("worker_shifts")
-        .delete()
-        .in("id", existing.map((s) => s.id));
-      if (error) throw new Error(error.message);
-      return;
-    }
-
-    if (existing.length === 0) {
-      const clockIn = new Date(`${key}T08:00:00`);
-      const clockOut = new Date(clockIn.getTime() + target * 60000);
-      const { data, error } = await supabase
-        .from("worker_shifts")
-        .insert({
-          user_id: userId,
-          clock_in_at: clockIn.toISOString(),
-          clock_out_at: clockOut.toISOString(),
-          total_minutes: target,
-          notes: `Hours entered by admin: ${formatHours(target)}`,
-        })
-        .select("id")
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      if (data?.id) await setShiftApproval([data.id], "approved", "Hours entered by admin");
-      return;
-    }
-
-    // Apply the new day total to the last shift; earlier shifts keep their time.
-    const last = existing[existing.length - 1];
-    const others = sumShiftMinutes(existing.slice(0, -1));
-    const forLast = target - others;
-    if (forLast <= 0) {
-      throw new Error(
-        `${shortDay(new Date(`${key}T12:00:00`))}: earlier shifts already total ${formatHours(others)}`,
-      );
-    }
-    const prevMinutes = sumShiftMinutes(existing);
-    const clockIn = new Date(last.clock_in_at);
-    const { error } = await supabase
-      .from("worker_shifts")
-      .update({
-        clock_in_at: clockIn.toISOString(),
-        clock_out_at: new Date(clockIn.getTime() + forLast * 60000).toISOString(),
-        total_minutes: forLast,
-        notes: `Admin set hours: ${formatHours(prevMinutes)} → ${formatHours(target)}`,
-      })
-      .eq("id", last.id);
-    if (error) throw new Error(error.message);
-    await setShiftApproval([last.id], "approved", "Hours entered by admin");
+    await saveDayHours({
+      userId,
+      dateKey: key,
+      targetMinutes: target,
+      existingShifts: shiftsForDay(key),
+    });
   };
 
   const saveWeek = async () => {

@@ -216,3 +216,81 @@ export async function setShiftApproval(
     .in("id", shiftIds);
   return { error: error?.message ?? null, count: shiftIds.length };
 }
+
+function shortDayLabel(dateKey: string): string {
+  return new Date(`${dateKey}T12:00:00`).toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/**
+ * Admin action: set the total hours worked on one day for one worker.
+ * - No hours yet -> inserts an 8:00am shift of that length.
+ * - Existing shifts -> applies the new total to the last shift, earlier shifts untouched.
+ * - Zero/blank target -> deletes the day's shifts.
+ * Entered time is approved immediately. Throws on failure.
+ */
+export async function saveDayHours(opts: {
+  userId: string;
+  dateKey: string;
+  targetMinutes: number;
+  existingShifts: ShiftRecord[];
+}): Promise<void> {
+  const { userId, dateKey, targetMinutes } = opts;
+  const existing = [...opts.existingShifts].sort((a, b) =>
+    a.clock_in_at < b.clock_in_at ? -1 : 1,
+  );
+
+  if (targetMinutes <= 0) {
+    if (existing.length === 0) return;
+    const { error } = await supabase
+      .from("worker_shifts")
+      .delete()
+      .in("id", existing.map((s) => s.id));
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  if (existing.length === 0) {
+    const clockIn = new Date(`${dateKey}T08:00:00`);
+    const clockOut = new Date(clockIn.getTime() + targetMinutes * 60000);
+    const { data, error } = await supabase
+      .from("worker_shifts")
+      .insert({
+        user_id: userId,
+        clock_in_at: clockIn.toISOString(),
+        clock_out_at: clockOut.toISOString(),
+        total_minutes: targetMinutes,
+        notes: `Hours entered by admin: ${formatHours(targetMinutes)}`,
+      })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (data?.id) await setShiftApproval([data.id], "approved", "Hours entered by admin");
+    return;
+  }
+
+  const last = existing[existing.length - 1];
+  const others = sumShiftMinutes(existing.slice(0, -1));
+  const forLast = targetMinutes - others;
+  if (forLast <= 0) {
+    throw new Error(
+      `${shortDayLabel(dateKey)}: earlier shifts already total ${formatHours(others)}`,
+    );
+  }
+  const prevMinutes = sumShiftMinutes(existing);
+  const clockIn = new Date(last.clock_in_at);
+  const { error } = await supabase
+    .from("worker_shifts")
+    .update({
+      clock_in_at: clockIn.toISOString(),
+      clock_out_at: new Date(clockIn.getTime() + forLast * 60000).toISOString(),
+      total_minutes: forLast,
+      notes: `Admin set hours: ${formatHours(prevMinutes)} → ${formatHours(targetMinutes)}`,
+    })
+    .eq("id", last.id);
+  if (error) throw new Error(error.message);
+  await setShiftApproval([last.id], "approved", "Hours entered by admin");
+}
