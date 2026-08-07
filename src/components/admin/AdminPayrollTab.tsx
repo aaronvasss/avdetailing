@@ -330,6 +330,21 @@ export function AdminPayrollTab() {
     );
   }
 
+  if (loadError) {
+    return (
+      <Card>
+        <CardContent className="py-10 flex flex-col items-center gap-3 text-center">
+          <p className="text-sm font-semibold">We couldn't load payroll data</p>
+          <p className="text-sm text-muted-foreground max-w-md">{loadError}</p>
+          <Button size="sm" variant="outline" onClick={() => load()} disabled={refreshing}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <Card>
