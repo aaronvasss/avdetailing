@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { logAppError } from "@/lib/error-log";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CalendarRange, ChevronLeft, ChevronRight, Loader2, Save } from "lucide-react";
 import {
-  fetchShifts, formatHours, formatMoney, payForMinutes, shiftMinutes,
+  fetchShifts, fetchShiftsResult, formatHours, formatMoney, payForMinutes, shiftMinutes,
   parseHoursInput, minutesToHoursInput, saveDayHours,
   type ShiftRecord,
 } from "@/lib/worker-pay";
