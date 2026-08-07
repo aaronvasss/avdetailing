@@ -69,6 +69,7 @@ export function AdminPayrollTab() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const loadSeq = useRef(0);
   const [preset, setPreset] = useState<PresetId>("week");
   const initialRange = rangeForPreset("week");
   const [fromDate, setFromDate] = useState(initialRange.from);
