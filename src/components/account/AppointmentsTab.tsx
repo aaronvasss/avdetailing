@@ -45,6 +45,8 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [cancelOpen, setCancelOpen] = useState(false);
   const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
   const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date } | null>(null);
+  const [historyDaysBack, setHistoryDaysBack] = useState(60);
+
 
   const fetchBookings = useCallback(async () => {
     let query = supabase
