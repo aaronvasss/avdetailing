@@ -33,6 +33,9 @@ const AdminTeamChatTab = lazy(() =>
 const AdminTeamTrackingTab = lazy(() =>
   import("@/components/admin/AdminTeamTrackingTab").then((m) => ({ default: m.AdminTeamTrackingTab }))
 );
+const AdminPayrollTab = lazy(() =>
+  import("@/components/admin/AdminPayrollTab").then((m) => ({ default: m.AdminPayrollTab }))
+);
 
 interface AdminDashboardProps {
   user: any;
@@ -47,9 +50,11 @@ const sectionTitles: Record<AdminSection, string> = {
   memberships: "Memberships",
   analytics: "Analytics",
   "team-chat": "Team Chat",
+  payroll: "Team & Payroll",
   "team-tracking": "Team Tracking",
   settings: "Settings",
 };
+
 
 export default function AdminDashboard({ user, profileName }: AdminDashboardProps) {
   const navigate = useNavigate();
