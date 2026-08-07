@@ -16,7 +16,7 @@ import {
   Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2, CalendarPlus,
 } from "lucide-react";
 import {
-  DEFAULT_HOURLY_RATE, fetchShifts, formatHours, formatDecimalHours, formatMoney,
+  DEFAULT_HOURLY_RATE, fetchShifts, fetchShiftsResult, formatHours, formatDecimalHours, formatMoney,
   payForMinutes, shiftMinutes, sumShiftMinutes, sumApprovedShiftMinutes,
   pendingShifts, setShiftApproval, type ShiftRecord,
 } from "@/lib/worker-pay";
