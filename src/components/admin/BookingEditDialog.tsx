@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { generateTimeSlots, getPackageDuration, PACKAGE_DURATIONS, formatDuration } from "@/lib/scheduling";
 import { useWorkersList } from "@/hooks/useWorkersList";
 import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
+import { DEFAULT_HOURLY_RATE } from "@/lib/worker-pay";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
 
 interface Booking {
@@ -139,10 +140,10 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [editAssignedWorkerId, setEditAssignedWorkerId] = useState<string>("unassigned");
   const [editUseCustomPayRate, setEditUseCustomPayRate] = useState(false);
-  const [editCustomPayType, setEditCustomPayType] = useState<"percentage" | "flat">("percentage");
+  const [editCustomPayType, setEditCustomPayType] = useState<"hourly">("hourly");
   const [editCustomPayRate, setEditCustomPayRate] = useState("");
   const [editTipAmount, setEditTipAmount] = useState("");
-  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
+  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"hourly">("hourly");
   const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
 
   // Editable customer fields
@@ -251,7 +252,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
           setEditTotalPrice(draft.editTotalPrice ?? (booking.total_price != null ? String(booking.total_price) : ""));
           setEditAssignedWorkerId(draft.editAssignedWorkerId ?? resolveAssignedWorkerUserId(booking.assigned_worker_id, workers) ?? "unassigned");
           setEditUseCustomPayRate(draft.editUseCustomPayRate ?? false);
-          setEditCustomPayType(draft.editCustomPayType ?? "percentage");
+          setEditCustomPayType("hourly");
           setEditCustomPayRate(draft.editCustomPayRate ?? "");
           setEditTipAmount(draft.editTipAmount ?? "");
           setNewNote(draft.newNote ?? "");
@@ -293,10 +294,10 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
 
         const bAny = booking as any;
         if (bAny.worker_pay_type && bAny.worker_pay_rate != null) {
-          setEditCustomPayType(bAny.worker_pay_type as "percentage" | "flat");
+          setEditCustomPayType("hourly");
           setEditCustomPayRate(String(bAny.worker_pay_rate));
         } else {
-          setEditCustomPayType("percentage");
+          setEditCustomPayType("hourly");
           setEditCustomPayRate("");
         }
         setEditUseCustomPayRate(false);
@@ -311,7 +312,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
         const bAny = booking as any;
         fetchWorkerPayRate(booking.assigned_worker_id, bAny.worker_pay_type, bAny.worker_pay_rate);
       } else {
-        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayType("hourly");
         setWorkerDefaultPayRate("");
       }
 
@@ -547,7 +548,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       subtotal: newSubtotal,
       add_ons_total: newAddOnsTotal,
       assigned_worker_id: newAssignedWorkerId,
-      worker_pay_type: newAssignedWorkerId && editCustomPayRate ? editCustomPayType : null,
+      worker_pay_type: newAssignedWorkerId && editCustomPayRate ? "hourly" : null,
       worker_pay_rate: newAssignedWorkerId && editCustomPayRate ? parseFloat(editCustomPayRate) : null,
       tip_amount: editTipAmount && parseFloat(editTipAmount) > 0 ? parseFloat(editTipAmount) : null,
     };
