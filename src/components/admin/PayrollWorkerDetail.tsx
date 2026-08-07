@@ -81,10 +81,16 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
   const [updatingApproval, setUpdatingApproval] = useState<string | null>(null);
   const [editing, setEditing] = useState<{
     id: string | null;
+    mode: "hours" | "times";
+    date: string;
+    hours: string;
     clockIn: string;
     clockOut: string;
     notes: string;
+    prevMinutes: number | null;
+    hint: string | null;
   } | null>(null);
+
 
   const load = useCallback(async () => {
     setLoading(true);
