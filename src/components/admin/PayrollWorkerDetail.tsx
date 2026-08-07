@@ -17,8 +17,10 @@ import {
   fetchShifts, formatHours, formatDecimalHours, formatMoney, payForMinutes,
   shiftMinutes, sumShiftMinutes, sumApprovedShiftMinutes, approvedShifts,
   pendingShifts, shiftApprovalStatus, setShiftApproval,
+  parseHoursInput, minutesToHoursInput,
   type ShiftApprovalStatus, type ShiftRecord,
 } from "@/lib/worker-pay";
+
 import type { PayrollWorker } from "@/components/admin/AdminPayrollTab";
 
 interface Props {
