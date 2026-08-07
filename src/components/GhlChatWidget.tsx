@@ -153,9 +153,9 @@ export function GhlChatWidget() {
 
   useEffect(() => {
     if (isExcludedPath(pathname)) {
-      removeWidget();
-      return;
+      return watchAndRemoveWidget();
     }
+
     if (document.getElementById(WIDGET_SCRIPT_ID)) return;
     return whenIdleOrInteraction(injectWidget);
   }, [pathname]);
