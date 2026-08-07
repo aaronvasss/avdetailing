@@ -1021,26 +1021,18 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               </SelectContent>
             </Select>
 
-            {/* Pay Rate - auto-applied from worker profile */}
+            {/* Hourly rate - auto-applied from worker profile */}
             {assignedWorkerId !== "unassigned" && (
               <div className="mt-3 space-y-3">
-                {/* Default rate display */}
                 {workerDefaultPayRate && !useCustomPayRate && (
                   <div className="p-2 bg-muted rounded-md">
-                    <p className="text-xs text-muted-foreground">Default Pay Rate</p>
+                    <p className="text-xs text-muted-foreground">Default Hourly Rate</p>
                     <p className="text-sm font-semibold">
-                      {workerDefaultPayType === "percentage"
-                        ? `${workerDefaultPayRate}% of job value`
-                        : `$${Number(workerDefaultPayRate).toFixed(2)} flat per job`}
+                      ${Number(workerDefaultPayRate).toFixed(2)} / hour
                     </p>
-                    {workerDefaultPayType === "percentage" && totalPrice > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Worker earns: <span className="font-semibold text-foreground">
-                          ${(totalPrice * (parseFloat(workerDefaultPayRate) / 100)).toFixed(2)}
-                        </span>
-                        {` (${workerDefaultPayRate}% of $${totalPrice})`}
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Pay is calculated from clocked hours.
+                    </p>
                   </div>
                 )}
 
@@ -1051,53 +1043,29 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                       const isCustom = !!checked;
                       setUseCustomPayRate(isCustom);
                       if (!isCustom && workerDefaultPayRate) {
-                        setCustomPayType(workerDefaultPayType);
                         setCustomPayRate(workerDefaultPayRate);
                       }
                     }}
                   />
-                  <span className="text-sm">Custom rate for this job</span>
+                  <span className="text-sm">Custom hourly rate for this job</span>
                 </label>
                 {useCustomPayRate && (
-                  <div className="flex gap-3 items-end">
-                    <div className="flex-1">
-                      <Label className="text-xs">Pay Type</Label>
-                      <Select value={customPayType} onValueChange={(v) => setCustomPayType(v as "percentage" | "flat")}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="percentage">% of job value</SelectItem>
-                          <SelectItem value="flat">Flat amount ($)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex-1">
-                      <Label className="text-xs">{customPayType === "percentage" ? "Percentage" : "Amount ($)"}</Label>
-                      <Input
-                        type="number"
-                        step={customPayType === "percentage" ? "1" : "0.01"}
-                        value={customPayRate}
-                        onChange={(e) => setCustomPayRate(e.target.value)}
-                        placeholder={customPayType === "percentage" ? "25" : "50.00"}
-                        className="h-9"
-                      />
-                    </div>
+                  <div className="max-w-[220px]">
+                    <Label className="text-xs">Hourly Rate ($/hr)</Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={customPayRate}
+                      onChange={(e) => setCustomPayRate(e.target.value)}
+                      placeholder="18"
+                      className="h-9"
+                    />
                   </div>
-                )}
-                {useCustomPayRate && customPayRate && totalPrice > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Worker earns: <span className="font-semibold text-foreground">
-                      ${customPayType === "percentage"
-                        ? (totalPrice * (parseFloat(customPayRate) / 100)).toFixed(2)
-                        : parseFloat(customPayRate).toFixed(2)
-                      }
-                    </span>
-                    {customPayType === "percentage" && ` (${customPayRate}% of $${totalPrice})`}
-                  </p>
                 )}
               </div>
             )}
+
           </div>
 
           {/* Payment */}
