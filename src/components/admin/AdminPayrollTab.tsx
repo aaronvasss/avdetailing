@@ -558,9 +558,13 @@ export function AdminPayrollTab() {
                       Approve {formatHours(r.pendingMinutes)}
                     </Button>
                   )}
+                  <Button size="sm" onClick={() => setHoursWorker(r.worker)}>
+                    <CalendarPlus className="mr-2 h-4 w-4" /> Add Hours
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => setSelected(r.worker)}>
                     Hours & Shifts <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
+
                 </div>
               </div>
 
