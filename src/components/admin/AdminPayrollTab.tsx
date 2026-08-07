@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2,
+  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2, CalendarPlus,
 } from "lucide-react";
 import {
   DEFAULT_HOURLY_RATE, fetchShifts, formatHours, formatDecimalHours, formatMoney,
@@ -20,6 +20,8 @@ import {
   pendingShifts, setShiftApproval, type ShiftRecord,
 } from "@/lib/worker-pay";
 import { PayrollWorkerDetail } from "@/components/admin/PayrollWorkerDetail";
+import { QuickHoursWeek } from "@/components/admin/QuickHoursWeek";
+
 
 export interface PayrollWorker {
   user_id: string;
