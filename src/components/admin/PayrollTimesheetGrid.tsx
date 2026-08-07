@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CalendarRange, ChevronLeft, ChevronRight, Loader2, Save } from "lucide-react";
 import {
-  fetchShifts, fetchShiftsResult, formatHours, formatMoney, payForMinutes, shiftMinutes,
+  fetchShiftsResult, formatHours, formatMoney, payForMinutes, shiftMinutes,
   parseHoursInput, minutesToHoursInput, saveDayHours,
   type ShiftRecord,
 } from "@/lib/worker-pay";
@@ -242,11 +242,11 @@ export function PayrollTimesheetGrid({ workers, sharedShifts, sharedFrom, shared
         saved++;
       }
       toast.success(`Saved ${saved} entr${saved === 1 ? "y" : "ies"}`);
-      await load();
+      await load(true);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message || "Failed to save hours");
-      await load();
+      await load(true);
     } finally {
       setSaving(null);
     }
@@ -310,7 +310,7 @@ export function PayrollTimesheetGrid({ workers, sharedShifts, sharedFrom, shared
           <div className="flex flex-col items-center gap-3 py-8 text-center">
             <p className="text-sm font-semibold">We couldn't load these hours</p>
             <p className="text-sm text-muted-foreground max-w-md">{loadError}</p>
-            <Button size="sm" variant="outline" onClick={() => load()}>
+            <Button size="sm" variant="outline" onClick={() => load(true)}>
               Retry
             </Button>
           </div>
