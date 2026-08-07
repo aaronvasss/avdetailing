@@ -562,8 +562,12 @@ export function AdminPayrollTab() {
           email: w.email,
           pay_rate: w.pay_rate,
         }))}
+        sharedShifts={shifts}
+        sharedFrom={windowFrom}
+        sharedTo={windowTo}
         onSaved={load}
       />
+
 
       {rows.length === 0 ? (
         <Card>
