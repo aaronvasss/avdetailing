@@ -10,23 +10,15 @@ import { Loader2, CalendarDays, Inbox, UserCheck, CalendarClock, MapPin, Car, Wr
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getBusinessDateString, getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { formatStopwatch } from "@/lib/duration-format";
+import {
+  fetchShifts, shiftMinutes, hourlyRateFor, payForMinutes, formatHours, type ShiftRecord,
+} from "@/lib/worker-pay";
 import { SEOHead } from "@/components/seo/SEOHead";
+
 
 const fmtMoney = (n: number) => (n > 0 ? `$${n.toFixed(n % 1 === 0 ? 0 : 2)}` : "—");
 const fmtCount = (n: number) => (n > 0 ? String(n) : "—");
 
-function calcWorkerCut(b: any, profile: any): number {
-  const jobValue = Number(b.total_price) || 0;
-  if (b.worker_pay_type && b.worker_pay_rate != null) {
-    return b.worker_pay_type === "percentage"
-      ? jobValue * (Number(b.worker_pay_rate) / 100)
-      : Number(b.worker_pay_rate);
-  }
-  if (!profile) return 0;
-  return profile.pay_type === "percentage"
-    ? jobValue * (Number(profile.pay_rate) / 100)
-    : Number(profile.pay_rate) || 0;
-}
 
 const formatTime12 = (time: string) => {
   const [h, m] = time.split(":");
@@ -48,6 +40,7 @@ export default function WorkerDashboardPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [weekBookings, setWeekBookings] = useState<any[]>([]);
+  const [weekShifts, setWeekShifts] = useState<ShiftRecord[]>([]);
   const [workerProfile, setWorkerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadingUpcoming, setLoadingUpcoming] = useState(true);
@@ -69,7 +62,7 @@ export default function WorkerDashboardPage() {
 
     let weekQuery = supabase
       .from("bookings")
-      .select("id, total_price, tip_amount, worker_pay_type, worker_pay_rate, status, scheduled_date, assigned_worker_id")
+      .select("id, total_price, tip_amount, worker_pay_type, worker_pay_rate, status, scheduled_date, assigned_worker_id, actual_duration_minutes")
       .eq("status", "completed")
       .gte("scheduled_date", weekStart)
       .lte("scheduled_date", weekEnd);
@@ -78,7 +71,15 @@ export default function WorkerDashboardPage() {
     }
     const { data: weekData } = await weekQuery;
     setWeekBookings(weekData || []);
+
+    const shiftRows = await fetchShifts({
+      userId: workerIdentity.isAdmin ? null : workerIdentity.authUserId,
+      fromDate: weekStart,
+      toDate: weekEnd,
+    });
+    setWeekShifts(shiftRows);
   }, [weekStart, weekEnd]);
+
 
 
   const fetchTodayBookings = useCallback(async () => {
@@ -198,25 +199,35 @@ export default function WorkerDashboardPage() {
     [myBookings]
   );
 
+  const hourlyRate = useMemo(() => hourlyRateFor(workerProfile), [workerProfile]);
+
+  const todayShiftMinutes = useMemo(
+    () => weekShifts
+      .filter((s) => format(new Date(s.clock_in_at), "yyyy-MM-dd") === today)
+      .reduce((sum, s) => sum + shiftMinutes(s), 0),
+    [weekShifts, today]
+  );
+
+  const weekShiftMinutes = useMemo(
+    () => weekShifts.reduce((sum, s) => sum + shiftMinutes(s), 0),
+    [weekShifts]
+  );
+
   const todayStats = useMemo(() => {
     const jobs = todayCompleted.length;
     const revenue = todayCompleted.reduce((s, b) => s + (Number(b.total_price) || 0), 0);
-    const earnings = todayCompleted.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0);
+    const earnings = payForMinutes(todayShiftMinutes, hourlyRate);
     const tips = todayCompleted.reduce((s, b) => s + (Number(b.tip_amount) || 0), 0);
-    return { jobs, revenue, earnings, tips };
-  }, [todayCompleted, workerProfile]);
+    return { jobs, revenue, earnings, tips, minutes: todayShiftMinutes };
+  }, [todayCompleted, todayShiftMinutes, hourlyRate]);
 
   const weekStats = useMemo(() => {
     const jobs = weekBookings.length;
-    const earnings = weekBookings.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0);
+    const earnings = payForMinutes(weekShiftMinutes, hourlyRate);
     const tips = weekBookings.reduce((s, b) => s + (Number(b.tip_amount) || 0), 0);
-    return { jobs, earnings, tips };
-  }, [weekBookings, workerProfile]);
+    return { jobs, earnings, tips, minutes: weekShiftMinutes };
+  }, [weekBookings, weekShiftMinutes, hourlyRate]);
 
-  const todayEstimated = useMemo(() => {
-    const upcoming = myBookings.filter((b) => ["pending", "confirmed", "in_progress"].includes(b.status));
-    return upcoming.reduce((s, b) => s + calcWorkerCut(b, workerProfile), 0) + todayStats.earnings;
-  }, [myBookings, workerProfile, todayStats.earnings]);
 
 
   const activeJob = useMemo(
@@ -249,14 +260,15 @@ export default function WorkerDashboardPage() {
               <span className="text-xs text-muted-foreground">{format(new Date(), "EEE, MMM d")}</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatBlock icon={<Clock className="h-4 w-4" />} label="Hours Today" value={formatHours(todayStats.minutes)} />
               <StatBlock icon={<CheckCircle2 className="h-4 w-4" />} label="Jobs Done" value={fmtCount(todayStats.jobs)} />
-              <StatBlock icon={<DollarSign className="h-4 w-4" />} label="Revenue" value={fmtMoney(todayStats.revenue)} />
               <StatBlock icon={<Wallet className="h-4 w-4" />} label="Your Pay" value={fmtMoney(todayStats.earnings)} accent />
               <StatBlock icon={<Coins className="h-4 w-4" />} label="Tips" value={fmtMoney(todayStats.tips)} accent />
             </div>
             <p className="text-xs text-muted-foreground pt-1 border-t border-border/50">
-              This week: {weekStats.jobs} {weekStats.jobs === 1 ? "job" : "jobs"} · {fmtMoney(weekStats.earnings)} your pay · {fmtMoney(weekStats.tips)} tips
+              ${hourlyRate.toFixed(2)}/hr · This week: {formatHours(weekStats.minutes)} · {fmtMoney(weekStats.earnings)} your pay · {fmtMoney(weekStats.tips)} tips
             </p>
+
           </CardContent>
         </Card>
 
@@ -278,9 +290,10 @@ export default function WorkerDashboardPage() {
                 <Badge variant="outline" className="ml-auto text-xs bg-primary/10 text-primary border-primary/20">
                   {myBookings.length}
                 </Badge>
-                {todayEstimated > 0 && (
-                  <span className="text-xs text-green-500 font-medium">· Est. ${todayEstimated.toFixed(todayEstimated % 1 === 0 ? 0 : 2)}</span>
+                {todayStats.minutes > 0 && (
+                  <span className="text-xs text-green-500 font-medium">· {formatHours(todayStats.minutes)} logged</span>
                 )}
+
               </>
             )}
           </div>

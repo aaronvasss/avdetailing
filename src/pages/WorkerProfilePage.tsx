@@ -5,17 +5,28 @@ import { WorkerLayout } from "@/components/worker/WorkerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, User, LogOut, Star, Briefcase, DollarSign, Calendar } from "lucide-react";
+import { Loader2, User, LogOut, Star, Clock, DollarSign, Calendar } from "lucide-react";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { SEOHead } from "@/components/seo/SEOHead";
+import {
+  fetchShifts, shiftMinutes, hourlyRateFor, payForMinutes, formatHours,
+} from "@/lib/worker-pay";
 
 export default function WorkerProfilePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({ full_name: "", email: "", phone: "" });
   const [workerProfile, setWorkerProfile] = useState<any>(null);
-  const [stats, setStats] = useState({ totalJobs: 0, weekEarnings: 0, avgRating: 0, ratingCount: 0, memberSince: "" });
+  const [stats, setStats] = useState({
+    lifetimeMinutes: 0,
+    weekMinutes: 0,
+    weekEarnings: 0,
+    avgRating: 0,
+    ratingCount: 0,
+    memberSince: "",
+  });
+
 
   useEffect(() => {
     fetchProfile();
@@ -40,35 +51,28 @@ export default function WorkerProfilePage() {
     // Fetch stats only for bookings assigned to this worker
     const { data: completedBookings } = await supabase
       .from("bookings")
-      .select("id, total_price, scheduled_date, worker_pay_rate, worker_pay_type, assigned_worker_id")
+      .select("id, scheduled_date, assigned_worker_id")
       .eq("status", "completed")
       .then(({ data, error }) => {
         if (error) return { data: null, error };
         return { data: workerIdentity.isAdmin ? data : (data || []).filter(b => b.assigned_worker_id === workerIdentity.authUserId), error: null };
       });
 
-    const totalJobs = completedBookings?.length || 0;
-
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
     const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-    const weekJobs = (completedBookings || []).filter(
-      (b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd
-    );
 
-    let weekEarnings = 0;
-    if (wp) {
-      weekEarnings = weekJobs.reduce((sum, booking: any) => {
-        if (booking.worker_pay_type && booking.worker_pay_rate != null) {
-          return sum + (booking.worker_pay_type === "percentage"
-            ? (Number(booking.total_price) || 0) * (Number(booking.worker_pay_rate) / 100)
-            : Number(booking.worker_pay_rate));
-        }
-        if (wp.pay_type === "percentage") {
-          return sum + (Number(booking.total_price) || 0) * (wp.pay_rate / 100);
-        }
-        return sum + wp.pay_rate;
-      }, 0);
-    }
+    const rate = hourlyRateFor(wp);
+    const allShifts = await fetchShifts({
+      userId: workerIdentity.isAdmin ? null : workerIdentity.authUserId,
+    });
+    const lifetimeMinutes = allShifts.reduce((sum, s) => sum + shiftMinutes(s), 0);
+    const weekMinutes = allShifts
+      .filter((s) => {
+        const day = format(new Date(s.clock_in_at), "yyyy-MM-dd");
+        return day >= weekStart && day <= weekEnd;
+      })
+      .reduce((sum, s) => sum + shiftMinutes(s), 0);
+    const weekEarnings = payForMinutes(weekMinutes, rate);
 
     // Get ratings
     const bookingIds = (completedBookings || []).map((b) => b.id);
@@ -87,12 +91,14 @@ export default function WorkerProfilePage() {
     }
 
     setStats({
-      totalJobs,
+      lifetimeMinutes,
+      weekMinutes,
       weekEarnings,
       avgRating,
       ratingCount,
       memberSince: wp?.created_at ? format(new Date(wp.created_at), "MMMM yyyy") : format(new Date(), "MMMM yyyy"),
     });
+
 
     setLoading(false);
   };
@@ -145,9 +151,9 @@ export default function WorkerProfilePage() {
           <Card>
             <CardContent className="pt-4 pb-3 px-4">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Briefcase className="h-3 w-3" /> Total Jobs
+                <Clock className="h-3 w-3" /> Lifetime Hours
               </div>
-              <p className="text-2xl font-bold mt-1">{stats.totalJobs}</p>
+              <p className="text-2xl font-bold mt-1">{formatHours(stats.lifetimeMinutes)}</p>
             </CardContent>
           </Card>
 
@@ -157,8 +163,10 @@ export default function WorkerProfilePage() {
                 <DollarSign className="h-3 w-3" /> This Week
               </div>
               <p className="text-2xl font-bold mt-1 text-primary">${stats.weekEarnings.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">{formatHours(stats.weekMinutes)} worked</p>
             </CardContent>
           </Card>
+
 
           <Card>
             <CardContent className="pt-4 pb-3 px-4">
@@ -186,19 +194,14 @@ export default function WorkerProfilePage() {
         </div>
 
         {/* Pay rate */}
-        {workerProfile && (
-          <Card>
-            <CardContent className="pt-4 pb-3 px-4">
-              <p className="text-sm text-muted-foreground">Pay Rate</p>
-              <p className="font-semibold">
-                {workerProfile.pay_type === "percentage"
-                  ? `${workerProfile.pay_rate}% per job`
-                  : `$${workerProfile.pay_rate} flat per job`}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Contact admin to update your pay rate</p>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-sm text-muted-foreground">Hourly Rate</p>
+            <p className="font-semibold">${hourlyRateFor(workerProfile).toFixed(2)} / hour</p>
+            <p className="text-xs text-muted-foreground mt-1">Contact admin to update your hourly rate</p>
+          </CardContent>
+        </Card>
+
 
         <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
