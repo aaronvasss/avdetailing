@@ -620,6 +620,25 @@ export function AdminPayrollTab() {
           </Card>
         ))
       )}
+
+      <Dialog open={!!hoursWorker} onOpenChange={(o) => !o && setHoursWorker(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add hours — {hoursWorker?.full_name || "Worker"}</DialogTitle>
+            <DialogDescription>
+              Type hours for any day of the week. Saved hours are approved right away.
+            </DialogDescription>
+          </DialogHeader>
+          {hoursWorker && (
+            <QuickHoursWeek
+              userId={hoursWorker.user_id}
+              payRate={hoursWorker.pay_rate}
+              onSaved={load}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
