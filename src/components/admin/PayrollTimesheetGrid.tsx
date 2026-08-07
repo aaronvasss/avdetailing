@@ -253,6 +253,14 @@ export function PayrollTimesheetGrid({ workers, onSaved }: Props) {
           <div className="flex justify-center py-8">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-sm font-semibold">We couldn't load these hours</p>
+            <p className="text-sm text-muted-foreground max-w-md">{loadError}</p>
+            <Button size="sm" variant="outline" onClick={() => load()}>
+              Retry
+            </Button>
+          </div>
         ) : (
           <>
             {todayInWeek && (
