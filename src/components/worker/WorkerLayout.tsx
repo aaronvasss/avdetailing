@@ -41,6 +41,9 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
   const location = useLocation();
   const [workerName, setWorkerName] = useState("");
   const [showNotifPrompt, setShowNotifPrompt] = useState(true);
+  const [canReviewQc, setCanReviewQc] = useState(false);
+
+  const navItems = canReviewQc ? [...baseNavItems, qcNavItem] : baseNavItems;
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -56,11 +59,18 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
         .eq("user_id", user.id);
 
       const roleSet = new Set((roles || []).map((r) => r.role));
-      if (!roleSet.has("staff") && !roleSet.has("admin")) {
+      const hasPortalAccess =
+        roleSet.has("staff") ||
+        roleSet.has("admin") ||
+        roleSet.has("manager") ||
+        roleSet.has("marketing");
+      if (!hasPortalAccess) {
         toast.error("You don't have worker access");
         navigate("/account");
         return;
       }
+      setCanReviewQc(roleSet.has("admin") || roleSet.has("manager"));
+
 
       const { data: profile } = await supabase
         .from("profiles")
