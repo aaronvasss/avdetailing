@@ -22,7 +22,9 @@ import { fetchClientVehicles, findOrCreateClientVehicle, describeVehicle, type C
 import { Car, CheckCircle2, Clock } from "lucide-react";
 import { generateTimeSlots, getPackageDuration, formatDuration, DEFAULT_DURATION } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
-import { toDbTime, formatTime12h, toDateString, addMinutesTo12h, groupSlotsByPeriod } from "@/lib/time-format";
+import { toDbTime, formatTime12h, toDateString, addMinutesTo12h, groupSlotsByPeriod, parseDateString } from "@/lib/time-format";
+import { fetchRecentCustomerBookings, type PastBooking } from "@/lib/recentBookings";
+import { RecentAppointmentsPanel } from "@/components/account/RecentAppointmentsPanel";
 
 interface AdminBookingModalProps {
   open: boolean;
@@ -183,6 +185,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
 
+  // Recent appointments for the selected customer (read-only history)
+  const [recentBookings, setRecentBookings] = useState<PastBooking[]>([]);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [repeatSource, setRepeatSource] = useState<{ id: string; date: string; total: number } | null>(null);
+  const pendingRepeatRef = useRef<{ packageSlug: string | null; addOnIds: string[] } | null>(null);
+
   // Scheduling (shared business hours / buffer / blocked dates / conflicts)
   const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -307,6 +315,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     setSelectedClientName(null);
     setSavedVehicles([]);
     setSelectedVehicleId(null);
+    setRecentBookings([]);
+    setRepeatSource(null);
+    pendingRepeatRef.current = null;
     setCustomerSearch("");
     toast.info("Form cleared");
   };
@@ -384,6 +395,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     setSelectedClientName(null);
     setSavedVehicles([]);
     setSelectedVehicleId(null);
+    setRecentBookings([]);
+    setRepeatSource(null);
+    pendingRepeatRef.current = null;
   };
 
   // Load the selected customer's saved vehicles
@@ -403,6 +417,88 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       .finally(() => { if (!cancelled) setVehiclesLoading(false); });
     return () => { cancelled = true; };
   }, [open, selectedClientId]);
+
+  // Load the selected customer's three most recent appointments
+  useEffect(() => {
+    if (!open || !selectedClientId) {
+      setRecentBookings([]);
+      return;
+    }
+    let cancelled = false;
+    setRecentLoading(true);
+    fetchRecentCustomerBookings({
+      clientId: selectedClientId,
+      email: form.email || null,
+      phone: form.phone || null,
+      limit: 3,
+    })
+      .then(rows => { if (!cancelled) setRecentBookings(rows); })
+      .catch(err => {
+        console.error("Failed to load recent appointments:", err);
+        if (!cancelled) setRecentBookings([]);
+      })
+      .finally(() => { if (!cancelled) setRecentLoading(false); });
+    return () => { cancelled = true; };
+  }, [open, selectedClientId]);
+
+  /**
+   * Copy a past appointment into the new-booking form.
+   * Never copies date, time, status, payment status, tip or transaction data,
+   * and never modifies the original booking.
+   */
+  const applyPastBooking = (b: PastBooking) => {
+    const matched = serviceTypes.find(s => s.serviceId === b.service_id);
+    const serviceType = b.custom_service_description ? "custom" : (matched?.id || "car");
+
+    setForm(prev => ({
+      ...prev,
+      serviceType,
+      vehicleType: b.vehicle_type || "",
+      vehicleMake: b.vehicle_make || "",
+      vehicleModel: b.vehicle_model || "",
+      vehicleYear: b.vehicle_year ? String(b.vehicle_year) : "",
+      vehicleColor: b.vehicle_color || "",
+      licensePlate: b.license_plate || "",
+      address: b.service_address || prev.address,
+      city: b.service_city || prev.city,
+      zip: b.service_zip || prev.zip,
+      customerNotes: b.customer_notes || "",
+      customServiceDescription: b.custom_service_description || "",
+      // Intentionally not copied: date, time, status, payment status, tip, transactions
+      scheduledDate: undefined,
+      scheduledTime: "",
+      tipAmount: "",
+    }));
+
+    setSelectedVehicleId(null);
+    setSelectedPackageId("");
+    setSelectedAddOns([]);
+    setCustomPrice("");
+    setPricingMode(b.custom_service_description ? "custom" : "package");
+    pendingRepeatRef.current = {
+      packageSlug: b.package_slug,
+      addOnIds: b.add_ons.map(a => a.add_on_id).filter(Boolean) as string[],
+    };
+    setRepeatSource({ id: b.id, date: b.scheduled_date, total: Number(b.total_price ?? 0) });
+
+    toast.success("Appointment details copied — choose a new date and time");
+    setTimeout(() => {
+      document.getElementById("section-schedule")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  };
+
+  // Re-apply the repeated package / add-ons once current pricing has loaded,
+  // so the new booking always uses today's prices.
+  useEffect(() => {
+    const pending = pendingRepeatRef.current;
+    if (!pending || pricingLoading) return;
+    if (packageRows.length === 0 && addOnsList.length === 0) return;
+    if (pending.packageSlug && packageRows.some(r => r.slug === pending.packageSlug)) {
+      setSelectedPackageId(pending.packageSlug);
+    }
+    setSelectedAddOns(pending.addOnIds.filter(id => addOnsList.some(a => a.id === id)));
+    pendingRepeatRef.current = null;
+  }, [packageRows, addOnsList, pricingLoading]);
 
   const applySavedVehicle = (vehicle: CustomerVehicle) => {
     setSelectedVehicleId(vehicle.id);
@@ -827,6 +923,16 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
               )}
             </div>
 
+            {selectedClientId && (
+              <div className="mb-4">
+                <RecentAppointmentsPanel
+                  bookings={recentBookings}
+                  loading={recentLoading}
+                  onUse={applyPastBooking}
+                />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>First Name *</Label>
@@ -1089,6 +1195,45 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           {form.serviceType && (
             <div>
               <h3 id="section-pricing" className="scroll-mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pricing</h3>
+
+              {repeatSource && (
+                <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <p className="text-sm font-medium">
+                    Repeating appointment from{" "}
+                    {(() => {
+                      try { return format(parseDateString(repeatSource.date), "MMM d, yyyy"); }
+                      catch { return repeatSource.date; }
+                    })()}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                    <span className="text-muted-foreground">
+                      Previous price: <span className="line-through">${repeatSource.total.toFixed(2)}</span>
+                    </span>
+                    <span className="font-semibold">
+                      Current price: <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.abs(totalPrice - repeatSource.total) >= 0.01
+                      ? "Prices have changed since the last appointment. This booking uses today's service and add-on prices."
+                      : "Today's prices match the previous appointment."}
+                  </p>
+                  {pricingMode === "package" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 h-9"
+                      onClick={() => {
+                        setPricingMode("custom");
+                        setCustomPrice(totalPrice ? totalPrice.toFixed(2) : "");
+                      }}
+                    >
+                      Enter a custom price instead
+                    </Button>
+                  )}
+                </div>
+              )}
 
               {/* Mode toggle */}
               <RadioGroup
