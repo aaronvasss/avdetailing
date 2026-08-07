@@ -122,9 +122,12 @@ export function WorkerLayout({ children }: WorkerLayoutProps) {
 
       {/* Bottom mobile nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur lg:relative lg:border-t-0 lg:border-b">
-        <div className="flex justify-around max-w-4xl mx-auto">
+        <div className="flex max-w-4xl mx-auto overflow-x-auto lg:justify-around">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== "/worker" && location.pathname.startsWith(`${item.path}/`));
+
             return (
               <button
                 key={item.path}
