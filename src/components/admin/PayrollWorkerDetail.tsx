@@ -202,6 +202,8 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
       clockOut: target ? toLocalInput(target.clock_out_at) : "",
       notes: "",
       prevMinutes: dayMinutes || null,
+      otherMinutes,
+
       hint:
         dayShifts.length > 1
           ? `This day has ${dayShifts.length} shifts (${formatHours(otherMinutes)} on the earlier ones). The new total is applied to the last shift of the day.`
