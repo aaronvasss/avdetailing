@@ -96,9 +96,9 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         start = subDays(calendarRange.start, 1);
         end = addDays(calendarRange.end, 1);
       } else {
-        // List view: last 60 days + next 180 days
+        // List view: recent window by default, expandable via "Load older"
         const today = startOfToday();
-        start = subDays(today, 60);
+        start = subDays(today, historyDaysBack);
         end = addDays(today, 180);
       }
       query = query
@@ -111,7 +111,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     if (data) setBookings(data);
     setLoading(false);
     setInitialLoaded(true);
-  }, [userId, isAdmin, activeView, calendarRange]);
+  }, [userId, isAdmin, activeView, calendarRange, historyDaysBack]);
 
   useEffect(() => {
     fetchBookings();
