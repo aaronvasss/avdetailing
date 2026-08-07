@@ -308,9 +308,8 @@ export function AdminSettingsTab() {
         </CardContent>
       </Card>
 
-      {/* Workers Section */}
-      <Separator className="my-8" />
-      <WorkerManagementSection />
+      {/* Workers are managed in the Team & Payroll section */}
+
 
       {/* CSV Import Section */}
       <Separator className="my-8" />
