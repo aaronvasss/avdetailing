@@ -19,6 +19,10 @@ export interface TimesheetWorker {
 
 interface Props {
   workers: TimesheetWorker[];
+  /** Shifts already fetched by the parent payroll tab, reused when they cover the shown week. */
+  sharedShifts?: ShiftRecord[];
+  sharedFrom?: string;
+  sharedTo?: string;
   /** Called after a successful save so parent payroll totals refresh. */
   onSaved: () => void;
 }
