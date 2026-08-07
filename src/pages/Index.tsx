@@ -9,10 +9,18 @@ import { MembershipSection } from "@/components/home/MembershipSection";
 import { ServiceAreasSection } from "@/components/home/ServiceAreasSection";
 import { LocationMapSection } from "@/components/home/LocationMapSection";
 import { FAQSection } from "@/components/home/FAQSection";
-import { InquirySection } from "@/components/home/InquirySection";
+
 import { CTASection } from "@/components/home/CTASection";
+import { lazy, Suspense } from "react";
+import { DeferUntilVisible } from "@/components/common/DeferUntilVisible";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
+
+// The inquiry form talks to the backend; load it only when the visitor
+// actually scrolls to it so the homepage's first load stays light.
+const InquirySection = lazy(() =>
+  import("@/components/home/InquirySection").then((m) => ({ default: m.InquirySection })),
+);
 
 const Index = () => {
   return (
@@ -34,7 +42,11 @@ const Index = () => {
       <ServiceAreasSection />
       <LocationMapSection />
       <FAQSection />
-      <InquirySection source="homepage" />
+      <DeferUntilVisible minHeight={600}>
+        <Suspense fallback={<div className="min-h-[600px]" />}>
+          <InquirySection source="homepage" />
+        </Suspense>
+      </DeferUntilVisible>
       <CTASection />
     </Layout>
   );

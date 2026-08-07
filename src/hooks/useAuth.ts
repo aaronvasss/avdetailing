@@ -1,6 +1,18 @@
 import { useSyncExternalStore } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { User, Session } from "@supabase/supabase-js";
+
+// The Supabase client is loaded on demand so the public marketing pages don't
+// pay for the auth/database bundle before it is actually needed.
+let clientPromise: Promise<SupabaseClient> | null = null;
+function getSupabase(): Promise<SupabaseClient> {
+  if (!clientPromise) {
+    clientPromise = import("@/integrations/supabase/client").then(
+      (m) => m.supabase as unknown as SupabaseClient,
+    );
+  }
+  return clientPromise;
+}
 
 export type AppRole = "admin" | "manager" | "staff" | "marketing" | "customer" | null;
 
@@ -69,6 +81,7 @@ const ROLE_PRECEDENCE: Exclude<AppRole, null>[] = [
 ];
 
 async function fetchRole(userId: string): Promise<RoleSnapshot> {
+  const supabase = await getSupabase();
   const { data, error } = await supabase
     .from("user_roles")
     .select("role")
@@ -135,6 +148,7 @@ async function refreshSessionSnapshot() {
   if (refreshingSession) return;
   refreshingSession = true;
   try {
+    const supabase = await getSupabase();
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -148,13 +162,15 @@ function ensureAuthSubscription() {
   if (initialized) return;
   initialized = true;
 
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-    applySession(currentSession);
-  });
+  void getSupabase().then((supabase) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      applySession(currentSession);
+    });
 
-  authSubscription = subscription;
+    authSubscription = subscription;
+  });
 
   // In the Lovable preview iframe, session storage can hydrate just before or
   // just after React mounts. The auth event is still primary, but this snapshot
