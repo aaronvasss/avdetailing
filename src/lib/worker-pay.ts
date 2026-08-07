@@ -70,6 +70,41 @@ export function formatDecimalHours(minutes: number): string {
   return (Math.max(0, minutes) / 60).toFixed(2);
 }
 
+/**
+ * Parse admin-typed hours into minutes.
+ * Accepts `7.5`, `7:30`, `7h 30m`, `7h`, `45m`.
+ * Returns null when the input can't be understood.
+ */
+export function parseHoursInput(input: string): number | null {
+  const raw = (input || "").trim().toLowerCase();
+  if (!raw) return null;
+
+  // 7:30
+  const colon = raw.match(/^(\d{1,3}):([0-5]?\d)$/);
+  if (colon) return Number(colon[1]) * 60 + Number(colon[2]);
+
+  // 7h 30m / 7h / 30m
+  const hm = raw.match(/^(?:(\d+(?:\.\d+)?)\s*h)?\s*(?:(\d+(?:\.\d+)?)\s*m)?$/);
+  if (hm && (hm[1] || hm[2])) {
+    return Math.round(Number(hm[1] || 0) * 60 + Number(hm[2] || 0));
+  }
+
+  // 7.5
+  const dec = Number(raw);
+  if (Number.isFinite(dec) && dec >= 0) return Math.round(dec * 60);
+
+  return null;
+}
+
+/** Round-trip minutes back into an hours input value (e.g. 450 -> "7.5"). */
+export function minutesToHoursInput(minutes: number | null | undefined): string {
+  const m = Number(minutes);
+  if (!Number.isFinite(m) || m <= 0) return "";
+  const hours = m / 60;
+  return Number.isInteger(hours) ? String(hours) : hours.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+
 export function formatMoney(amount: number): string {
   return `$${(Number.isFinite(amount) ? amount : 0).toFixed(2)}`;
 }
