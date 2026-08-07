@@ -21,6 +21,7 @@ import {
 } from "@/lib/worker-pay";
 import { PayrollWorkerDetail } from "@/components/admin/PayrollWorkerDetail";
 import { QuickHoursWeek } from "@/components/admin/QuickHoursWeek";
+import { PayrollTimesheetGrid } from "@/components/admin/PayrollTimesheetGrid";
 
 
 export interface PayrollWorker {
