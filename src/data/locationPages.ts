@@ -22,7 +22,7 @@ export interface LocationPageConfig {
   metaDescription: string;
   intro: string;           // 120–150 words with {{l1}} {{l2}}
   link1: ExtLink;          // national
-  link2: ExtLink;          // local
+  link2?: ExtLink;         // local (omit when no relevant local authority exists)
   services: LocationServiceItem[];
   whyChoose: string[];     // 4 bullets
   neighborhoods: string;   // streets, subdivisions, landmarks paragraph
@@ -112,7 +112,6 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     intro:
       "Gonzales sits right on the I-10 corridor in Ascension Parish — known as the Jambalaya Capital of the World, and one of the fastest-growing communities in the Greater Baton Rouge region. Residents here drive a mix of trucks, family SUVs, and commuter vehicles that take a beating from I-10 highway grime, lovebugs, and the relentless Louisiana sun. AV Detailing brings full mobile detailing service directly to driveways throughout Gonzales, from the Prairieville Road area and the Hwy 30 corridor to Tanger Outlets and out toward Burnside. We arrive with a self-contained rig, System X ceramic coating, and pro-grade paint correction tools. For general car-care background, {{l1}} publishes independent guidance on washing, waxing, and interior upkeep.",
     link1: CR,
-    link2: BRLA,
     services: COMMON_SERVICES,
     whyChoose: [
       "Mobile detailing throughout Ascension Parish — no need to drive to Baton Rouge.",
@@ -160,7 +159,6 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     intro:
       "Denham Springs in Livingston Parish is heavy truck and SUV country — work vehicles, family haulers, and commuter trucks that see real use on the I-12 corridor every day. The combination of highway road grime, lovebugs, and brutal Louisiana sun means vehicles here need serious detailing to stay protected. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Denham Springs — from the I-12 corridor and Range Avenue to the Bass Pro area, Juban Road, and Springfield Road, plus jobsites and office lots for work trucks. Because our rig carries its own water and power, we can detail in a driveway, an apartment lot off Range Avenue, or a business parking lot without needing a spigot. For general car-care background, {{l1}} publishes independent guidance on washing, waxing, and interior upkeep.",
     link1: CR,
-    link2: BRLA,
     services: COMMON_SERVICES,
     whyChoose: [
       "Mobile detailing built for trucks and SUVs — we come to your driveway or jobsite.",
