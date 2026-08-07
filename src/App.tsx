@@ -48,8 +48,12 @@ const WorkerEarningsPage = lazy(() => import("./pages/WorkerEarningsPage"));
 const WorkerTimesheetPage = lazy(() => import("./pages/WorkerTimesheetPage"));
 const WorkerProfilePage = lazy(() => import("./pages/WorkerProfilePage"));
 const WorkerChatPage = lazy(() => import("./pages/WorkerChatPage"));
+const OpsJobsPage = lazy(() => import("./pages/OpsJobsPage"));
+const OpsJobDetailPage = lazy(() => import("./pages/OpsJobDetailPage"));
+const OpsQcQueuePage = lazy(() => import("./pages/OpsQcQueuePage"));
 const RatingPage = lazy(() => import("./pages/RatingPage"));
 const OAuthConsentPage = lazy(() => import("./pages/OAuthConsentPage"));
+
 
 const queryClient = new QueryClient();
 
