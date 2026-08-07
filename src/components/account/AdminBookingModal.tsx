@@ -125,9 +125,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   const [customPrice, setCustomPrice] = useState("");
   const [assignedWorkerId, setAssignedWorkerId] = useState<string>("unassigned");
   const [useCustomPayRate, setUseCustomPayRate] = useState(false);
-  const [customPayType, setCustomPayType] = useState<"percentage" | "flat">("percentage");
+  const [customPayType, setCustomPayType] = useState<"hourly">("hourly");
   const [customPayRate, setCustomPayRate] = useState("");
-  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"percentage" | "flat">("percentage");
+  const [workerDefaultPayType, setWorkerDefaultPayType] = useState<"hourly">("hourly");
   const [workerDefaultPayRate, setWorkerDefaultPayRate] = useState<string>("");
   const [draftSavedVisible, setDraftSavedVisible] = useState(false);
   const { workers } = useWorkersList();
@@ -151,20 +151,20 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
         .maybeSingle();
 
       if (wp) {
-        setWorkerDefaultPayType(wp.pay_type as "percentage" | "flat");
+        setWorkerDefaultPayType("hourly");
         setWorkerDefaultPayRate(String(wp.pay_rate));
-        setCustomPayType(wp.pay_type as "percentage" | "flat");
+        setCustomPayType("hourly");
         setCustomPayRate(String(wp.pay_rate));
       } else {
-        setWorkerDefaultPayType("percentage");
+        setWorkerDefaultPayType("hourly");
         setWorkerDefaultPayRate("");
-        setCustomPayType("percentage");
+        setCustomPayType("hourly");
         setCustomPayRate("");
       }
     } else {
-      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayType("hourly");
       setWorkerDefaultPayRate("");
-      setCustomPayType("percentage");
+      setCustomPayType("hourly");
       setCustomPayRate("");
     }
   };
@@ -290,7 +290,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     setCustomPrice("");
     setAssignedWorkerId("unassigned");
     setUseCustomPayRate(false);
-    setCustomPayType("percentage");
+    setCustomPayType("hourly");
     setCustomPayRate("");
     setSelectedClientId(null);
     setSelectedClientName(null);
@@ -488,7 +488,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           status: isPastDate ? "completed" : (form.paymentMethod === "in_person" ? "confirmed" : "pending"),
           payment_status: "unpaid",
           assigned_worker_id: resolvedAssignedWorkerId,
-           worker_pay_type: resolvedAssignedWorkerId && customPayRate ? customPayType : null,
+           worker_pay_type: resolvedAssignedWorkerId && customPayRate ? "hourly" : null,
             worker_pay_rate: resolvedAssignedWorkerId && customPayRate ? parseFloat(customPayRate) : null,
           client_id: selectedClientId,
           add_ons: pricingMode === "package"
@@ -554,9 +554,9 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       setPricingMode("package");
       setAssignedWorkerId("unassigned");
       setUseCustomPayRate(false);
-      setCustomPayType("percentage");
+      setCustomPayType("hourly");
       setCustomPayRate("");
-      setWorkerDefaultPayType("percentage");
+      setWorkerDefaultPayType("hourly");
       setWorkerDefaultPayRate("");
       setSelectedClientId(null);
       setSelectedClientName(null);

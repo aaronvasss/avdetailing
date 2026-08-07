@@ -110,8 +110,8 @@ serve(async (req) => {
       .upsert({
         user_id: newUser.user.id,
         phone: phone || null,
-        pay_type: payType || "flat",
-        pay_rate: payRate || 0,
+        pay_type: "hourly",
+        pay_rate: payRate && Number(payRate) > 0 ? Number(payRate) : 18,
       }, { onConflict: "user_id" });
 
     return new Response(
