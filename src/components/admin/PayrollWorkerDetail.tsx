@@ -427,12 +427,23 @@ export function PayrollWorkerDetail({ worker, fromDate, toDate, onBack }: Props)
               const dayMinutes = sumApprovedShiftMinutes(dayShifts);
               return (
                 <div key={day} className="space-y-2">
-                  <div className="flex items-center justify-between border-b pb-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-1">
                     <p className="text-sm font-medium">{dayLabel(`${day}T12:00:00`)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatHours(dayMinutes)} · {formatMoney(payForMinutes(dayMinutes, worker.pay_rate))}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        {formatHours(dayMinutes)} · {formatMoney(payForMinutes(dayMinutes, worker.pay_rate))}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => openDayEditor(day, dayShifts)}
+                      >
+                        <Pencil className="mr-1 h-3 w-3" /> Set hours
+                      </Button>
+                    </div>
                   </div>
+
                   {dayShifts.map((s) => {
                     const minutes = shiftMinutes(s);
                     const status = shiftApprovalStatus(s);
