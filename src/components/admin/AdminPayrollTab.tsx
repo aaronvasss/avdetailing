@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2,
+  Users, UserPlus, Loader2, Clock, Save, Download, ChevronRight, RefreshCw, CheckCircle2, CalendarPlus,
 } from "lucide-react";
 import {
   DEFAULT_HOURLY_RATE, fetchShifts, formatHours, formatDecimalHours, formatMoney,
@@ -20,6 +20,8 @@ import {
   pendingShifts, setShiftApproval, type ShiftRecord,
 } from "@/lib/worker-pay";
 import { PayrollWorkerDetail } from "@/components/admin/PayrollWorkerDetail";
+import { QuickHoursWeek } from "@/components/admin/QuickHoursWeek";
+
 
 export interface PayrollWorker {
   user_id: string;
@@ -69,6 +71,8 @@ export function AdminPayrollTab() {
   const [fromDate, setFromDate] = useState(initialRange.from);
   const [toDate, setToDate] = useState(initialRange.to);
   const [selected, setSelected] = useState<PayrollWorker | null>(null);
+  const [hoursWorker, setHoursWorker] = useState<PayrollWorker | null>(null);
+
 
   const [editingPay, setEditingPay] = useState<Record<string, string>>({});
   const [savingPay, setSavingPay] = useState<string | null>(null);
@@ -554,9 +558,13 @@ export function AdminPayrollTab() {
                       Approve {formatHours(r.pendingMinutes)}
                     </Button>
                   )}
+                  <Button size="sm" onClick={() => setHoursWorker(r.worker)}>
+                    <CalendarPlus className="mr-2 h-4 w-4" /> Add Hours
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => setSelected(r.worker)}>
                     Hours & Shifts <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
+
                 </div>
               </div>
 
@@ -612,6 +620,25 @@ export function AdminPayrollTab() {
           </Card>
         ))
       )}
+
+      <Dialog open={!!hoursWorker} onOpenChange={(o) => !o && setHoursWorker(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add hours — {hoursWorker?.full_name || "Worker"}</DialogTitle>
+            <DialogDescription>
+              Type hours for any day of the week. Saved hours are approved right away.
+            </DialogDescription>
+          </DialogHeader>
+          {hoursWorker && (
+            <QuickHoursWeek
+              userId={hoursWorker.user_id}
+              payRate={hoursWorker.pay_rate}
+              onSaved={load}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
