@@ -56,19 +56,23 @@ export function HeroSection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6 animate-fade-in">
             <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             <span className="text-sm font-medium text-primary">
-              Professional Mobile Detailing in Baton Rouge
+              Professional Detailing
             </span>
           </div>
 
           {/* Headline - Single H1 */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 animate-fade-in-up">
-            Car <span className="text-primary">Detailing</span> in Baton Rouge
-            <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2 font-semibold text-muted-foreground">Mobile — we come to you</span>
+            Car Detailing Baton Rouge
           </h1>
 
+          {/* Subtitle */}
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground mb-8 animate-fade-in-up">
+            Mobile Detailing That Comes to You
+          </p>
+
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Professional mobile car detailing in Baton Rouge — System X ceramic coating, paint correction, interior detailing and more, booked 24/7. We come to you across Highland Road, Shenandoah, Gonzales, Denham Springs, Perkins & Prairieville.
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            Premium detailing, ceramic coating, paint correction and interior services throughout Baton Rouge and nearby areas.
           </p>
 
 
