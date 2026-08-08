@@ -84,15 +84,6 @@ function ServiceCard({ icon, title, href, linkText, children }: ServiceCardProps
   );
 }
 
-const SERVICE_AREAS = [
-  "Highland Road",
-  "Shenandoah",
-  "Gonzales",
-  "Prairieville",
-  "Central Baton Rouge",
-  "Walker",
-  "Denham Springs",
-];
 
 export default function CarDetailingBatonRougePage() {
   return (
