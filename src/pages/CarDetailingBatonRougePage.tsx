@@ -13,7 +13,6 @@ import {
   Wind,
   PawPrint,
   Wrench,
-  MapPin,
   ArrowRight,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
