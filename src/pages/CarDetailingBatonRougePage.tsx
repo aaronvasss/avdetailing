@@ -13,7 +13,6 @@ import {
   Wind,
   PawPrint,
   Wrench,
-  MapPin,
   ArrowRight,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
@@ -85,15 +84,6 @@ function ServiceCard({ icon, title, href, linkText, children }: ServiceCardProps
   );
 }
 
-const SERVICE_AREAS = [
-  "Highland Road",
-  "Shenandoah",
-  "Gonzales",
-  "Prairieville",
-  "Central Baton Rouge",
-  "Walker",
-  "Denham Springs",
-];
 
 export default function CarDetailingBatonRougePage() {
   return (
@@ -127,65 +117,18 @@ export default function CarDetailingBatonRougePage() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-card border-b border-border">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <div className="relative container-custom max-w-5xl py-14 md:py-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-5">
-            <Car className="h-3.5 w-3.5" />
-            Mobile Detailing • Baton Rouge, LA
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            Car Detailing in Baton Rouge, LA
+        <div className="relative container-custom max-w-5xl py-8 md:py-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 leading-tight">
+            Car Detailing Baton Rouge, LA
           </h1>
-          <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-3xl">
-            AV Detailing is Baton Rouge's premier mobile car detailing service — we come directly to your home,
-            office, or anywhere across the Greater Baton Rouge area including Highland Road, Shenandoah, Gonzales,
-            Prairieville, Central Baton Rouge, Walker, and Denham Springs. No drop-off required. Our packages are
-            built for every vehicle type and every budget, from a quick exterior wash to a full paint correction
-            with System X ceramic coating. Louisiana's combination of intense UV, humidity, road tar, and industrial
-            fallout makes professional detailing not just cosmetic — it's vehicle preservation. According to{" "}
-            <a
-              href="https://www.consumerreports.org/cars/car-maintenance/how-to-maintain-your-cars-value-a1145789541/"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="text-primary underline hover:text-primary/80"
-            >
-              Consumer Reports
-            </a>
-            , regular professional detailing is one of the most effective ways to protect your vehicle's long-term
-            value, especially in high-humidity climates.
+          <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-2xl mb-6">
+            Serving Baton Rouge, Prairieville, Gonzales, Denham Springs, Walker, Central and nearby areas.
           </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
-            <Button asChild size="lg" className="text-base">
-              <Link to="/book">Book Online</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-base">
-              <a href="tel:+12255216264">
-                <Phone className="mr-2 h-5 w-5" />
-                (225) 521-6264
-              </a>
-            </Button>
-          </div>
-
-          {/* Service area chips */}
-          <div className="mt-8 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mr-1">
-              <MapPin className="h-3.5 w-3.5" />
-              Serving:
-            </span>
-            {SERVICE_AREAS.map((area) => (
-              <span
-                key={area}
-                className="rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground"
-              >
-                {area}
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 
       {/* Packages Section */}
-      <section className="pt-10 md:pt-12 pb-16 md:pb-20 bg-background">
+      <section className="pt-8 md:pt-10 pb-16 md:pb-20 bg-background">
         <div className="container-custom max-w-6xl">
           <div className="mb-10 md:mb-12 text-center max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Detailing Packages</h2>
