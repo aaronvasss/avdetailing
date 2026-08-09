@@ -122,17 +122,26 @@ export function AdminPayrollTab() {
       if (userIds.length === 0) {
         setWorkers([]);
         setShifts([]);
+        setTips([]);
         return;
       }
 
-      const [workerRes, profileRes, shiftRes] = await Promise.all([
+      const [workerRes, profileRes, shiftRes, tipRes] = await Promise.all([
         supabase.from("worker_profiles").select("*").in("user_id", userIds),
         supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
         fetchShiftsResult({ fromDate: windowFrom, toDate: windowTo }),
+        supabase
+          .from("bookings")
+          .select("assigned_worker_id, scheduled_date, tip_amount")
+          .in("assigned_worker_id", userIds)
+          .gte("scheduled_date", windowFrom)
+          .lte("scheduled_date", windowTo)
+          .gt("tip_amount", 0),
       ]);
       if (workerRes.error) throw workerRes.error;
       if (profileRes.error) throw profileRes.error;
       if (shiftRes.error) throw new Error(shiftRes.error);
+      if (tipRes.error) throw tipRes.error;
       if (isStale()) return;
       const workerProfiles = workerRes.data;
       const profiles = profileRes.data;
@@ -155,6 +164,16 @@ export function AdminPayrollTab() {
       setWorkers(merged);
       setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
       setShifts(shiftRes.data);
+      setTips(
+        (tipRes.data || [])
+          .filter((b) => b.assigned_worker_id)
+          .map((b) => ({
+            worker_id: b.assigned_worker_id as string,
+            day: b.scheduled_date as string,
+            amount: Number(b.tip_amount) || 0,
+          })),
+      );
+
     } catch (e: any) {
       if (isStale()) return;
       const message = e?.message || "Could not load payroll data";
