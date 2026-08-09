@@ -746,6 +746,11 @@ export function AdminPayrollTab() {
                   <p className="text-[11px] text-muted-foreground">Approved pay for range</p>
                   <p className="text-lg font-semibold">{formatMoney(r.rangePay)}</p>
                 </div>
+                <div className="rounded-md border px-3 py-2">
+                  <p className="text-[11px] text-muted-foreground">Pay + tips for range</p>
+                  <p className="text-lg font-semibold">{formatMoney(r.rangeTotal)}</p>
+                </div>
+
               </div>
             </CardContent>
           </Card>
