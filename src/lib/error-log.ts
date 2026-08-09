@@ -79,6 +79,23 @@ export function logCaughtError(
 
 let installed = false;
 
+/** Third-party scripts we don't control — their errors are noise, not app bugs. */
+const THIRD_PARTY_PATTERNS = [
+  "leadconnectorhq",
+  "msgsndr",
+  "googletagmanager",
+  "google-analytics",
+  "elfsight",
+  "gstatic",
+  "facebook.net",
+  "chat-widget",
+];
+
+const isThirdParty = (...values: (string | null | undefined)[]) =>
+  values.some(
+    (v) => !!v && THIRD_PARTY_PATTERNS.some((p) => v.toLowerCase().includes(p)),
+  );
+
 /** Install global window error / unhandled rejection listeners once. */
 export function installGlobalErrorLogging() {
   if (installed || typeof window === "undefined") return;
@@ -86,6 +103,7 @@ export function installGlobalErrorLogging() {
 
   window.addEventListener("error", (event) => {
     if (!event?.message) return;
+    if (isThirdParty(event.filename, event.error?.stack, event.message)) return;
     void logAppError({
       message: event.message,
       severity: "error",
@@ -101,11 +119,15 @@ export function installGlobalErrorLogging() {
 
   window.addEventListener("unhandledrejection", (event) => {
     const reason = event.reason as Error | undefined;
+    const message =
+      reason?.message || String(event.reason || "Unhandled promise rejection");
+    if (isThirdParty(reason?.stack, message)) return;
     void logAppError({
-      message: reason?.message || String(event.reason || "Unhandled promise rejection"),
+      message,
       severity: "error",
       code: (reason as never as { code?: string })?.code || "unhandled_rejection",
       stack: reason?.stack,
     });
   });
 }
+
