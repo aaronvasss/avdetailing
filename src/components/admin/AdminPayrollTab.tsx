@@ -63,13 +63,21 @@ function rangeForPreset(preset: PresetId): { from: string; to: string } {
   return { from: toISODate(first), to: toISODate(last) };
 }
 
+interface TipRow {
+  worker_id: string;
+  day: string;
+  amount: number;
+}
+
 export function AdminPayrollTab() {
   const [workers, setWorkers] = useState<PayrollWorker[]>([]);
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
+  const [tips, setTips] = useState<TipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const loadSeq = useRef(0);
+
   const [preset, setPreset] = useState<PresetId>("week");
   const initialRange = rangeForPreset("week");
   const [fromDate, setFromDate] = useState(initialRange.from);
@@ -114,17 +122,26 @@ export function AdminPayrollTab() {
       if (userIds.length === 0) {
         setWorkers([]);
         setShifts([]);
+        setTips([]);
         return;
       }
 
-      const [workerRes, profileRes, shiftRes] = await Promise.all([
+      const [workerRes, profileRes, shiftRes, tipRes] = await Promise.all([
         supabase.from("worker_profiles").select("*").in("user_id", userIds),
         supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
         fetchShiftsResult({ fromDate: windowFrom, toDate: windowTo }),
+        supabase
+          .from("bookings")
+          .select("assigned_worker_id, scheduled_date, tip_amount")
+          .in("assigned_worker_id", userIds)
+          .gte("scheduled_date", windowFrom)
+          .lte("scheduled_date", windowTo)
+          .gt("tip_amount", 0),
       ]);
       if (workerRes.error) throw workerRes.error;
       if (profileRes.error) throw profileRes.error;
       if (shiftRes.error) throw new Error(shiftRes.error);
+      if (tipRes.error) throw tipRes.error;
       if (isStale()) return;
       const workerProfiles = workerRes.data;
       const profiles = profileRes.data;
@@ -147,6 +164,16 @@ export function AdminPayrollTab() {
       setWorkers(merged);
       setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
       setShifts(shiftRes.data);
+      setTips(
+        (tipRes.data || [])
+          .filter((b) => b.assigned_worker_id)
+          .map((b) => ({
+            worker_id: b.assigned_worker_id as string,
+            day: b.scheduled_date as string,
+            amount: Number(b.tip_amount) || 0,
+          })),
+      );
+
     } catch (e: any) {
       if (isStale()) return;
       const message = e?.message || "Could not load payroll data";
@@ -190,37 +217,54 @@ export function AdminPayrollTab() {
     [shifts],
   );
 
+  const tipsInWindow = useCallback(
+    (userId: string, from: string, to: string) =>
+      tips
+        .filter((t) => t.worker_id === userId && t.day >= from && t.day <= to)
+        .reduce((sum, t) => sum + t.amount, 0),
+    [tips],
+  );
+
   const rows = useMemo(
     () =>
       workers.map((w) => {
         const rangeShifts = shiftsInWindow(w.user_id, fromDate, toDate);
         const rangeMinutes = sumApprovedShiftMinutes(rangeShifts);
         const pending = pendingShifts(rangeShifts);
+        const rangeTips = tipsInWindow(w.user_id, fromDate, toDate);
+        const rangePay = payForMinutes(rangeMinutes, w.pay_rate);
         return {
           worker: w,
           todayMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, today, today)),
           weekMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, weekStart, today)),
           monthMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, monthStart, today)),
           rangeMinutes,
-          rangePay: payForMinutes(rangeMinutes, w.pay_rate),
+          rangePay,
+          rangeTips,
+          rangeTotal: rangePay + rangeTips,
+          weekTips: tipsInWindow(w.user_id, weekStart, today),
+          monthTips: tipsInWindow(w.user_id, monthStart, today),
           openShift: rangeShifts.some((s) => !s.clock_out_at),
           pendingCount: pending.length,
           pendingMinutes: sumShiftMinutes(pending),
           pendingIds: pending.map((s) => s.id),
         };
       }),
-    [workers, shiftsInWindow, fromDate, toDate, today, weekStart, monthStart],
+    [workers, shiftsInWindow, tipsInWindow, fromDate, toDate, today, weekStart, monthStart],
   );
 
   const totals = useMemo(
     () => ({
       minutes: rows.reduce((s, r) => s + r.rangeMinutes, 0),
       pay: rows.reduce((s, r) => s + r.rangePay, 0),
+      tips: rows.reduce((s, r) => s + r.rangeTips, 0),
+      total: rows.reduce((s, r) => s + r.rangeTotal, 0),
       pendingCount: rows.reduce((s, r) => s + r.pendingCount, 0),
       pendingMinutes: rows.reduce((s, r) => s + r.pendingMinutes, 0),
     }),
     [rows],
   );
+
 
   const approveAll = async (userId: string | null, ids: string[]) => {
     if (ids.length === 0) return;
@@ -301,7 +345,7 @@ export function AdminPayrollTab() {
   const exportCsv = () => {
     const header = [
       "Worker", "Email", "Hourly Rate", "Approved Hours", "Approved Pay",
-      "Pending Hours", "Pending Shifts", "From", "To",
+      "Tips", "Total (Pay + Tips)", "Pending Hours", "Pending Shifts", "From", "To",
     ];
     const lines = rows.map((r) =>
       [
@@ -310,6 +354,8 @@ export function AdminPayrollTab() {
         r.worker.pay_rate.toFixed(2),
         formatDecimalHours(r.rangeMinutes),
         r.rangePay.toFixed(2),
+        r.rangeTips.toFixed(2),
+        r.rangeTotal.toFixed(2),
         formatDecimalHours(r.pendingMinutes),
         r.pendingCount,
         fromDate,
@@ -318,6 +364,7 @@ export function AdminPayrollTab() {
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(","),
     );
+
     const csv = [header.join(","), ...lines].join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
@@ -516,7 +563,7 @@ export function AdminPayrollTab() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border p-3">
               <p className="text-xs text-muted-foreground">Approved hours in range</p>
               <p className="text-2xl font-bold">{formatHours(totals.minutes)}</p>
@@ -529,6 +576,14 @@ export function AdminPayrollTab() {
                 {fromDate} → {toDate}
               </p>
             </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Tips in range</p>
+              <p className="text-2xl font-bold">{formatMoney(totals.tips)}</p>
+              <p className="text-xs text-muted-foreground">
+                Total with pay {formatMoney(totals.total)}
+              </p>
+            </div>
+
             <div className="rounded-lg border p-3">
               <p className="text-xs text-muted-foreground">Awaiting approval</p>
               <p className="text-2xl font-bold">{formatHours(totals.pendingMinutes)}</p>
@@ -644,6 +699,20 @@ export function AdminPayrollTab() {
                 ))}
               </div>
 
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[
+                  ["Tips this week", r.weekTips],
+                  ["Tips this month", r.monthTips],
+                  ["Tips selected range", r.rangeTips],
+                ].map(([label, amount]) => (
+                  <div key={label as string} className="rounded-md border p-2">
+                    <p className="text-[11px] text-muted-foreground">{label as string}</p>
+                    <p className="text-lg font-semibold">{formatMoney(amount as number)}</p>
+                  </div>
+                ))}
+              </div>
+
+
               <div className="flex flex-wrap items-end gap-3">
                 <div className="flex-1 min-w-[160px] space-y-1">
                   <Label className="text-xs flex items-center gap-1">
@@ -677,6 +746,11 @@ export function AdminPayrollTab() {
                   <p className="text-[11px] text-muted-foreground">Approved pay for range</p>
                   <p className="text-lg font-semibold">{formatMoney(r.rangePay)}</p>
                 </div>
+                <div className="rounded-md border px-3 py-2">
+                  <p className="text-[11px] text-muted-foreground">Pay + tips for range</p>
+                  <p className="text-lg font-semibold">{formatMoney(r.rangeTotal)}</p>
+                </div>
+
               </div>
             </CardContent>
           </Card>
