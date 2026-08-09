@@ -743,6 +743,12 @@ export function AdminPayrollTab() {
                 ))}
               </div>
 
+              <p className="text-[11px] text-muted-foreground">
+                Selected range tips: {formatMoney(r.rangeBookingTips)} from customers ·{" "}
+                {formatMoney(r.rangeLoggedTips)} logged by worker
+              </p>
+
+
 
               <div className="flex flex-wrap items-end gap-3">
                 <div className="flex-1 min-w-[160px] space-y-1">
