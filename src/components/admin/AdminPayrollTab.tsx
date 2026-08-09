@@ -67,7 +67,9 @@ interface TipRow {
   worker_id: string;
   day: string;
   amount: number;
+  source: "booking" | "logged";
 }
+
 
 export function AdminPayrollTab() {
   const [workers, setWorkers] = useState<PayrollWorker[]>([]);
