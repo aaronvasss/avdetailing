@@ -124,19 +124,30 @@ export default function WorkerPayPage() {
   const pendingMins = useMemo(() => sumShiftMinutes(pendingShifts(currentShifts)), [currentShifts]);
   const pendingCount = useMemo(() => pendingShifts(currentShifts).length, [currentShifts]);
   const pay = payForMinutes(approvedMins, hourlyRate);
-  const tips = useMemo(
+  const bookingTips = useMemo(
     () =>
       tipBookings
         .filter((b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd)
         .reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0),
     [tipBookings, weekStart, weekEnd],
   );
+  const selfTips = useMemo(
+    () =>
+      loggedTips
+        .filter((t) => t.tip_date >= weekStart && t.tip_date <= weekEnd)
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
+    [loggedTips, weekStart, weekEnd],
+  );
+  const tips = bookingTips + selfTips;
 
   const historyMins = useMemo(() => sumApprovedShiftMinutes(shifts), [shifts]);
   const historyTips = useMemo(
-    () => tipBookings.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0),
-    [tipBookings],
+    () =>
+      tipBookings.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0) +
+      loggedTips.reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
+    [tipBookings, loggedTips],
   );
+
   const olderShifts = useMemo(
     () => shifts.filter((s) => shiftDay(s) < weekStart),
     [shifts, weekStart],
