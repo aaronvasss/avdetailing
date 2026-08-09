@@ -372,6 +372,7 @@ export function AdminPayrollTab() {
   const exportCsv = () => {
     const header = [
       "Worker", "Email", "Hourly Rate", "Approved Hours", "Approved Pay",
+      "Customer Tips", "Worker Logged Tips",
       "Tips", "Total (Pay + Tips)", "Pending Hours", "Pending Shifts", "From", "To",
     ];
     const lines = rows.map((r) =>
@@ -381,8 +382,11 @@ export function AdminPayrollTab() {
         r.worker.pay_rate.toFixed(2),
         formatDecimalHours(r.rangeMinutes),
         r.rangePay.toFixed(2),
+        r.rangeBookingTips.toFixed(2),
+        r.rangeLoggedTips.toFixed(2),
         r.rangeTips.toFixed(2),
         r.rangeTotal.toFixed(2),
+
         formatDecimalHours(r.pendingMinutes),
         r.pendingCount,
         fromDate,
