@@ -8,6 +8,8 @@ import { Loader2, DollarSign, Clock, MapPin, History } from "lucide-react";
 import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { WorkerTipLogCard, type WorkerTipRow } from "@/components/worker/WorkerTipLogCard";
+
 import {
   fetchShifts,
   shiftMinutes,
