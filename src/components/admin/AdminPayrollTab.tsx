@@ -699,6 +699,20 @@ export function AdminPayrollTab() {
                 ))}
               </div>
 
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[
+                  ["Tips this week", r.weekTips],
+                  ["Tips this month", r.monthTips],
+                  ["Tips selected range", r.rangeTips],
+                ].map(([label, amount]) => (
+                  <div key={label as string} className="rounded-md border p-2">
+                    <p className="text-[11px] text-muted-foreground">{label as string}</p>
+                    <p className="text-lg font-semibold">{formatMoney(amount as number)}</p>
+                  </div>
+                ))}
+              </div>
+
+
               <div className="flex flex-wrap items-end gap-3">
                 <div className="flex-1 min-w-[160px] space-y-1">
                   <Label className="text-xs flex items-center gap-1">
