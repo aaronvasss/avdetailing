@@ -38,6 +38,8 @@ export default function WorkerPayPage() {
   const [loading, setLoading] = useState(true);
   const [shifts, setShifts] = useState<ShiftWithLocation[]>([]);
   const [tipBookings, setTipBookings] = useState<any[]>([]);
+  const [loggedTips, setLoggedTips] = useState<WorkerTipRow[]>([]);
+  const [workerUserId, setWorkerUserId] = useState<string | null>(null);
   const [workerProfile, setWorkerProfile] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -47,10 +49,13 @@ export default function WorkerPayPage() {
     if (!identity) {
       setShifts([]);
       setTipBookings([]);
+      setLoggedTips([]);
+      setWorkerUserId(null);
       setWorkerProfile(null);
       setLoading(false);
       return;
     }
+    setWorkerUserId(identity.authUserId);
 
     const { data: wp } = await supabase
       .from("worker_profiles")
@@ -80,6 +85,13 @@ export default function WorkerPayPage() {
         : (bookings || []).filter((b) => b.assigned_worker_id === identity.authUserId),
     );
 
+    const { data: tipRows } = await supabase
+      .from("worker_tips")
+      .select("id, user_id, tip_date, amount, payment_type, note")
+      .eq("user_id", identity.authUserId)
+      .order("tip_date", { ascending: false });
+    setLoggedTips((tipRows as WorkerTipRow[]) || []);
+
     setLoading(false);
   }, []);
 
@@ -94,6 +106,7 @@ export default function WorkerPayPage() {
       supabase.removeChannel(channel);
     };
   }, [fetchData]);
+
 
   const hourlyRate = hourlyRateFor(workerProfile);
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
