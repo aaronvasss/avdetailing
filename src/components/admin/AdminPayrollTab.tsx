@@ -67,7 +67,9 @@ interface TipRow {
   worker_id: string;
   day: string;
   amount: number;
+  source: "booking" | "logged";
 }
+
 
 export function AdminPayrollTab() {
   const [workers, setWorkers] = useState<PayrollWorker[]>([]);
@@ -126,7 +128,7 @@ export function AdminPayrollTab() {
         return;
       }
 
-      const [workerRes, profileRes, shiftRes, tipRes] = await Promise.all([
+      const [workerRes, profileRes, shiftRes, tipRes, loggedTipRes] = await Promise.all([
         supabase.from("worker_profiles").select("*").in("user_id", userIds),
         supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
         fetchShiftsResult({ fromDate: windowFrom, toDate: windowTo }),
@@ -137,11 +139,18 @@ export function AdminPayrollTab() {
           .gte("scheduled_date", windowFrom)
           .lte("scheduled_date", windowTo)
           .gt("tip_amount", 0),
+        supabase
+          .from("worker_tips")
+          .select("user_id, tip_date, amount")
+          .in("user_id", userIds)
+          .gte("tip_date", windowFrom)
+          .lte("tip_date", windowTo),
       ]);
       if (workerRes.error) throw workerRes.error;
       if (profileRes.error) throw profileRes.error;
       if (shiftRes.error) throw new Error(shiftRes.error);
       if (tipRes.error) throw tipRes.error;
+      if (loggedTipRes.error) throw loggedTipRes.error;
       if (isStale()) return;
       const workerProfiles = workerRes.data;
       const profiles = profileRes.data;
@@ -164,15 +173,24 @@ export function AdminPayrollTab() {
       setWorkers(merged);
       setEditingPay(Object.fromEntries(merged.map((w) => [w.user_id, String(w.pay_rate)])));
       setShifts(shiftRes.data);
-      setTips(
-        (tipRes.data || [])
+      setTips([
+        ...(tipRes.data || [])
           .filter((b) => b.assigned_worker_id)
           .map((b) => ({
             worker_id: b.assigned_worker_id as string,
             day: b.scheduled_date as string,
             amount: Number(b.tip_amount) || 0,
+            source: "booking" as const,
           })),
-      );
+        ...(loggedTipRes.data || []).map((t) => ({
+          worker_id: t.user_id as string,
+          day: t.tip_date as string,
+          amount: Number(t.amount) || 0,
+          source: "logged" as const,
+        })),
+      ]);
+
+
 
     } catch (e: any) {
       if (isStale()) return;
@@ -218,9 +236,15 @@ export function AdminPayrollTab() {
   );
 
   const tipsInWindow = useCallback(
-    (userId: string, from: string, to: string) =>
+    (userId: string, from: string, to: string, source?: "booking" | "logged") =>
       tips
-        .filter((t) => t.worker_id === userId && t.day >= from && t.day <= to)
+        .filter(
+          (t) =>
+            t.worker_id === userId &&
+            t.day >= from &&
+            t.day <= to &&
+            (!source || t.source === source),
+        )
         .reduce((sum, t) => sum + t.amount, 0),
     [tips],
   );
@@ -241,6 +265,8 @@ export function AdminPayrollTab() {
           rangeMinutes,
           rangePay,
           rangeTips,
+          rangeBookingTips: tipsInWindow(w.user_id, fromDate, toDate, "booking"),
+          rangeLoggedTips: tipsInWindow(w.user_id, fromDate, toDate, "logged"),
           rangeTotal: rangePay + rangeTips,
           weekTips: tipsInWindow(w.user_id, weekStart, today),
           monthTips: tipsInWindow(w.user_id, monthStart, today),
@@ -252,6 +278,7 @@ export function AdminPayrollTab() {
       }),
     [workers, shiftsInWindow, tipsInWindow, fromDate, toDate, today, weekStart, monthStart],
   );
+
 
   const totals = useMemo(
     () => ({
@@ -345,6 +372,7 @@ export function AdminPayrollTab() {
   const exportCsv = () => {
     const header = [
       "Worker", "Email", "Hourly Rate", "Approved Hours", "Approved Pay",
+      "Customer Tips", "Worker Logged Tips",
       "Tips", "Total (Pay + Tips)", "Pending Hours", "Pending Shifts", "From", "To",
     ];
     const lines = rows.map((r) =>
@@ -354,8 +382,11 @@ export function AdminPayrollTab() {
         r.worker.pay_rate.toFixed(2),
         formatDecimalHours(r.rangeMinutes),
         r.rangePay.toFixed(2),
+        r.rangeBookingTips.toFixed(2),
+        r.rangeLoggedTips.toFixed(2),
         r.rangeTips.toFixed(2),
         r.rangeTotal.toFixed(2),
+
         formatDecimalHours(r.pendingMinutes),
         r.pendingCount,
         fromDate,
@@ -711,6 +742,12 @@ export function AdminPayrollTab() {
                   </div>
                 ))}
               </div>
+
+              <p className="text-[11px] text-muted-foreground">
+                Selected range tips: {formatMoney(r.rangeBookingTips)} from customers ·{" "}
+                {formatMoney(r.rangeLoggedTips)} logged by worker
+              </p>
+
 
 
               <div className="flex flex-wrap items-end gap-3">

@@ -8,6 +8,8 @@ import { Loader2, DollarSign, Clock, MapPin, History } from "lucide-react";
 import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { getCurrentWorkerIdentity } from "@/lib/workerAssignments";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { WorkerTipLogCard, type WorkerTipRow } from "@/components/worker/WorkerTipLogCard";
+
 import {
   fetchShifts,
   shiftMinutes,
@@ -38,6 +40,8 @@ export default function WorkerPayPage() {
   const [loading, setLoading] = useState(true);
   const [shifts, setShifts] = useState<ShiftWithLocation[]>([]);
   const [tipBookings, setTipBookings] = useState<any[]>([]);
+  const [loggedTips, setLoggedTips] = useState<WorkerTipRow[]>([]);
+  const [workerUserId, setWorkerUserId] = useState<string | null>(null);
   const [workerProfile, setWorkerProfile] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -47,10 +51,13 @@ export default function WorkerPayPage() {
     if (!identity) {
       setShifts([]);
       setTipBookings([]);
+      setLoggedTips([]);
+      setWorkerUserId(null);
       setWorkerProfile(null);
       setLoading(false);
       return;
     }
+    setWorkerUserId(identity.authUserId);
 
     const { data: wp } = await supabase
       .from("worker_profiles")
@@ -80,6 +87,13 @@ export default function WorkerPayPage() {
         : (bookings || []).filter((b) => b.assigned_worker_id === identity.authUserId),
     );
 
+    const { data: tipRows } = await supabase
+      .from("worker_tips")
+      .select("id, user_id, tip_date, amount, payment_type, note")
+      .eq("user_id", identity.authUserId)
+      .order("tip_date", { ascending: false });
+    setLoggedTips((tipRows as WorkerTipRow[]) || []);
+
     setLoading(false);
   }, []);
 
@@ -95,6 +109,7 @@ export default function WorkerPayPage() {
     };
   }, [fetchData]);
 
+
   const hourlyRate = hourlyRateFor(workerProfile);
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
@@ -109,19 +124,30 @@ export default function WorkerPayPage() {
   const pendingMins = useMemo(() => sumShiftMinutes(pendingShifts(currentShifts)), [currentShifts]);
   const pendingCount = useMemo(() => pendingShifts(currentShifts).length, [currentShifts]);
   const pay = payForMinutes(approvedMins, hourlyRate);
-  const tips = useMemo(
+  const bookingTips = useMemo(
     () =>
       tipBookings
         .filter((b) => b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd)
         .reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0),
     [tipBookings, weekStart, weekEnd],
   );
+  const selfTips = useMemo(
+    () =>
+      loggedTips
+        .filter((t) => t.tip_date >= weekStart && t.tip_date <= weekEnd)
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
+    [loggedTips, weekStart, weekEnd],
+  );
+  const tips = bookingTips + selfTips;
 
   const historyMins = useMemo(() => sumApprovedShiftMinutes(shifts), [shifts]);
   const historyTips = useMemo(
-    () => tipBookings.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0),
-    [tipBookings],
+    () =>
+      tipBookings.reduce((sum, b) => sum + (Number(b.tip_amount) || 0), 0) +
+      loggedTips.reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
+    [tipBookings, loggedTips],
   );
+
   const olderShifts = useMemo(
     () => shifts.filter((s) => shiftDay(s) < weekStart),
     [shifts, weekStart],
@@ -246,8 +272,24 @@ export default function WorkerPayPage() {
                 </p>
               </div>
             </div>
+            <div className="border-t border-border px-4 py-2 text-center">
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                Tips: ${bookingTips.toFixed(2)} from customers · ${selfTips.toFixed(2)} logged by you
+              </p>
+            </div>
           </CardContent>
         </Card>
+
+        {workerUserId && (
+          <WorkerTipLogCard
+            userId={workerUserId}
+            rangeStart={weekStart}
+            rangeEnd={weekEnd}
+            rangeLabel="this week"
+            tips={loggedTips}
+            onChanged={fetchData}
+          />
+        )}
 
         {pendingCount > 0 && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5">
@@ -257,6 +299,7 @@ export default function WorkerPayPage() {
             </p>
           </div>
         )}
+
 
         {/* This week's shifts */}
         <Card>
