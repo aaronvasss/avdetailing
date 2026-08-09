@@ -272,8 +272,24 @@ export default function WorkerPayPage() {
                 </p>
               </div>
             </div>
+            <div className="border-t border-border px-4 py-2 text-center">
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                Tips: ${bookingTips.toFixed(2)} from customers · ${selfTips.toFixed(2)} logged by you
+              </p>
+            </div>
           </CardContent>
         </Card>
+
+        {workerUserId && (
+          <WorkerTipLogCard
+            userId={workerUserId}
+            rangeStart={weekStart}
+            rangeEnd={weekEnd}
+            rangeLabel="this week"
+            tips={loggedTips}
+            onChanged={fetchData}
+          />
+        )}
 
         {pendingCount > 0 && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5">
@@ -283,6 +299,7 @@ export default function WorkerPayPage() {
             </p>
           </div>
         )}
+
 
         {/* This week's shifts */}
         <Card>
