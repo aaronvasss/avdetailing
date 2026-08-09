@@ -2265,6 +2265,50 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_tips: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          id: string
+          note: string | null
+          payment_type: string
+          tip_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          payment_type?: string
+          tip_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          payment_type?: string
+          tip_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_tips_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
