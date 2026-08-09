@@ -236,9 +236,15 @@ export function AdminPayrollTab() {
   );
 
   const tipsInWindow = useCallback(
-    (userId: string, from: string, to: string) =>
+    (userId: string, from: string, to: string, source?: "booking" | "logged") =>
       tips
-        .filter((t) => t.worker_id === userId && t.day >= from && t.day <= to)
+        .filter(
+          (t) =>
+            t.worker_id === userId &&
+            t.day >= from &&
+            t.day <= to &&
+            (!source || t.source === source),
+        )
         .reduce((sum, t) => sum + t.amount, 0),
     [tips],
   );
@@ -259,6 +265,8 @@ export function AdminPayrollTab() {
           rangeMinutes,
           rangePay,
           rangeTips,
+          rangeBookingTips: tipsInWindow(w.user_id, fromDate, toDate, "booking"),
+          rangeLoggedTips: tipsInWindow(w.user_id, fromDate, toDate, "logged"),
           rangeTotal: rangePay + rangeTips,
           weekTips: tipsInWindow(w.user_id, weekStart, today),
           monthTips: tipsInWindow(w.user_id, monthStart, today),
@@ -270,6 +278,7 @@ export function AdminPayrollTab() {
       }),
     [workers, shiftsInWindow, tipsInWindow, fromDate, toDate, today, weekStart, monthStart],
   );
+
 
   const totals = useMemo(
     () => ({
