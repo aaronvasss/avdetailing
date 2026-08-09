@@ -563,7 +563,7 @@ export function AdminPayrollTab() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border p-3">
               <p className="text-xs text-muted-foreground">Approved hours in range</p>
               <p className="text-2xl font-bold">{formatHours(totals.minutes)}</p>
@@ -576,6 +576,14 @@ export function AdminPayrollTab() {
                 {fromDate} → {toDate}
               </p>
             </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Tips in range</p>
+              <p className="text-2xl font-bold">{formatMoney(totals.tips)}</p>
+              <p className="text-xs text-muted-foreground">
+                Total with pay {formatMoney(totals.total)}
+              </p>
+            </div>
+
             <div className="rounded-lg border p-3">
               <p className="text-xs text-muted-foreground">Awaiting approval</p>
               <p className="text-2xl font-bold">{formatHours(totals.pendingMinutes)}</p>
