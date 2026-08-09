@@ -345,7 +345,7 @@ export function AdminPayrollTab() {
   const exportCsv = () => {
     const header = [
       "Worker", "Email", "Hourly Rate", "Approved Hours", "Approved Pay",
-      "Pending Hours", "Pending Shifts", "From", "To",
+      "Tips", "Total (Pay + Tips)", "Pending Hours", "Pending Shifts", "From", "To",
     ];
     const lines = rows.map((r) =>
       [
@@ -354,6 +354,8 @@ export function AdminPayrollTab() {
         r.worker.pay_rate.toFixed(2),
         formatDecimalHours(r.rangeMinutes),
         r.rangePay.toFixed(2),
+        r.rangeTips.toFixed(2),
+        r.rangeTotal.toFixed(2),
         formatDecimalHours(r.pendingMinutes),
         r.pendingCount,
         fromDate,
@@ -362,6 +364,7 @@ export function AdminPayrollTab() {
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(","),
     );
+
     const csv = [header.join(","), ...lines].join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
