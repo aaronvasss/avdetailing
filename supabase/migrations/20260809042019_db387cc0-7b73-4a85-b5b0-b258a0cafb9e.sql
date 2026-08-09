@@ -1,0 +1,1 @@
+UPDATE public.app_error_logs SET resolved_at = now() WHERE resolved_at IS NULL AND (stack ILIKE '%leadconnectorhq%' OR message ILIKE '%navItems is not defined%');
