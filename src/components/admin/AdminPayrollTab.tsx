@@ -217,37 +217,54 @@ export function AdminPayrollTab() {
     [shifts],
   );
 
+  const tipsInWindow = useCallback(
+    (userId: string, from: string, to: string) =>
+      tips
+        .filter((t) => t.worker_id === userId && t.day >= from && t.day <= to)
+        .reduce((sum, t) => sum + t.amount, 0),
+    [tips],
+  );
+
   const rows = useMemo(
     () =>
       workers.map((w) => {
         const rangeShifts = shiftsInWindow(w.user_id, fromDate, toDate);
         const rangeMinutes = sumApprovedShiftMinutes(rangeShifts);
         const pending = pendingShifts(rangeShifts);
+        const rangeTips = tipsInWindow(w.user_id, fromDate, toDate);
+        const rangePay = payForMinutes(rangeMinutes, w.pay_rate);
         return {
           worker: w,
           todayMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, today, today)),
           weekMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, weekStart, today)),
           monthMinutes: sumApprovedShiftMinutes(shiftsInWindow(w.user_id, monthStart, today)),
           rangeMinutes,
-          rangePay: payForMinutes(rangeMinutes, w.pay_rate),
+          rangePay,
+          rangeTips,
+          rangeTotal: rangePay + rangeTips,
+          weekTips: tipsInWindow(w.user_id, weekStart, today),
+          monthTips: tipsInWindow(w.user_id, monthStart, today),
           openShift: rangeShifts.some((s) => !s.clock_out_at),
           pendingCount: pending.length,
           pendingMinutes: sumShiftMinutes(pending),
           pendingIds: pending.map((s) => s.id),
         };
       }),
-    [workers, shiftsInWindow, fromDate, toDate, today, weekStart, monthStart],
+    [workers, shiftsInWindow, tipsInWindow, fromDate, toDate, today, weekStart, monthStart],
   );
 
   const totals = useMemo(
     () => ({
       minutes: rows.reduce((s, r) => s + r.rangeMinutes, 0),
       pay: rows.reduce((s, r) => s + r.rangePay, 0),
+      tips: rows.reduce((s, r) => s + r.rangeTips, 0),
+      total: rows.reduce((s, r) => s + r.rangeTotal, 0),
       pendingCount: rows.reduce((s, r) => s + r.pendingCount, 0),
       pendingMinutes: rows.reduce((s, r) => s + r.pendingMinutes, 0),
     }),
     [rows],
   );
+
 
   const approveAll = async (userId: string | null, ids: string[]) => {
     if (ids.length === 0) return;
