@@ -63,13 +63,21 @@ function rangeForPreset(preset: PresetId): { from: string; to: string } {
   return { from: toISODate(first), to: toISODate(last) };
 }
 
+interface TipRow {
+  worker_id: string;
+  day: string;
+  amount: number;
+}
+
 export function AdminPayrollTab() {
   const [workers, setWorkers] = useState<PayrollWorker[]>([]);
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
+  const [tips, setTips] = useState<TipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const loadSeq = useRef(0);
+
   const [preset, setPreset] = useState<PresetId>("week");
   const initialRange = rangeForPreset("week");
   const [fromDate, setFromDate] = useState(initialRange.from);
