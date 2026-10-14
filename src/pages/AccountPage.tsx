@@ -221,6 +221,13 @@ export default function AccountPage() {
                   <span>Referrals</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="payments"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span>Payments</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="settings"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
