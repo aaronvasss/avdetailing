@@ -6,3 +6,12 @@
 - [x] Present desktop/mobile previews.
 - [x] Remove GoHighLevel review widget after successful verification.
 - [ ] Publish only when the user requests it.
+
+# Email-sending update
+- [x] Inventory legacy senders, data writes, and preserved email content.
+- [x] Replace queued account emails with managed account email sending.
+- [x] Preserve independent Resend booking, contact, and review emails.
+- [x] Scaffold the managed template helper and preview.
+- [ ] Validate replacement functions and remove legacy queue files from the repository only.
+- [ ] Deploy updated email functions and verify the project remains buildable.
+- [ ] User reviews and publishes to complete the permanent update.
