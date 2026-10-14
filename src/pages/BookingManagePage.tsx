@@ -75,12 +75,7 @@ export default function BookingManagePage() {
     
     try {
       // Fetch existing bookings for this date (excluding current booking)
-      const { data: existingBookings } = await supabase
-        .from("bookings")
-        .select("id, scheduled_time, duration_minutes")
-        .eq("scheduled_date", dateStr)
-        .neq("id", booking?.id || "")
-        .in("status", ["pending", "confirmed", "in_progress"]);
+      const { data: existingBookings } = await supabase.from("bookings").select("id, scheduled_time, duration_minutes").eq("scheduled_date", dateStr).neq("id", booking?.id || "").in("status", ["pending", "confirmed", "in_progress"]);
 
       // Generate available time slots based on service duration and existing bookings
       const slots = generateTimeSlots(

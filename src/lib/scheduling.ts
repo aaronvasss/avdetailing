@@ -10,13 +10,14 @@ import {
 // ============= SCHEDULING CONSTANTS (defaults — overridden by DB settings) =============
 
 export const WORKING_HOURS = {
-  START_HOUR: 0,
+  START_HOUR: 6,
   START_MINUTE: 0,
-  END_HOUR: 23,
-  END_MINUTE: 59,
+  END_HOUR: 20,
+  END_MINUTE: 0,
 };
 
-export const BUFFER_MINUTES = 15;
+export const BUFFER_MINUTES = 30;
+export const LATEST_START_MINUTES = 18 * 60;
 export const SLOT_INTERVAL = 30;
 
 // Dynamic config interface matching useSchedulingSettings
@@ -28,6 +29,29 @@ export interface SchedulingConfig {
   bufferMinutes: number;
   defaultDuration: number;
   slotInterval: number;
+  /** Latest allowed start time (minutes from midnight) */
+  latestStartMinutes?: number;
+  /** How many jobs can run at the same time (available workers) */
+  capacity?: number;
+}
+
+/** Count bookings overlapping [start, end) (each booking padded with buffer). */
+function countOverlaps(
+  start: number,
+  end: number,
+  bookings: Array<{ scheduled_time: string; duration_minutes: number | null; id?: string }>,
+  buffer: number,
+  defaultDur: number,
+  excludeId?: string
+): number {
+  let n = 0;
+  for (const b of bookings) {
+    if (excludeId && b.id === excludeId) continue;
+    const bs = timeToMinutes(b.scheduled_time);
+    const be = bs + (b.duration_minutes || defaultDur) + buffer;
+    if (start < be && end > bs) n++;
+  }
+  return n;
 }
 
 
@@ -123,7 +147,9 @@ export function isSlotValid(slotMinutes: number, serviceDuration: number, config
   const workStart = getWorkingStartMinutes(config);
   const workEnd = getWorkingEndMinutes(config);
   
+  const latest = config?.latestStartMinutes ?? LATEST_START_MINUTES;
   if (slotMinutes < workStart) return false;
+  if (slotMinutes > latest) return false;
   if (slotMinutes + serviceDuration > workEnd) return false;
   
   return true;
@@ -156,21 +182,10 @@ export function generateTimeSlots(
     if (!isSlotValid(minutes, serviceDuration, config)) continue;
     if (minutes < minMinutes) continue;
     
-    let isAvailable = true;
-    
-    for (const booking of existingBookings) {
-      const bookingStart = timeToMinutes(booking.scheduled_time);
-      const bookingDuration = booking.duration_minutes || defaultDur;
-      const bookingEnd = bookingStart + bookingDuration + buffer;
-      
-      const slotEnd = minutes + serviceDuration + buffer;
-      
-      if (minutes < bookingEnd && slotEnd > bookingStart) {
-        isAvailable = false;
-        break;
-      }
-    }
-    
+    const capacity = Math.max(1, config?.capacity ?? 1);
+    const isAvailable =
+      countOverlaps(minutes, minutes + serviceDuration + buffer, existingBookings, buffer, defaultDur) < capacity;
+
     if (isAvailable) {
       // Canonical 24-hour value — UI formats it for display with formatTime12h()
       slots.push(minutesToDbTime(minutes));
@@ -207,6 +222,11 @@ export function validateBookingTime(
     };
   }
   
+  const latest = config?.latestStartMinutes ?? LATEST_START_MINUTES;
+  if (slotMinutes > latest) {
+    return { valid: false, error: `The latest start time is ${minutesToTime(latest)}.` };
+  }
+
   if (slotMinutes + serviceDuration > workEnd) {
     return {
       valid: false,
@@ -214,23 +234,14 @@ export function validateBookingTime(
     };
   }
   
-  for (const booking of existingBookings) {
-    if (excludeBookingId && booking.id === excludeBookingId) continue;
-    
-    const bookingStart = timeToMinutes(booking.scheduled_time);
-    const bookingDuration = booking.duration_minutes || defaultDur;
-    const bookingEnd = bookingStart + bookingDuration + buffer;
-    
-    const slotEnd = slotMinutes + serviceDuration + buffer;
-    
-    if (slotMinutes < bookingEnd && slotEnd > bookingStart) {
-      return {
-        valid: false,
-        error: "This time conflicts with an existing appointment. Please choose a different time.",
-      };
-    }
+  const capacity = Math.max(1, config?.capacity ?? 1);
+  if (countOverlaps(slotMinutes, slotMinutes + serviceDuration + buffer, existingBookings, buffer, defaultDur, excludeBookingId) >= capacity) {
+    return {
+      valid: false,
+      error: "All of our technicians are booked at this time. Please choose a different time.",
+    };
   }
-  
+
   return { valid: true };
 }
 
@@ -256,7 +267,5 @@ export function formatDuration(minutes: number): string {
 export function getWorkingHoursDisplay(config?: SchedulingConfig): string {
   const start = getWorkingStartMinutes(config);
   const end = getWorkingEndMinutes(config);
-  // Full day coverage → show 24/7
-  if (start === 0 && end >= 1439) return "24/7";
   return `${minutesToTime(start)} - ${minutesToTime(end)}`;
 }

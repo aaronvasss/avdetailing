@@ -491,11 +491,7 @@ const BookingPage = () => {
     
     try {
       // Fetch existing bookings for this date
-      const { data: existingBookings } = await supabase
-        .from("bookings")
-        .select("id, scheduled_time, duration_minutes")
-        .eq("scheduled_date", dateStr)
-        .in("status", ["pending", "confirmed", "in_progress"]);
+      const { data: existingBookings } = await supabase.rpc("get_day_bookings" as any, { _date: dateStr }) as { data: Array<{ scheduled_time: string; duration_minutes: number | null }> | null };
 
       // Generate slots using a minimal duration so service length never blocks slots.
       // Conflict checks still use real durations of EXISTING bookings to prevent overlap.
