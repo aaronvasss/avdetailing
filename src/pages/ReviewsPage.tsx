@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ReviewsWidgetSection } from "@/components/home/ReviewsWidgetSection";
 
-const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/place/AV+Detailing+LLC";
+import { GOOGLE_REVIEWS_URL } from "@/lib/google-business";
 
 const TRUST_STATS = [
   { icon: Star, value: "Google", label: "Verified Reviews" },
@@ -99,10 +99,10 @@ const ReviewsPage = () => {
                   <Star className="h-8 w-8 fill-primary text-primary" />
                 </div>
                 <div className="text-2xl font-bold text-foreground leading-tight mb-2">
-                  Verified Google Reviews
+                  Read our verified reviews on Google
                 </div>
                 <div className="text-sm text-muted-foreground mb-4">
-                  Read our live review feed below — straight from our Google Business Profile.
+                  Read our live review feed below, straight from our Google Business Profile.
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
                   <CheckCircle2 className="h-3.5 w-3.5" />

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SEOHead } from "@/components/seo/SEOHead";
 
-const GOOGLE_REVIEW_URL = "https://g.page/r/CYyQqJOk3f1hEBM/review";
+import { GOOGLE_WRITE_REVIEW_URL as GOOGLE_REVIEW_URL } from "@/lib/google-business";
 
 export default function RatingPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
