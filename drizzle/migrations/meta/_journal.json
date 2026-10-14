@@ -15,6 +15,13 @@
       "when": 1791944174429,
       "tag": "0001_create_featured_google_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791946008604,
+      "tag": "0002_vehicle_nickname_address_photo",
+      "breakpoints": true
     }
   ]
 }
