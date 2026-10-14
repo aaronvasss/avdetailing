@@ -12,6 +12,7 @@ import { CsvImportSection } from "./CsvImportSection";
 import { DangerZoneSection } from "./DangerZoneSection";
 import { BusinessHoursSettings } from "./BusinessHoursSettings";
 import { BlockedDatesManager } from "./BlockedDatesManager";
+import { AdminGoogleReviews } from "./AdminGoogleReviews";
 
 interface BusinessSetting {
   key: string;
@@ -174,6 +175,8 @@ export function AdminSettingsTab() {
 
       {/* Blocked Dates */}
       <BlockedDatesManager />
+
+      <AdminGoogleReviews />
 
       {/* Phone Numbers */}
       <Card>
