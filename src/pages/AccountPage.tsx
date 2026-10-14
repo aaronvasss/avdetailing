@@ -25,6 +25,7 @@ import { MembershipsTab } from "@/components/account/MembershipsTab";
 import { ReferralTab } from "@/components/account/ReferralTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { PrepChecklist } from "@/components/account/PrepChecklist";
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -228,7 +229,8 @@ export default function AccountPage() {
               </TabsList>
             </div>
 
-            <TabsContent value="appointments" className="mt-6">
+            <TabsContent value="appointments" className="mt-6 space-y-6">
+              <PrepChecklist />
               <AppointmentsTab userId={user?.id} />
             </TabsContent>
 

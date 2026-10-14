@@ -1,6 +1,8 @@
 {
   "name": "AV Detailing",
   "short_name": "AV Detailing",
+  "start_url": "/account",
+  "scope": "/",
   "icons": [
     {
       "src": "/favicon.png",
