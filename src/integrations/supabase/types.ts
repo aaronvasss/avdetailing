@@ -908,6 +908,24 @@ export type Database = {
         }
         Relationships: []
       }
+      featured_google_reviews: {
+        Row: {
+          id: boolean
+          reviews: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          reviews?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          reviews?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       import_history: {
         Row: {
           created_at: string
@@ -2363,6 +2381,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      valid_featured_google_reviews: { Args: { items: Json }; Returns: boolean }
       validate_referral_code: {
         Args: { code_input: string }
         Returns: {
