@@ -8,6 +8,13 @@
       "when": 1791942348625,
       "tag": "0000_booking_capacity_availability",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791944174429,
+      "tag": "0001_create_featured_google_reviews",
+      "breakpoints": true
     }
   ]
 }

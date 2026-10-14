@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeferUntilVisible } from "@/components/common/DeferUntilVisible";
+import { loadFeaturedReviews, type FeaturedGoogleReview } from "@/lib/featured-google-reviews";
+import { FeaturedReviewCards } from "./FeaturedReviewCards";
 import {
   GOOGLE_REVIEWS_URL,
   GOOGLE_REVIEWS_WIDGET_URL,
@@ -53,22 +55,25 @@ function LiveFeed() {
 }
 
 export function GoogleReviews() {
+  const [reviews, setReviews] = useState<FeaturedGoogleReview[] | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
+    loadFeaturedReviews(controller.signal).then(setReviews).catch(() => setReviews([]));
+    return () => { controller.abort(); window.clearTimeout(timeout); };
+  }, []);
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="rounded-2xl border border-border bg-background/50 p-4 sm:p-6">
-        <DeferUntilVisible minHeight={420}>
-          <LiveFeed />
-        </DeferUntilVisible>
-      </div>
+    <div className="max-w-6xl mx-auto" data-testid="google-reviews">
+      {reviews === null ? <div className="min-h-[340px] grid grid-cols-1 gap-4 md:grid-cols-3" aria-label="Loading Google reviews">{[0,1,2].map(i => <div key={i} className="min-h-[340px] rounded-lg border border-border bg-background motion-safe:animate-pulse" />)}</div> : reviews.length === 3 ? <FeaturedReviewCards reviews={reviews} /> : <DeferUntilVisible minHeight={420}><LiveFeed /></DeferUntilVisible>}
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
         <Button asChild variant="outline" className="font-semibold">
           <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-            Read our verified reviews on Google <ExternalLink className="ml-2 h-4 w-4" />
+            Read All Reviews on Google <ExternalLink className="ml-2 h-4 w-4" />
           </a>
         </Button>
         <Button asChild className="font-semibold">
           <a href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer">
-            Leave us a Google review
+            Leave Us a Google Review
           </a>
         </Button>
       </div>
