@@ -9,7 +9,18 @@ import {
   Clock,
   Plus,
   CalendarDays,
+  Car,
+  DollarSign,
+  MapPin,
+  CalendarClock,
+  CalendarPlus,
+  Navigation,
+  Phone,
+  MessageSquare,
+  RotateCcw,
+  XCircle,
 } from "lucide-react";
+import { downloadICS, createBookingCalendarEvent } from "@/lib/calendar";
 import { format, isAfter, startOfToday, parse as parseDate, subDays, addDays } from "date-fns";
 
 function formatTime12h(time: string): string {
@@ -185,40 +196,48 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   return (
     <div className="space-y-6">
       {/* Next Appointment Highlight */}
-      {nextAppointment && (
-        <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-primary mb-1">
-                  Next Appointment
-                </p>
-                <h3 className="text-xl font-bold">
-                  {nextAppointment.services?.name || "Detailing Service"}
-                </h3>
-                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4" />
-                    {format(
-                      new Date(nextAppointment.scheduled_date),
-                      "EEEE, MMMM d"
-                    )}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4" />
-                    {formatTime12h(nextAppointment.scheduled_time)}
-                  </span>
+      {nextAppointment && (() => {
+        const b = nextAppointment;
+        const addr = [b.service_address, b.service_city, b.service_state, b.service_zip].filter(Boolean).join(", ");
+        const vehicle = [b.vehicle_year, b.vehicle_make, b.vehicle_model].filter(Boolean).join(" ") || b.vehicle_type;
+        const price = b.total_price != null ? `$${Number(b.total_price).toFixed(2)}` : null;
+        return (
+          <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+            <CardContent className="p-5 sm:p-6 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-primary mb-1">Next Appointment</p>
+                  <h3 className="text-xl font-bold">{b.services?.name || "Detailing Service"}</h3>
                 </div>
+                <span className="text-xs uppercase tracking-wide rounded-full border border-primary/40 px-2.5 py-1 text-primary">
+                  {b.status?.replace(/_/g, " ")}
+                </span>
               </div>
-              <div className="flex flex-col gap-2">
-                <Button size="sm" onClick={() => handleViewDetails(nextAppointment)}>
-                  View Details
-                </Button>
+              <div className="grid sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" />{format(new Date(b.scheduled_date + "T12:00:00"), "EEEE, MMMM d")}</span>
+                <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" />{formatTime12h(b.scheduled_time)} (30 min arrival window)</span>
+                {vehicle && <span className="flex items-center gap-1.5"><Car className="h-4 w-4" />{vehicle}</span>}
+                {price && <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4" />{price}</span>}
+                {addr && <span className="flex items-center gap-1.5 sm:col-span-2"><MapPin className="h-4 w-4 shrink-0" />{addr}</span>}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <Button size="sm" onClick={() => handleViewDetails(b)}>View Details</Button>
+                <Button size="sm" variant="outline" onClick={() => handleReschedule(b)}><CalendarClock className="h-4 w-4 mr-1" />Reschedule</Button>
+                <Button size="sm" variant="outline" onClick={() => downloadICS(createBookingCalendarEvent(b as any))}><CalendarPlus className="h-4 w-4 mr-1" />Add to Calendar</Button>
+                {addr ? (
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`} target="_blank" rel="noopener noreferrer"><Navigation className="h-4 w-4 mr-1" />Directions</a>
+                  </Button>
+                ) : <span />}
+                <Button size="sm" variant="outline" asChild><a href="tel:+12255216264"><Phone className="h-4 w-4 mr-1" />Call Us</a></Button>
+                <Button size="sm" variant="outline" asChild><a href="sms:+12255216264"><MessageSquare className="h-4 w-4 mr-1" />Text Us</a></Button>
+                {!isAdmin && <Button size="sm" variant="outline" asChild><Link to="/book"><RotateCcw className="h-4 w-4 mr-1" />Book Again</Link></Button>}
+                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleCancel(b)}><XCircle className="h-4 w-4 mr-1" />Cancel</Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* View Toggle & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
