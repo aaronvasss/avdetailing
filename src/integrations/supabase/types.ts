@@ -2325,6 +2325,14 @@ export type Database = {
       }
       generate_booking_token: { Args: never; Returns: string }
       generate_calendar_token: { Args: never; Returns: string }
+      get_booking_capacity: { Args: never; Returns: number }
+      get_day_bookings: {
+        Args: { _date: string }
+        Returns: {
+          duration_minutes: number
+          scheduled_time: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
