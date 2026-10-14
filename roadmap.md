@@ -12,6 +12,7 @@
 - [x] Replace queued account emails with managed account email sending.
 - [x] Preserve independent Resend booking, contact, and review emails.
 - [x] Scaffold the managed template helper and preview.
-- [ ] Validate replacement functions and remove legacy queue files from the repository only.
+- [x] Validate replacement functions and remove legacy queue files from the repository only.
+- [x] Events receiver not required: no suppression or unsubscribe handlers are being removed, and no feature reacts to those events.
 - [ ] Deploy updated email functions and verify the project remains buildable.
 - [ ] User reviews and publishes to complete the permanent update.
