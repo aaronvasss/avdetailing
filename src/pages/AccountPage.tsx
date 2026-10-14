@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
   Gift,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileTab } from "@/components/account/ProfileTab";
