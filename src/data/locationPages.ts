@@ -173,7 +173,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Truck- and SUV-friendly pricing tiers, including lifted trucks and 3-row family haulers that are common on the I-12 commute into Baton Rouge.",
       "Heavy lovebug, tar, and I-12 road-film decontamination is built into every exterior service — spring and late-summer lovebug seasons hit Livingston Parish especially hard.",
       "Boat and RV detailing available for Tickfaw and Amite River trailer setups stored at home, including gelcoat oxidation removal.",
-      "Flexible 24/7 scheduling with a 30-minute arrival window text, so you don't lose a work day waiting on us.",
+      "Flexible 7 day scheduling with a 30-minute arrival window text, so you don't lose a work day waiting on us.",
     ],
     faqs: [
       {

@@ -204,7 +204,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-semibold mb-1">Hours</h3>
                     <p className="text-muted-foreground">
-                      24/7
+                      Every day, 6:00 AM to 8:00 PM
                     </p>
                   </div>
                 </div>

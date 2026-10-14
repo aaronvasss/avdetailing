@@ -16,9 +16,9 @@ interface HoursConfig {
 }
 
 const DEFAULTS: HoursConfig = {
-  business_hours_start: "00:00",
-  business_hours_end: "23:59",
-  buffer_minutes: "15",
+  business_hours_start: "06:00",
+  business_hours_end: "20:00",
+  buffer_minutes: "30",
   default_duration: "135",
   slot_interval: "30",
 };
