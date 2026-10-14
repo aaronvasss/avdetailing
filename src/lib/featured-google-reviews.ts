@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 const googleUrl = z.string().url().refine((value) => {
@@ -23,20 +22,18 @@ export const featuredReviewSchema = z.object({
 export type FeaturedGoogleReview = z.infer<typeof featuredReviewSchema>;
 export const featuredReviewsSchema = z.array(featuredReviewSchema).max(3);
 
-// This new table is isolated here until managed database types refresh.
-const reviewsClient = supabase as unknown as SupabaseClient;
 export async function loadFeaturedReviews(signal?: AbortSignal): Promise<FeaturedGoogleReview[]> {
-  let query = reviewsClient.from("featured_google_reviews").select("reviews").eq("id", true).maybeSingle();
+  let query = supabase.from("featured_google_reviews").select("reviews").eq("id", true);
   if (signal) query = query.abortSignal(signal);
-  const { data, error } = await query;
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return featuredReviewsSchema.parse(data?.reviews ?? []);
 }
 export async function saveFeaturedReviews(reviews: FeaturedGoogleReview[]) {
   const validated = featuredReviewsSchema.length(3, "Select exactly three original Google reviews.").parse(reviews);
-  const { data, error } = await reviewsClient.from("featured_google_reviews")
+  const { data, error } = await supabase.from("featured_google_reviews")
     .upsert({ id: true, reviews: validated, updated_at: new Date().toISOString() })
-    .select("reviews").single().abortSignal(AbortSignal.timeout(15000));
+    .select("reviews").abortSignal(AbortSignal.timeout(15000)).single();
   if (error) throw error;
   return featuredReviewsSchema.parse(data.reviews);
 }
