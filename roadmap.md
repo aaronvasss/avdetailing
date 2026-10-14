@@ -14,5 +14,5 @@
 - [x] Scaffold the managed template helper and preview.
 - [x] Validate replacement functions and remove legacy queue files from the repository only.
 - [x] Events receiver not required: no suppression or unsubscribe handlers are being removed, and no feature reacts to those events.
-- [ ] Deploy updated email functions and verify the project remains buildable.
+- [x] Deploy updated email functions and verify the project remains buildable; six template renders, signature rejection, and protected preview passed without real sends.
 - [ ] User reviews and publishes to complete the permanent update.
