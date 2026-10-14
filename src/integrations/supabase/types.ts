@@ -772,7 +772,10 @@ export type Database = {
           license_plate: string | null
           make: string | null
           model: string | null
+          nickname: string | null
           notes: string | null
+          photo_path: string | null
+          service_address: string | null
           size_category: string | null
           updated_at: string
           user_id: string | null
@@ -788,7 +791,10 @@ export type Database = {
           license_plate?: string | null
           make?: string | null
           model?: string | null
+          nickname?: string | null
           notes?: string | null
+          photo_path?: string | null
+          service_address?: string | null
           size_category?: string | null
           updated_at?: string
           user_id?: string | null
@@ -804,7 +810,10 @@ export type Database = {
           license_plate?: string | null
           make?: string | null
           model?: string | null
+          nickname?: string | null
           notes?: string | null
+          photo_path?: string | null
+          service_address?: string | null
           size_category?: string | null
           updated_at?: string
           user_id?: string | null
