@@ -23,6 +23,7 @@ import { AddressesTab } from "@/components/account/AddressesTab";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
 import { ReferralTab } from "@/components/account/ReferralTab";
+import PaymentsTab from "@/components/account/PaymentsTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { PrepChecklist } from "@/components/account/PrepChecklist";
@@ -248,6 +249,10 @@ export default function AccountPage() {
 
             <TabsContent value="referrals" className="mt-6">
               <ReferralTab userId={user?.id} />
+            </TabsContent>
+
+            <TabsContent value="payments" className="mt-6">
+              <PaymentsTab userId={user?.id} />
             </TabsContent>
 
             <TabsContent value="settings" className="mt-6">
