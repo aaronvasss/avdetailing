@@ -15,6 +15,7 @@ import {
   Plus,
   Settings,
   Gift,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileTab } from "@/components/account/ProfileTab";
@@ -23,6 +24,7 @@ import { AddressesTab } from "@/components/account/AddressesTab";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
 import { MembershipsTab } from "@/components/account/MembershipsTab";
 import { ReferralTab } from "@/components/account/ReferralTab";
+import PaymentsTab from "@/components/account/PaymentsTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { PrepChecklist } from "@/components/account/PrepChecklist";
@@ -220,6 +222,13 @@ export default function AccountPage() {
                   <span>Referrals</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="payments"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span>Payments</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="settings"
                   className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
@@ -248,6 +257,10 @@ export default function AccountPage() {
 
             <TabsContent value="referrals" className="mt-6">
               <ReferralTab userId={user?.id} />
+            </TabsContent>
+
+            <TabsContent value="payments" className="mt-6">
+              <PaymentsTab userId={user?.id} />
             </TabsContent>
 
             <TabsContent value="settings" className="mt-6">
