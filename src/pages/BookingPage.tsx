@@ -28,6 +28,7 @@ import {
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
 import { toDbTime, formatTime12h, toDateString } from "@/lib/time-format";
 import { useAuth } from "@/hooks/useAuth";
+import { SavedVehiclePicker } from "@/components/booking/SavedVehiclePicker";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
 import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
 import { TipSection } from "@/components/booking/TipSection";
@@ -1675,6 +1676,10 @@ const BookingPage = () => {
                 </>
               ) : (
                 <>
+                  <SavedVehiclePicker
+                    userId={user?.id}
+                    onPick={(v) => setCustomerInfo({ ...customerInfo, vehicleYear: v.year, vehicleMake: v.make, vehicleModel: v.model })}
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="vehicleYear">Year</Label>
                     <Input id="vehicleYear" type="number" placeholder="2024" required maxLength={4} value={customerInfo.vehicleYear} onChange={(e) => setCustomerInfo({...customerInfo, vehicleYear: e.target.value.slice(0, 4)})} className={formErrors.vehicleYear ? "border-destructive" : ""} />
