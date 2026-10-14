@@ -13,14 +13,18 @@ interface HoursConfig {
   buffer_minutes: string;
   default_duration: string;
   slot_interval: string;
+  latest_start_time: string;
+  max_concurrent_jobs: string;
 }
 
 const DEFAULTS: HoursConfig = {
-  business_hours_start: "00:00",
-  business_hours_end: "23:59",
-  buffer_minutes: "15",
+  business_hours_start: "06:00",
+  business_hours_end: "20:00",
+  buffer_minutes: "30",
   default_duration: "135",
   slot_interval: "30",
+  latest_start_time: "18:00",
+  max_concurrent_jobs: "0",
 };
 
 export function BusinessHoursSettings() {
@@ -159,6 +163,31 @@ export function BusinessHoursSettings() {
               onChange={(e) => setConfig((c) => ({ ...c, slot_interval: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground">Time between slot options</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="latest-start">Latest Start Time</Label>
+            <Input
+              id="latest-start"
+              type="time"
+              value={config.latest_start_time}
+              onChange={(e) => setConfig((c) => ({ ...c, latest_start_time: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground">No appointment starts after this. Jobs never run past closing.</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="capacity">Jobs at the Same Time</Label>
+            <Input
+              id="capacity"
+              type="number"
+              min={0}
+              max={20}
+              value={config.max_concurrent_jobs}
+              onChange={(e) => setConfig((c) => ({ ...c, max_concurrent_jobs: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground">0 = one job per active worker (set workers active/inactive in Team).</p>
           </div>
         </div>
 

@@ -200,6 +200,49 @@ const handler = async (req: Request): Promise<Response> => {
     // Insert using service role (bypass RLS)
     const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // ---- Availability guard (customers only; staff/admin may override) ----
+    {
+      let isStaff = false;
+      if (userId) {
+        const { data: roles } = await serviceClient.from("user_roles").select("role").eq("user_id", userId);
+        isStaff = (roles || []).some((r: any) => ["admin", "staff", "manager"].includes(r.role));
+      }
+      if (!isStaff) {
+        const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + (m || 0); };
+        const { data: settings } = await serviceClient.from("business_settings").select("key, value")
+          .in("key", ["business_hours_start", "business_hours_end", "buffer_minutes", "default_duration", "latest_start_time"]);
+        const map: Record<string, string> = {};
+        (settings || []).forEach((r: any) => { map[r.key] = r.value; });
+        const open = toMin(map.business_hours_start || "06:00");
+        const close = toMin(map.business_hours_end || "20:00");
+        const latest = toMin(map.latest_start_time || "18:00");
+        const buffer = parseInt(map.buffer_minutes || "30");
+        const defDur = parseInt(map.default_duration || "135");
+        const start = toMin(scheduled_time);
+        const dur = Math.min(Number(body.duration_minutes) || defDur, close - open);
+        const reject = (msg: string) => new Response(JSON.stringify({ error: msg }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+        if (start < open || start > latest || start + dur > close) {
+          return reject("This time is outside our booking hours. Please choose another time.");
+        }
+        const { data: blocked } = await serviceClient.from("blocked_dates").select("id").eq("blocked_date", body.scheduled_date).limit(1);
+        if (blocked && blocked.length) return reject("This date is unavailable. Please choose another day.");
+        const { data: cap } = await serviceClient.rpc("get_booking_capacity");
+        const { data: dayBookings } = await serviceClient.from("bookings").select("scheduled_time, duration_minutes")
+          .eq("scheduled_date", body.scheduled_date).in("status", ["pending", "confirmed", "in_progress"]);
+        const end = start + dur + buffer;
+        const overlaps = (dayBookings || []).filter((b: any) => {
+          const bs = toMin(String(b.scheduled_time));
+          return start < bs + (b.duration_minutes || defDur) + buffer && end > bs;
+        }).length;
+        if (overlaps >= Math.max(1, Number(cap) || 1)) {
+          return reject("All of our technicians are booked at this time. Please choose a different time.");
+        }
+      }
+    }
+
+
     // Generate a secure manage token for guest access
     const manageToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
 

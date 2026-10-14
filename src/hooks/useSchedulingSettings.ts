@@ -10,16 +10,20 @@ export interface SchedulingConfig {
   bufferMinutes: number;
   defaultDuration: number;
   slotInterval: number;
+  latestStartMinutes: number;
+  capacity: number;
 }
 
 const DEFAULT_CONFIG: SchedulingConfig = {
-  startHour: 0,
+  startHour: 6,
   startMinute: 0,
-  endHour: 23,
-  endMinute: 59,
-  bufferMinutes: 15,
+  endHour: 20,
+  endMinute: 0,
+  bufferMinutes: 30,
   defaultDuration: 135,
   slotInterval: 30,
+  latestStartMinutes: 18 * 60,
+  capacity: 1,
 };
 
 function parseTime(timeStr: string): { hour: number; minute: number } {
@@ -35,7 +39,7 @@ export function useSchedulingSettings() {
   useEffect(() => {
     async function fetch() {
       try {
-        const [settingsRes, blockedRes] = await Promise.all([
+        const [settingsRes, blockedRes, capRes] = await Promise.all([
           supabase
             .from("business_settings")
             .select("key, value")
@@ -45,11 +49,13 @@ export function useSchedulingSettings() {
               "buffer_minutes",
               "default_duration",
               "slot_interval",
+              "latest_start_time",
             ]),
           supabase
             .from("blocked_dates" as any)
             .select("blocked_date")
             .gte("blocked_date", businessToday()),
+          supabase.rpc("get_booking_capacity" as any),
         ]);
 
         if (settingsRes.data) {
@@ -69,6 +75,10 @@ export function useSchedulingSettings() {
             bufferMinutes: map.buffer_minutes ? parseInt(map.buffer_minutes) : DEFAULT_CONFIG.bufferMinutes,
             defaultDuration: map.default_duration ? parseInt(map.default_duration) : DEFAULT_CONFIG.defaultDuration,
             slotInterval: map.slot_interval ? parseInt(map.slot_interval) : DEFAULT_CONFIG.slotInterval,
+            latestStartMinutes: map.latest_start_time
+              ? (() => { const t = parseTime(map.latest_start_time); return t.hour * 60 + t.minute; })()
+              : DEFAULT_CONFIG.latestStartMinutes,
+            capacity: typeof capRes.data === "number" && capRes.data > 0 ? capRes.data : DEFAULT_CONFIG.capacity,
           });
         }
 

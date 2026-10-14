@@ -88,12 +88,7 @@ export function RescheduleDialog({
     const dateStr = toDateString(date);
 
     try {
-      const { data: existingBookings } = await supabase
-        .from("bookings")
-        .select("id, scheduled_time, duration_minutes")
-        .eq("scheduled_date", dateStr)
-        .neq("id", booking?.id || "")
-        .in("status", ["pending", "confirmed", "in_progress"]);
+      const { data: existingBookings } = await supabase.from("bookings").select("id, scheduled_time, duration_minutes").eq("scheduled_date", dateStr).neq("id", booking?.id || "").in("status", ["pending", "confirmed", "in_progress"]);
 
       setAvailableSlots(
         generateTimeSlots(serviceDuration, existingBookings || [], schedulingConfig, { dateStr })

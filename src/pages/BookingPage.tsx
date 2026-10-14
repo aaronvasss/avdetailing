@@ -483,7 +483,7 @@ const BookingPage = () => {
     if (selectedDate && (selectedPackage || serviceType === "ceramic")) {
       fetchAvailableSlots(selectedDate);
     }
-  }, [selectedDate, selectedPackage, serviceType]);
+  }, [selectedDate, selectedPackage, serviceType, schedulingConfig]);
 
   const fetchAvailableSlots = async (date: Date) => {
     setLoadingSlots(true);
@@ -491,15 +491,16 @@ const BookingPage = () => {
     
     try {
       // Fetch existing bookings for this date
-      const { data: existingBookings } = await supabase
-        .from("bookings")
-        .select("id, scheduled_time, duration_minutes")
-        .eq("scheduled_date", dateStr)
-        .in("status", ["pending", "confirmed", "in_progress"]);
+      const { data: existingBookings } = await supabase.rpc("get_day_bookings" as any, { _date: dateStr }) as { data: Array<{ scheduled_time: string; duration_minutes: number | null }> | null };
 
       // Generate slots using a minimal duration so service length never blocks slots.
       // Conflict checks still use real durations of EXISTING bookings to prevent overlap.
-      const slotDurationForDisplay = schedulingConfig?.slotInterval ?? 15;
+      // Use the real service length so no job runs past closing time.
+      // Multi-day jobs (longer than the whole day) are capped to the day window.
+      const dayWindow =
+        (schedulingConfig.endHour * 60 + schedulingConfig.endMinute) -
+        (schedulingConfig.startHour * 60 + schedulingConfig.startMinute);
+      const slotDurationForDisplay = Math.min(selectedPackageDuration, dayWindow);
       const slots = generateTimeSlots(
         slotDurationForDisplay,
         existingBookings || [],
@@ -512,7 +513,7 @@ const BookingPage = () => {
     } catch (error) {
       console.error("Error fetching available slots:", error);
       // Generate slots without conflict checking as fallback
-      setAvailableSlots(generateTimeSlots(schedulingConfig?.slotInterval ?? 15, [], schedulingConfig));
+      setAvailableSlots(generateTimeSlots(selectedPackageDuration, [], schedulingConfig, { dateStr }));
     } finally {
       setLoadingSlots(false);
     }
