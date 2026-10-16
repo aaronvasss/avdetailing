@@ -216,7 +216,7 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                       Manage Subscription
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to="/book">Schedule Next Visit</Link>
+                      <Link to="/book">Book My Next Visit</Link>
                     </Button>
                   </div>
                 </CardContent>

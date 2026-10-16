@@ -22,6 +22,6 @@
 - [x] Phase 1c: Next-appointment card with Book Again, Reschedule, Cancel, Contact, Add to Calendar, Directions.
 - [x] Phase 2: Vehicles: nickname, photos, service address, per-vehicle history, select when booking.
 - [ ] Phase 3: Saved cards via current Stripe (SetupIntent), default card, written authorization, admin charge with receipt + duplicate guard; Venmo/Cash App labeled external.
-- [ ] Phase 4: Membership details (frequency, next service, billing, remaining visits), one-tap rebook, opt-in email reminders.
+- [x] Phase 4: Membership details (reminders still pending consent setup) (frequency, next service, billing, remaining visits), one-tap rebook, opt-in email reminders.
 - [ ] Phase 5: Audit history of appointment changes, charges, refunds, staff actions; receipts/photos/notes in portal.
 - [ ] Desktop and mobile previews after each phase.
