@@ -140,6 +140,42 @@ export type Database = {
           },
         ]
       }
+      booking_audit_log: {
+        Row: {
+          action: string
+          booking_id: string
+          booking_user_id: string | null
+          changed_by: string | null
+          created_at: string
+          field: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action: string
+          booking_id: string
+          booking_user_id?: string | null
+          changed_by?: string | null
+          created_at?: string
+          field?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action?: string
+          booking_id?: string
+          booking_user_id?: string | null
+          changed_by?: string | null
+          created_at?: string
+          field?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: []
+      }
       booking_checklist_items: {
         Row: {
           booking_id: string
