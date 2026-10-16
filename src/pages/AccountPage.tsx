@@ -28,6 +28,7 @@ import PaymentsTab from "@/components/account/PaymentsTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { PrepChecklist } from "@/components/account/PrepChecklist";
+import { AccountActivity } from "@/components/account/AccountActivity";
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -241,6 +242,7 @@ export default function AccountPage() {
             <TabsContent value="appointments" className="mt-6 space-y-6">
               <PrepChecklist />
               <AppointmentsTab userId={user?.id} />
+              <AccountActivity userId={user?.id} />
             </TabsContent>
 
             <TabsContent value="memberships" className="mt-6">
