@@ -42,28 +42,38 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [visits, setVisits] = useState<{ membership_id: string | null; scheduled_date: string }[]>([]);
 
   useEffect(() => {
     fetchMemberships();
   }, [userId]);
 
   const fetchMemberships = async () => {
-    const { data, error } = await supabase
-      .from("customer_memberships")
-      .select(`
-        id,
-        status,
-        next_service_date,
-        current_period_end,
-        membership_plans (name, price, frequency, features),
-        customer_vehicles (make, model, year)
-      `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+    const [{ data }, visitsRes] = await Promise.all([
+      supabase
+        .from("customer_memberships")
+        .select(`
+          id,
+          status,
+          next_service_date,
+          current_period_end,
+          membership_plans (name, price, frequency, features),
+          customer_vehicles (make, model, year)
+        `)
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("bookings")
+        .select("membership_id, scheduled_date")
+        .eq("user_id", userId)
+        .not("membership_id", "is", null)
+        .neq("status", "cancelled"),
+    ]);
 
     if (data) {
-      setMemberships(data);
+      setMemberships(data as any);
     }
+    if (visitsRes.data) setVisits(visitsRes.data);
     setLoading(false);
   };
 
@@ -139,6 +149,25 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {(() => {
+                    const freq = membership.membership_plans?.frequency;
+                    const total = freq === "weekly" ? 4 : freq === "bi-weekly" ? 2 : 1;
+                    const end = membership.current_period_end ? new Date(membership.current_period_end) : null;
+                    const start = end ? new Date(end.getTime() - 30 * 86400000) : null;
+                    const used = start && end
+                      ? visits.filter((v) => v.membership_id === membership.id && new Date(v.scheduled_date) >= start && new Date(v.scheduled_date) <= end).length
+                      : 0;
+                    const remaining = Math.max(0, total - used);
+                    const payLabel = membership.status === "past_due" ? "Payment overdue" : membership.status === "active" ? "Paid up" : membership.status;
+                    return (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Visits per month</p><p className="font-semibold">{total}</p></div>
+                        <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Visits left</p><p className="font-semibold">{end ? remaining : "—"}</p></div>
+                        <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Next billing</p><p className="font-semibold">{end ? format(end, "MMM d") : "—"}</p></div>
+                        <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Payment</p><p className={`font-semibold ${membership.status === "past_due" ? "text-destructive" : ""}`}>{payLabel}</p></div>
+                      </div>
+                    );
+                  })()}
                   <div className="flex flex-wrap gap-4 text-sm">
                     {membership.customer_vehicles && (
                       <div className="flex items-center gap-2">
@@ -155,7 +184,7 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
                           Next Service:{" "}
-                          {format(new Date(membership.next_service_date), "MMM d, yyyy")}
+                          {format(new Date(membership.next_service_date + "T12:00:00"), "MMM d, yyyy")}
                         </span>
                       </div>
                     )}
@@ -187,7 +216,7 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                       Manage Subscription
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to="/book">Schedule Next Visit</Link>
+                      <Link to="/book">Book My Next Visit</Link>
                     </Button>
                   </div>
                 </CardContent>
