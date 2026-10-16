@@ -40,7 +40,7 @@ export function AccountActivity({ userId }: { userId?: string }) {
       .from("booking_audit_log")
       .select("id, action, field, old_value, new_value, created_at")
       .eq("booking_user_id", userId)
-      .neq("field", "assigned_worker_id")
+      .or("field.is.null,field.neq.assigned_worker_id")
       .order("created_at", { ascending: false })
       .limit(20)
       .then(({ data }) => data && setRows(data as Entry[]));
