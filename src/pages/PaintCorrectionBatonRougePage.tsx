@@ -1,3 +1,4 @@
+import { usePricing } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -110,7 +111,7 @@ const TIERS = [
   {
     name: "1-Step Correction",
     tag: "Enhancement Polish",
-    price: "from $400",
+    pkg: "1-Step Polish",
     duration: "4–6 hours",
     removes: "Removes 60–75% of defects",
     description:
@@ -126,7 +127,7 @@ const TIERS = [
   {
     name: "2-Step Correction",
     tag: "Most Requested",
-    price: "from $500",
+    pkg: "2-Step Correction",
     duration: "6–9 hours",
     removes: "Removes 80–90% of defects",
     description:
@@ -142,7 +143,7 @@ const TIERS = [
   {
     name: "3-Step Correction",
     tag: "Concours Level",
-    price: "from $650",
+    pkg: "3-Step Restoration",
     duration: "8–12 hours",
     removes: "Removes 95%+ of defects",
     description:
@@ -185,6 +186,7 @@ const REASONS = [
 ];
 
 export default function PaintCorrectionBatonRougePage() {
+  const pricing = usePricing();
   return (
     <Layout>
       <SEOHead title={TITLE} description={DESCRIPTION} path={PAGE_PATH} />
@@ -265,7 +267,7 @@ export default function PaintCorrectionBatonRougePage() {
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Starting at</dt>
-                    <dd className="text-3xl font-bold text-primary">$400</dd>
+                    <dd className="text-3xl font-bold text-primary">{pricing.label(pricing.startingAt("paint"))}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Mobile in</dt>
@@ -344,7 +346,7 @@ export default function PaintCorrectionBatonRougePage() {
                       </p>
                       <div className="mt-auto">
                         <div className="text-3xl md:text-4xl font-bold mb-1">
-                          {tier.price}
+                          {pricing.label(pricing.packageFrom("paint", tier.pkg))}
                         </div>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
@@ -373,7 +375,7 @@ export default function PaintCorrectionBatonRougePage() {
                     <div className="md:col-span-3 flex flex-col justify-end gap-4">
                       <div className="text-right md:text-right">
                         <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Starting at</div>
-                        <div className="text-3xl md:text-4xl font-bold">{tier.price}</div>
+                        <div className="text-3xl md:text-4xl font-bold">{pricing.label(pricing.packageFrom("paint", tier.pkg))}</div>
                       </div>
                       <Button
                         asChild

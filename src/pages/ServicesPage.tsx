@@ -1,3 +1,4 @@
+import { usePricing, type ServiceKey } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,7 @@ type Service = {
   title: string;
   description: string;
   href: string;
-  startingPrice: string;
-  priceNote?: string;
+  service: ServiceKey;
   tag: string;
 };
 
@@ -32,7 +32,7 @@ const services: Service[] = [
     description:
       "Complete interior and exterior detailing for sedans, SUVs, and trucks. From quick washes to full restorations.",
     href: "/services/car-detailing",
-    startingPrice: "$145",
+    service: "car",
     tag: "Most Booked",
   },
   {
@@ -41,7 +41,7 @@ const services: Service[] = [
     description:
       "Long-lasting paint protection with professional-grade System X ceramic coating. 3, 6, and 10-year packages.",
     href: "/services/ceramic-coating",
-    startingPrice: "$850",
+    service: "ceramic",
     tag: "Premium",
   },
   {
@@ -50,7 +50,7 @@ const services: Service[] = [
     description:
       "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth — 1, 2, and 3-step systems.",
     href: "/services/paint-correction",
-    startingPrice: "$400",
+    service: "paint",
     tag: "Restoration",
   },
   {
@@ -59,8 +59,7 @@ const services: Service[] = [
     description:
       "Marine-grade detailing to protect your vessel from salt, sun, and water damage. Mobile to your marina.",
     href: "/services/boat-detailing",
-    startingPrice: "$12",
-    priceNote: "per ft",
+    service: "boat",
     tag: "Mobile",
   },
   {
@@ -69,8 +68,7 @@ const services: Service[] = [
     description:
       "Comprehensive exterior detailing for Class A/B/C motorhomes, fifth wheels, and travel trailers of all sizes.",
     href: "/services/rv-detailing",
-    startingPrice: "$9.50",
-    priceNote: "per ft",
+    service: "rv",
     tag: "Mobile",
   },
   {
@@ -79,12 +77,13 @@ const services: Service[] = [
     description:
       "Precision detailing for private aircraft and helicopters with aviation-approved products at BTR, LFT, MSY, NEW.",
     href: "/services/aircraft-detailing",
-    startingPrice: "By Quote",
+    service: "aircraft",
     tag: "Aviation",
   },
 ];
 
 const ServicesPage = () => {
+  const pricing = usePricing();
   return (
     <Layout>
       <SEOHead
