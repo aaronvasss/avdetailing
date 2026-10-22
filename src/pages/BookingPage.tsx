@@ -277,6 +277,7 @@ const BookingPage = () => {
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   const [smsConsent, setSmsConsent] = useState(false);
   const [savedVehicleId,setSavedVehicleId]=useState<string|null>(null);
+  const [repeatSource,setRepeatSource]=useState<{price:number|null;name:string}|null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [referralChecking, setReferralChecking] = useState(false);
@@ -303,6 +304,40 @@ const BookingPage = () => {
   });
 
   // Fetch packages from database
+  useEffect(()=>{
+    if(!user)return;
+    const params=new URLSearchParams(window.location.search);
+    const repeatId=params.get('repeat');
+    const membershipId=params.get('membership');
+    if(!repeatId&&!membershipId)return;
+    let canceled=false;
+    const prefill=async()=>{
+      let source:any=null;
+      if(repeatId){const {data,error}=await supabase.from('bookings').select('*,services(slug,name),booking_add_ons(add_on_id)').eq('id',repeatId).eq('user_id',user.id).single();if(error)throw error;source=data;}
+      else if(membershipId){
+        const {data:membership,error}=await supabase.from('customer_memberships').select('vehicle_id,customer_vehicles(*)').eq('id',membershipId).eq('user_id',user.id).eq('status','active').single();
+        if(error)throw error;
+        const {data:last}=await supabase.from('bookings').select('*,services(slug,name),booking_add_ons(add_on_id)').eq('membership_id',membershipId).eq('user_id',user.id).order('scheduled_date',{ascending:false}).limit(1).maybeSingle();
+        source=last;
+        if(!source&&membership?.customer_vehicles){const v=membership.customer_vehicles;source={vehicle_id:v.id,vehicle_year:v.year,vehicle_make:v.make,vehicle_model:v.model,vehicle_type:v.size_category||v.vehicle_type,service_address:v.service_address,services:{slug:'full-detail',name:'Membership Maintenance'}};}
+      }
+      if(!source||canceled)return;
+      const type=Object.entries(serviceSlugMap).find(([,slug])=>slug===source.services?.slug)?.[0]||'car';
+      setServiceType(type);
+      const vt=String(source.vehicle_type||'').toLowerCase();
+      setVehicleSubType(vt.includes('truck')?'truck':vt.includes('8')||vt.includes('large')||vt.includes('3-row')?'suv-8':vt.includes('suv')?'suv-5':'sedan');
+      setSavedVehicleId(source.vehicle_id||null);
+      const name=String(source.guest_name||'').split(' ');
+      setCustomerInfo(previous=>({...previous,firstName:name[0]||previous.firstName,lastName:name.slice(1).join(' ')||previous.lastName,email:source.guest_email||user.email||'',phone:source.guest_phone||previous.phone,address:source.service_address||previous.address,city:source.service_city||previous.city,zip:source.service_zip||previous.zip,vehicleYear:String(source.vehicle_year||''),vehicleMake:source.vehicle_make||'',vehicleModel:source.vehicle_model||'',notes:source.address_notes||'',boatType:source.boat_type||'',boatLength:source.boat_length||'',boatBrand:source.boat_brand||'',aircraftType:source.aircraft_type||'',tailNumber:source.tail_number||''}));
+      setSelectedAddOns((source.booking_add_ons||[]).map((a:any)=>a.add_on_id).filter(Boolean));
+      // No date, time, old card approval, or historical price is reused.
+      setSelectedDate(undefined);setSelectedTime('');setPaymentMethod(null);
+      setRepeatSource({price:source.total_price??null,name:source.services?.name||'Detailing service'});
+    };
+    prefill().catch(()=>toast.error('Could not load your previous appointment. You can still book a new service.'));
+    return()=>{canceled=true;};
+  },[user?.id]);
+
   const { data: dbPackages, isLoading: packagesLoading } = useQuery({
     queryKey: ['service-packages'],
     queryFn: async () => {
@@ -648,9 +683,10 @@ const BookingPage = () => {
         throw new Error(serviceError?.message || "Unable to load service for booking");
       }
       const pkg = packages.find((p) => p.id === selectedPackage);
+      if(!pkg&&serviceType!=='ceramic')throw new Error('Please choose a current package');
       const isCeramic = serviceType === "ceramic";
       const isInPersonOnly = inPersonOnlyServices.includes(serviceType);
-      const totalPrice = isCeramic ? ceramicPrice() : getPackagePrice(pkg!);
+      const totalPrice = isCeramic ? ceramicPrice() : pkg ? getPackagePrice(pkg) : 0;
       const addOnsTotal = selectedAddOns.reduce((sum, id) => {
         const addon = addOns.find(a => a.id === id);
         return sum + (addon?.price || 0);
