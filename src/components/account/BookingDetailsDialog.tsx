@@ -41,6 +41,8 @@ import { Booking } from "./AppointmentCard";
 import { BookingEditDialog } from "@/components/admin/BookingEditDialog";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { formatTime12h } from "@/lib/time-format";
+import { AppointmentDocuments } from "./AppointmentDocuments";
+import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -780,8 +782,9 @@ export function BookingDetailsDialog({
               </>
             )}
 
-            {/* Booking Photos (admin only) */}
-            {isAdmin && <BookingPhotosInline bookingId={booking.id} />}
+            <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={onStatusChange} />
+            <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} />
+            <BookingPhotosInline bookingId={booking.id} />
 
             <Separator />
 

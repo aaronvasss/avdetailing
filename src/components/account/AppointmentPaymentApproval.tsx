@@ -1,0 +1,22 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+type Quote={serviceCents:number;feeCents:number;amountCents:number;terms:string;hasDefault:boolean;authorization:{revoked_at:string|null;amount_cents:number}|null;charge:{status:string;receipt_url:string|null}|null};
+export function AppointmentPaymentApproval({bookingId,isAdmin=false,onPaid}:{bookingId:string;isAdmin?:boolean;onPaid?:()=>void}){
+  const [quote,setQuote]=useState<Quote|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [accepted,setAccepted]=useState(false);
+  const request=async(action:string)=>{const {data,error}=await supabase.functions.invoke('card-wallet',{body:{action,bookingId,amountCents:quote?.amountCents,accepted}});if(error||data?.error)throw new Error(data?.error||'Unable to load card approval');return data;};
+  const load=async()=>{setError('');try{setQuote(await request('quote'));}catch(e){setError(e instanceof Error?e.message:'Unable to load balance');}};
+  useEffect(()=>{load();},[bookingId]);
+  const act=async(action:string)=>{
+    if(action==='charge'&&!window.confirm(`Charge the customer's approved default card $${((quote?.amountCents??0)/100).toFixed(2)}?`))return;
+    setBusy(true);try{const data=await request(action);toast.success(action==='charge'?`Charge status: ${data.status}`:action==='revoke'?'Approval revoked':'Appointment charge approved');setAccepted(false);await load();if(data.status==='succeeded')onPaid?.();}catch(e){toast.error(e instanceof Error?e.message:'Unable to update approval');}finally{setBusy(false);}
+  };
+  if(error)return <p className="text-xs text-muted-foreground">{error}</p>;
+  if(!quote)return <p className="text-xs text-muted-foreground">Loading payment approval…</p>;
+  if(quote.amountCents===0&&!quote.charge)return null;
+  const approved=quote.authorization&&!quote.authorization.revoked_at&&quote.authorization.amount_cents===quote.amountCents;
+  return <section className="space-y-3"><h4 className="font-medium">Saved-card payment</h4>{quote.charge?<><p className="text-sm">Charge status: {quote.charge.status.replace(/_/g,' ')}</p>{quote.charge.receipt_url&&<Button asChild variant="outline"><a href={quote.charge.receipt_url} target="_blank" rel="noopener noreferrer">View Receipt</a></Button>}{isAdmin&&quote.charge.status!=='succeeded'&&<Button disabled={busy} variant="outline" onClick={()=>act('charge')}>Refresh Charge Status</Button>}</>:<><p className="text-sm">Remaining balance: ${(quote.serviceCents/100).toFixed(2)} + ${(quote.feeCents/100).toFixed(2)} processing fee = <strong>${(quote.amountCents/100).toFixed(2)}</strong></p>{isAdmin?<><p className="text-sm text-muted-foreground">{approved?'Customer approved this exact amount.':'Awaiting customer approval in their appointment details.'}</p><Button disabled={busy||!approved||!quote.hasDefault} onClick={()=>act('charge')}>Charge Approved Balance</Button></>:!quote.hasDefault?<Button asChild variant="outline"><Link to="/account?tab=payments">Add a Default Card</Link></Button>:approved?<><p className="text-sm text-muted-foreground">This appointment balance is approved for one card charge.</p><Button variant="outline" disabled={busy} onClick={()=>act('revoke')}>Revoke Approval</Button></>:<><label className="flex gap-3 text-sm leading-relaxed"><Checkbox checked={accepted} onCheckedChange={v=>setAccepted(v===true)} className="mt-1 shrink-0"/><span>{quote.terms}</span></label><Button disabled={busy||!accepted} onClick={()=>act('authorize')}>Approve This Appointment Charge</Button></>}</>}</section>;
+}
