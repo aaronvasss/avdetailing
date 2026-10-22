@@ -41,6 +41,9 @@ const runAfterResponse = (task: Promise<unknown>) => {
 };
 
 interface CreateBookingRequest {
+  vehicle_id?: string | null;
+  reminder_email_consent?: boolean;
+  reminder_sms_consent?: boolean;
   service_id: string;
   package_slug?: string | null;
   vehicle_sub_type?: string | null;
@@ -330,7 +333,18 @@ const handler = async (req: Request): Promise<Response> => {
       if (body.payment_method) finalPaymentMethod = body.payment_method;
     }
 
+    let vehicleId:string|null=null;
+    if(body.vehicle_id){
+      if(!userId||!uuidRegex.test(body.vehicle_id))return new Response(JSON.stringify({error:'Invalid saved vehicle'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}});
+      const {data:vehicle,error:vehicleError}=await serviceClient.from('customer_vehicles').select('id,user_id,year,make,model').eq('id',body.vehicle_id).single();
+      if(vehicleError||vehicle?.user_id!==userId)return new Response(JSON.stringify({error:'Saved vehicle unavailable'}),{status:403,headers:{...corsHeaders,'Content-Type':'application/json'}});
+      if(vehicle.year===body.vehicle_year && vehicle.make===body.vehicle_make && vehicle.model===body.vehicle_model)vehicleId=vehicle.id;
+    }
     const insertPayload = {
+      vehicle_id:vehicleId,
+      reminder_email_consent:body.reminder_email_consent===true,
+      reminder_sms_consent:body.reminder_sms_consent===true,
+      reminder_consent_at:body.reminder_email_consent===true||body.reminder_sms_consent===true?new Date().toISOString():null,
       user_id: userId,
       service_id: body.service_id,
       scheduled_date: body.scheduled_date,

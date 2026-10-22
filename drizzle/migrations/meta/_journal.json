@@ -29,6 +29,20 @@
       "when": 1792160057461,
       "tag": "0003_booking_audit_log",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792637530647,
+      "tag": "0004_portal_wallet_and_customer_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792637730879,
+      "tag": "0005_atomic_portal_charge_guards",
+      "breakpoints": true
     }
   ]
 }

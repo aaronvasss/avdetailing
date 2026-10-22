@@ -62,7 +62,7 @@ export function AccountActivity({ userId }: { userId?: string }) {
               <span>
                 {r.action === "created"
                   ? "Appointment booked"
-                  : `${LABELS[r.field ?? ""] ?? r.field} changed from ${show(r.field!, r.old_value)} to ${show(r.field!, r.new_value)}`}
+                   : `${LABELS[r.field ?? ""] ?? r.field ?? "Appointment"} changed from ${show(r.field ?? "", r.old_value)} to ${show(r.field ?? "", r.new_value)}`}
               </span>
               <span className="text-muted-foreground whitespace-nowrap">{format(new Date(r.created_at), "MMM d, h:mm a")}</span>
             </li>

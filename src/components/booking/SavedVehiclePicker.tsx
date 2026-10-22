@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Car } from "lucide-react";
+import { Button } from '@/components/ui/button';
 
 export interface PickedVehicle {
+  id: string;
   year: string;
   make: string;
   model: string;
@@ -30,12 +32,13 @@ export function SavedVehiclePicker({ userId, onPick }: { userId?: string; onPick
       <p className="text-sm font-medium">Choose a saved vehicle</p>
       <div className="flex flex-wrap gap-2">
         {vehicles.map((v) => (
-          <button
+          <Button
+            variant="outline"
             key={v.id}
             type="button"
             onClick={() => {
               setSelected(v.id);
-              onPick({ year: v.year ? String(v.year) : "", make: v.make ?? "", model: v.model ?? "", notes: v.notes });
+              onPick({ id:v.id, year: v.year ? String(v.year) : "", make: v.make ?? "", model: v.model ?? "", notes: v.notes });
             }}
             className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
               selected === v.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
@@ -43,7 +46,7 @@ export function SavedVehiclePicker({ userId, onPick }: { userId?: string; onPick
           >
             <Car className="h-4 w-4 text-primary" />
             {v.nickname || [v.year, v.make, v.model].filter(Boolean).join(" ") || v.vehicle_type}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

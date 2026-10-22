@@ -159,6 +159,8 @@ const handler = async (req: Request): Promise<Response> => {
     const lowerBody = body.toLowerCase().trim();
     
     if (lowerBody === "stop" || lowerBody === "unsubscribe") {
+      const {error}=await supabase.from('sms_opt_outs').upsert({phone:formatPhoneNumber(from),opted_out_at:new Date().toISOString()});
+      if(error)throw error;
       console.log(`User ${from} requested to unsubscribe`);
       return new Response(
         '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
@@ -166,6 +168,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    if(['start','unstop'].includes(lowerBody)){
+      const {error}=await supabase.from('sms_opt_outs').delete().eq('phone',formatPhoneNumber(from));
+      if(error)throw error;
+      return new Response('<?xml version="1.0" encoding="UTF-8"?><Response></Response>',{headers:{...corsHeaders,'Content-Type':'text/xml'}});
+    }
     if (lowerBody === "help") {
       const helpMessage = `AV Detailing Help:
       

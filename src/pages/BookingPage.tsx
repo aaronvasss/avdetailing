@@ -276,6 +276,7 @@ const BookingPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>(null);
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   const [smsConsent, setSmsConsent] = useState(false);
+  const [savedVehicleId,setSavedVehicleId]=useState<string|null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [referralChecking, setReferralChecking] = useState(false);
@@ -669,6 +670,9 @@ const BookingPage = () => {
         : baseName;
 
       const createPayload = {
+        vehicle_id:savedVehicleId,
+        reminder_email_consent:smsConsent,
+        reminder_sms_consent:smsConsent,
         service_id: service.id,
         package_slug: selectedPackage || null,
         vehicle_sub_type: vehicleSubType || null,
@@ -1678,7 +1682,7 @@ const BookingPage = () => {
                 <>
                   <SavedVehiclePicker
                     userId={user?.id}
-                    onPick={(v) => setCustomerInfo({ ...customerInfo, vehicleYear: v.year, vehicleMake: v.make, vehicleModel: v.model })}
+                    onPick={(v) => {setSavedVehicleId(v.id);setCustomerInfo({ ...customerInfo, vehicleYear: v.year, vehicleMake: v.make, vehicleModel: v.model });}}
                   />
                   <div className="space-y-2">
                     <Label htmlFor="vehicleYear">Year</Label>

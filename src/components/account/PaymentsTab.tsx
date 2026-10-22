@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CreditCard, Smartphone, Banknote, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { SavedCardWallet } from "./SavedCardWallet";
 
 interface PaymentLinks {
   venmo_link?: string;
@@ -72,19 +73,11 @@ const PaymentsTab = ({ userId }: { userId?: string }) => {
             Saved Cards
           </CardTitle>
           <CardDescription>
-            Add, remove or update your cards through our secure Stripe card wallet. Your card
-            numbers never touch our servers.
+            Cards are securely stored by Stripe. AV Detailing never stores your full card number or security code.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={openBillingPortal} disabled={openingPortal || !userId}>
-            {openingPortal ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <ExternalLink className="h-4 w-4 mr-2" />
-            )}
-            Manage My Cards
-          </Button>
+          <SavedCardWallet userId={userId} />
           <p className="text-xs text-muted-foreground flex items-start gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
             Online card payments include a 3.5% processing fee. Paying with Venmo, Cash App,
@@ -116,7 +109,7 @@ const PaymentsTab = ({ userId }: { userId?: string }) => {
                   key={p.key}
                   className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/30 px-4 py-3"
                 >
-                  <span className="font-medium">{p.label}</span>
+                  <span className="font-medium">{p.label} <span className="text-xs text-muted-foreground">· External</span></span>
                   {p.href ? (
                     <Button
                       size="sm"
