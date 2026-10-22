@@ -18,6 +18,7 @@ import {
   MessageSquare,
   MoreVertical,
   DollarSign,
+  FileText,
 } from "lucide-react";
 import { format, parse as parseDate } from "date-fns";
 
@@ -185,7 +186,7 @@ export function AppointmentCard({
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h4 className="font-semibold truncate">
                     {booking.services?.name || "Detailing Service"}
                   </h4>
@@ -193,7 +194,7 @@ export function AppointmentCard({
                     {status.label}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {formatTime12h(booking.scheduled_time)}
@@ -256,6 +257,11 @@ export function AppointmentCard({
               </div>
             )}
           </div>
+          {booking.status === "completed" && (
+            <Button size="sm" variant="outline" className="mt-3" onClick={event => { event.stopPropagation(); onViewDetails(booking); }}>
+              <FileText className="mr-2 h-4 w-4" />View Service Records
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
