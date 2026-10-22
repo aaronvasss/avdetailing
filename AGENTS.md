@@ -9,3 +9,4 @@
 - Render customer appointment photos through AppointmentPhotos using short-lived private URLs, with distinct before/after groups and retryable loading, so failures never appear as missing records.
 - Store reminder preferences and STOP suppression durably, and claim each appointment/channel/time reminder before dispatch through existing Resend and Twilio providers to honor consent and prevent duplicate sends.
 - Authenticate reminder cron callbacks with a private service-only scheduler credential; never embed tokens in cron definitions or expose the credential through customer access.
+- Public prices come only from src/lib/pricing.ts (active service_packages, membership_plans, and the booking flow's ceramic tiers) so pages and booking cannot contradict each other.
