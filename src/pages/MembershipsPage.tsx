@@ -23,7 +23,7 @@ import { MEMBERSHIP_PRICES } from "@/lib/stripe";
 import { toast } from "sonner";
 import { MembershipSignupModal } from "@/components/membership/MembershipSignupModal";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, offerCatalogSchema, breadcrumbSchema, faqSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, offerCatalogSchema, breadcrumbSchema, faqSchema } from "@/components/seo/JsonLd";
 
 interface MembershipPlan {
   id: string;
@@ -217,6 +217,7 @@ const MembershipsPage = () => {
         )}
       />
       <JsonLd data={faqSchema(faqs)} />
+      <JsonLd data={localBusinessSchema()} />
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Memberships", path: "/memberships" }])} />
 
       {/* HERO */}

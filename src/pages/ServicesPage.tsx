@@ -14,7 +14,7 @@ import {
   Phone,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 type Service = {
   icon: React.ComponentType<{ className?: string }>;
@@ -98,6 +98,7 @@ const ServicesPage = () => {
           services.map((s) => ({ name: s.title, path: s.href, description: s.description }))
         )}
       />
+      <JsonLd data={localBusinessSchema()} />
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Services", path: "/services" }])} />
 
       {/* HERO */}
