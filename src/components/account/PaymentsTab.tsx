@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Smartphone, Banknote, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
 import { SavedCardWallet } from "./SavedCardWallet";
 
 interface PaymentLinks {
@@ -15,7 +14,6 @@ interface PaymentLinks {
 const PaymentsTab = ({ userId }: { userId?: string }) => {
   const [links, setLinks] = useState<PaymentLinks>({});
   const [loadingLinks, setLoadingLinks] = useState(true);
-  const [openingPortal, setOpeningPortal] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -38,25 +36,6 @@ const PaymentsTab = ({ userId }: { userId?: string }) => {
     };
     load();
   }, []);
-
-  const openBillingPortal = async () => {
-    setOpeningPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank", "noopener,noreferrer");
-      } else {
-        throw new Error(data?.error || "No portal URL returned");
-      }
-    } catch (e) {
-      toast.error(
-        "Your card wallet activates after your first online payment. Book any service and pay online once to save cards here."
-      );
-    } finally {
-      setOpeningPortal(false);
-    }
-  };
 
   const payLinks = [
     { key: "venmo_link" as const, label: "Venmo", href: links.venmo_link },

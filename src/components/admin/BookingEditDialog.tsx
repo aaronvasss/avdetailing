@@ -29,6 +29,8 @@ import { resolveAssignedWorkerUserId } from "@/lib/workerAssignments";
 import { updateCustomerVehicle, findOrCreateClientVehicle } from "@/lib/customerVehicles";
 import { DEFAULT_HOURLY_RATE } from "@/lib/worker-pay";
 import { generateBookingReceiptHTML, openReceiptPrintWindow } from "@/lib/generateReceipt";
+import { AppointmentPaymentApproval } from '@/components/account/AppointmentPaymentApproval';
+import { AppointmentDocuments } from '@/components/account/AppointmentDocuments';
 
 interface Booking {
   id: string;
@@ -1264,6 +1266,8 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
               </>
             )}
 
+            <AppointmentPaymentApproval bookingId={booking.id} isAdmin />
+            <AppointmentDocuments bookingId={booking.id} isAdmin />
             {/* Add-ons (live total updates) */}
             <Card>
               <CardHeader className="pb-2">

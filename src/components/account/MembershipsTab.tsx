@@ -18,6 +18,8 @@ interface Membership {
   status: string;
   next_service_date: string | null;
   current_period_end: string | null;
+  current_period_start: string | null;
+  vehicle_id: string | null;
   membership_plans: {
     name: string;
     price: number;
@@ -57,6 +59,8 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
           status,
           next_service_date,
           current_period_end,
+          current_period_start,
+          vehicle_id,
           membership_plans (name, price, frequency, features),
           customer_vehicles (make, model, year)
         `)
@@ -67,7 +71,7 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
         .select("membership_id, scheduled_date")
         .eq("user_id", userId)
         .not("membership_id", "is", null)
-        .neq("status", "cancelled"),
+        .eq("status", "completed"),
     ]);
 
     if (data) {
@@ -151,18 +155,16 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                 <CardContent className="space-y-4">
                   {(() => {
                     const freq = membership.membership_plans?.frequency;
-                    const total = freq === "weekly" ? 4 : freq === "bi-weekly" ? 2 : 1;
                     const end = membership.current_period_end ? new Date(membership.current_period_end) : null;
-                    const start = end ? new Date(end.getTime() - 30 * 86400000) : null;
+                    const start = membership.current_period_start ? new Date(membership.current_period_start) : null;
                     const used = start && end
-                      ? visits.filter((v) => v.membership_id === membership.id && new Date(v.scheduled_date) >= start && new Date(v.scheduled_date) <= end).length
+                      ? visits.filter((v) => v.membership_id === membership.id && new Date(v.scheduled_date+'T12:00:00') >= start && new Date(v.scheduled_date+'T12:00:00') < end).length
                       : 0;
-                    const remaining = Math.max(0, total - used);
-                    const payLabel = membership.status === "past_due" ? "Payment overdue" : membership.status === "active" ? "Paid up" : membership.status;
+                    const payLabel = membership.status === "past_due" ? "Payment overdue" : membership.status === "active" ? "Active" : membership.status;
                     return (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Visits per month</p><p className="font-semibold">{total}</p></div>
-                        <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Visits left</p><p className="font-semibold">{end ? remaining : "—"}</p></div>
+                        <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Visit frequency</p><p className="font-semibold capitalize">{freq}</p></div>
+                        <div className="rounded-lg border border-border p-3"><p className="text-xs text-muted-foreground">Completed this period</p><p className="font-semibold">{start && end ? used : "—"}</p></div>
                         <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Next billing</p><p className="font-semibold">{end ? format(end, "MMM d") : "—"}</p></div>
                         <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Payment</p><p className={`font-semibold ${membership.status === "past_due" ? "text-destructive" : ""}`}>{payLabel}</p></div>
                       </div>
@@ -216,7 +218,7 @@ export function MembershipsTab({ userId }: MembershipsTabProps) {
                       Manage Subscription
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to="/book">Book My Next Visit</Link>
+                      <Link to={`/book?membership=${membership.id}`}>Book My Next Visit</Link>
                     </Button>
                   </div>
                 </CardContent>
