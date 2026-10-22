@@ -1,4 +1,4 @@
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppointmentsTab } from "@/components/account/AppointmentsTab";
@@ -31,7 +31,7 @@ describe("appointment loading hook order", () => {
     fetchResult.mockReturnValue(new Promise(resolve => { complete = resolve; }));
     const errors = vi.spyOn(console, "error").mockImplementation(() => {});
     render(<MemoryRouter><AppointmentsTab userId="portal-user" isAdmin={isAdmin} defaultView={defaultView} /></MemoryRouter>);
-    expect(fetchResult).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchResult).toHaveBeenCalledTimes(1));
     await act(async () => { complete?.({ data: [] }); });
     expect(errors.mock.calls.filter(call => /hook|rendered more/i.test(String(call[0])))).toEqual([]);
   });
