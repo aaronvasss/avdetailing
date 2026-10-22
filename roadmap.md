@@ -22,7 +22,7 @@
 - [x] Phase 1c: Next-appointment card with Book Again, Reschedule, Cancel, Contact, Add to Calendar, Directions.
 - [x] Phase 2: Vehicles: nickname, photos, service address, per-vehicle history, select when booking.
 - [ ] Phase 3: Saved cards via current Stripe (SetupIntent), default card, written authorization, admin charge with receipt + duplicate guard; Venmo/Cash App labeled external.
-- [x] Phase 4: Membership details (reminders still pending consent setup) (frequency, next service, billing, remaining visits), one-tap rebook, opt-in email reminders.
+- [x] Phase 4: Membership details, completed visits, linked rebooking and durable optional reminders; remaining entitlement requires confirmed policy.
 - [x] Phase 5 (part 1): Audit history of appointment changes, charges, refunds, staff actions; receipts/photos/notes in portal.
 - [ ] Desktop and mobile previews after each phase.
 
@@ -31,9 +31,9 @@
 - [x] Add customer receipt printing, approved service notes and before/after photos with compressed pre-service uploads.
 - [x] Correct completed-visit reporting and connect saved-vehicle/membership rebooking.
 - [x] Add consent-controlled reminders; protected scheduler dry-run passed with zero sends.
-- [x] Check desktop/mobile account pages, saved preferences round trip, function validation and 16 unit tests.
+- [x] Check desktop/mobile account pages, saved preferences round trip, function validation and 17 unit tests.
 - [ ] Full non-admin customer and card-charge checks: blocked by unavailable customer session and live-only Stripe credentials; no live charge performed.
 - [ ] Remaining membership visit entitlement: awaits owner confirmation of included/rollover visits; do not invent quotas.
-- [ ] Complete charge/refund audit coverage and recover uncertain charge reservations before claiming all payment flows finished.
+- [x] Add database charge/refund audit and reconcile a single metadata-matched reserved intent; ambiguous cases remain manual-only.
 - [ ] Cash App URL awaits owner; keep the external option visible.
 - [ ] Publish only on explicit request.

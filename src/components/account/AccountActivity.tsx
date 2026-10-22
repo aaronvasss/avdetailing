@@ -22,6 +22,7 @@ const LABELS: Record<string, string> = {
   payment_status: "Payment",
   tip_amount: "Tip",
   card_charge: "Card charge",
+  payment_record: "Payment record",
 };
 
 function show(field: string, v: string | null) {
