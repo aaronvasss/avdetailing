@@ -1,3 +1,4 @@
+import { MONTHLY_MULTIPLIER } from "@/lib/pricing";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,7 @@ interface MembershipPlan {
   is_popular: boolean | null;
 }
 
-// Monthly cost multipliers by frequency
-const monthlyMultiplier: Record<string, number> = {
-  "monthly": 1,
-  "bi-weekly": 2,
-  "weekly": 4,
-};
+const monthlyMultiplier = MONTHLY_MULTIPLIER;
 
 // Fallback plans that match the database structure
 const fallbackPlans: MembershipPlan[] = [

@@ -39,7 +39,7 @@ export function LocationMapSection() {
             </div>
             <div>
               <a
-                href="tel:+12255216264"
+                href="tel:2255216264"
                 className="flex items-center gap-3 text-foreground hover:text-primary transition-colors"
               >
                 <Phone className="h-5 w-5 text-primary" />

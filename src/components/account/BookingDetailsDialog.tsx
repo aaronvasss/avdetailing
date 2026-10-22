@@ -915,13 +915,13 @@ export function BookingDetailsDialog({
               <>
                 <div className="flex gap-4">
                   <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a href="tel:+12255216264">
+                    <a href="tel:2255216264">
                       <Phone className="h-4 w-4 mr-2" />
                       Call Us
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a href="mailto:aaronvasquez@avdetailingg.com">
+                    <a href="mailto:aaronvasquez100@gmail.com">
                       <Mail className="h-4 w-4 mr-2" />
                       Email Us
                     </a>

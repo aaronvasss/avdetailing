@@ -124,7 +124,7 @@ serve(async (req) => {
                         <tr><td style="padding: 8px; border-bottom: 1px solid #eee; color: #666;">Deposit Paid</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold; color: #22c55e;">$100.00</td></tr>
                       </table>
                       <p style="color: #666;">The remaining balance will be determined after our on-site inspection. We'll reach out to confirm your appointment details.</p>
-                      <p style="margin-top: 24px;">Questions? Call us at <a href="tel:+12255216264">(225) 521-6264</a></p>
+                      <p style="margin-top: 24px;">Questions? Call us at <a href="tel:2255216264">(225) 521-6264</a></p>
                     </div>
                   `,
                 }),

@@ -1,3 +1,4 @@
+import { usePricing } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -110,7 +111,7 @@ const TIERS = [
   {
     name: "1-Step Correction",
     tag: "Enhancement Polish",
-    price: "from $400",
+    pkg: "1-Step Polish",
     duration: "4–6 hours",
     removes: "Removes 60–75% of defects",
     description:
@@ -126,7 +127,7 @@ const TIERS = [
   {
     name: "2-Step Correction",
     tag: "Most Requested",
-    price: "from $500",
+    pkg: "2-Step Correction",
     duration: "6–9 hours",
     removes: "Removes 80–90% of defects",
     description:
@@ -142,7 +143,7 @@ const TIERS = [
   {
     name: "3-Step Correction",
     tag: "Concours Level",
-    price: "from $650",
+    pkg: "3-Step Restoration",
     duration: "8–12 hours",
     removes: "Removes 95%+ of defects",
     description:
@@ -185,6 +186,7 @@ const REASONS = [
 ];
 
 export default function PaintCorrectionBatonRougePage() {
+  const pricing = usePricing();
   return (
     <Layout>
       <SEOHead title={TITLE} description={DESCRIPTION} path={PAGE_PATH} />
@@ -239,7 +241,7 @@ export default function PaintCorrectionBatonRougePage() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="text-base">
-                  <a href="tel:+12255216264">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-5 w-5" />
                     (225) 521-6264
                   </a>
@@ -265,7 +267,7 @@ export default function PaintCorrectionBatonRougePage() {
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Starting at</dt>
-                    <dd className="text-3xl font-bold text-primary">$400</dd>
+                    <dd className="text-3xl font-bold text-primary">{pricing.label(pricing.startingAt("paint"))}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Mobile in</dt>
@@ -297,7 +299,7 @@ export default function PaintCorrectionBatonRougePage() {
             </h2>
             <p className="text-muted-foreground text-base md:text-lg">
               Final pricing depends on vehicle size and paint condition. Call{" "}
-              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a> for an
+              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a> for an
               exact quote after a free paint inspection.
             </p>
           </div>
@@ -344,7 +346,7 @@ export default function PaintCorrectionBatonRougePage() {
                       </p>
                       <div className="mt-auto">
                         <div className="text-3xl md:text-4xl font-bold mb-1">
-                          {tier.price}
+                          {pricing.label(pricing.packageFrom("paint", tier.pkg))}
                         </div>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
@@ -373,7 +375,7 @@ export default function PaintCorrectionBatonRougePage() {
                     <div className="md:col-span-3 flex flex-col justify-end gap-4">
                       <div className="text-right md:text-right">
                         <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Starting at</div>
-                        <div className="text-3xl md:text-4xl font-bold">{tier.price}</div>
+                        <div className="text-3xl md:text-4xl font-bold">{pricing.label(pricing.packageFrom("paint", tier.pkg))}</div>
                       </div>
                       <Button
                         asChild
@@ -389,7 +391,7 @@ export default function PaintCorrectionBatonRougePage() {
                         </Link>
                       </Button>
                       <a
-                        href="tel:+12255216264"
+                        href="tel:2255216264"
                         className="text-xs text-muted-foreground hover:text-primary transition-colors text-center md:text-right"
                       >
                         Or call for a custom quote
@@ -528,7 +530,7 @@ export default function PaintCorrectionBatonRougePage() {
                   Greater Baton Rouge, chances are we're already in your neighborhood.
                 </p>
                 <Button asChild size="lg" variant="outline">
-                  <a href="tel:+12255216264">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-5 w-5" />
                     Check My Address
                   </a>

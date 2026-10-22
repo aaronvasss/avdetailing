@@ -9,7 +9,7 @@ const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const BUSINESS_PHONES = ["+12255216264"];
-const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
+const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

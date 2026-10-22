@@ -1,3 +1,4 @@
+import { MONTHLY_MULTIPLIER } from "@/lib/pricing";
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -43,7 +44,6 @@ const fallbackPlans = [
     name: "Monthly Maintenance",
     frequency: "1 visit per month",
     price: 135,
-    savings: "Save $30/month vs. one-time",
     description: "Perfect for maintaining that fresh detail look with minimal commitment.",
     features: [
       "Full exterior wash & dry",
@@ -62,7 +62,6 @@ const fallbackPlans = [
     name: "Bi-Weekly Maintenance",
     frequency: "2x per month",
     price: 260,
-    savings: "Save $109/month vs. one-time",
     description: "Ideal for daily drivers and high-use vehicles that need regular care.",
     features: [
       "Everything in Monthly, plus:",
@@ -80,7 +79,6 @@ const fallbackPlans = [
     name: "Weekly Premium",
     frequency: "4x per month",
     price: 520,
-    savings: "Save $217/month vs. one-time",
     description: "The ultimate in vehicle care for enthusiasts and luxury owners.",
     features: [
       "Everything in Bi-Weekly, plus:",
@@ -95,11 +93,6 @@ const fallbackPlans = [
   },
 ];
 
-const savingsMap: Record<string, string> = {
-  "monthly": "Save $30/month vs. one-time",
-  "bi-weekly": "Save $109/month vs. one-time",
-  "weekly-premium": "Save $217/month vs. one-time",
-};
 
 const billingLabels: Record<string, string> = {
   "monthly": "/month",
@@ -114,12 +107,7 @@ const visitsPerMonth: Record<string, number> = {
   "weekly-premium": 4,
 };
 
-const monthlyMultiplier: Record<string, number> = {
-  "monthly": 1,
-  "bi-weekly": 2,
-  "weekly": 4,
-  "weekly-premium": 4,
-};
+const monthlyMultiplier = MONTHLY_MULTIPLIER;
 
 const frequencyDisplay: Record<string, string> = {
   "monthly": "1 visit per month",
@@ -196,7 +184,7 @@ const MembershipsPage = () => {
             ...plan,
             price: plan.price * multiplier,
             frequency: frequencyDisplay[plan.frequency] || frequencyDisplay[plan.slug] || plan.frequency,
-            savings: savingsMap[plan.slug] || "",
+            savings: "",
           };
         }));
       } else {
@@ -469,7 +457,7 @@ const MembershipsPage = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-4 w-4" />
                 (225) 521-6264
               </a>

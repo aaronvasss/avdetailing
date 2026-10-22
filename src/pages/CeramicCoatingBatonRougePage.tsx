@@ -1,3 +1,4 @@
+import { usePricing, ceramicFrom } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ const WHY_CHOOSE = [
 ];
 
 export default function CeramicCoatingBatonRougePage() {
+  const pricing = usePricing();
   return (
     <Layout>
       <SEOHead title={TITLE} description={DESCRIPTION} path={PAGE_PATH} />
@@ -147,7 +149,7 @@ export default function CeramicCoatingBatonRougePage() {
               <Link to="/book">Book Online</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-5 w-5" />
                 (225) 521-6264
               </a>
@@ -180,7 +182,7 @@ export default function CeramicCoatingBatonRougePage() {
             <p className="text-muted-foreground text-base md:text-lg">
               Choose the protection level your vehicle deserves. All tiers include mandatory paint correction prep.
               Call{" "}
-              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact
+              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact
               pricing on SUVs and trucks.
             </p>
           </div>
@@ -194,7 +196,7 @@ export default function CeramicCoatingBatonRougePage() {
                 A strong starting point for daily drivers. Real ceramic protection without the long-term commitment.
               </p>
               <div className="mb-5 pb-5 border-b border/10 border-white/10">
-                <span className="text-3xl font-bold">from $850</span>
+                <span className="text-3xl font-bold">from {pricing.label(ceramicFrom("3-year"))}</span>
                 <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
@@ -222,7 +224,7 @@ export default function CeramicCoatingBatonRougePage() {
                 The highest level of System X protection we install. Built for long-term ownership and showroom standards.
               </p>
               <div className="mb-5 pb-5 border-b border-[hsl(45_85%_55%)]/25">
-                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from $1,750</span>
+                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from {pricing.label(ceramicFrom("10-year"))}</span>
                 <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-white/90 space-y-2.5 mb-7 flex-1">
@@ -246,7 +248,7 @@ export default function CeramicCoatingBatonRougePage() {
                 Our most-installed tier. The sweet spot of protection, durability, and value for Louisiana drivers.
               </p>
               <div className="mb-5 pb-5 border-b border-[hsl(0_0%_60%)]/40">
-                <span className="text-3xl font-bold">from $1,350</span>
+                <span className="text-3xl font-bold">from {pricing.label(ceramicFrom("5-year"))}</span>
                 <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes · 8-hour install</span>
               </div>
               <ul className="text-sm text-[hsl(0_0%_20%)] space-y-2.5 mb-3 flex-1">
@@ -377,7 +379,7 @@ export default function CeramicCoatingBatonRougePage() {
               </div>
               <p className="mt-5 text-xs text-muted-foreground leading-relaxed">
                 Not sure if we cover your area? Call{" "}
-                <a href="tel:+12255216264" className="text-primary hover:underline font-medium">
+                <a href="tel:2255216264" className="text-primary hover:underline font-medium">
                   (225) 521-6264
                 </a>{" "}
                 — we likely do.

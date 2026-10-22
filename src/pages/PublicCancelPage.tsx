@@ -221,7 +221,7 @@ export default function PublicCancelPage() {
 
               <p className="text-xs text-center text-muted-foreground">
                 Questions? Call us at{" "}
-                <a href="tel:+12255216264" className="text-primary hover:underline">
+                <a href="tel:2255216264" className="text-primary hover:underline">
                   (225) 521-6264
                 </a>
               </p>

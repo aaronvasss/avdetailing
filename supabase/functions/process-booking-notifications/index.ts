@@ -255,8 +255,8 @@ ${paymentBanner}
     ${!booking.user_id ? '<p style="color:#737373;font-size:11px;text-align:center;margin:0 0 12px;">To manage your appointment, create a free account using the same email you booked with.</p>' : ''}
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
       <tr>
-        <td width="50%" style="padding-right:6px;"><a href="tel:+12255216264" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;text-align:center;">📞 Call Us</a></td>
-        <td width="50%" style="padding-left:6px;"><a href="sms:+12255216264" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;text-align:center;">💬 Text Us</a></td>
+        <td width="50%" style="padding-right:6px;"><a href="tel:2255216264" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;text-align:center;">📞 Call Us</a></td>
+        <td width="50%" style="padding-left:6px;"><a href="sms:2255216264" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;text-align:center;">💬 Text Us</a></td>
       </tr>
     </table>
     <!-- Calendar -->

@@ -4,8 +4,8 @@
  * that nudges the user to call/text instead of getting stuck.
  */
 
-export const SUPPORT_PHONE_DISPLAY = "(225) 228-4796";
-export const SUPPORT_PHONE_TEL = "+12252284796";
+export const SUPPORT_PHONE_DISPLAY = "(225) 521-6264";
+export const SUPPORT_PHONE_TEL = "2255216264";
 
 export interface FriendlyError {
   title: string;

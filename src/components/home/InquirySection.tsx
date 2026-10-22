@@ -35,7 +35,7 @@ export function InquirySection({
                 <div>
                   <p className="font-semibold">Prefer to talk?</p>
                   <a
-                    href="tel:+12255216264"
+                    href="tel:2255216264"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     (225) 521-6264

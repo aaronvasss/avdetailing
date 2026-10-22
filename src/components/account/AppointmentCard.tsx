@@ -145,7 +145,7 @@ export function AppointmentCard({
 
   const handleMessage = () => {
     // Open SMS or contact
-    window.location.href = "sms:+12255216264";
+    window.location.href = "sms:2255216264";
   };
 
   const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model]

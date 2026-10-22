@@ -1,3 +1,4 @@
+import { usePricing, type ServiceKey } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,7 @@ type Service = {
   title: string;
   description: string;
   href: string;
-  startingPrice: string;
-  priceNote?: string;
+  service: ServiceKey;
   tag: string;
 };
 
@@ -32,7 +32,7 @@ const services: Service[] = [
     description:
       "Complete interior and exterior detailing for sedans, SUVs, and trucks. From quick washes to full restorations.",
     href: "/services/car-detailing",
-    startingPrice: "$145",
+    service: "car",
     tag: "Most Booked",
   },
   {
@@ -41,7 +41,7 @@ const services: Service[] = [
     description:
       "Long-lasting paint protection with professional-grade System X ceramic coating. 3, 6, and 10-year packages.",
     href: "/services/ceramic-coating",
-    startingPrice: "$850",
+    service: "ceramic",
     tag: "Premium",
   },
   {
@@ -50,7 +50,7 @@ const services: Service[] = [
     description:
       "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth — 1, 2, and 3-step systems.",
     href: "/services/paint-correction",
-    startingPrice: "$400",
+    service: "paint",
     tag: "Restoration",
   },
   {
@@ -59,8 +59,7 @@ const services: Service[] = [
     description:
       "Marine-grade detailing to protect your vessel from salt, sun, and water damage. Mobile to your marina.",
     href: "/services/boat-detailing",
-    startingPrice: "$12",
-    priceNote: "per ft",
+    service: "boat",
     tag: "Mobile",
   },
   {
@@ -69,8 +68,7 @@ const services: Service[] = [
     description:
       "Comprehensive exterior detailing for Class A/B/C motorhomes, fifth wheels, and travel trailers of all sizes.",
     href: "/services/rv-detailing",
-    startingPrice: "$9.50",
-    priceNote: "per ft",
+    service: "rv",
     tag: "Mobile",
   },
   {
@@ -79,12 +77,13 @@ const services: Service[] = [
     description:
       "Precision detailing for private aircraft and helicopters with aviation-approved products at BTR, LFT, MSY, NEW.",
     href: "/services/aircraft-detailing",
-    startingPrice: "By Quote",
+    service: "aircraft",
     tag: "Aviation",
   },
 ];
 
 const ServicesPage = () => {
+  const pricing = usePricing();
   return (
     <Layout>
       <SEOHead
@@ -167,17 +166,12 @@ const ServicesPage = () => {
                   <div className="mt-6 pt-5 border-t border-border flex items-end justify-between">
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Starting at
+                        {pricing.startingAt(service.service) == null ? "Pricing" : "Starting at"}
                       </div>
                       <div className="flex items-baseline gap-1">
                         <span className="text-2xl md:text-3xl font-bold text-primary leading-none">
-                          {service.startingPrice}
+                          {pricing.label(pricing.startingAt(service.service), "By Quote")}
                         </span>
-                        {service.priceNote && (
-                          <span className="text-sm text-muted-foreground">
-                            {service.priceNote}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <span className="text-xs font-semibold text-primary group-hover:underline">
@@ -210,7 +204,7 @@ const ServicesPage = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-4 w-4" />
                 (225) 521-6264
               </a>

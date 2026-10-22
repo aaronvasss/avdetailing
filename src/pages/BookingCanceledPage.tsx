@@ -31,7 +31,7 @@ export default function BookingCanceledPage() {
                   feel free to reach out to us.
                 </p>
                 <Button variant="outline" asChild>
-                  <a href="tel:+12255216264">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-4 w-4" />
                     Call (225) 521-6264
                   </a>
