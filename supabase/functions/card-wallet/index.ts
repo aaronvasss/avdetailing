@@ -119,8 +119,8 @@ serve(async req => {
     if (body.action === 'charge') {
       if (existing?.stripe_payment_intent_id) {
         const intent = await stripe.paymentIntents.retrieve(existing.stripe_payment_intent_id);
-        await syncPortalCharge(db,stripe,intent);
-        return json({status:intent.status,receiptUrl:existing.receipt_url});
+        const settled=await syncPortalCharge(db,stripe,intent);
+        return json(settled??{status:intent.status});
       }
       if(existing)return json({error:'A charge is already reserved. Its result must be reconciled before any retry; no second charge was created.'},409);
       if (!authorization || !authorizationMatches(authorization.amount_cents,authorization.revoked_at,quote.amountCents) || body.amountCents !== quote.amountCents || !defaultId) return json({error:'Exact customer approval and a default card are required'},409);
