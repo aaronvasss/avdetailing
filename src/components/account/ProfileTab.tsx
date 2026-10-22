@@ -23,6 +23,8 @@ interface ProfileTabProps {
 export function ProfileTab({ userId }: ProfileTabProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [preferencesReady,setPreferencesReady]=useState(false);
+  const [preferencesError,setPreferencesError]=useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState({
     full_name: "",
@@ -112,12 +114,15 @@ export function ProfileTab({ userId }: ProfileTabProps) {
   };
 
   const loadNotificationPreferences = async () => {
+    setPreferencesReady(false);setPreferencesError(false);
     const {data,error}=await supabase.from('customer_notification_preferences').select('email_reminders,sms_reminders,marketing_emails').eq('user_id',userId).maybeSingle();
-    if(error)toast.error('Could not load reminder preferences');
-    if(data)setNotifications(data);
+    if(error){setPreferencesError(true);toast.error('Could not load reminder preferences');return;}
+    setNotifications(data??{email_reminders:false,sms_reminders:false,marketing_emails:false});
+    setPreferencesReady(true);
   };
 
   const handleSave = async () => {
+    if(!preferencesReady)return;
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
@@ -248,6 +253,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {preferencesError&&<Button variant="outline" onClick={loadNotificationPreferences}>Retry Reminder Preferences</Button>}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -262,6 +268,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
             </div>
             <Switch
               aria-label="Email reminders"
+              disabled={!preferencesReady}
               checked={notifications.email_reminders}
               onCheckedChange={(checked) =>
                 handleNotificationChange("email_reminders", checked)
@@ -285,6 +292,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
             </div>
             <Switch
               aria-label="SMS reminders"
+              disabled={!preferencesReady}
               checked={notifications.sms_reminders}
               onCheckedChange={(checked) =>
                 handleNotificationChange("sms_reminders", checked)
@@ -308,6 +316,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
             </div>
             <Switch
               aria-label="Marketing emails"
+              disabled={!preferencesReady}
               checked={notifications.marketing_emails}
               onCheckedChange={(checked) =>
                 handleNotificationChange("marketing_emails", checked)
@@ -482,7 +491,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} size="lg">
+        <Button onClick={handleSave} disabled={saving||!preferencesReady} size="lg">
           <Save className="mr-2 h-4 w-4" />
           {saving ? "Saving..." : "Save All Changes"}
         </Button>

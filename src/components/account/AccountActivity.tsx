@@ -21,6 +21,7 @@ const LABELS: Record<string, string> = {
   total_price: "Price",
   payment_status: "Payment",
   tip_amount: "Tip",
+  card_charge: "Card charge",
 };
 
 function show(field: string, v: string | null) {

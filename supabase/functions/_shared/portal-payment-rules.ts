@@ -8,6 +8,8 @@ export function balanceQuote(total: number, paymentStatus: string | null, deposi
   if (uniquePaid.some(r => typeof r.metadata?.service_amount_cents !== 'number')) throw new Error('Payment balance needs reconciliation before card charging');
   const paidService = uniquePaid.reduce((sum, r) => sum + Number(r.metadata?.service_amount_cents ?? 0), 0);
   const confirmedDeposit = ['partial','deposit_paid'].includes(paymentStatus ?? '') ? Math.round(Number(deposit || 0) * 100) : 0;
+  if(uniquePaid.some(r=>!Number.isSafeInteger(r.metadata?.service_amount_cents)||Number(r.metadata?.service_amount_cents)<0||Number(r.metadata?.service_amount_cents)>r.amount_cents))throw new Error('Payment balance needs reconciliation before card charging');
+  if(confirmedDeposit>0&&uniquePaid.some(r=>r.payment_type!=='deposit'))throw new Error('Deposit and payment balance needs reconciliation before card charging');
   const serviceCents = Math.max(0, totalCents - Math.max(paidService, confirmedDeposit));
   const feeCents = Math.round(serviceCents * 0.035);
   return { serviceCents, feeCents, amountCents: serviceCents + feeCents };

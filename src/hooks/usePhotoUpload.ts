@@ -47,7 +47,7 @@ export function usePhotoUpload() {
       const {data:auth}=await supabase.auth.getUser();
       if(!auth.user)throw new Error('Sign in before uploading');
       // Generate unique filename
-      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileExt = compressed.type === 'image/jpeg' ? 'jpg' : file.name.split(".").pop()?.toLowerCase() || "jpg";
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substring(2, 9);
       const folder = bookingId || "quotes";
@@ -64,9 +64,6 @@ export function usePhotoUpload() {
       if (error) throw error;
 
       setProgress(100);
-
-      // Get signed URL (buckets are now private)
-      const signedUrl = await getSignedUrl(bucket, data.path);
 
       // If we have a booking ID, also save to booking_photos table
       if (bookingId) {
@@ -91,14 +88,14 @@ export function usePhotoUpload() {
         return {
           id: recordId,
           storage_path: data.path,
-          url: signedUrl,
+          url: await getSignedUrl(bucket, data.path),
           photoType,
         };
       }
 
       return {
         storage_path: data.path,
-        url: signedUrl,
+        url: await getSignedUrl(bucket, data.path),
         photoType,
       };
     } catch (error: any) {
