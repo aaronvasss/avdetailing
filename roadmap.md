@@ -27,10 +27,13 @@
 - [ ] Desktop and mobile previews after each phase.
 
 # Finish client portal
-- [ ] Complete saved-card setup, authorization, defaults/removal and protected remaining-balance charges.
-- [ ] Add customer receipts, approved service notes and before/after photos.
-- [ ] Correct membership visit accounting and connect saved-vehicle rebooking.
-- [ ] Add consent-controlled reminders using existing notification channels.
-- [ ] Verify permission boundaries, payment calculations, desktop/mobile views and account flows.
+- [x] Implement saved-card setup, authorization, defaults/removal and protected remaining-balance charges; uncertain or ambiguous payments fail closed.
+- [x] Add customer receipt printing, approved service notes and before/after photos with compressed pre-service uploads.
+- [x] Correct completed-visit reporting and connect saved-vehicle/membership rebooking.
+- [x] Add consent-controlled reminders; protected scheduler dry-run passed with zero sends.
+- [x] Check desktop/mobile account pages, saved preferences round trip, function validation and 16 unit tests.
+- [ ] Full non-admin customer and card-charge checks: blocked by unavailable customer session and live-only Stripe credentials; no live charge performed.
+- [ ] Remaining membership visit entitlement: awaits owner confirmation of included/rollover visits; do not invent quotas.
+- [ ] Complete charge/refund audit coverage and recover uncertain charge reservations before claiming all payment flows finished.
 - [ ] Cash App URL awaits owner; keep the external option visible.
 - [ ] Publish only on explicit request.

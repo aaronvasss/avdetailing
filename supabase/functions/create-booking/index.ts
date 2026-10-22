@@ -41,6 +41,7 @@ const runAfterResponse = (task: Promise<unknown>) => {
 };
 
 interface CreateBookingRequest {
+  membership_id?: string | null;
   vehicle_id?: string | null;
   reminder_email_consent?: boolean;
   reminder_sms_consent?: boolean;
