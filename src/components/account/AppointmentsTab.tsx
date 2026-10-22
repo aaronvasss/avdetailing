@@ -352,7 +352,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
               Upcoming ({upcomingBookings.length})
             </TabsTrigger>
             <TabsTrigger value="past">
-              History ({pastBookings.length})
+              History ({filtersActive ? filteredPastBookings.length : pastBookings.length})
             </TabsTrigger>
           </TabsList>
 
