@@ -1,5 +1,5 @@
 import { CERAMIC_BOOKING_PRICES, formatPrice, type CeramicTier } from "@/lib/pricing";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
