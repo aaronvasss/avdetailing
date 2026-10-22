@@ -1,0 +1,1 @@
+CREATE TABLE public.portal_scheduler_credentials(id boolean PRIMARY KEY DEFAULT true CHECK(id),token text NOT NULL DEFAULT encode(gen_random_bytes(32),'hex')); GRANT SELECT,INSERT ON public.portal_scheduler_credentials TO service_role; ALTER TABLE public.portal_scheduler_credentials ENABLE ROW LEVEL SECURITY;

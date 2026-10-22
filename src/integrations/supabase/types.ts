@@ -1744,6 +1744,21 @@ export type Database = {
           },
         ]
       }
+      portal_scheduler_credentials: {
+        Row: {
+          id: boolean
+          token: string
+        }
+        Insert: {
+          id?: boolean
+          token?: string
+        }
+        Update: {
+          id?: boolean
+          token?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           calendar_token: string | null
