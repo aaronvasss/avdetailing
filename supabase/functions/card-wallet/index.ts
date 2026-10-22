@@ -58,7 +58,8 @@ serve(async req => {
       const origin = req.headers.get('origin') || 'https://avdetailing.net';
       const allowed = origin === 'http://localhost:8080' || ['https://avdetailing.net','https://www.avdetailing.net','https://avdetailing.lovable.app'].includes(origin) || /^https:\/\/(?:id-preview--|preview--)[a-z0-9-]+\.lovable\.app$/.test(origin);
       const base = allowed ? origin : 'https://avdetailing.net';
-      const session = await stripe.checkout.sessions.create({mode:'setup',customer:customerId,payment_method_types:['card'],currency:'usd',setup_intent_data:{metadata:{user_id:user.id}},metadata:{flow_type:'portal_card_setup',user_id:user.id},success_url:`${base}/account?tab=payments&card_session={CHECKOUT_SESSION_ID}`,cancel_url:`${base}/account?tab=payments`});
+      const view=admin?'&view=client':'';
+      const session = await stripe.checkout.sessions.create({mode:'setup',customer:customerId,payment_method_types:['card'],currency:'usd',setup_intent_data:{metadata:{user_id:user.id}},metadata:{flow_type:'portal_card_setup',user_id:user.id},success_url:`${base}/account?tab=payments${view}&card_session={CHECKOUT_SESSION_ID}`,cancel_url:`${base}/account?tab=payments${view}`});
       return json({url:session.url});
     }
     if (body.action === 'complete') {
