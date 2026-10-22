@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { smsNotSuppressed } from '../_shared/reminder-permissions.ts';
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
@@ -203,6 +204,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get SMS sender phone from database
     const serviceSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const smsSenderPhone = await getSmsSenderPhone(serviceSupabase);
+    if(!await smsNotSuppressed(serviceSupabase,body.to))return new Response(JSON.stringify({error:'Customer has opted out of text messages'}),{status:409,headers:{...corsHeaders,'Content-Type':'application/json'}});
 
     // 8. Send the SMS
     const result = await sendTwilioSms(body.to, body.message, smsSenderPhone);

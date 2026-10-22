@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { smsNotSuppressed } from '../_shared/reminder-permissions.ts';
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
@@ -209,7 +210,7 @@ Reply HELP or call ${publicPhone}.
 
 -AV Detailing Team`;
 
-    const customerResult = await sendTwilioSms(body.customerPhone, customerMessage, smsSenderPhone);
+    const customerResult = await smsNotSuppressed(supabase,body.customerPhone)?await sendTwilioSms(body.customerPhone, customerMessage, smsSenderPhone):{success:false,skipped:true,error:'Customer opted out'};
     results.customer = customerResult;
 
     // Business notification SMS (optional)

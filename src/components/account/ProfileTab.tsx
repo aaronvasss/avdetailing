@@ -32,10 +32,10 @@ export function ProfileTab({ userId }: ProfileTabProps) {
   });
   const [generatingToken, setGeneratingToken] = useState(false);
 
-  // Notification preferences (stored in localStorage for now)
+  // Preferences are durable; no previous local toggle is treated as consent.
   const [notifications, setNotifications] = useState({
-    email_reminders: true,
-    sms_reminders: true,
+    email_reminders: false,
+    sms_reminders: false,
     marketing_emails: false,
   });
 
@@ -111,11 +111,10 @@ export function ProfileTab({ userId }: ProfileTabProps) {
     }
   };
 
-  const loadNotificationPreferences = () => {
-    const saved = localStorage.getItem(`notifications_${userId}`);
-    if (saved) {
-      setNotifications(JSON.parse(saved));
-    }
+  const loadNotificationPreferences = async () => {
+    const {data,error}=await supabase.from('customer_notification_preferences').select('email_reminders,sms_reminders,marketing_emails').eq('user_id',userId).maybeSingle();
+    if(error)toast.error('Could not load reminder preferences');
+    if(data)setNotifications(data);
   };
 
   const handleSave = async () => {
@@ -129,9 +128,9 @@ export function ProfileTab({ userId }: ProfileTabProps) {
       .eq("user_id", userId);
 
     // Save notification preferences
-    localStorage.setItem(`notifications_${userId}`, JSON.stringify(notifications));
+    const {error: preferenceError}=await supabase.from('customer_notification_preferences').upsert({user_id:userId,...notifications,consent_version:'portal-reminders-v1',updated_at:new Date().toISOString()});
 
-    if (error) {
+    if (error || preferenceError) {
       toast.error("Failed to update profile");
     } else {
       toast.success("Profile updated successfully");
@@ -142,7 +141,6 @@ export function ProfileTab({ userId }: ProfileTabProps) {
   const handleNotificationChange = (key: keyof typeof notifications, value: boolean) => {
     const updated = { ...notifications, [key]: value };
     setNotifications(updated);
-    localStorage.setItem(`notifications_${userId}`, JSON.stringify(updated));
   };
 
   if (loading) {
@@ -246,7 +244,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
             Notifications
           </CardTitle>
           <CardDescription>
-            Choose how you'd like to be notified about your appointments
+            Choose appointment reminder channels, then save your preferences. Text message frequency varies; message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not a condition of purchase.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -263,6 +261,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
               </div>
             </div>
             <Switch
+              aria-label="Email reminders"
               checked={notifications.email_reminders}
               onCheckedChange={(checked) =>
                 handleNotificationChange("email_reminders", checked)
@@ -285,6 +284,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
               </div>
             </div>
             <Switch
+              aria-label="SMS reminders"
               checked={notifications.sms_reminders}
               onCheckedChange={(checked) =>
                 handleNotificationChange("sms_reminders", checked)
@@ -307,6 +307,7 @@ export function ProfileTab({ userId }: ProfileTabProps) {
               </div>
             </div>
             <Switch
+              aria-label="Marketing emails"
               checked={notifications.marketing_emails}
               onCheckedChange={(checked) =>
                 handleNotificationChange("marketing_emails", checked)
