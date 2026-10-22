@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, imageGallerySchema, breadcrumbSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, imageGallerySchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -44,6 +44,7 @@ const GalleryPage = () => {
           ])
         )}
       />
+      <JsonLd data={localBusinessSchema()} />
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Gallery", path: "/gallery" }])} />
       {/* Hero */}
       <section className="section-padding bg-card">

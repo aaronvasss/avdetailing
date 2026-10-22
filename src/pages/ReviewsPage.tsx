@@ -1,3 +1,4 @@
+import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
 import { Layout } from "@/components/layout/Layout";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -23,19 +24,6 @@ const TRUST_STATS = [
 ];
 
 const ReviewsPage = () => {
-  const reviewsJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: "AV Detailing LLC",
-    url: "https://avdetailing.net/reviews",
-    telephone: "+12255216264",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Baton Rouge",
-      addressRegion: "LA",
-      addressCountry: "US",
-    },
-  };
 
   return (
     <Layout>
@@ -44,10 +32,7 @@ const ReviewsPage = () => {
         description="Read verified Google reviews from AV Detailing customers in Baton Rouge, LA — mobile auto, RV, boat & aircraft detailing that comes to you."
         path="/reviews"
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsJsonLd) }}
-      />
+      <JsonLd data={localBusinessSchema()} />
 
       {/* HERO */}
       <section className="relative overflow-hidden border-b border-border">

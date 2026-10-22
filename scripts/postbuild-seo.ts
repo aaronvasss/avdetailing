@@ -177,8 +177,18 @@ const STATIC_ROUTES: RouteMeta[] = [
   },
 ];
 
+const LEGAL_PATHS = new Set(["/privacy-policy", "/terms-and-conditions"]);
+
+function bodyForLegal(m: { title: string; description: string }): string {
+  return [
+    `<h1>${esc(m.title.replace(/ \| AV Detailing$/, ""))}</h1>`,
+    `<p>${esc(m.description)}</p>`,
+    `<p>Questions about this policy? Call (225) 521-6264.</p>`,
+  ].join("");
+}
+
 for (const r of STATIC_ROUTES) {
-  if (!r.body) r.body = bodyForStatic(r);
+  if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
 }
 
 const SERVICE_ROUTES: RouteMeta[] = SERVICE_LANDING_PAGES.map((p) => ({
@@ -209,6 +219,30 @@ function escapeAttr(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+/** Keep only the first JSON-LD block that contains a LocalBusiness node. */
+function dedupeLocalBusiness(html: string): string {
+  let seenBusiness = false;
+  return html.replace(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>\s*/gi,
+    (full, json: string) => {
+      if (!/"@type"\s*:\s*"LocalBusiness"/.test(json)) return full;
+      if (seenBusiness) {
+        // Strip the duplicate business node but keep other schemas in the block.
+        try {
+          const data = JSON.parse(json);
+          if (Array.isArray(data)) {
+            const rest = data.filter((d) => d?.["@type"] !== "LocalBusiness");
+            return rest.length ? full.replace(json, JSON.stringify(rest)) : "";
+          }
+        } catch { /* fall through */ }
+        return "";
+      }
+      seenBusiness = true;
+      return full;
+    },
+  );
 }
 
 function rewrite(html: string, m: RouteMeta): string {
@@ -274,7 +308,8 @@ function rewrite(html: string, m: RouteMeta): string {
   // Structured data must exist in the initial HTML for crawlers that don't run
   // JS. Helmet-rendered JSON-LD isn't reliably captured by the prerenderer, so
   // inject the public LocalBusiness schema here when it's missing.
-  if (!/application\/ld\+json/i.test(out)) {
+  out = dedupeLocalBusiness(out);
+  if (!LEGAL_PATHS.has(m.path) && !/"@type":"LocalBusiness"/.test(out)) {
     out = out.replace(
       /<\/head>/i,
       `  <script type="application/ld+json">${JSON.stringify(localBusinessSchema()).replace(/</g, "\\u003c")}</script>\n  </head>`,
@@ -316,6 +351,27 @@ for (const route of ALL_ROUTES) {
 
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, rewritten);
+  written++;
+}
+
+// Legacy URLs → preferred keyword pages. Static hosting can't send a real 301,
+// so each legacy path gets a noindex stub that points crawlers (canonical) and
+// browsers (instant meta refresh + location.replace) to the preferred URL.
+const LEGACY_REDIRECTS: Record<string, string> = {
+  "/services/car-detailing": "/car-detailing-baton-rouge",
+  "/services/ceramic-coating": "/ceramic-coating-baton-rouge",
+  "/services/paint-correction": "/paint-correction-baton-rouge",
+  "/services/boat-detailing": "/boat-detailing-baton-rouge",
+  "/services/rv-detailing": "/rv-detailing-baton-rouge",
+  "/services/aircraft-detailing": "/aircraft-detailing-baton-rouge",
+  "/terms": "/terms-and-conditions",
+};
+for (const [from, to] of Object.entries(LEGACY_REDIRECTS)) {
+  const url = `${SITE}${to}`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><title>Moved | AV Detailing</title><meta name="robots" content="noindex, follow" /><link rel="canonical" href="${url}" /><meta http-equiv="refresh" content="0; url=${url}" /><script>location.replace(${JSON.stringify(to)} + location.search + location.hash)</script></head><body><p>This page has moved to <a href="${url}">${url}</a>.</p></body></html>`;
+  const target = join(DIST, from.replace(/^\//, ""), "index.html");
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, html);
   written++;
 }
 

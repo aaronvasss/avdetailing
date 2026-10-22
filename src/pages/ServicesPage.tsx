@@ -14,7 +14,7 @@ import {
   Phone,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { JsonLd, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
+import { JsonLd, localBusinessSchema, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 type Service = {
   icon: React.ComponentType<{ className?: string }>;
@@ -31,7 +31,7 @@ const services: Service[] = [
     title: "Car Detailing",
     description:
       "Complete interior and exterior detailing for sedans, SUVs, and trucks. From quick washes to full restorations.",
-    href: "/services/car-detailing",
+    href: "/car-detailing-baton-rouge",
     service: "car",
     tag: "Most Booked",
   },
@@ -40,7 +40,7 @@ const services: Service[] = [
     title: "Ceramic Coating",
     description:
       "Long-lasting paint protection with professional-grade System X ceramic coating. 3, 6, and 10-year packages.",
-    href: "/services/ceramic-coating",
+    href: "/ceramic-coating-baton-rouge",
     service: "ceramic",
     tag: "Premium",
   },
@@ -49,7 +49,7 @@ const services: Service[] = [
     title: "Paint Correction",
     description:
       "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth — 1, 2, and 3-step systems.",
-    href: "/services/paint-correction",
+    href: "/paint-correction-baton-rouge",
     service: "paint",
     tag: "Restoration",
   },
@@ -58,7 +58,7 @@ const services: Service[] = [
     title: "Boat Detailing",
     description:
       "Marine-grade detailing to protect your vessel from salt, sun, and water damage. Mobile to your marina.",
-    href: "/services/boat-detailing",
+    href: "/boat-detailing-baton-rouge",
     service: "boat",
     tag: "Mobile",
   },
@@ -67,7 +67,7 @@ const services: Service[] = [
     title: "RV Detailing",
     description:
       "Comprehensive exterior detailing for Class A/B/C motorhomes, fifth wheels, and travel trailers of all sizes.",
-    href: "/services/rv-detailing",
+    href: "/rv-detailing-baton-rouge",
     service: "rv",
     tag: "Mobile",
   },
@@ -76,7 +76,7 @@ const services: Service[] = [
     title: "Aircraft Detailing",
     description:
       "Precision detailing for private aircraft and helicopters with aviation-approved products at BTR, LFT, MSY, NEW.",
-    href: "/services/aircraft-detailing",
+    href: "/aircraft-detailing-baton-rouge",
     service: "aircraft",
     tag: "Aviation",
   },
@@ -98,6 +98,7 @@ const ServicesPage = () => {
           services.map((s) => ({ name: s.title, path: s.href, description: s.description }))
         )}
       />
+      <JsonLd data={localBusinessSchema()} />
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Services", path: "/services" }])} />
 
       {/* HERO */}

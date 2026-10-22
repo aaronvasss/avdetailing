@@ -32,18 +32,7 @@ const serviceSchema = {
   "@type": "Service",
   serviceType: "Paint Correction",
   name: TITLE,
-  provider: {
-    "@type": "LocalBusiness",
-    name: "AV Detailing",
-    telephone: "+12255216264",
-    url: SITE_URL,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Baton Rouge",
-      addressRegion: "LA",
-      addressCountry: "US",
-    },
-  },
+  provider: { "@id": `${SITE_URL}/#business` },
   areaServed: [
     { "@type": "City", name: "Baton Rouge" },
     { "@type": "City", name: "Gonzales" },

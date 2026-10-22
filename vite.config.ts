@@ -50,6 +50,8 @@ const prerenderRoutes = [
   "/memberships",
   "/gallery",
   "/service-areas",
+  "/privacy-policy",
+  "/terms-and-conditions",
 ];
 
 // https://vitejs.dev/config/
