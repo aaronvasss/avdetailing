@@ -26,6 +26,8 @@ import {
   MessageSquare,
   RotateCcw,
   XCircle,
+  Filter,
+  SlidersHorizontal,
 } from "lucide-react";
 import { downloadICS, createBookingCalendarEvent } from "@/lib/calendar";
 import { format, isAfter, startOfToday, parse as parseDate, subDays, addDays } from "date-fns";
