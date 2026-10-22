@@ -66,6 +66,9 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
   const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date } | null>(null);
   const [historyDaysBack, setHistoryDaysBack] = useState(60);
+  const [filterDateRange, setFilterDateRange] = useState("all");
+  const [filterVehicle, setFilterVehicle] = useState("all");
+  const [filterService, setFilterService] = useState("all");
 
 
   const fetchBookings = useCallback(async () => {
