@@ -25,7 +25,7 @@ export function SavedCardWallet({userId}:{userId?:string}) {
   useEffect(()=>{
     if(!userId){setLoading(false);return;}
     const session=new URLSearchParams(window.location.search).get('card_session');
-    if(session) request({action:'complete',sessionId:session}).then(()=>toast.success('Card saved securely')).catch(()=>toast.error('Card setup has not completed')).finally(()=>{window.history.replaceState({},'', '/account?tab=payments');load();});
+    if(session) request({action:'complete',sessionId:session}).then(()=>toast.success('Card saved securely')).catch(()=>toast.error('Card setup has not completed')).finally(()=>{const params=new URLSearchParams(window.location.search);params.delete('card_session');window.history.replaceState({},'', `/account?${params}`);load();});
     else load();
   },[userId]);
   const act=async(action:string,paymentMethodId?:string)=>{
