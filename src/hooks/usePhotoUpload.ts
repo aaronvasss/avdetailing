@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { compressImage } from '@/lib/image-compress';
 
 interface UploadOptions {
   bucket: "booking-photos" | "quote-photos";
@@ -40,8 +41,13 @@ export function usePhotoUpload() {
     setProgress(0);
 
     try {
+      if(!file.type.startsWith('image/'))throw new Error('Choose an image file');
+      const compressed=await compressImage(file);
+      if(compressed.size>1024*1024)throw new Error('Please choose a photo smaller than 1 MB');
+      const {data:auth}=await supabase.auth.getUser();
+      if(!auth.user)throw new Error('Sign in before uploading');
       // Generate unique filename
-      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileExt = compressed.type === 'image/jpeg' ? 'jpg' : file.name.split(".").pop()?.toLowerCase() || "jpg";
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substring(2, 9);
       const folder = bookingId || "quotes";
@@ -50,7 +56,7 @@ export function usePhotoUpload() {
       // Upload to storage
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file, {
+        .upload(fileName, compressed, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -58,9 +64,6 @@ export function usePhotoUpload() {
       if (error) throw error;
 
       setProgress(100);
-
-      // Get signed URL (buckets are now private)
-      const signedUrl = await getSignedUrl(bucket, data.path);
 
       // If we have a booking ID, also save to booking_photos table
       if (bookingId) {
@@ -70,12 +73,14 @@ export function usePhotoUpload() {
             booking_id: bookingId,
             storage_path: data.path,
             photo_type: photoType,
+            uploaded_by:auth.user.id,
           } as any)
           .select("id")
           .single();
 
         if (dbError) {
-          console.error("Error saving photo record:", dbError);
+          await supabase.storage.from(bucket).remove([data.path]);
+          throw dbError;
         }
 
         const recordId = (photoRecord as any)?.id;
@@ -83,14 +88,14 @@ export function usePhotoUpload() {
         return {
           id: recordId,
           storage_path: data.path,
-          url: signedUrl,
+          url: await getSignedUrl(bucket, data.path),
           photoType,
         };
       }
 
       return {
         storage_path: data.path,
-        url: signedUrl,
+        url: await getSignedUrl(bucket, data.path),
         photoType,
       };
     } catch (error: any) {

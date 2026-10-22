@@ -41,6 +41,7 @@ const runAfterResponse = (task: Promise<unknown>) => {
 };
 
 interface CreateBookingRequest {
+  membership_id?: string | null;
   vehicle_id?: string | null;
   reminder_email_consent?: boolean;
   reminder_sms_consent?: boolean;
@@ -340,7 +341,15 @@ const handler = async (req: Request): Promise<Response> => {
       if(vehicleError||vehicle?.user_id!==userId)return new Response(JSON.stringify({error:'Saved vehicle unavailable'}),{status:403,headers:{...corsHeaders,'Content-Type':'application/json'}});
       if(vehicle.year===body.vehicle_year && vehicle.make===body.vehicle_make && vehicle.model===body.vehicle_model)vehicleId=vehicle.id;
     }
+    let membershipId:string|null=null;
+    if(body.membership_id){
+      if(!userId||!uuidRegex.test(body.membership_id))return new Response(JSON.stringify({error:'Invalid membership'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}});
+      const {data:membership,error}=await serviceClient.from('customer_memberships').select('id,user_id,status').eq('id',body.membership_id).single();
+      if(error||membership?.user_id!==userId||membership.status!=='active')return new Response(JSON.stringify({error:'Active membership unavailable'}),{status:403,headers:{...corsHeaders,'Content-Type':'application/json'}});
+      membershipId=membership.id;
+    }
     const insertPayload = {
+      membership_id:membershipId,
       vehicle_id:vehicleId,
       reminder_email_consent:body.reminder_email_consent===true,
       reminder_sms_consent:body.reminder_sms_consent===true,

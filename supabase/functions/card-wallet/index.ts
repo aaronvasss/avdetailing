@@ -40,7 +40,7 @@ serve(async req => {
     let customerId = profile.stripe_customer_id;
     if (!customerId) {
       // Metadata identity prevents linking another account merely by matching its email.
-      if (body.action !== 'setup' || targetId !== user.id) return json({cards:[],defaultId:null, error: body.action === 'list' ? undefined : 'Customer needs to add a card first'});
+      if (body.action !== 'setup' || targetId !== user.id) return body.action==='list'?json({cards:[],defaultId:null}):json({error:'Customer needs to add a card first'},409);
       const customer = await stripe.customers.create({email:user.email, name:profile.full_name || undefined, metadata:{user_id:user.id}}, {idempotencyKey:`portal-customer-${user.id}`});
       customerId = customer.id;
       const {error} = await db.from('profiles').update({stripe_customer_id:customerId}).eq('user_id',user.id);
@@ -58,7 +58,8 @@ serve(async req => {
       const origin = req.headers.get('origin') || 'https://avdetailing.net';
       const allowed = origin === 'http://localhost:8080' || ['https://avdetailing.net','https://www.avdetailing.net','https://avdetailing.lovable.app'].includes(origin) || /^https:\/\/(?:id-preview--|preview--)[a-z0-9-]+\.lovable\.app$/.test(origin);
       const base = allowed ? origin : 'https://avdetailing.net';
-      const session = await stripe.checkout.sessions.create({mode:'setup',customer:customerId,payment_method_types:['card'],currency:'usd',setup_intent_data:{metadata:{user_id:user.id}},metadata:{flow_type:'portal_card_setup',user_id:user.id},success_url:`${base}/account?tab=payments&card_session={CHECKOUT_SESSION_ID}`,cancel_url:`${base}/account?tab=payments`});
+      const view=admin?'&view=client':'';
+      const session = await stripe.checkout.sessions.create({mode:'setup',customer:customerId,payment_method_types:['card'],currency:'usd',setup_intent_data:{metadata:{user_id:user.id}},metadata:{flow_type:'portal_card_setup',user_id:user.id},success_url:`${base}/account?tab=payments${view}&card_session={CHECKOUT_SESSION_ID}`,cancel_url:`${base}/account?tab=payments${view}`});
       return json({url:session.url});
     }
     if (body.action === 'complete') {
@@ -116,12 +117,24 @@ serve(async req => {
       return json({success:true});
     }
     if (body.action === 'charge') {
-      if (existing?.stripe_payment_intent_id) {
-        const intent = await stripe.paymentIntents.retrieve(existing.stripe_payment_intent_id);
-        await syncPortalCharge(db,stripe,intent);
-        return json({status:intent.status,receiptUrl:existing.receipt_url});
+      if (existing) {
+        let intentId=existing.stripe_payment_intent_id;
+        if(!intentId){
+          const found=await stripe.paymentIntents.search({query:`metadata['portal_charge_id']:'${existing.id}'`,limit:2});
+          if(found.has_more||found.data.length!==1)return json({error:'Reserved charge needs manual reconciliation; no second charge was created.'},409);
+          const candidate=found.data[0];
+          if(candidate.amount!==existing.amount_cents||candidate.customer!==customerId||candidate.currency!=='usd'||candidate.metadata.booking_id!==booking.id||candidate.metadata.user_id!==targetId)return json({error:'Reserved charge identity mismatch'},409);
+          intentId=candidate.id;
+          await syncPortalCharge(db,stripe,candidate);
+        }
+        let intent = await stripe.paymentIntents.retrieve(intentId);
+        if(intent.status==='requires_confirmation'){
+          if(intent.customer!==customerId||intent.amount!==existing.amount_cents||intent.payment_method!==existing.stripe_payment_method_id)return json({error:'Reserved charge identity mismatch'},409);
+          intent=await stripe.paymentIntents.confirm(intent.id,{off_session:true},{idempotencyKey:`portal-confirm-${existing.id}`});
+        }
+        const settled=await syncPortalCharge(db,stripe,intent);
+        return json(settled??{status:intent.status});
       }
-      if(existing)return json({error:'A charge is already reserved. Its result must be reconciled before any retry; no second charge was created.'},409);
       if (!authorization || !authorizationMatches(authorization.amount_cents,authorization.revoked_at,quote.amountCents) || body.amountCents !== quote.amountCents || !defaultId) return json({error:'Exact customer approval and a default card are required'},409);
       let reservation = existing;
       if (!reservation) {

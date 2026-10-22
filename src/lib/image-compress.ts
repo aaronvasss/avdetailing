@@ -27,7 +27,8 @@ export async function compressImage(file: File, maxSizeBytes = 1024 * 1024, maxD
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext("2d");
+      if(!ctx){resolve(file);return;}
       ctx.drawImage(img, 0, 0, width, height);
 
       // Try quality levels until under target size

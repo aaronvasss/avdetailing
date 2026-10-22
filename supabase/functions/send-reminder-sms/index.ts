@@ -20,8 +20,11 @@ serve(async req=>{
     const serviceKey=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')??'';
     const db=createClient(Deno.env.get('SUPABASE_URL')??'',serviceKey);
     const token=(req.headers.get('Authorization')??'').replace(/^Bearer /,'');
-    if(!token)return json({error:'Unauthorized'},401);
-    if(token!==serviceKey){
+    const schedulerToken=req.headers.get('X-Reminder-Scheduler');
+    let scheduled=false;
+    if(schedulerToken){const {data,error}=await db.from('portal_scheduler_credentials').select('token').eq('id',true).single();scheduled=!error&&!!data&&data.token===schedulerToken;}
+    if(!token&&!scheduled)return json({error:'Unauthorized'},401);
+    if(token!==serviceKey&&!scheduled){
       const {data,error}=await db.auth.getUser(token);if(error||!data.user)return json({error:'Unauthorized'},401);
       const {data:roles,error:roleError}=await db.from('user_roles').select('role').eq('user_id',data.user.id).in('role',['admin','staff']);
       if(roleError||!roles?.length)return json({error:'Staff access required'},403);

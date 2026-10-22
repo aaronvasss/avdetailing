@@ -2,12 +2,15 @@ export function balanceQuote(total: number, paymentStatus: string | null, deposi
   const totalCents = Math.round(Number(total) * 100);
   if (!Number.isSafeInteger(totalCents) || totalCents <= 0) throw new Error('Invalid appointment price');
   if (paymentStatus === 'paid' || paymentStatus === 'refunded') return { serviceCents: 0, feeCents: 0, amountCents: 0 };
+  if(records.some(r=>r.status==='partially_refunded'||r.status==='refunded'))throw new Error('Refund balance needs reconciliation before card charging');
   const paid = records.filter(r => ['succeeded', 'paid'].includes(r.status ?? '') && r.payment_type !== 'tip');
   const uniquePaid = paid.filter((r, i) => paid.findIndex(p => p.metadata?.stripe_payment_intent_id && p.metadata.stripe_payment_intent_id === r.metadata?.stripe_payment_intent_id) === i || !r.metadata?.stripe_payment_intent_id);
   // Old records include the 3.5% card fee; it does not pay down the service balance.
   if (uniquePaid.some(r => typeof r.metadata?.service_amount_cents !== 'number')) throw new Error('Payment balance needs reconciliation before card charging');
   const paidService = uniquePaid.reduce((sum, r) => sum + Number(r.metadata?.service_amount_cents ?? 0), 0);
   const confirmedDeposit = ['partial','deposit_paid'].includes(paymentStatus ?? '') ? Math.round(Number(deposit || 0) * 100) : 0;
+  if(uniquePaid.some(r=>!Number.isSafeInteger(r.metadata?.service_amount_cents)||Number(r.metadata?.service_amount_cents)<0||Number(r.metadata?.service_amount_cents)>r.amount_cents))throw new Error('Payment balance needs reconciliation before card charging');
+  if(confirmedDeposit>0&&uniquePaid.some(r=>r.payment_type!=='deposit'))throw new Error('Deposit and payment balance needs reconciliation before card charging');
   const serviceCents = Math.max(0, totalCents - Math.max(paidService, confirmedDeposit));
   const feeCents = Math.round(serviceCents * 0.035);
   return { serviceCents, feeCents, amountCents: serviceCents + feeCents };

@@ -14,7 +14,7 @@ export function AppointmentPaymentApproval({bookingId,isAdmin=false,onPaid}:{boo
     if(action==='charge'&&!window.confirm(`Charge the customer's approved default card $${((quote?.amountCents??0)/100).toFixed(2)}?`))return;
     setBusy(true);try{const data=await request(action);toast.success(action==='charge'?`Charge status: ${data.status}`:action==='revoke'?'Approval revoked':'Appointment charge approved');setAccepted(false);await load();if(data.status==='succeeded')onPaid?.();}catch(e){toast.error(e instanceof Error?e.message:'Unable to update approval');}finally{setBusy(false);}
   };
-  if(error)return <p className="text-xs text-muted-foreground">{error}</p>;
+  if(error)return <div className="space-y-2"><p className="text-xs text-muted-foreground">{error}</p><Button size="sm" variant="outline" onClick={load}>Retry Payment Details</Button></div>;
   if(!quote)return <p className="text-xs text-muted-foreground">Loading payment approval…</p>;
   if(quote.amountCents===0&&!quote.charge)return null;
   const approved=quote.authorization&&!quote.authorization.revoked_at&&quote.authorization.amount_cents===quote.amountCents;

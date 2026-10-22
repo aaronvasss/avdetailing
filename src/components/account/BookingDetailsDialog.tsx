@@ -43,6 +43,9 @@ import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { formatTime12h } from "@/lib/time-format";
 import { AppointmentDocuments } from "./AppointmentDocuments";
 import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
+import { AccountActivity } from './AccountActivity';
+import { PhotoUploader } from '@/components/photos/PhotoUploader';
+import { generateBookingReceiptHTML,openReceiptPrintWindow } from '@/lib/generateReceipt';
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -70,11 +73,12 @@ const paymentStatusColors: Record<string, string> = {
   refunded: "bg-muted text-muted-foreground border-muted",
 };
 
-function BookingPhotosInline({ bookingId }: { bookingId: string }) {
+function BookingPhotosInline({ bookingId,allowUpload=false }: { bookingId: string;allowUpload?:boolean }) {
   const [photos, setPhotos] = useState<any[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [viewPhoto, setViewPhoto] = useState<string | null>(null);
   const { getBookingPhotos } = usePhotoUpload();
+  const [version,setVersion]=useState(0);
 
   useEffect(() => {
     setLoadingPhotos(true);
@@ -82,7 +86,7 @@ function BookingPhotosInline({ bookingId }: { bookingId: string }) {
       setPhotos(p);
       setLoadingPhotos(false);
     });
-  }, [bookingId]);
+  }, [bookingId,version]);
 
   const beforePhotos = photos.filter((p) => p.photoType === "before");
   const afterPhotos = photos.filter((p) => p.photoType === "after");
@@ -94,6 +98,7 @@ function BookingPhotosInline({ bookingId }: { bookingId: string }) {
         <Camera className="h-4 w-4" /> Photos
       </h4>
       <p className="text-sm text-muted-foreground">No photos uploaded yet</p>
+      {allowUpload&&<PhotoUploader bucket="booking-photos" bookingId={bookingId} photoType="before" compact onUploadComplete={()=>setVersion(v=>v+1)}/>}
     </div>
   );
 
@@ -123,6 +128,7 @@ function BookingPhotosInline({ bookingId }: { bookingId: string }) {
         {renderGrid("Before", beforePhotos)}
         {renderGrid("After", afterPhotos)}
       </div>
+      {allowUpload&&<PhotoUploader bucket="booking-photos" bookingId={bookingId} photoType="before" compact onUploadComplete={()=>setVersion(v=>v+1)}/>}
 
       {/* Fullscreen photo viewer */}
       {viewPhoto && (
@@ -784,7 +790,9 @@ export function BookingDetailsDialog({
 
             <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={onStatusChange} />
             <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} />
-            <BookingPhotosInline bookingId={booking.id} />
+            {isAdmin&&<AccountActivity bookingId={booking.id} isAdmin />}
+            {booking.payment_status==='paid'&&<Button variant="outline" onClick={()=>openReceiptPrintWindow(generateBookingReceiptHTML(booking,null,booking.booking_add_ons))}>Print Appointment Receipt</Button>}
+            <BookingPhotosInline bookingId={booking.id} allowUpload={!isAdmin&&!['completed','canceled','cancelled'].includes(booking.status)} />
 
             <Separator />
 

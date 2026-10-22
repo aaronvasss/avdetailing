@@ -161,7 +161,7 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
             </div>
           </div>
 
-          <Button
+          <div className="flex gap-2"><Button variant="outline" size="sm" onClick={()=>navigate('/account?view=client')}>My Account</Button><Button
             size="sm"
             className="shadow-lg shadow-primary/20"
             onClick={() => setAdminBookingOpen(true)}
@@ -169,7 +169,7 @@ export default function AdminDashboard({ user, profileName }: AdminDashboardProp
             <Plus className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">New Booking</span>
             <span className="sm:hidden">New</span>
-          </Button>
+          </Button></div>
         </header>
 
         {/* Content */}

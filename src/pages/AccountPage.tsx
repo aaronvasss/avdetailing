@@ -144,7 +144,7 @@ export default function AccountPage() {
 
 
   // Admin gets the full dashboard layout
-  if (isAdmin) {
+  if (isAdmin && new URLSearchParams(window.location.search).get('view')!=='client') {
     return <AdminDashboard user={user} profileName={profileName} />;
   }
 
@@ -154,6 +154,7 @@ export default function AccountPage() {
   return (
     <Layout>
       <SEOHead title="My Account" description="Private page." path="/account" noIndex />
+      {isAdmin&&<div className="container-custom pt-4"><Button variant="outline" onClick={()=>navigate('/account')}>Back to Admin</Button></div>}
       <div className="section-padding">
         <div className="container-custom max-w-6xl">
           {/* Header */}
