@@ -1,18 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { generateTimeSlots } from "@/lib/scheduling";
 import { canOverrideBookingHours } from "../../supabase/functions/_shared/admin-booking-hours";
-const cfg = { capacity: 2 } as any;
+const cfg = { startHour: 6, startMinute: 0, endHour: 20, endMinute: 0, bufferMinutes: 30, defaultDuration: 135, slotInterval: 30, capacity: 2 };
 describe("booking hours", () => {
   it("owner scheduling includes 5 AM and 9 PM, even when the job ends after 8 PM", () => {
     const slots = generateTimeSlots(135, [], cfg, { allowOutsideHours: true });
-    expect(slots).toContain("05:00:00");
-    expect(slots).toContain("21:00:00");
+    expect(slots).toContain("05:00");
+    expect(slots).toContain("21:00");
   });
   it("customer slots exclude early and late starts and jobs ending after 8 PM", () => {
     const slots = generateTimeSlots(135, [], cfg);
-    expect(slots).not.toContain("05:00:00");
-    expect(slots).not.toContain("21:00:00");
-    expect(slots).not.toContain("18:00:00");
+    expect(slots).not.toContain("05:00");
+    expect(slots).not.toContain("21:00");
+    expect(slots).not.toContain("18:00");
   });
   it("only an admin explicitly requesting internal booking can override hours", () => {
     expect(canOverrideBookingHours(["admin"], true)).toBe(true);
@@ -24,9 +24,9 @@ describe("booking hours", () => {
     expect(canOverrideBookingHours(["admin"], "true")).toBe(false);
   });
   it("owner outside-hours slots still honor capacity and buffer", () => {
-    const slots = generateTimeSlots(135, [{ scheduled_time: "21:00:00", duration_minutes: 135 }], { capacity: 1 }, { allowOutsideHours: true });
-    expect(slots).not.toContain("21:00:00");
-    expect(slots).not.toContain("23:30:00");
+    const slots = generateTimeSlots(135, [{ scheduled_time: "21:00:00", duration_minutes: 135 }], { ...cfg, capacity: 1 }, { allowOutsideHours: true });
+    expect(slots).not.toContain("21:00");
+    expect(slots).not.toContain("23:30");
   });
   it("never starts before 6:00 AM", () => expect(generateTimeSlots(135, [], cfg)[0]).toMatch(/^6:00 AM|^06:00/));
   it("a 4-hour service cannot start after 4:00 PM (must finish by 8 PM)", () => {
