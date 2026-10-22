@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { syncPortalCharge } from '../_shared/portal-charge-sync.ts';
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -481,6 +482,7 @@ serve(async (req) => {
 
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await syncPortalCharge(supabase,stripe,paymentIntent);
         logStep("Payment intent succeeded", { id: paymentIntent.id });
         break;
       }
@@ -567,6 +569,7 @@ serve(async (req) => {
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        if(paymentIntent.metadata.portal_charge_id){await syncPortalCharge(supabase,stripe,paymentIntent);break;}
         logStep("Payment failed", { id: paymentIntent.id });
         
         // Find booking by payment intent if exists

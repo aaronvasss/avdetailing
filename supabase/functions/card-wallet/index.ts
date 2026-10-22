@@ -88,7 +88,15 @@ serve(async req => {
     if (booking.guest_email && booking.guest_email.toLowerCase() !== (profile.email ?? '').toLowerCase()) return json({error:'Appointment customer does not match the linked account'},409);
     const {data: records,error: recordsError} = await db.from('payment_records').select('amount_cents,payment_type,status,metadata').eq('booking_id',booking.id);
     if (recordsError) throw recordsError;
-    const quote = balanceQuote(booking.total_price,booking.payment_status,booking.deposit_amount,records ?? []);
+    const {data: depositQuotes,error: depositError} = await db.from('quotes').select('deposit_amount,stripe_payment_intent_id,guest_email').eq('booking_id',booking.id);
+    if(depositError)throw depositError;
+    let confirmedDeposit=Number(booking.deposit_amount||0);
+    for(const deposit of depositQuotes??[]){
+      if(!deposit.stripe_payment_intent_id)continue;
+      const intent=await stripe.paymentIntents.retrieve(deposit.stripe_payment_intent_id);
+      if(intent.status==='succeeded' && deposit.guest_email?.toLowerCase()===(profile.email??'').toLowerCase())confirmedDeposit+=Number(deposit.deposit_amount||0);
+    }
+    const quote = balanceQuote(booking.total_price,confirmedDeposit>0?'deposit_paid':booking.payment_status,confirmedDeposit,(records ?? []).map(r=>({...r,metadata:{...r.metadata,stripe_payment_intent_id:(r as any).stripe_payment_intent_id}})));
     const {data: authorization,error: authorizationError} = await db.from('card_authorizations').select('*').eq('booking_id',booking.id).eq('user_id',targetId).maybeSingle();
     if (authorizationError) throw authorizationError;
     const {data: existing,error: existingError} = await db.from('portal_charge_requests').select('*').eq('booking_id',booking.id).maybeSingle();
@@ -113,18 +121,22 @@ serve(async req => {
         await syncPortalCharge(db,stripe,intent);
         return json({status:intent.status,receiptUrl:existing.receipt_url});
       }
+      if(existing)return json({error:'A charge is already reserved. Its result must be reconciled before any retry; no second charge was created.'},409);
       if (!authorization || !authorizationMatches(authorization.amount_cents,authorization.revoked_at,quote.amountCents) || body.amountCents !== quote.amountCents || !defaultId) return json({error:'Exact customer approval and a default card are required'},409);
       let reservation = existing;
       if (!reservation) {
-        const {data,error} = await db.from('portal_charge_requests').insert({booking_id:booking.id,user_id:targetId,authorization_id:authorization.id,requested_by:user.id,amount_cents:quote.amountCents,service_amount_cents:quote.serviceCents}).select('*').single();
+        const {data,error} = await db.from('portal_charge_requests').insert({booking_id:booking.id,user_id:targetId,authorization_id:authorization.id,requested_by:user.id,amount_cents:quote.amountCents,service_amount_cents:quote.serviceCents,stripe_payment_method_id:defaultId}).select('*').single();
         if (error) return json({error:'Charge already reserved; refresh its status'},409);
         reservation=data;
       }
       if (!reservation || reservation.amount_cents !== quote.amountCents) return json({error:'Balance changed; contact AV Detailing'},409);
-      // Fixed durable request ID is reused forever; uncertain failures cannot cause a second charge.
-      const intent = await stripe.paymentIntents.create({amount:reservation.amount_cents,currency:'usd',customer:customerId,payment_method:defaultId,off_session:true,confirm:true,receipt_email:profile.email || undefined,metadata:{portal_charge_id:reservation.id,booking_id:booking.id,user_id:targetId},description:`AV Detailing appointment ${booking.id.slice(0,8)} remaining balance`},{idempotencyKey:`portal-balance-${reservation.id}`});
-      await syncPortalCharge(db,stripe,intent);
-      return json({status:intent.status});
+      // Persist the intent before confirming. A lost creation response leaves a locked reservation, never a creation retry.
+      const intent = await stripe.paymentIntents.create({amount:reservation.amount_cents,currency:'usd',customer:customerId,payment_method:reservation.stripe_payment_method_id,receipt_email:profile.email || undefined,metadata:{portal_charge_id:reservation.id,booking_id:booking.id,user_id:targetId},description:`AV Detailing appointment ${booking.id.slice(0,8)} remaining balance`},{idempotencyKey:`portal-balance-${reservation.id}`});
+      const {error:persistError}=await db.from('portal_charge_requests').update({stripe_payment_intent_id:intent.id,status:intent.status}).eq('id',reservation.id);
+      if(persistError)throw persistError;
+      const confirmed=await stripe.paymentIntents.confirm(intent.id,{off_session:true},{idempotencyKey:`portal-confirm-${reservation.id}`});
+      await syncPortalCharge(db,stripe,confirmed);
+      return json({status:confirmed.status});
     }
     return json({error:'Unsupported operation'},400);
   } catch (error) {

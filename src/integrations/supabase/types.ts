@@ -1652,6 +1652,7 @@ export type Database = {
           service_amount_cents: number
           status: string
           stripe_payment_intent_id: string | null
+          stripe_payment_method_id: string | null
           updated_at: string
           user_id: string
         }
@@ -1666,6 +1667,7 @@ export type Database = {
           service_amount_cents: number
           status?: string
           stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1680,6 +1682,7 @@ export type Database = {
           service_amount_cents?: number
           status?: string
           stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1695,6 +1698,47 @@ export type Database = {
             foreignKeyName: "portal_charge_requests_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_reminder_deliveries: {
+        Row: {
+          booking_id: string
+          channel: string
+          created_at: string
+          id: string
+          reminder_type: string
+          scheduled_date: string
+          scheduled_time: string
+          status: string
+        }
+        Insert: {
+          booking_id: string
+          channel: string
+          created_at?: string
+          id?: string
+          reminder_type: string
+          scheduled_date: string
+          scheduled_time: string
+          status?: string
+        }
+        Update: {
+          booking_id?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          reminder_type?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_reminder_deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
