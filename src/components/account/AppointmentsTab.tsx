@@ -165,26 +165,6 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     setSelectedBooking(null);
   };
 
-  if (loading && !initialLoaded) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="flex gap-4">
-                <div className="w-14 h-14 bg-muted rounded-lg" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-5 bg-muted rounded w-1/3" />
-                  <div className="h-4 bg-muted rounded w-1/4" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
   const today = startOfToday();
   const upcomingBookings = bookings.filter(
     (b) =>
@@ -249,6 +229,27 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
 
   // Get next appointment
   const nextAppointment = upcomingBookings[0];
+
+  // Keep the filter hooks above every return, including the first loading render.
+  if (loading && !initialLoaded) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="flex gap-4">
+                <div className="w-14 h-14 bg-muted rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 bg-muted rounded w-1/3" />
+                  <div className="h-4 bg-muted rounded w-1/4" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
