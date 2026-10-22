@@ -25,3 +25,12 @@
 - [x] Phase 4: Membership details (reminders still pending consent setup) (frequency, next service, billing, remaining visits), one-tap rebook, opt-in email reminders.
 - [x] Phase 5 (part 1): Audit history of appointment changes, charges, refunds, staff actions; receipts/photos/notes in portal.
 - [ ] Desktop and mobile previews after each phase.
+
+# Finish client portal
+- [ ] Complete saved-card setup, authorization, defaults/removal and protected remaining-balance charges.
+- [ ] Add customer receipts, approved service notes and before/after photos.
+- [ ] Correct membership visit accounting and connect saved-vehicle rebooking.
+- [ ] Add consent-controlled reminders using existing notification channels.
+- [ ] Verify permission boundaries, payment calculations, desktop/mobile views and account flows.
+- [ ] Cash App URL awaits owner; keep the external option visible.
+- [ ] Publish only on explicit request.
