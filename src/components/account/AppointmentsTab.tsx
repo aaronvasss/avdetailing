@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Calendar,
@@ -19,6 +26,8 @@ import {
   MessageSquare,
   RotateCcw,
   XCircle,
+  Filter,
+  SlidersHorizontal,
 } from "lucide-react";
 import { downloadICS, createBookingCalendarEvent } from "@/lib/calendar";
 import { format, isAfter, startOfToday, parse as parseDate, subDays, addDays } from "date-fns";
@@ -57,6 +66,9 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [activeView, setActiveView] = useState<"list" | "calendar">(defaultView);
   const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date } | null>(null);
   const [historyDaysBack, setHistoryDaysBack] = useState(60);
+  const [filterDateRange, setFilterDateRange] = useState("all");
+  const [filterVehicle, setFilterVehicle] = useState("all");
+  const [filterService, setFilterService] = useState("all");
 
 
   const fetchBookings = useCallback(async () => {
@@ -190,6 +202,51 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
       new Date(b.scheduled_date) < today
   );
 
+  const vehicleLabelOf = (b: Booking) =>
+    [b.vehicle_year, b.vehicle_make, b.vehicle_model]
+      .filter(Boolean)
+      .join(" ") || b.vehicle_type || "Vehicle not listed";
+
+  const vehicleOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    pastBookings.forEach((b) => {
+      const label = vehicleLabelOf(b);
+      if (!seen.has(label)) seen.set(label, label);
+    });
+    return Array.from(seen.keys()).sort((a, b) => a.localeCompare(b));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastBookings]);
+
+  const serviceOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    pastBookings.forEach((b) => {
+      if (b.service_id && b.services?.name && !seen.has(b.service_id)) {
+        seen.set(b.service_id, b.services.name);
+      }
+    });
+    return Array.from(seen.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastBookings]);
+
+  const filtersActive =
+    filterDateRange !== "all" || filterVehicle !== "all" || filterService !== "all";
+
+  const filteredPastBookings = pastBookings.filter((b) => {
+    if (filterDateRange !== "all") {
+      const cutoff = subDays(today, Number(filterDateRange));
+      if (new Date(b.scheduled_date) < cutoff) return false;
+    }
+    if (filterVehicle !== "all" && vehicleLabelOf(b) !== filterVehicle) return false;
+    if (filterService !== "all" && b.service_id !== filterService) return false;
+    return true;
+  });
+
+  const clearFilters = () => {
+    setFilterDateRange("all");
+    setFilterVehicle("all");
+    setFilterService("all");
+  };
+
   // Get next appointment
   const nextAppointment = upcomingBookings[0];
 
@@ -295,7 +352,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
               Upcoming ({upcomingBookings.length})
             </TabsTrigger>
             <TabsTrigger value="past">
-              History ({pastBookings.length})
+              History ({filtersActive ? filteredPastBookings.length : pastBookings.length})
             </TabsTrigger>
           </TabsList>
 
@@ -338,6 +395,73 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
           </TabsContent>
 
           <TabsContent value="past" className="space-y-3">
+            {pastBookings.length > 0 && (
+              <div className="rounded-lg border border-border/50 bg-card p-3 sm:p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <SlidersHorizontal className="h-4 w-4 text-primary" />
+                  Find past appointments
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+                    <SelectTrigger aria-label="Filter by date" className="h-10">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <Filter className="h-4 w-4 text-primary shrink-0" />
+                        <SelectValue placeholder="Date" />
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any date</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="90">Last 90 days</SelectItem>
+                      <SelectItem value="180">Last 6 months</SelectItem>
+                      <SelectItem value="365">Last year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterVehicle} onValueChange={setFilterVehicle}>
+                    <SelectTrigger aria-label="Filter by vehicle" className="h-10">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <Car className="h-4 w-4 text-primary shrink-0" />
+                        <SelectValue placeholder="Vehicle" />
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any vehicle</SelectItem>
+                      {vehicleOptions.map((label) => (
+                        <SelectItem key={label} value={label}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterService} onValueChange={setFilterService}>
+                    <SelectTrigger aria-label="Filter by service" className="h-10">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <Calendar className="h-4 w-4 text-primary shrink-0" />
+                        <SelectValue placeholder="Service" />
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any service</SelectItem>
+                      {serviceOptions.map(([id, name]) => (
+                        <SelectItem key={id} value={id}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {filtersActive && (
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      Showing {filteredPastBookings.length} of {pastBookings.length} past appointments
+                    </p>
+                    <Button variant="outline" size="sm" className="h-8" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
             {pastBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-16 text-center">
@@ -345,8 +469,20 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
                   <p className="text-muted-foreground">No past appointments yet</p>
                 </CardContent>
               </Card>
+            ) : filteredPastBookings.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    No past appointments match your filters.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                </CardContent>
+              </Card>
             ) : (
-              pastBookings.map((booking) => (
+              filteredPastBookings.map((booking) => (
                 <AppointmentCard
                   key={booking.id}
                   booking={booking}
