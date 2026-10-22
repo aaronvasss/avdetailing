@@ -31,7 +31,6 @@ import {
   MessageSquare,
   Check,
   AlertCircle,
-  Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -39,13 +38,11 @@ import { sendInProgressSms } from "@/lib/in-progress-sms";
 import { toast } from "sonner";
 import { Booking } from "./AppointmentCard";
 import { BookingEditDialog } from "@/components/admin/BookingEditDialog";
-import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { formatTime12h } from "@/lib/time-format";
 import { AppointmentDocuments } from "./AppointmentDocuments";
 import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
 import { AccountActivity } from './AccountActivity';
-import { PhotoUploader } from '@/components/photos/PhotoUploader';
-import { generateBookingReceiptHTML,openReceiptPrintWindow } from '@/lib/generateReceipt';
+import { AppointmentPhotos } from "./AppointmentPhotos";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -72,75 +69,6 @@ const paymentStatusColors: Record<string, string> = {
   paid: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   refunded: "bg-muted text-muted-foreground border-muted",
 };
-
-function BookingPhotosInline({ bookingId,allowUpload=false }: { bookingId: string;allowUpload?:boolean }) {
-  const [photos, setPhotos] = useState<any[]>([]);
-  const [loadingPhotos, setLoadingPhotos] = useState(true);
-  const [viewPhoto, setViewPhoto] = useState<string | null>(null);
-  const { getBookingPhotos } = usePhotoUpload();
-  const [version,setVersion]=useState(0);
-
-  useEffect(() => {
-    setLoadingPhotos(true);
-    getBookingPhotos(bookingId).then((p) => {
-      setPhotos(p);
-      setLoadingPhotos(false);
-    });
-  }, [bookingId,version]);
-
-  const beforePhotos = photos.filter((p) => p.photoType === "before");
-  const afterPhotos = photos.filter((p) => p.photoType === "after");
-
-  if (loadingPhotos) return <p className="text-xs text-muted-foreground">Loading photos...</p>;
-  if (photos.length === 0) return (
-    <div>
-      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-        <Camera className="h-4 w-4" /> Photos
-      </h4>
-      <p className="text-sm text-muted-foreground">No photos uploaded yet</p>
-      {allowUpload&&<PhotoUploader bucket="booking-photos" bookingId={bookingId} photoType="before" compact onUploadComplete={()=>setVersion(v=>v+1)}/>}
-    </div>
-  );
-
-  const renderGrid = (label: string, items: any[]) => items.length > 0 ? (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">{label} ({items.length})</p>
-      <div className="grid grid-cols-3 gap-2">
-        {items.map((p: any, i: number) => (
-          <img
-            key={p.id || i}
-            src={p.url}
-            alt={label}
-            className="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => setViewPhoto(p.url)}
-          />
-        ))}
-      </div>
-    </div>
-  ) : null;
-
-  return (
-    <div>
-      <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-        <Camera className="h-4 w-4" /> Photos
-      </h4>
-      <div className="space-y-4">
-        {renderGrid("Before", beforePhotos)}
-        {renderGrid("After", afterPhotos)}
-      </div>
-      {allowUpload&&<PhotoUploader bucket="booking-photos" bookingId={bookingId} photoType="before" compact onUploadComplete={()=>setVersion(v=>v+1)}/>}
-
-      {/* Fullscreen photo viewer */}
-      {viewPhoto && (
-        <Dialog open onOpenChange={() => setViewPhoto(null)}>
-          <DialogContent className="max-w-4xl p-0 bg-black/95">
-            <img src={viewPhoto} alt="Full size" className="w-full max-h-[80vh] object-contain" />
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
-}
 
 export function BookingDetailsDialog({
   booking: initialBooking,
@@ -789,10 +717,9 @@ export function BookingDetailsDialog({
             )}
 
             <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={onStatusChange} />
-            <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} />
+            <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} booking={{ ...booking, profiles: profileData }} />
             {isAdmin&&<AccountActivity bookingId={booking.id} isAdmin />}
-            {booking.payment_status==='paid'&&<Button variant="outline" onClick={()=>openReceiptPrintWindow(generateBookingReceiptHTML(booking,null,booking.booking_add_ons))}>Print Appointment Receipt</Button>}
-            <BookingPhotosInline bookingId={booking.id} allowUpload={!isAdmin&&!['completed','canceled','cancelled'].includes(booking.status)} />
+            <AppointmentPhotos bookingId={booking.id} allowUpload={!isAdmin&&!['completed','canceled','cancelled'].includes(booking.status)} />
 
             <Separator />
 

@@ -6,5 +6,6 @@
 - Keep card data in Stripe; use the authenticated card-wallet function and durable per-booking authorization/reservation guards for balance charges, refusing ambiguous ledgers and uncertain retries to avoid unauthorized or duplicate payments.
 - Settle portal charges atomically with a service-only database function and serialize payment/deposit writes on the booking lock so ledger, receipt and booking payment state cannot diverge.
 - Publish customer service notes separately from internal notes, and keep documents protected by booking ownership so staff-only content never appears in the customer portal.
+- Render customer appointment photos through AppointmentPhotos using short-lived private URLs, with distinct before/after groups and retryable loading, so failures never appear as missing records.
 - Store reminder preferences and STOP suppression durably, and claim each appointment/channel/time reminder before dispatch through existing Resend and Twilio providers to honor consent and prevent duplicate sends.
 - Authenticate reminder cron callbacks with a private service-only scheduler credential; never embed tokens in cron definitions or expose the credential through customer access.
