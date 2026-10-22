@@ -186,11 +186,11 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:info@avdetailing.com"
+                  href="mailto:aaronvasquez@avdetailingg.com"
                   className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Mail className="h-4 w-4 mr-3 text-primary" />
-                  info@avdetailing.com
+                  aaronvasquez@avdetailingg.com
                 </a>
               </li>
               <li className="flex items-start text-sm text-muted-foreground">
