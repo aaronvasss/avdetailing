@@ -40,7 +40,7 @@ serve(async req => {
     let customerId = profile.stripe_customer_id;
     if (!customerId) {
       // Metadata identity prevents linking another account merely by matching its email.
-      if (body.action !== 'setup' || targetId !== user.id) return json({cards:[],defaultId:null, error: body.action === 'list' ? undefined : 'Customer needs to add a card first'});
+      if (body.action !== 'setup' || targetId !== user.id) return body.action==='list'?json({cards:[],defaultId:null}):json({error:'Customer needs to add a card first'},409);
       const customer = await stripe.customers.create({email:user.email, name:profile.full_name || undefined, metadata:{user_id:user.id}}, {idempotencyKey:`portal-customer-${user.id}`});
       customerId = customer.id;
       const {error} = await db.from('profiles').update({stripe_customer_id:customerId}).eq('user_id',user.id);
