@@ -51,7 +51,7 @@ serve(async req => {
     const defaultId = typeof customer.invoice_settings.default_payment_method === 'string' ? customer.invoice_settings.default_payment_method : customer.invoice_settings.default_payment_method?.id ?? null;
     if (body.action === 'list') {
       const cards = await stripe.paymentMethods.list({customer:customerId,type:'card'});
-      return json({cards:cards.data.map(m=>({id:m.id,brand:m.card?.brand,last4:m.card?.last4,expMonth:m.card?.exp_month,expYear:m.card?.exp_year})),defaultId});
+      return json({cards:cards.data.map((m:Stripe.PaymentMethod)=>({id:m.id,brand:m.card?.brand,last4:m.card?.last4,expMonth:m.card?.exp_month,expYear:m.card?.exp_year})),defaultId});
     }
     if (body.action === 'setup') {
       if (targetId !== user.id) return json({error:'Customer must add their own card'},403);
@@ -77,7 +77,7 @@ serve(async req => {
       if (body.action === 'default') await stripe.customers.update(customerId,{invoice_settings:{default_payment_method:method.id}});
       else {
         const subscriptions = await stripe.subscriptions.list({customer:customerId,status:'all',limit:100});
-        if (subscriptions.has_more || subscriptions.data.some(s => !['canceled','incomplete_expired'].includes(s.status) && (s.default_payment_method === method.id || (!s.default_payment_method && defaultId === method.id)))) return json({error:'Change your membership payment card before removing this card'},409);
+        if (subscriptions.has_more || subscriptions.data.some((s:Stripe.Subscription) => !['canceled','incomplete_expired'].includes(s.status) && (s.default_payment_method === method.id || (!s.default_payment_method && defaultId === method.id)))) return json({error:'Change your membership payment card before removing this card'},409);
         if (defaultId === method.id) await stripe.customers.update(customerId,{invoice_settings:{default_payment_method:''}});
         await stripe.paymentMethods.detach(method.id);
       }
@@ -86,17 +86,17 @@ serve(async req => {
     if (!booking || ['cancelled','canceled','no_show'].includes(booking.status)) return json({error:'Select an eligible appointment'},400);
     // Guest contact must match the linked account; never charge an admin who booked for a guest.
     if (booking.guest_email && booking.guest_email.toLowerCase() !== (profile.email ?? '').toLowerCase()) return json({error:'Appointment customer does not match the linked account'},409);
-    const {data: records,error: recordsError} = await db.from('payment_records').select('amount_cents,payment_type,status,metadata').eq('booking_id',booking.id);
+    const {data: records,error: recordsError} = await db.from('payment_records').select('amount_cents,payment_type,status,metadata,stripe_payment_intent_id').eq('booking_id',booking.id);
     if (recordsError) throw recordsError;
     const {data: depositQuotes,error: depositError} = await db.from('quotes').select('deposit_amount,stripe_payment_intent_id,guest_email').eq('booking_id',booking.id);
     if(depositError)throw depositError;
-    let confirmedDeposit=Number(booking.deposit_amount||0);
+    let confirmedDeposit=['partial','deposit_paid'].includes(booking.payment_status)?Number(booking.deposit_amount||0):0;
     for(const deposit of depositQuotes??[]){
       if(!deposit.stripe_payment_intent_id)continue;
       const intent=await stripe.paymentIntents.retrieve(deposit.stripe_payment_intent_id);
-      if(intent.status==='succeeded' && deposit.guest_email?.toLowerCase()===(profile.email??'').toLowerCase())confirmedDeposit+=Number(deposit.deposit_amount||0);
+      if(intent.status==='succeeded' && deposit.guest_email?.toLowerCase()===(profile.email??'').toLowerCase())confirmedDeposit=Math.max(confirmedDeposit,Number(deposit.deposit_amount||0));
     }
-    const quote = balanceQuote(booking.total_price,confirmedDeposit>0?'deposit_paid':booking.payment_status,confirmedDeposit,(records ?? []).map(r=>({...r,metadata:{...r.metadata,stripe_payment_intent_id:(r as any).stripe_payment_intent_id}})));
+    const quote = balanceQuote(booking.total_price,['paid','refunded'].includes(booking.payment_status)?booking.payment_status:confirmedDeposit>0?'deposit_paid':booking.payment_status,confirmedDeposit,(records ?? []).map(r=>({...r,metadata:{...r.metadata,stripe_payment_intent_id:r.stripe_payment_intent_id}})));
     const {data: authorization,error: authorizationError} = await db.from('card_authorizations').select('*').eq('booking_id',booking.id).eq('user_id',targetId).maybeSingle();
     if (authorizationError) throw authorizationError;
     const {data: existing,error: existingError} = await db.from('portal_charge_requests').select('*').eq('booking_id',booking.id).maybeSingle();
