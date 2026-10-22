@@ -1,3 +1,8 @@
+# Portal React error 310
+- [x] Reproduce the owner portal crash while signed in.
+- [x] Correct appointment-list hook ordering without changing booking behavior or design.
+- [x] Six regression tests passed; signed-in owner calendar/history/analytics and worker today/jobs/bookings/pay opened without React errors; hook-order scan and preview build passed.
+
 # Reviews replacement
 - [x] Retrieve three genuine Google reviews with original text, rating and date.
 - [x] Build shared branded cards and mobile carousel.
