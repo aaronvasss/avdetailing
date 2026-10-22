@@ -1,3 +1,8 @@
+# Owner-only appointment hours
+- [ ] Allow owner/admin portal creation outside customer hours without changing public settings.
+- [ ] Enforce the exception only for authenticated admins using the internal booking form.
+- [ ] Run scheduling/permission tests and check the signed-in portal without creating a real appointment.
+
 # Portal React error 310
 - [x] Reproduce the owner portal crash while signed in.
 - [x] Correct appointment-list hook ordering without changing booking behavior or design.
