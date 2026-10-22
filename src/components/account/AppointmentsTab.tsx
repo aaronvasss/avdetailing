@@ -202,6 +202,51 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
       new Date(b.scheduled_date) < today
   );
 
+  const vehicleLabelOf = (b: Booking) =>
+    [b.vehicle_year, b.vehicle_make, b.vehicle_model]
+      .filter(Boolean)
+      .join(" ") || b.vehicle_type || "Vehicle not listed";
+
+  const vehicleOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    pastBookings.forEach((b) => {
+      const label = vehicleLabelOf(b);
+      if (!seen.has(label)) seen.set(label, label);
+    });
+    return Array.from(seen.keys()).sort((a, b) => a.localeCompare(b));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastBookings]);
+
+  const serviceOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    pastBookings.forEach((b) => {
+      if (b.service_id && b.services?.name && !seen.has(b.service_id)) {
+        seen.set(b.service_id, b.services.name);
+      }
+    });
+    return Array.from(seen.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastBookings]);
+
+  const filtersActive =
+    filterDateRange !== "all" || filterVehicle !== "all" || filterService !== "all";
+
+  const filteredPastBookings = pastBookings.filter((b) => {
+    if (filterDateRange !== "all") {
+      const cutoff = subDays(today, Number(filterDateRange));
+      if (new Date(b.scheduled_date) < cutoff) return false;
+    }
+    if (filterVehicle !== "all" && vehicleLabelOf(b) !== filterVehicle) return false;
+    if (filterService !== "all" && b.service_id !== filterService) return false;
+    return true;
+  });
+
+  const clearFilters = () => {
+    setFilterDateRange("all");
+    setFilterVehicle("all");
+    setFilterService("all");
+  };
+
   // Get next appointment
   const nextAppointment = upcomingBookings[0];
 
