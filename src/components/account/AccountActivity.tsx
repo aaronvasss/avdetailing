@@ -31,20 +31,21 @@ function show(field: string, v: string | null) {
   return v.replace(/_/g, " ");
 }
 
-export function AccountActivity({ userId }: { userId?: string }) {
+export function AccountActivity({ userId, bookingId, isAdmin=false }: { userId?: string; bookingId?:string; isAdmin?:boolean }) {
   const [rows, setRows] = useState<Entry[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
-    supabase
+    if (!userId&&!bookingId) return;
+    let query=supabase
       .from("booking_audit_log")
-      .select("id, action, field, old_value, new_value, created_at")
-      .eq("booking_user_id", userId)
-      .or("field.is.null,field.neq.assigned_worker_id")
-      .order("created_at", { ascending: false })
+      .select("id, action, field, old_value, new_value, created_at");
+    if(bookingId)query=query.eq('booking_id',bookingId);
+    else if(userId)query=query.eq('booking_user_id',userId);
+    if(!isAdmin)query=query.or('field.is.null,field.neq.assigned_worker_id');
+    query.order("created_at", { ascending: false })
       .limit(20)
       .then(({ data }) => data && setRows(data as Entry[]));
-  }, [userId]);
+  }, [userId,bookingId,isAdmin]);
 
   if (rows.length === 0) return null;
 
@@ -58,7 +59,7 @@ export function AccountActivity({ userId }: { userId?: string }) {
       <CardContent>
         <ul className="space-y-2 text-sm">
           {rows.map((r) => (
-            <li key={r.id} className="flex justify-between gap-3 border-b border-border pb-2 last:border-0">
+            <li key={r.id} className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-3 border-b border-border pb-2 last:border-0">
               <span>
                 {r.action === "created"
                   ? "Appointment booked"

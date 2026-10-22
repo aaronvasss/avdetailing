@@ -2249,6 +2249,7 @@ const BookingPage = () => {
           <div className="max-w-2xl mx-auto">
             {/* Page-level H1 — visually hidden to preserve the step-driven design */}
             <h1 className="sr-only">Book a Mobile Detailing Appointment</h1>
+            {repeatSource&&!bookingId&&<div className="mb-4 border-l-2 border-primary pl-3 text-sm"><p className="font-medium">{repeatSource.name}</p><p className="text-muted-foreground">{repeatSource.price!==null?`Previous appointment: $${Number(repeatSource.price).toFixed(2)}. `:''}Choose a current package and new date. Today's price is confirmed before payment.</p></div>}
 
             {!bookingId && step <= getTotalSteps() && (
               <div className="mb-4 text-center">

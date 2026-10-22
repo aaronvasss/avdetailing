@@ -43,6 +43,7 @@ import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { formatTime12h } from "@/lib/time-format";
 import { AppointmentDocuments } from "./AppointmentDocuments";
 import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
+import { AccountActivity } from './AccountActivity';
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -784,6 +785,7 @@ export function BookingDetailsDialog({
 
             <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={onStatusChange} />
             <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} />
+            {isAdmin&&<AccountActivity bookingId={booking.id} isAdmin />}
             <BookingPhotosInline bookingId={booking.id} />
 
             <Separator />
