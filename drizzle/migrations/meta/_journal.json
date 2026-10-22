@@ -50,6 +50,13 @@
       "when": 1792638427415,
       "tag": "0006_wallet_identity_and_audit_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792638591134,
+      "tag": "0007_atomic_portal_settlement",
+      "breakpoints": true
     }
   ]
 }

@@ -2657,6 +2657,18 @@ export type Database = {
           read_ct: number
         }[]
       }
+      settle_portal_charge: {
+        Args: {
+          _amount: number
+          _currency: string
+          _customer_id: string
+          _intent_id: string
+          _receipt: string
+          _request_id: string
+          _status: string
+        }
+        Returns: undefined
+      }
       valid_featured_google_reviews: { Args: { items: Json }; Returns: boolean }
       validate_referral_code: {
         Args: { code_input: string }
