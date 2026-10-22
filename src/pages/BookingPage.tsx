@@ -1,5 +1,5 @@
 import { CERAMIC_BOOKING_PRICES, formatPrice, type CeramicTier } from "@/lib/pricing";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -263,6 +263,24 @@ const BookingPage = () => {
   const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
+  const stepContainerRef = useRef<HTMLDivElement>(null);
+  const isFirstStepRender = useRef(true);
+  // On every step change, bring the new step heading into view and focus it,
+  // so customers never stay parked in the footer after tapping Continue.
+  useEffect(() => {
+    if (isFirstStepRender.current) { isFirstStepRender.current = false; return; }
+    const frame = requestAnimationFrame(() => {
+      const heading = stepContainerRef.current?.querySelector<HTMLElement>("h2");
+      const target = heading ?? stepContainerRef.current;
+      if (!target) return;
+      target.setAttribute("tabindex", "-1");
+      target.style.scrollMarginTop = "96px";
+      target.style.outline = "none";
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+      target.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [step]);
   const [serviceType, setServiceType] = useState<string>("");
   const [vehicleSubType, setVehicleSubType] = useState<string>("");
   const [selectedPackage, setSelectedPackage] = useState<string>("");
@@ -1414,7 +1432,7 @@ const BookingPage = () => {
             </div>
 
             {/* Smart Recommendations */}
-            {recommendations.length > 0 && (
+            {recommendations.some(r => addOns.some(a => a.id === r.addonId)) && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
@@ -2262,7 +2280,7 @@ const BookingPage = () => {
             )}
 
 
-            {renderStep()}
+            <div ref={stepContainerRef}>{renderStep()}</div>
           </div>
         </div>
       </section>

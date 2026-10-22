@@ -171,8 +171,10 @@ export function Header() {
             type="button"
             className="lg:hidden p-2 text-foreground"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            <span className="sr-only">Open menu</span>
             {mobileMenuOpen ? (
               <X className="h-6 w-6" />
             ) : (
@@ -183,6 +185,8 @@ export function Header() {
 
         {/* Mobile Navigation */}
         <div
+          id="mobile-navigation"
+          {...(!mobileMenuOpen ? { inert: "", "aria-hidden": true } : {})}
           className={cn(
             "lg:hidden overflow-hidden transition-all duration-300",
             mobileMenuOpen ? "max-h-[80vh] pb-4" : "max-h-0"
@@ -196,6 +200,7 @@ export function Header() {
                     <button
                       type="button"
                       onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
+                      aria-expanded={mobileServicesOpen}
                       className={cn(
                         "flex items-center justify-between w-full px-3 py-2 text-base font-medium rounded-md",
                         isActive(item.href)
@@ -209,7 +214,7 @@ export function Header() {
                         mobileServicesOpen && "rotate-180"
                       )} />
                     </button>
-                    <div className={cn(
+                    <div {...(!mobileServicesOpen ? { inert: "", "aria-hidden": true } : {})} className={cn(
                       "overflow-hidden transition-all duration-200",
                       mobileServicesOpen ? "max-h-96" : "max-h-0"
                     )}>
@@ -244,15 +249,20 @@ export function Header() {
               </div>
             ))}
             <div className="pt-4 space-y-3 px-3">
+              {!isAdmin && (
+                <Button asChild size="lg" className="w-full glow-red font-semibold">
+                  <Link to="/book" onClick={() => setMobileMenuOpen(false)}>Book Now</Link>
+                </Button>
+              )}
               {user ? (
-                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button asChild variant="outline" className="w-full">
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
                     {isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />}
                     {isAdmin ? "Admin Panel" : "My Account"}
                   </Link>
                 </Button>
               ) : (
-                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button asChild variant="outline" className="w-full">
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                     <User className="h-4 w-4 mr-2" />
                     Sign In
