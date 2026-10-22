@@ -67,7 +67,7 @@ export function localBusinessSchema() {
       longitude: -91.1871,
     },
     hasMap: "https://www.google.com/maps/place/Baton+Rouge,+LA",
-    priceRange: "$$",
+    priceRange: "$75 - $1,800 (aircraft by quote)",
     currenciesAccepted: "USD",
     paymentAccepted: "Cash, Credit Card, Zelle, Venmo",
     sameAs: [
