@@ -27,6 +27,7 @@
 - [ ] Desktop and mobile previews after each phase.
 
 # Finish client portal
+- [ ] Customer appointment records: clear history access, separate receipts/notes, accessible before/after photos, and validation.
 - [x] Implement saved-card setup, authorization, defaults/removal and protected remaining-balance charges; uncertain or ambiguous payments fail closed.
 - [x] Add customer receipt printing, approved service notes and before/after photos with compressed pre-service uploads.
 - [x] Correct completed-visit reporting and connect saved-vehicle/membership rebooking.
