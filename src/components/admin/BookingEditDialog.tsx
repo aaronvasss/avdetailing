@@ -460,7 +460,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
       .neq("status", "cancelled");
     
     const duration = booking.duration_minutes || getPackageDuration(booking.services?.slug || "") || 120;
-    const slots = generateTimeSlots(duration, existingBookings || [], schedulingConfig, { dateStr: date });
+    const slots = generateTimeSlots(duration, existingBookings || [], schedulingConfig, { dateStr: date, allowOutsideHours: isAdmin });
     
     const currentTimeFormatted = toDbTime(booking.scheduled_time) ?? "";
     if (!slots.includes(currentTimeFormatted)) {
@@ -1124,7 +1124,7 @@ export function BookingEditDialog({ booking, open, onOpenChange, onSave, isAdmin
                 <span className="font-medium">Duration: {formatDuration(booking.duration_minutes || 120)}</span>
               </div>
               <p className="text-blue-600 dark:text-blue-400 mt-1">
-                Includes 30-minute buffer between appointments. Working hours: 6:30 AM – 7:30 PM.
+                Includes {schedulingConfig.bufferMinutes}-minute buffer between appointments. {isAdmin ? "Owner scheduling permits starts outside customer hours." : "Customer booking hours: 6:00 AM – 8:00 PM."}
               </p>
             </div>
 

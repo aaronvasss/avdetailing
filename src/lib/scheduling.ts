@@ -165,11 +165,11 @@ export function generateTimeSlots(
     duration_minutes: number | null;
   }> = [],
   config?: SchedulingConfig,
-  options?: { dateStr?: string }
+  options?: { dateStr?: string; allowOutsideHours?: boolean }
 ): string[] {
   const slots: string[] = [];
-  const workStart = getWorkingStartMinutes(config);
-  const workEnd = getWorkingEndMinutes(config);
+  const workStart = options?.allowOutsideHours ? 0 : getWorkingStartMinutes(config);
+  const workEnd = options?.allowOutsideHours ? 24 * 60 - 1 : getWorkingEndMinutes(config);
   const interval = config?.slotInterval ?? SLOT_INTERVAL;
   const buffer = config?.bufferMinutes ?? BUFFER_MINUTES;
   const defaultDur = config?.defaultDuration ?? DEFAULT_DURATION;
@@ -179,7 +179,7 @@ export function generateTimeSlots(
     options?.dateStr && isBusinessToday(options.dateStr) ? businessNowMinutes() : -1;
 
   for (let minutes = workStart; minutes <= workEnd; minutes += interval) {
-    if (!isSlotValid(minutes, serviceDuration, config)) continue;
+    if (!options?.allowOutsideHours && !isSlotValid(minutes, serviceDuration, config)) continue;
     if (minutes < minMinutes) continue;
     
     const capacity = Math.max(1, config?.capacity ?? 1);
