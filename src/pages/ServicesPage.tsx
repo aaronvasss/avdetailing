@@ -166,17 +166,12 @@ const ServicesPage = () => {
                   <div className="mt-6 pt-5 border-t border-border flex items-end justify-between">
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Starting at
+                        {pricing.startingAt(service.service) == null ? "Pricing" : "Starting at"}
                       </div>
                       <div className="flex items-baseline gap-1">
                         <span className="text-2xl md:text-3xl font-bold text-primary leading-none">
-                          {service.startingPrice}
+                          {pricing.label(pricing.startingAt(service.service), "By Quote")}
                         </span>
-                        {service.priceNote && (
-                          <span className="text-sm text-muted-foreground">
-                            {service.priceNote}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <span className="text-xs font-semibold text-primary group-hover:underline">
