@@ -43,6 +43,13 @@
       "when": 1792637730879,
       "tag": "0005_atomic_portal_charge_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792638427415,
+      "tag": "0006_wallet_identity_and_audit_guards",
+      "breakpoints": true
     }
   ]
 }
