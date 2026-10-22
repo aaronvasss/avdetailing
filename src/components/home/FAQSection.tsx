@@ -1,3 +1,4 @@
+import { usePricing, formatPrice, ceramicFrom, type Pricing } from "@/lib/pricing";
 import {
   Accordion,
   AccordionContent,
@@ -6,7 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { JsonLd, faqSchema } from "@/components/seo/JsonLd";
 
-const faqs = [
+const buildFaqs = (pricing: Pricing) => [
   {
     question: "How does mobile detailing work?",
     answer: "We bring everything needed to detail your vehicle directly to your location - home, office, or anywhere in the Baton Rouge area. Our fully-equipped mobile unit includes water, power, and all professional-grade products and equipment. You don't need to provide anything except access to your vehicle.",
@@ -41,15 +42,15 @@ const faqs = [
   },
   {
     question: "How much does mobile detailing cost in Baton Rouge?",
-    answer: "Pricing depends on vehicle size and the package you choose. Basic exterior washes start around $60, full interior + exterior details start at $150, ceramic coatings start at $800, and paint correction starts at $400. Boats, RVs, and aircraft are quoted individually. You'll always see a transparent, all-in price before you book — no hidden fees.",
+    answer: `Pricing depends on vehicle size and the package you choose. Exterior-only washes start at ${pricing.label(pricing.packageFrom("car", "Exterior Only"))}, full interior + exterior details start at ${pricing.label(pricing.packageFrom("car", "Basic Package"))}, ceramic coatings start at ${formatPrice(ceramicFrom("3-year"))}, and paint correction starts at ${pricing.label(pricing.startingAt("paint"))}. Boats, RVs, and aircraft are quoted individually. You'll always see a transparent, all-in price before you book — no hidden fees.`,
   },
   {
     question: "Do you offer ceramic coating in Baton Rouge?",
-    answer: "Yes. We offer professional ceramic coating packages: 3-Year ($800), 6-Year ($1,200), and 10-Year ($1,600). Coatings are applied at your location and typically take a full day. Each coating includes paint decontamination and a light polish for proper bonding.",
+    answer: `Yes. We offer professional ceramic coating packages starting at 3-Year (${formatPrice(ceramicFrom("3-year"))}), 5-Year (${formatPrice(ceramicFrom("5-year"))}), and 10-Year (${formatPrice(ceramicFrom("10-year"))}). Coatings are applied at your location and typically take a full day. Each coating includes paint decontamination and a light polish for proper bonding.`,
   },
   {
     question: "Can you detail my boat, RV, or aircraft?",
-    answer: "Absolutely. We provide mobile detailing for boats, RVs (exterior only, starting at $180), and aircraft across the Baton Rouge area. These specialty services require a $100 deposit at booking which is applied to your final total. After we see photos of the unit, we send a custom quote.",
+    answer: `Absolutely. We provide mobile detailing for boats, RVs (exterior only, starting at ${pricing.label(pricing.startingAt("rv"))}), and aircraft across the Baton Rouge area. These specialty services require a $100 deposit at booking which is applied to your final total. After we see photos of the unit, we send a custom quote.`,
   },
   {
     question: "How far in advance should I book?",
@@ -57,11 +58,12 @@ const faqs = [
   },
   {
     question: "Do you offer monthly maintenance plans?",
-    answer: "Yes. Our membership plans cover recurring visits at a discount — Monthly ($135), Bi-Weekly ($260), and Weekly ($520). Members get priority scheduling, add-on discounts, and the same trusted detailer each visit so your vehicle always looks its best.",
+    answer: `Yes. Our membership plans cover recurring visits — Monthly (${pricing.label(pricing.planMonthly("monthly"))}/month), Bi-Weekly (${pricing.label(pricing.planMonthly("bi-weekly"))}/month), and Weekly (${pricing.label(pricing.planMonthly("weekly-premium"))}/month). Members get priority scheduling, add-on discounts, and the same trusted detailer each visit so your vehicle always looks its best.`,
   },
 ];
 
 export function FAQSection() {
+  const faqs = buildFaqs(usePricing());
   return (
     <section className="section-padding bg-card">
       <JsonLd data={faqSchema(faqs)} />

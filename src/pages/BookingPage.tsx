@@ -999,7 +999,6 @@ const BookingPage = () => {
           // Ceramic Coating: vehicle class selector + tiered pricing
           if (serviceType === "ceramic") {
             const cp = (t: CeramicTier) => formatPrice(CERAMIC_BOOKING_PRICES[ceramicVehicleClass as "car" | "suv-truck"][t]);
-            const ceramicPricing = { [ceramicVehicleClass as string]: { tier3: cp("3-year"), tier5: cp("5-year"), tier10: cp("10-year") } };
             const vehicleClassOptions = [
               { id: "car" as const, label: "Car", description: "Sedans, coupes & compact vehicles" },
               { id: "suv-truck" as const, label: "SUV / Truck", description: "SUVs, trucks & larger vehicles" },
@@ -1007,9 +1006,9 @@ const BookingPage = () => {
             ];
             const tiers = ceramicVehicleClass && ceramicVehicleClass !== "rv-boat-aircraft"
               ? [
-                  { id: "3-year", name: "3-Year Protection", price: ceramicPricing[ceramicVehicleClass].tier3 },
-                  { id: "5-year", name: "5-Year Protection", price: ceramicPricing[ceramicVehicleClass].tier5 },
-                  { id: "10-year", name: "10-Year Protection", price: ceramicPricing[ceramicVehicleClass].tier10 },
+                  { id: "3-year", name: "3-Year Protection", price: cp("3-year") },
+                  { id: "5-year", name: "5-Year Protection", price: cp("5-year") },
+                  { id: "10-year", name: "10-Year Protection", price: cp("10-year") },
                 ]
               : [];
 

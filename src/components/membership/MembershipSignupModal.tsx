@@ -171,7 +171,7 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
     }
   };
 
-  const billingLabel = plan?.slug === "bi-weekly" ? "$130 every 2 weeks" : plan?.slug === "weekly-premium" ? "$130 per week" : "$135/month";
+  const billingLabel = plan ? `$${plan.price}${plan.slug === "bi-weekly" ? " every 2 weeks" : plan.slug === "weekly-premium" ? " per week" : "/month"}` : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
