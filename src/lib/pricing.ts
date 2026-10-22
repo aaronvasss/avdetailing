@@ -29,9 +29,6 @@ export const FALLBACK_PACKAGES: PackagePrice[] = [
   { service: "car", name: "Basic Package", price: 145.18 },
   { service: "car", name: "Silver Package", price: 259.17 },
   { service: "car", name: "Gold Package", price: 362.8 },
-  { service: "ceramic", name: "3-Year Ceramic Coating", price: 800 },
-  { service: "ceramic", name: "6-Year Ceramic Coating", price: 1200 },
-  { service: "ceramic", name: "10-Year Ceramic Coating", price: 1600 },
   { service: "paint", name: "1-Step Polish", price: 400 },
   { service: "paint", name: "2-Step Correction", price: 500 },
   { service: "paint", name: "3-Step Restoration", price: 650 },
@@ -40,6 +37,18 @@ export const FALLBACK_PACKAGES: PackagePrice[] = [
   { service: "boat", name: "Boat Premium Detail", price: 649 },
   { service: "rv", name: "RV Exterior Wash", price: 180 },
 ];
+
+/**
+ * Ceramic coating is priced in the booking flow by vehicle class and tier
+ * (these are the amounts booked and charged), not by service_packages.
+ */
+export type CeramicTier = "3-year" | "5-year" | "10-year";
+export const CERAMIC_BOOKING_PRICES: Record<"car" | "suv-truck", Record<CeramicTier, number>> = {
+  car: { "3-year": 850, "5-year": 1300, "10-year": 1700 },
+  "suv-truck": { "3-year": 950, "5-year": 1400, "10-year": 1800 },
+};
+export const ceramicFrom = (tier: CeramicTier) =>
+  Math.min(...Object.values(CERAMIC_BOOKING_PRICES).map((t) => t[tier]));
 
 export const FALLBACK_PLANS: PlanPrice[] = [
   { slug: "monthly", frequency: "monthly", price: 135 },
@@ -62,6 +71,7 @@ export function buildPricing(packages: PackagePrice[], plans: PlanPrice[]) {
   /** Lowest active price for a whole service, or null when quote-only/no active package. */
   const startingAt = (s: ServiceKey) => {
     if (QUOTE_ONLY_SERVICES.includes(s)) return null;
+    if (s === "ceramic") return ceramicFrom("3-year");
     const list = forService(s);
     return list.length ? Math.min(...list.map((p) => p.price)) : null;
   };
@@ -84,7 +94,7 @@ async function loadPricing() {
   ]);
   if (pk.error || pl.error) throw pk.error || pl.error;
   const packages = (pk.data ?? [])
-    .filter((r) => r.service_id && KEY_BY_ID[r.service_id])
+    .filter((r) => r.service_id && KEY_BY_ID[r.service_id] && KEY_BY_ID[r.service_id] !== "ceramic")
     .map((r) => ({ service: KEY_BY_ID[r.service_id!], name: r.name, price: Number(r.price) }));
   const plans = (pl.data ?? []).map((r) => ({ slug: r.slug, frequency: r.frequency, price: Number(r.price) }));
   return { packages: packages.length ? packages : FALLBACK_PACKAGES, plans: plans.length ? plans : FALLBACK_PLANS };

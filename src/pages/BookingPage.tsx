@@ -1,3 +1,4 @@
+import { CERAMIC_BOOKING_PRICES, formatPrice, type CeramicTier } from "@/lib/pricing";
 import { useState, useMemo, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -464,11 +465,7 @@ const BookingPage = () => {
 
   const ceramicPrice = (): number => {
     if (serviceType !== "ceramic" || !ceramicVehicleClass || ceramicVehicleClass === "rv-boat-aircraft" || !ceramicTier) return 0;
-    const map: Record<string, Record<string, number>> = {
-      "car": { "3-year": 850, "5-year": 1300, "10-year": 1700 },
-      "suv-truck": { "3-year": 950, "5-year": 1400, "10-year": 1800 },
-    };
-    return map[ceramicVehicleClass]?.[ceramicTier] || 0;
+    return CERAMIC_BOOKING_PRICES[ceramicVehicleClass as "car" | "suv-truck"]?.[ceramicTier as CeramicTier] || 0;
   };
   const ceramicTierLabel = (): string => {
     const map: Record<string, string> = { "3-year": "3-Year Protection", "5-year": "5-Year Protection", "10-year": "10-Year Protection" };
@@ -1001,10 +998,8 @@ const BookingPage = () => {
 
           // Ceramic Coating: vehicle class selector + tiered pricing
           if (serviceType === "ceramic") {
-            const ceramicPricing: Record<string, { tier3: string; tier5: string; tier10: string }> = {
-              "car": { tier3: "$850", tier5: "$1,300", tier10: "$1,700" },
-              "suv-truck": { tier3: "$950", tier5: "$1,400", tier10: "$1,800" },
-            };
+            const cp = (t: CeramicTier) => formatPrice(CERAMIC_BOOKING_PRICES[ceramicVehicleClass as "car" | "suv-truck"][t]);
+            const ceramicPricing = { [ceramicVehicleClass as string]: { tier3: cp("3-year"), tier5: cp("5-year"), tier10: cp("10-year") } };
             const vehicleClassOptions = [
               { id: "car" as const, label: "Car", description: "Sedans, coupes & compact vehicles" },
               { id: "suv-truck" as const, label: "SUV / Truck", description: "SUVs, trucks & larger vehicles" },
