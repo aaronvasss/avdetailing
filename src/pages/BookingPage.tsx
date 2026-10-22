@@ -277,6 +277,7 @@ const BookingPage = () => {
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   const [smsConsent, setSmsConsent] = useState(false);
   const [savedVehicleId,setSavedVehicleId]=useState<string|null>(null);
+  const [rebookMembershipId,setRebookMembershipId]=useState<string|null>(null);
   const [repeatSource,setRepeatSource]=useState<{price:number|null;name:string}|null>(null);
   const [referralCode, setReferralCode] = useState("");
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
@@ -317,6 +318,7 @@ const BookingPage = () => {
       else if(membershipId){
         const {data:membership,error}=await supabase.from('customer_memberships').select('vehicle_id,customer_vehicles(*)').eq('id',membershipId).eq('user_id',user.id).eq('status','active').single();
         if(error)throw error;
+        setRebookMembershipId(membershipId);
         const {data:last}=await supabase.from('bookings').select('*,services(slug,name),booking_add_ons(add_on_id)').eq('membership_id',membershipId).eq('user_id',user.id).order('scheduled_date',{ascending:false}).limit(1).maybeSingle();
         source=last;
         if(!source&&membership?.customer_vehicles){const v=membership.customer_vehicles;source={vehicle_id:v.id,vehicle_year:v.year,vehicle_make:v.make,vehicle_model:v.model,vehicle_type:v.size_category||v.vehicle_type,service_address:v.service_address,services:{slug:'full-detail',name:'Membership Maintenance'}};}
@@ -706,6 +708,7 @@ const BookingPage = () => {
         : baseName;
 
       const createPayload = {
+        membership_id:rebookMembershipId,
         vehicle_id:savedVehicleId,
         reminder_email_consent:smsConsent,
         reminder_sms_consent:smsConsent,

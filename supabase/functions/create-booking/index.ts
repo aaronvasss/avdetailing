@@ -341,6 +341,7 @@ const handler = async (req: Request): Promise<Response> => {
       if(vehicle.year===body.vehicle_year && vehicle.make===body.vehicle_make && vehicle.model===body.vehicle_model)vehicleId=vehicle.id;
     }
     const insertPayload = {
+      membership_id:null as string|null,
       vehicle_id:vehicleId,
       reminder_email_consent:body.reminder_email_consent===true,
       reminder_sms_consent:body.reminder_sms_consent===true,

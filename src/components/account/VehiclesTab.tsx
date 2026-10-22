@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Plus, Car, Trash2, Star, Pencil, History, Camera } from "lucide-react";
 import { compressImage } from "@/lib/image-compress";
 import { format } from "date-fns";
+import { Link } from 'react-router-dom';
 
 interface VehiclesTabProps {
   userId: string;
@@ -65,7 +66,7 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
     const list = (data ?? []) as Vehicle[];
     setVehicles(list);
     setLoading(false);
-    const paths = list.filter((v) => v.photo_path).map((v) => v.photo_path!) ;
+    const paths = list.flatMap(v=>v.photo_path?[v.photo_path]:[]);
     if (paths.length) {
       const { data: signed } = await supabase.storage.from("vehicle-photos").createSignedUrls(paths, 3600);
       const map: Record<string, string> = {};
@@ -92,6 +93,7 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
     let photo_path: string | undefined;
     if (photo) {
       const file = await compressImage(photo);
+      if(!file.type.startsWith('image/')||file.size>1024*1024){toast.error('Choose an image smaller than 1 MB');setSaving(false);return;}
       const path = `${userId}/${crypto.randomUUID()}.jpg`;
       const { error: upErr } = await supabase.storage.from("vehicle-photos").upload(path, file, { contentType: file.type || "image/jpeg" });
       if (upErr) { toast.error("Photo upload failed"); setSaving(false); return; }
@@ -202,9 +204,10 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
           ) : (
             <ul className="divide-y divide-border">
               {history.map((b) => (
-                <li key={b.id} className="py-2 flex justify-between text-sm">
+                <li key={b.id} className="py-2 flex flex-wrap justify-between gap-2 text-sm">
                   <span>{format(new Date(b.scheduled_date + "T12:00:00"), "MMM d, yyyy")} · {b.services?.name ?? "Service"}</span>
                   <span className="text-muted-foreground capitalize">{b.status}{b.total_price != null ? ` · $${Number(b.total_price).toFixed(2)}` : ""}</span>
+                  <Button asChild variant="outline" size="sm"><Link to={`/book?repeat=${b.id}`}>Book Again</Link></Button>
                 </li>
               ))}
             </ul>
