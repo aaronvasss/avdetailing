@@ -1,3 +1,4 @@
+import { MONTHLY_MULTIPLIER } from "@/lib/pricing";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -171,7 +172,7 @@ export function MembershipSignupModal({ open, onOpenChange, plan }: MembershipSi
     }
   };
 
-  const billingLabel = plan ? `$${plan.price}${plan.slug === "bi-weekly" ? " every 2 weeks" : plan.slug === "weekly-premium" ? " per week" : "/month"}` : "";
+  const billingLabel = plan ? `$${Math.round(plan.price / (MONTHLY_MULTIPLIER[plan.slug] ?? 1))}${plan.slug === "bi-weekly" ? " every 2 weeks" : plan.slug === "weekly-premium" ? " per week" : "/month"}` : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
