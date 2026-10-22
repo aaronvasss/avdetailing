@@ -36,13 +36,14 @@ serve(async req=>{
     let query=db.from('bookings').select('*').eq('status','confirmed');
     query=body.bookingId?query.eq('id',body.bookingId):query.in('scheduled_date',[today,tomorrow.toISOString().slice(0,10)]);
     const {data:bookings,error}=await query;if(error)throw error;
+    if(body.bookingId&&!bookings?.length&&!body.dryRun)return json({success:false,remindersSent:0,reason:'Only confirmed appointments can receive reminders.'});
     const {data:settings}=await db.from('business_settings').select('key,value').in('key',['sms_sender_phone','public_business_phone']);
     const values=Object.fromEntries((settings??[]).map(r=>[r.key,r.value]));
     const results=[];
     for(const booking of bookings??[]){
       const hours=(appointmentInstant(booking.scheduled_date,booking.scheduled_time)-now.getTime())/3600000;
       const kind=body.bookingId?(body.reminderType??'24h'):hours>20&&hours<=28?'24h':hours>1.5&&hours<=3?'2h':null;
-      if(!kind||hours<=0)continue;
+      if(!kind||hours<=0){if(body.bookingId)results.push({bookingId:booking.id,success:false,reason:'This appointment time has already passed.'});continue;}
       const {data:profile}=booking.user_id?await db.from('profiles').select('full_name,email,phone').eq('user_id',booking.user_id).maybeSingle():{data:null};
       // Guest contact fields take priority; never fall back to the admin's contact for guest bookings.
       const guest=!!booking.guest_email||!!booking.guest_phone;
@@ -57,13 +58,13 @@ serve(async req=>{
         const consent=await reminderConsent(db,booking,channel);
         const permitted=!!destination&&consent&&(channel!=='sms'||await smsNotSuppressed(db,phone));
         if(body.dryRun){results.push({bookingId:booking.id,channel,eligible:permitted,reminderType:kind});continue;}
-        if(!permitted)continue;
+        if(!permitted){results.push({bookingId:booking.id,channel,success:false,reason:!destination?`No ${channel==='sms'?'phone number':'email'} on file.`:!consent?`Customer has not agreed to ${channel==='sms'?'text':'email'} reminders.`:'Customer replied STOP to texts.'});continue;}
         if(channel==='email'){
           const {data:suppressed,error:suppressionError}=await db.from('suppressed_emails').select('id').eq('email',String(email).toLowerCase()).limit(1);
-          if(suppressionError||suppressed?.length)continue;
+          if(suppressionError||suppressed?.length){results.push({bookingId:booking.id,channel,success:false,reason:'Email address is unsubscribed.'});continue;}
         }
         const {data:claim,error:claimError}=await db.from('portal_reminder_deliveries').insert({booking_id:booking.id,scheduled_date:booking.scheduled_date,scheduled_time:booking.scheduled_time,channel,reminder_type:kind}).select('id').single();
-        if(claimError||!claim)continue;
+        if(claimError||!claim){results.push({bookingId:booking.id,channel,success:false,reason:`This ${kind} ${channel==='sms'?'text':'email'} reminder was already sent.`});continue;}
         let success=false;
         try{
           if(channel==='sms'){
@@ -76,9 +77,10 @@ serve(async req=>{
           }
         }catch{success=false;}
         await db.from('portal_reminder_deliveries').update({status:success?'sent':'failed'}).eq('id',claim.id);
-        results.push({bookingId:booking.id,channel,success});
+        results.push({bookingId:booking.id,channel,success,...(success?{}:{reason:`The ${channel==='sms'?'text':'email'} could not be delivered.`})});
       }
     }
-    return json({success:true,remindersSent:results.filter(r=>(r as any).success).length,results});
+    const sent=results.filter(r=>(r as any).success).length;
+    return json({success:true,remindersSent:sent,reason:sent?undefined:(results.find(r=>(r as any).reason) as any)?.reason,results});
   }catch{return json({error:'Unable to process reminders'},500);}
 });

@@ -353,11 +353,15 @@ export function AdminBookingsTab({ isAdmin = true }: AdminBookingsTabProps) {
   const sendReminder = async (booking: Booking, reminderType: "24h" | "2h") => {
     setSendingReminder(booking.id);
     try {
-      const { error } = await supabase.functions.invoke("send-reminder-sms", {
+      const { data, error } = await supabase.functions.invoke("send-reminder-sms", {
         body: { bookingId: booking.id, reminderType },
       });
       if (error) throw error;
-      toast.success(`${reminderType} reminder sent!`);
+      if (!data?.remindersSent) {
+        toast.error(`No reminder sent: ${data?.reason || "nothing was eligible to send."}`);
+        return;
+      }
+      toast.success(`${reminderType} reminder sent (${data.remindersSent})`);
     } catch (err) {
       console.error("Error sending reminder:", err);
       toast.error("Failed to send reminder");
