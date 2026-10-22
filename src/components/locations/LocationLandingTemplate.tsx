@@ -42,18 +42,7 @@ export function LocationLandingTemplate({ config }: Props) {
     "@type": "Service",
     serviceType: "Mobile Car Detailing",
     name: config.titleH1,
-    provider: {
-      "@type": "LocalBusiness",
-      name: "AV Detailing",
-      telephone: "+12255216264",
-      url: SITE_URL,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Baton Rouge",
-        addressRegion: "LA",
-        addressCountry: "US",
-      },
-    },
+    provider: { "@id": `${SITE_URL}/#business` },
     areaServed: {
       "@type": "Place",
       name: config.city,

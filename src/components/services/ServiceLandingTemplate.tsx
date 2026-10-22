@@ -59,18 +59,7 @@ export function ServiceLandingTemplate({ config }: Props) {
     "@type": "Service",
     serviceType: config.serviceType,
     name: config.title,
-    provider: {
-      "@type": "LocalBusiness",
-      name: "AV Detailing",
-      telephone: "+12255216264",
-      url: SITE_URL,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Baton Rouge",
-        addressRegion: "LA",
-        addressCountry: "US",
-      },
-    },
+    provider: { "@id": `${SITE_URL}/#business` },
     areaServed: [
       { "@type": "City", name: "Baton Rouge", geo: { "@type": "GeoCoordinates", latitude: 30.4515, longitude: -91.1871 } },
       { "@type": "Place", name: "Highland Road", geo: { "@type": "GeoCoordinates", latitude: 30.3963, longitude: -91.1271 } },
