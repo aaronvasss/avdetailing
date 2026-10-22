@@ -391,6 +391,9 @@ export type Database = {
           membership_id: string | null
           payment_method: string | null
           payment_status: string | null
+          reminder_consent_at: string | null
+          reminder_email_consent: boolean
+          reminder_sms_consent: boolean
           scheduled_date: string
           scheduled_time: string
           sent_confirmation: boolean | null
@@ -448,6 +451,9 @@ export type Database = {
           membership_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          reminder_consent_at?: string | null
+          reminder_email_consent?: boolean
+          reminder_sms_consent?: boolean
           scheduled_date: string
           scheduled_time: string
           sent_confirmation?: boolean | null
@@ -505,6 +511,9 @@ export type Database = {
           membership_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          reminder_consent_at?: string | null
+          reminder_email_consent?: boolean
+          reminder_sms_consent?: boolean
           scheduled_date?: string
           scheduled_time?: string
           sent_confirmation?: boolean | null
@@ -593,6 +602,47 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      card_authorizations: {
+        Row: {
+          amount_cents: number
+          authorized_at: string
+          booking_id: string
+          id: string
+          revoked_at: string | null
+          terms_text: string
+          terms_version: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          authorized_at?: string
+          booking_id: string
+          id?: string
+          revoked_at?: string | null
+          terms_text: string
+          terms_version?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          authorized_at?: string
+          booking_id?: string
+          id?: string
+          revoked_at?: string | null
+          terms_text?: string
+          terms_version?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_authorizations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -794,6 +844,65 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "customer_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_notification_preferences: {
+        Row: {
+          consent_version: string
+          email_reminders: boolean
+          marketing_emails: boolean
+          sms_reminders: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consent_version?: string
+          email_reminders?: boolean
+          marketing_emails?: boolean
+          sms_reminders?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consent_version?: string
+          email_reminders?: boolean
+          marketing_emails?: boolean
+          sms_reminders?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      customer_service_notes: {
+        Row: {
+          booking_id: string
+          created_at: string
+          created_by: string
+          id: string
+          note: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          note: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_service_notes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -1472,6 +1581,7 @@ export type Database = {
           membership_id: string | null
           metadata: Json | null
           payment_type: string
+          receipt_url: string | null
           status: string | null
           stripe_checkout_session_id: string | null
           stripe_customer_id: string | null
@@ -1488,6 +1598,7 @@ export type Database = {
           membership_id?: string | null
           metadata?: Json | null
           payment_type: string
+          receipt_url?: string | null
           status?: string | null
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
@@ -1504,6 +1615,7 @@ export type Database = {
           membership_id?: string | null
           metadata?: Json | null
           payment_type?: string
+          receipt_url?: string | null
           status?: string | null
           stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
@@ -1524,6 +1636,66 @@ export type Database = {
             columns: ["membership_id"]
             isOneToOne: false
             referencedRelation: "customer_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_charge_requests: {
+        Row: {
+          amount_cents: number
+          authorization_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          receipt_url: string | null
+          requested_by: string
+          service_amount_cents: number
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          authorization_id: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          receipt_url?: string | null
+          requested_by: string
+          service_amount_cents: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          authorization_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          receipt_url?: string | null
+          requested_by?: string
+          service_amount_cents?: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_charge_requests_authorization_id_fkey"
+            columns: ["authorization_id"]
+            isOneToOne: false
+            referencedRelation: "card_authorizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_charge_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -2005,6 +2177,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sms_opt_outs: {
+        Row: {
+          opted_out_at: string
+          phone: string
+        }
+        Insert: {
+          opted_out_at?: string
+          phone: string
+        }
+        Update: {
+          opted_out_at?: string
+          phone?: string
+        }
+        Relationships: []
       }
       stripe_prices: {
         Row: {
