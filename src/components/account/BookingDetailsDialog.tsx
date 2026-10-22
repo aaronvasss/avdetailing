@@ -921,7 +921,7 @@ export function BookingDetailsDialog({
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a href="mailto:aaronvasquez100@gmail.com">
+                    <a href="mailto:aaronvasquez@avdetailingg.com">
                       <Mail className="h-4 w-4 mr-2" />
                       Email Us
                     </a>

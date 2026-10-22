@@ -31,5 +31,5 @@ Both phone numbers are stored in the `business_settings` table:
 - SMS message content displays `publicBusinessPhone` for call references
 
 ## Business Owner Contact
-- Email: aaronvasquez100@gmail.com (avdetailingg.com address was a typo, removed)
+- Customer-facing email: aaronvasquez@avdetailingg.com (confirmed by Aaron Oct 22 2026; NOT a typo). aaronvasquez100@gmail.com remains his admin login only.
 - SMS notifications forwarded to: +12255216264
