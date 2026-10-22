@@ -84,7 +84,11 @@ export function AdminRemindersTab() {
       });
 
       if (error) throw error;
-      toast.success(`${reminderType} reminder sent!`);
+      if (!data?.remindersSent) {
+        toast.error(`No reminder sent: ${data?.reason || "nothing was eligible to send."}`);
+        return;
+      }
+      toast.success(`${reminderType} reminder sent (${data.remindersSent})`);
     } catch (err) {
       console.error("Error sending reminder:", err);
       toast.error("Failed to send reminder");
@@ -101,7 +105,8 @@ export function AdminRemindersTab() {
       });
 
       if (error) throw error;
-      toast.success(`Sent ${data.remindersSent || 0} reminders!`);
+      if (data?.remindersSent) toast.success(`Sent ${data.remindersSent} reminders!`);
+      else toast.info("No reminders were due to send right now.");
     } catch (err) {
       console.error("Error sending reminders:", err);
       toast.error("Failed to send reminders");
