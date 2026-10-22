@@ -22,6 +22,7 @@ import { fetchClientVehicles, findOrCreateClientVehicle, describeVehicle, type C
 import { Car, CheckCircle2, Clock } from "lucide-react";
 import { generateTimeSlots, getPackageDuration, formatDuration, DEFAULT_DURATION } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { toDbTime, formatTime12h, toDateString, addMinutesTo12h, groupSlotsByPeriod, parseDateString } from "@/lib/time-format";
 import { fetchRecentCustomerBookings, type PastBooking } from "@/lib/recentBookings";
 import { RecentAppointmentsPanel } from "@/components/account/RecentAppointmentsPanel";
@@ -119,6 +120,7 @@ function loadDraft(): DraftData | null {
 }
 
 export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookingModalProps) {
+  const { isAdmin } = useAdminCheck();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [pricingMode, setPricingMode] = useState<"package" | "custom">("package");
@@ -609,8 +611,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     return schedulingConfig.defaultDuration ?? DEFAULT_DURATION;
   }, [pricingMode, selectedPackageId, schedulingConfig.defaultDuration]);
 
-  // Time slots use the SAME business hours, interval, buffer, blocked dates and
-  // active-booking conflict rules as every other scheduling screen.
+  // Only owners can select outside-hours starts; keep buffer/capacity/date rules.
   useEffect(() => {
     if (!open || !form.scheduledDate) {
       setAvailableSlots([]);
@@ -628,12 +629,12 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
           .in("status", ["pending", "confirmed", "in_progress"]);
         if (cancelled) return;
         setAvailableSlots(
-          generateTimeSlots(serviceDurationMinutes, existing || [], schedulingConfig, { dateStr })
+          generateTimeSlots(serviceDurationMinutes, existing || [], schedulingConfig, { dateStr, allowOutsideHours: isAdmin })
         );
       } catch (err) {
         if (!cancelled) {
           setAvailableSlots(
-            generateTimeSlots(serviceDurationMinutes, [], schedulingConfig, { dateStr })
+            generateTimeSlots(serviceDurationMinutes, [], schedulingConfig, { dateStr, allowOutsideHours: isAdmin })
           );
         }
       } finally {
@@ -643,7 +644,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
     return () => {
       cancelled = true;
     };
-  }, [open, form.scheduledDate, serviceDurationMinutes, schedulingConfig]);
+  }, [open, form.scheduledDate, serviceDurationMinutes, schedulingConfig, isAdmin]);
 
   const timeOptions = useMemo(() => {
     const slots = [...availableSlots];
@@ -670,12 +671,14 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
   };
 
   const handleSubmit = async () => {
+    const scheduledDate = form.scheduledDate;
+    const scheduledTime = toDbTime(form.scheduledTime);
     if (requiredIssues.length > 0) {
       toast.error(`Missing required: ${requiredIssues.map(i => i.label).join(", ")}`);
       focusFirstIssue();
       return;
     }
-    if (!toDbTime(form.scheduledTime)) {
+    if (!scheduledDate || !scheduledTime) {
       toast.error(`Invalid time: ${form.scheduledTime}`);
       focusFirstIssue();
       return;
@@ -693,8 +696,10 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
           service_id: selectedService.serviceId,
-          scheduled_date: toDateString(form.scheduledDate!),
-          scheduled_time: toDbTime(form.scheduledTime)!,
+          scheduled_date: toDateString(scheduledDate),
+          scheduled_time: scheduledTime,
+          admin_hours_override: isAdmin,
+          duration_minutes: serviceDurationMinutes,
           guest_name: `${form.firstName} ${form.lastName}`,
           guest_email: form.email || null,
           guest_phone: form.phone.replace(/\D/g, "") || null,
