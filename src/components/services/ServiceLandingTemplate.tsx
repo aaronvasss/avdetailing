@@ -188,7 +188,7 @@ export function ServiceLandingTemplate({ config }: Props) {
         <div className="container-custom max-w-4xl text-center">
           <p className="text-xl md:text-2xl font-semibold mb-6">
             Call{" "}
-            <a href="tel:+12255216264" className="text-primary hover:underline">
+            <a href="tel:2255216264" className="text-primary hover:underline">
               (225) 521-6264
             </a>{" "}
             or book online today.
@@ -198,7 +198,7 @@ export function ServiceLandingTemplate({ config }: Props) {
               <Link to="/book">Book Online</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-5 w-5" />
                 (225) 521-6264
               </a>

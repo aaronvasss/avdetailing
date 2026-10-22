@@ -37,13 +37,13 @@ const GetStartedPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Button asChild size="lg" className="glow-red">
-                <a href="tel:+12255216264">
+                <a href="tel:2255216264">
                   <Phone className="mr-2 h-5 w-5" />
                   Call (225) 521-6264
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="sms:+12252284796">Text Us</a>
+                <a href="sms:2255216264">Text Us</a>
               </Button>
             </div>
           </div>

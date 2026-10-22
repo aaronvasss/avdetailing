@@ -147,7 +147,7 @@ export default function CeramicCoatingBatonRougePage() {
               <Link to="/book">Book Online</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-5 w-5" />
                 (225) 521-6264
               </a>
@@ -180,7 +180,7 @@ export default function CeramicCoatingBatonRougePage() {
             <p className="text-muted-foreground text-base md:text-lg">
               Choose the protection level your vehicle deserves. All tiers include mandatory paint correction prep.
               Call{" "}
-              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact
+              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact
               pricing on SUVs and trucks.
             </p>
           </div>
@@ -377,7 +377,7 @@ export default function CeramicCoatingBatonRougePage() {
               </div>
               <p className="mt-5 text-xs text-muted-foreground leading-relaxed">
                 Not sure if we cover your area? Call{" "}
-                <a href="tel:+12255216264" className="text-primary hover:underline font-medium">
+                <a href="tel:2255216264" className="text-primary hover:underline font-medium">
                   (225) 521-6264
                 </a>{" "}
                 — we likely do.

@@ -130,7 +130,7 @@ export default function RVDetailingBatonRougePage() {
                   <Link to="/book">Book Online</Link>
                 </Button>
                 <Button asChild variant="outline" className="font-semibold tracking-wide">
-                  <a href="tel:+12255216264">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-4 w-4" />
                     (225) 521-6264
                   </a>
@@ -138,18 +138,18 @@ export default function RVDetailingBatonRougePage() {
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                 <a
-                  href="tel:+12255216264"
+                  href="tel:2255216264"
                   className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
                 >
                   <Phone className="h-3.5 w-3.5 text-primary" />
                   (225) 521-6264
                 </a>
                 <a
-                  href="sms:+12252284796"
+                  href="sms:2255216264"
                   className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
                 >
                   <span className="text-primary">✉</span>
-                  Text (225) 228-4796
+                  Text (225) 521-6264
                 </a>
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 text-primary" />
@@ -333,7 +333,7 @@ export default function RVDetailingBatonRougePage() {
               <Link to="/book">Book Online</Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-4 w-4" />
                 (225) 521-6264
               </a>

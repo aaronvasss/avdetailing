@@ -242,7 +242,7 @@ const ServiceAreasPage = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="tel:+12255216264">Call (225) 521-6264</a>
+              <a href="tel:2255216264">Call (225) 521-6264</a>
             </Button>
           </div>
         </div>

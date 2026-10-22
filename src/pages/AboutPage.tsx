@@ -137,9 +137,9 @@ const AboutPage = () => {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
-                  <a href="tel:+12252284796">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-5 w-5" />
-                    (225) 228-4796
+                    (225) 521-6264
                   </a>
                 </Button>
               </div>

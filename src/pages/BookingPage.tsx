@@ -1095,7 +1095,7 @@ const BookingPage = () => {
                       <h3 className="text-xl font-bold">Custom Quote</h3>
                       <p className="text-muted-foreground">Call us at (225) 521-6264 for pricing</p>
                       <Button asChild className="glow-red">
-                        <a href="tel:+12255216264">Call (225) 521-6264</a>
+                        <a href="tel:2255216264">Call (225) 521-6264</a>
                       </Button>
                     </CardContent>
                   </Card>
@@ -2015,7 +2015,7 @@ const BookingPage = () => {
             {/* Contact Info */}
             <p className="text-sm text-muted-foreground pt-4">
               Need faster service? Call us directly at{" "}
-              <a href="tel:+12255216264" className="text-primary font-semibold hover:underline">
+              <a href="tel:2255216264" className="text-primary font-semibold hover:underline">
                 (225) 521-6264
               </a>
             </p>
@@ -2216,7 +2216,7 @@ const BookingPage = () => {
           {/* Contact Info */}
           <p className="text-sm text-muted-foreground pt-4">
             Questions? Call us at{" "}
-            <a href="tel:+12255216264" className="text-primary font-semibold hover:underline">
+            <a href="tel:2255216264" className="text-primary font-semibold hover:underline">
               (225) 521-6264
             </a>
           </p>

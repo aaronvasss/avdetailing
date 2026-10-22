@@ -210,7 +210,7 @@ const ServicesPage = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-4 w-4" />
                 (225) 521-6264
               </a>

@@ -239,7 +239,7 @@ export default function PaintCorrectionBatonRougePage() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="text-base">
-                  <a href="tel:+12255216264">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-5 w-5" />
                     (225) 521-6264
                   </a>
@@ -297,7 +297,7 @@ export default function PaintCorrectionBatonRougePage() {
             </h2>
             <p className="text-muted-foreground text-base md:text-lg">
               Final pricing depends on vehicle size and paint condition. Call{" "}
-              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a> for an
+              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a> for an
               exact quote after a free paint inspection.
             </p>
           </div>
@@ -389,7 +389,7 @@ export default function PaintCorrectionBatonRougePage() {
                         </Link>
                       </Button>
                       <a
-                        href="tel:+12255216264"
+                        href="tel:2255216264"
                         className="text-xs text-muted-foreground hover:text-primary transition-colors text-center md:text-right"
                       >
                         Or call for a custom quote
@@ -528,7 +528,7 @@ export default function PaintCorrectionBatonRougePage() {
                   Greater Baton Rouge, chances are we're already in your neighborhood.
                 </p>
                 <Button asChild size="lg" variant="outline">
-                  <a href="tel:+12255216264">
+                  <a href="tel:2255216264">
                     <Phone className="mr-2 h-5 w-5" />
                     Check My Address
                   </a>

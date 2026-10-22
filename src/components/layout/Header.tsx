@@ -141,7 +141,7 @@ export function Header() {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center space-x-4 shrink-0">
             <a
-              href="tel:+12255216264"
+              href="tel:2255216264"
               className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               <Phone className="h-4 w-4 mr-2" />

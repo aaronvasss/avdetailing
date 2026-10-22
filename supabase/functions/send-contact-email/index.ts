@@ -6,7 +6,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 // Business email recipients
-const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com", "aaronvasquez@avdetailingg.com"];
+const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com"];
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 300000; // 5 minutes
@@ -213,7 +213,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             
             <div style="text-align: center; padding: 20px 0; border-top: 1px solid #262626;">
-              <a href="tel:+12255216264" style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">
+              <a href="tel:2255216264" style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">
                 Call (225) 521-6264
               </a>
             </div>

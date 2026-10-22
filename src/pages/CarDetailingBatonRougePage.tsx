@@ -134,7 +134,7 @@ export default function CarDetailingBatonRougePage() {
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Detailing Packages</h2>
             <p className="text-muted-foreground text-base md:text-lg">
               Choose the level of care your vehicle deserves. For exact pricing on SUVs and trucks, call{" "}
-              <a href="tel:+12255216264" className="text-primary hover:underline">(225) 521-6264</a>.
+              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a>.
             </p>
           </div>
 
@@ -384,7 +384,7 @@ export default function CarDetailingBatonRougePage() {
         <div className="container-custom max-w-4xl text-center">
           <p className="text-xl md:text-2xl font-semibold mb-6">
             Ready to book? Call{" "}
-            <a href="tel:+12255216264" className="text-primary hover:underline">
+            <a href="tel:2255216264" className="text-primary hover:underline">
               (225) 521-6264
             </a>{" "}
             or book online today.
@@ -394,7 +394,7 @@ export default function CarDetailingBatonRougePage() {
               <Link to="/book">Book Online</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
-              <a href="tel:+12255216264">
+              <a href="tel:2255216264">
                 <Phone className="mr-2 h-5 w-5" />
                 (225) 521-6264
               </a>

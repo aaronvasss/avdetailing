@@ -38,7 +38,7 @@ export function CTASection() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg h-14 px-10">
-              <a href={`tel:${settings.publicBusinessPhoneE164}`}>
+              <a href={"tel:2255216264"}>
                 <Phone className="mr-2 h-5 w-5" />
                 Call {settings.publicBusinessPhone}
               </a>
