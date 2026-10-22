@@ -1,7 +1,7 @@
 # Owner-only appointment hours
-- [ ] Allow owner/admin portal creation outside customer hours without changing public settings.
-- [ ] Enforce the exception only for authenticated admins using the internal booking form.
-- [ ] Run scheduling/permission tests and check the signed-in portal without creating a real appointment.
+- [x] Allow owner/admin portal creation and editing outside customer hours without changing public settings.
+- [x] Enforce outside-hours creation only for authenticated admins explicitly using the internal booking form; deployed create-booking.
+- [x] Eleven scheduling/portal tests passed; signed-in owner selected 5 AM and 9 PM, and a public-style owner request was rejected with 409; no real appointment created; preview build OK.
 
 # Portal React error 310
 - [x] Reproduce the owner portal crash while signed in.
