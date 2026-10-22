@@ -136,9 +136,9 @@ export function generateBookingReceiptHTML(
   addOns: ReceiptAddOn[] = []
 ): string {
   const customerName =
-    booking.profiles?.full_name || booking.guest_name || "Customer";
-  const customerEmail = booking.profiles?.email || booking.guest_email || "";
-  const customerPhone = booking.profiles?.phone || booking.guest_phone || "";
+    booking.guest_name || booking.profiles?.full_name || "Customer";
+  const customerEmail = booking.guest_email || booking.profiles?.email || "";
+  const customerPhone = booking.guest_phone || booking.profiles?.phone || "";
 
   const receiptNo = booking.id.slice(0, 8).toUpperCase();
   const issuedDate = format(new Date(), "MMMM d, yyyy");

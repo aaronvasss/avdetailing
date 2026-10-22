@@ -7,3 +7,4 @@
 - Settle portal charges atomically with a service-only database function and serialize payment/deposit writes on the booking lock so ledger, receipt and booking payment state cannot diverge.
 - Publish customer service notes separately from internal notes, and keep documents protected by booking ownership so staff-only content never appears in the customer portal.
 - Store reminder preferences and STOP suppression durably, and claim each appointment/channel/time reminder before dispatch through existing Resend and Twilio providers to honor consent and prevent duplicate sends.
+- Authenticate reminder cron callbacks with a private service-only scheduler credential; never embed tokens in cron definitions or expose the credential through customer access.
