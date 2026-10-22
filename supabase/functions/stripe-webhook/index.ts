@@ -480,6 +480,20 @@ serve(async (req) => {
         break;
       }
 
+      case "charge.refunded": {
+        const snapshot=event.data.object as Stripe.Charge;
+        const charge=await stripe.charges.retrieve(snapshot.id);
+        const intentId=typeof charge.payment_intent==='string'?charge.payment_intent:charge.payment_intent?.id;
+        if(!intentId)break;
+        const {data:records,error:readError}=await supabase.from('payment_records').select('id,booking_id,metadata').eq('stripe_payment_intent_id',intentId);
+        if(readError)throw readError;
+        for(const record of records??[]){
+          const {error}=await supabase.from('payment_records').update({status:charge.refunded?'refunded':'partially_refunded',metadata:{...(record.metadata??{}),refunded_amount_cents:charge.amount_refunded}}).eq('id',record.id);
+          if(error)throw error;
+          if(charge.refunded&&record.booking_id){const {error:bookingError}=await supabase.from('bookings').update({payment_status:'refunded'}).eq('id',record.booking_id);if(bookingError)throw bookingError;}
+        }
+        break;
+      }
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await syncPortalCharge(supabase,stripe,paymentIntent);

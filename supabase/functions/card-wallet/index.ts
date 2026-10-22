@@ -117,12 +117,24 @@ serve(async req => {
       return json({success:true});
     }
     if (body.action === 'charge') {
-      if (existing?.stripe_payment_intent_id) {
-        const intent = await stripe.paymentIntents.retrieve(existing.stripe_payment_intent_id);
+      if (existing) {
+        let intentId=existing.stripe_payment_intent_id;
+        if(!intentId){
+          const found=await stripe.paymentIntents.search({query:`metadata['portal_charge_id']:'${existing.id}'`,limit:2});
+          if(found.has_more||found.data.length!==1)return json({error:'Reserved charge needs manual reconciliation; no second charge was created.'},409);
+          const candidate=found.data[0];
+          if(candidate.amount!==existing.amount_cents||candidate.customer!==customerId||candidate.currency!=='usd'||candidate.metadata.booking_id!==booking.id||candidate.metadata.user_id!==targetId)return json({error:'Reserved charge identity mismatch'},409);
+          intentId=candidate.id;
+          await syncPortalCharge(db,stripe,candidate);
+        }
+        let intent = await stripe.paymentIntents.retrieve(intentId);
+        if(intent.status==='requires_confirmation'){
+          if(intent.customer!==customerId||intent.amount!==existing.amount_cents||intent.payment_method!==existing.stripe_payment_method_id)return json({error:'Reserved charge identity mismatch'},409);
+          intent=await stripe.paymentIntents.confirm(intent.id,{off_session:true},{idempotencyKey:`portal-confirm-${existing.id}`});
+        }
         const settled=await syncPortalCharge(db,stripe,intent);
         return json(settled??{status:intent.status});
       }
-      if(existing)return json({error:'A charge is already reserved. Its result must be reconciled before any retry; no second charge was created.'},409);
       if (!authorization || !authorizationMatches(authorization.amount_cents,authorization.revoked_at,quote.amountCents) || body.amountCents !== quote.amountCents || !defaultId) return json({error:'Exact customer approval and a default card are required'},409);
       let reservation = existing;
       if (!reservation) {

@@ -11,4 +11,5 @@ describe('appointment card charges', () => {
   it('rejects revoked approval', () => expect(authorizationMatches(20700, '2026-10-22', 20700)).toBe(false));
   it('refuses mixed deposit credits that cannot be reliably deduplicated',()=>expect(()=>balanceQuote(500,'deposit_paid',100,[{amount_cents:10350,payment_type:'balance',status:'succeeded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
   it('refuses negative service credits',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'succeeded',metadata:{service_amount_cents:-100}}])).toThrow('reconciliation'));
+  it('never guesses a remaining balance after a partial refund',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'partially_refunded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
 });

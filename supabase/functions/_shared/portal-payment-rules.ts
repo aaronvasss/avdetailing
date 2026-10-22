@@ -2,6 +2,7 @@ export function balanceQuote(total: number, paymentStatus: string | null, deposi
   const totalCents = Math.round(Number(total) * 100);
   if (!Number.isSafeInteger(totalCents) || totalCents <= 0) throw new Error('Invalid appointment price');
   if (paymentStatus === 'paid' || paymentStatus === 'refunded') return { serviceCents: 0, feeCents: 0, amountCents: 0 };
+  if(records.some(r=>r.status==='partially_refunded'||r.status==='refunded'))throw new Error('Refund balance needs reconciliation before card charging');
   const paid = records.filter(r => ['succeeded', 'paid'].includes(r.status ?? '') && r.payment_type !== 'tip');
   const uniquePaid = paid.filter((r, i) => paid.findIndex(p => p.metadata?.stripe_payment_intent_id && p.metadata.stripe_payment_intent_id === r.metadata?.stripe_payment_intent_id) === i || !r.metadata?.stripe_payment_intent_id);
   // Old records include the 3.5% card fee; it does not pay down the service balance.
