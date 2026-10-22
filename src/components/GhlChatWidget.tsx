@@ -121,7 +121,9 @@ function injectWidget() {
 function whenIdleOrInteraction(cb: () => void): () => void {
   let done = false;
   let timer: number | undefined;
-  const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+  // Load well after the visitor starts reading so the bubble never covers
+  // trust badges, navigation or booking controls during first impressions.
+  const events = [] as const;
 
   const run = () => {
     if (done) return;
@@ -137,7 +139,7 @@ function whenIdleOrInteraction(cb: () => void): () => void {
   };
 
   const schedule = () => {
-    timer = window.setTimeout(run, 1500);
+    timer = window.setTimeout(run, window.innerWidth < 1024 ? 25000 : 12000);
   };
 
   events.forEach((e) => window.addEventListener(e, run, { passive: true, once: true }));
