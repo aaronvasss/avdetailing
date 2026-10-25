@@ -20,3 +20,17 @@ export function balanceQuote(total: number, paymentStatus: string | null, deposi
 export function authorizationMatches(authorizedCents: number, revokedAt: string | null, quoteCents: number) {
   return revokedAt === null && quoteCents > 0 && authorizedCents === quoteCents;
 }
+type PaymentRecord = { amount_cents: number; payment_type: string; status: string | null; stripe_payment_intent_id?: string | null; metadata?: Record<string, unknown> | null };
+
+/** Single balance calculation for the client screen and the saved-card action. */
+export function portalBalance(total: number, bookingPaymentStatus: string | null, confirmedDeposit: number, records: PaymentRecord[]) {
+  const status = ['paid', 'refunded'].includes(bookingPaymentStatus ?? '') ? bookingPaymentStatus : confirmedDeposit > 0 ? 'deposit_paid' : bookingPaymentStatus;
+  return balanceQuote(total, status, confirmedDeposit, records.map(r => ({ ...r, metadata: { ...(r.metadata ?? {}), stripe_payment_intent_id: r.stripe_payment_intent_id ?? r.metadata?.stripe_payment_intent_id } })));
+}
+
+/** Screen-safe wrapper: ambiguous history means "needs review", never a guessed number. */
+export function portalBalanceOrReview(total: number, bookingPaymentStatus: string | null, deposit: number, records: PaymentRecord[]) {
+  const confirmedDeposit = ['partial', 'deposit_paid'].includes(bookingPaymentStatus ?? '') ? Number(deposit || 0) : 0;
+  try { return { review: false as const, ...portalBalance(total, bookingPaymentStatus, confirmedDeposit, records) }; }
+  catch { return { review: true as const }; }
+}
