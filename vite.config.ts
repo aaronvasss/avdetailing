@@ -77,10 +77,10 @@ export default defineConfig(({ mode }) => ({
           staticDir: path.join(__dirname, "dist"),
           routes: prerenderRoutes,
           renderer: new PuppeteerRenderer({
-            // Routes are code-split, so the snapshot must wait until the lazy
-            // page chunk has mounted real content (every public page renders an
-            // <h1>). Without this the snapshot only captures the loading spinner.
-            renderAfterElementExists: "h1",
+            // Wait for the public page and any asynchronous crawlable content.
+            // Reviews settle to real cards or the existing honest Google link;
+            // never snapshot their loading skeleton as the initial page content.
+            renderAfterElementExists: "body:has(h1):not(:has([data-crawl-pending]))",
             maxConcurrentRoutes: 4,
           }),
         });

@@ -94,7 +94,7 @@ export function FAQSection() {
                 <AccordionTrigger className="text-left hover:no-underline hover:text-primary py-5">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground pb-5">
+                <AccordionContent forceMount className="text-muted-foreground pb-5">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>

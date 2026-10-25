@@ -1,3 +1,7 @@
+# Crawlable homepage FAQs and reviews
+- [x] Keep existing FAQ answers mounted in collapsed accordions and wait for verified reviews before initial-page capture; no copy, policy or review-schema changes.
+- [x] Verified prerender-equivalent captures through postbuild-seo: all 13 FAQ answers and three original attributed reviews in initial HTML; mobile accordion/keyboard/carousel and desktop cards work, eight existing tests passed, no browser errors; live verification awaits publication.
+
 # Utility-route SEO
 - [x] Emit route-specific anonymous initial HTML and noindex for booking and sign-in; preserve service indexing and sitemap exclusions.
 - [x] Verified postbuild output via local HTTP (200, self canonicals, single noindex), rendered metadata, booking service selection, sign-up toggle and signed-out private-portal redirects; 15 tests and preview build passed. Live response verification awaits publication; no publication requested.
