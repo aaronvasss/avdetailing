@@ -1,3 +1,7 @@
+# Utility-route SEO
+- [ ] Emit route-specific anonymous initial HTML and noindex for booking and sign-in; preserve service indexing and sitemap exclusions.
+- [ ] Verify generated responses, rendered booking/sign-in, and authentication redirects; no publication.
+
 # Owner-only appointment hours
 - [x] Allow owner/admin portal creation and editing outside customer hours without changing public settings.
 - [x] Enforce outside-hours creation only for authenticated admins explicitly using the internal booking form; deployed create-booking.
