@@ -5,9 +5,9 @@ import { cancellationConsequences, cancellationProblem } from "../../supabase/fu
 
 beforeAll(() => { Object.defineProperty(AbortSignal, "timeout", { configurable: true, value: () => new AbortController().signal }); });
 const input = { bookingId: "00000000-0000-4000-8000-000000000201", expectedDate: "2026-10-28", expectedTime: "09:00:00" };
-function setup(options: { failSave?: boolean; failDelivery?: boolean; userId?: string | null } = {}) {
+function setup(options: { emailLink?: boolean; failSave?: boolean; failDelivery?: boolean; userId?: string | null } = {}) {
   const state = { id: input.bookingId, user_id: "customer", scheduled_date: "2026-10-28", scheduled_time: "09:00:00", status: "confirmed", updated_at: "rev0",
-    guest_name: "Mock Customer", services: { name: "Car Detailing" }, vehicle_year: 2022, vehicle_make: "Toyota", vehicle_model: "Camry", vehicle_type: "car",
+    manage_token: "a".repeat(64), guest_name: "Mock Customer", services: { name: "Car Detailing" }, vehicle_year: 2022, vehicle_make: "Toyota", vehicle_model: "Camry", vehicle_type: "car",
     deposit_amount: 100, total_price: 145.18, payment_status: "deposit_paid", customer_notes: "Keep this original note" };
   const events: string[] = [], messages: { url: string; init?: RequestInit }[] = [], logs: any[] = [], failures: any[] = [], writes: any[] = [];
   let saves = 0;
@@ -29,13 +29,17 @@ function setup(options: { failSave?: boolean; failDelivery?: boolean; userId?: s
   }) as unknown as typeof fetch;
   const notify = vi.fn((n: CancellationNotice) => notifyCancellationOwner(n, { env: () => "mock-unused", fetch: intercepted,
     record: async (...args) => { logs.push(args); }, failure: async (f) => { failures.push(f); } }));
-  const handler = createCancellationHandler({ db, authenticate: async () => options.userId === undefined ? "customer" : options.userId,
+  const handler = createCancellationHandler({ db, verifyLink: async (id, token) => id === state.id && token === state.manage_token, authenticate: async () => options.emailLink ? null : options.userId === undefined ? "customer" : options.userId,
     parse: body => body as typeof input, notify, logFailure: async (...args) => { failures.push(args); },
     now: () => new Date("2026-10-25T21:43:00Z"), cors: {} });
-  const request = (body: any = input) => handler(new Request("http://localhost/cancel", { method: "POST", headers: { Authorization: "Bearer mock" }, body: JSON.stringify(body) }));
+  const request = (body: any = input) => handler(new Request("http://localhost/cancel", { method: "POST", headers: { Authorization: "Bearer mock" }, body: JSON.stringify(options.emailLink ? { ...body, manageToken: state.manage_token } : body) }));
   return { state, messages, logs, failures, writes, notify, request, get saves() { return saves; } };
 }
 describe("customer cancellation with intercepted owner notifications", () => {
+  it("verified signed-out email cancellation saves the correct guest appointment before intercepted alerts", async () => {
+    const s = setup({ emailLink: true }); expect((await s.request()).status).toBe(200);
+    expect(s.saves).toBe(1); expect(s.messages).toHaveLength(2); expect(s.state.status).toBe("cancelled");
+  });
   it("saves before both alerts and includes Central Time, service, vehicle and protected admin link", async () => {
     const s = setup(); expect((await s.request()).status).toBe(200); expect(s.saves).toBe(1);
     expect(s.state.status).toBe("cancelled"); expect(s.messages).toHaveLength(2);

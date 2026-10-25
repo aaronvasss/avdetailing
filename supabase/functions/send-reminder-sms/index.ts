@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 import { normalizePhone, reminderConsent, smsNotSuppressed } from "../_shared/reminder-permissions.ts";
+import { appointmentLinks } from "../_shared/appointment-links.ts";
 
 const schema=z.object({sendAll:z.boolean().optional(),bookingId:z.string().uuid().optional(),reminderType:z.enum(['24h','2h','custom']).optional(),dryRun:z.boolean().optional()});
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...corsHeaders,'Content-Type':'application/json'}});
@@ -52,7 +53,8 @@ serve(async req=>{
       const name=booking.guest_name||profile?.full_name||'there';
       const [h,m]=booking.scheduled_time.split(':').map(Number);const time=`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
       const date=new Date(`${booking.scheduled_date}T12:00:00Z`).toLocaleDateString('en-US',{month:'long',day:'numeric',timeZone:'America/Chicago'});
-      const message=`AV Detailing 🚗\nHi ${name.split(' ')[0]}! Your appointment is ${date} at ${time} (30-minute arrival window).\n${[booking.service_address,booking.service_city].filter(Boolean).join(', ')}\nRemove valuables and secure hazards before service.\nQuestions? Call ${values.public_business_phone||'(225) 521-6264'}. Reply STOP to opt out.`;
+      const links=appointmentLinks(booking);
+      const message=`AV Detailing 🚗\nHi ${name.split(' ')[0]}! Your appointment is ${date} at ${time} Central Time (30-minute arrival window).\n${[booking.service_address,booking.service_city].filter(Boolean).join(', ')}\nRemove valuables and secure hazards before service.\nQuestions? Call ${values.public_business_phone||'(225) 521-6264'}. Reply STOP to opt out.`;
       for(const channel of ['email','sms'] as const){
         const destination=channel==='email'?email:phone;
         const consent=await reminderConsent(db,booking,channel);
@@ -73,7 +75,7 @@ serve(async req=>{
             const response=await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,{method:'POST',headers:{Authorization:`Basic ${btoa(`${sid}:${token}`)}`,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({To:normalizePhone(phone),From:values.sms_sender_phone||'+12252284796',Body:message})});success=response.ok;
           }else{
             const key=Deno.env.get('RESEND_API_KEY');if(!key)throw new Error('Email sender unavailable');
-            const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json','Idempotency-Key':`appointment-reminder-${claim.id}`},body:JSON.stringify({from:'AV Detailing <noreply@avdetailing.net>',to:[email],subject:`AV Detailing 🚗 Appointment Reminder — ${date}`,html:`<table role="presentation" width="100%"><tr><td align="center"><table role="presentation" width="100%" style="max-width:560px"><tr><td><h1>AV Detailing 🚗</h1><p>${encode(message).replace(/\n/g,'<br>')}</p><p><a href="https://avdetailing.net/account">My Appointments</a> · <a href="tel:2255216264">Call</a> · <a href="sms:2255216264">Text</a></p><p><a href="https://avdetailing.net/account?tab=settings">Reminder preferences</a></p></td></tr></table></td></tr></table>`})});success=response.ok;
+            const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json','Idempotency-Key':`appointment-reminder-${claim.id}`},body:JSON.stringify({from:'AV Detailing <noreply@avdetailing.net>',to:[email],subject:`AV Detailing 🚗 Appointment Reminder — ${date}`,html:`<table role="presentation" width="100%"><tr><td align="center"><table role="presentation" width="100%" style="max-width:560px"><tr><td><h1>AV Detailing 🚗</h1><p>${encode(message).replace(/\n/g,'<br>')}</p><p><a href="${encode(links.manage)}">Manage appointment</a> · <a href="${encode(links.reschedule)}">Reschedule</a> · <a href="${encode(links.cancel)}">Cancel appointment</a> · <a href="tel:2255216264">Call</a> · <a href="sms:2255216264">Text</a></p><p><a href="https://avdetailing.net/account?tab=settings">Reminder preferences</a></p></td></tr></table></td></tr></table>`})});success=response.ok;
           }
         }catch{success=false;}
         await db.from('portal_reminder_deliveries').update({status:success?'sent':'failed'}).eq('id',claim.id);

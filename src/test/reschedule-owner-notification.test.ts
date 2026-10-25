@@ -6,8 +6,8 @@ const ID = "00000000-0000-4000-8000-000000000201";
 // jsdom's AbortSignal lacks the runtime timeout API; no actual requests run here.
 beforeAll(() => { Object.defineProperty(AbortSignal, "timeout", { configurable: true, value: () => new AbortController().signal }); });
 const input = { bookingId: ID, expectedDate: "2026-10-28", expectedTime: "09:00:00", newDate: "2026-10-30", newTime: "11:00:00" };
-function setup(options: { failSave?: boolean; blocked?: boolean; failDelivery?: boolean; guest?: string | null } = {}) {
-  const state = { id: ID, user_id: "customer", scheduled_date: "2026-10-28", scheduled_time: "09:00:00", status: "confirmed", updated_at: "rev0", guest_name: options.guest === undefined ? "Mock Customer" : options.guest, services: { name: "Car Detailing" }, duration_minutes: 135 };
+function setup(options: { emailLink?: boolean; failSave?: boolean; blocked?: boolean; failDelivery?: boolean; guest?: string | null } = {}) {
+  const state = { id: ID, user_id: "customer", scheduled_date: "2026-10-28", scheduled_time: "09:00:00", status: "confirmed", updated_at: "rev0", manage_token: "a".repeat(64), guest_name: options.guest === undefined ? "Mock Customer" : options.guest, services: { name: "Car Detailing" }, duration_minutes: 135 };
   const events: string[] = []; const messages: { url: string; init?: RequestInit }[] = []; const records: any[] = []; const failures: any[] = [];
   let saves = 0;
   const db = {
@@ -40,13 +40,17 @@ function setup(options: { failSave?: boolean; blocked?: boolean; failDelivery?: 
     env, fetch: interceptedFetch,
     record: async (...args) => { records.push(args); }, failure: async (f) => { failures.push(f); },
   }));
-  const handler = createRescheduleHandler({ db, authenticate: async () => "customer", parse: (b) => b as typeof input,
+  const handler = createRescheduleHandler({ db, verifyLink: async (id, token) => id === state.id && token === state.manage_token, authenticate: async () => options.emailLink ? null : "customer", parse: (b) => b as typeof input,
     notify, logFailure: async (...args) => { failures.push(args); }, now: () => new Date("2026-10-25T21:36:00Z"), cors: {} });
-  const request = (body = input) => handler(new Request("http://localhost/reschedule", { method: "POST", headers: { Authorization: "Bearer mock" }, body: JSON.stringify(body) }));
+  const request = (body = input) => handler(new Request("http://localhost/reschedule", { method: "POST", headers: { Authorization: "Bearer mock" }, body: JSON.stringify(options.emailLink ? { ...body, manageToken: state.manage_token } : body) }));
   return { state, events, messages, records, failures, notify, request, get saves() { return saves; } };
 }
 
 describe("owner reschedule notification with intercepted providers", () => {
+  it("verified signed-out email reschedule uses shared availability and sends intercepted alerts only after save", async () => {
+    const s = setup({ emailLink: true }); expect((await s.request()).status).toBe(200);
+    expect(s.saves).toBe(1); expect(s.messages).toHaveLength(2); expect(s.state.scheduled_date).toBe("2026-10-30");
+  });
   it("notifies configured owner email and SMS only after save, with old/new Central times and pending admin link", async () => {
     const s = setup(); expect((await s.request()).status).toBe(200); expect(s.saves).toBe(1);
     expect(s.events[0]).toBe("saved"); expect(s.messages).toHaveLength(2);
