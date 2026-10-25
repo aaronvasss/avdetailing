@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { BUSINESS_PHONES, BUSINESS_EMAILS } from "../_shared/owner-notification-config.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -7,9 +8,6 @@ const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
-const BUSINESS_PHONES = ["+12255216264"];
-const BUSINESS_EMAILS = ["aaronvasquez100@gmail.com"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
