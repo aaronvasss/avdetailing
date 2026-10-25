@@ -11,7 +11,7 @@ export function rescheduleProblem(args: {
 }): string | null {
   const { status, newDate, newTime, settings: s } = args;
   if (!["pending", "confirmed"].includes(status)) return "This appointment can no longer be rescheduled online. Please call or text us.";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || !/^\d{2}:\d{2}$/.test(newTime)) return "Please choose a valid date and time.";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || !/^\d{2}:\d{2}(:\d{2})?$/.test(newTime)) return "Please choose a valid date and time.";
   if (newDate <= args.todayChicago) return "Please choose a date at least one day from today.";
   if (args.blocked) return "That date is unavailable. Please choose another day.";
   const start = toMin(newTime);
