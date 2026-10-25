@@ -44,6 +44,7 @@ import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
 import { AccountActivity } from './AccountActivity';
 import { AppointmentPhotos } from "./AppointmentPhotos";
 import { bookingPaymentSummary } from "@/lib/booking-payment-summary";
+import { portalBalanceOrReview } from "../../../supabase/functions/_shared/portal-payment-rules";
 import { formatPaymentMethod } from "@/lib/payment-display";
 
 interface BookingDetailsDialogProps {
@@ -140,6 +141,16 @@ export function BookingDetailsDialog({
   useEffect(() => {
     setLiveBooking(initialBooking);
   }, [initialBooking]);
+
+  // Payment history drives the balance shown here, using the same rules as the saved-card action.
+  const [paymentRecords, setPaymentRecords] = useState<any[] | null>(null);
+  const [recordsFailed, setRecordsFailed] = useState(false);
+  useEffect(() => {
+    if (!open || !initialBooking?.id) return;
+    setPaymentRecords(null); setRecordsFailed(false);
+    supabase.from("payment_records").select("amount_cents,payment_type,status,metadata,stripe_payment_intent_id").eq("booking_id", initialBooking.id)
+      .then(({ data, error }) => { if (error) setRecordsFailed(true); else setPaymentRecords(data ?? []); });
+  }, [open, initialBooking?.id]);
 
   useEffect(() => {
     if (open && initialBooking?.id) {
@@ -298,7 +309,10 @@ export function BookingDetailsDialog({
   // Saved payable total already includes any processing fee; never add it again.
   const pay = bookingPaymentSummary(booking);
   const totalWithFee = pay.total;
-  const remainingBalance = pay.balance;
+  const balance = pay.hasTotal && paymentRecords
+    ? portalBalanceOrReview(pay.total, booking.payment_status, Number(booking.deposit_amount || 0), paymentRecords)
+    : null;
+  const balanceNeedsReview = recordsFailed || balance?.review === true;
 
   // Resolve customer info: ONLY use guest fields from the booking record.
   // Never fall back to profileData (which is the admin's own profile) for email/phone,
@@ -638,16 +652,18 @@ export function BookingDetailsDialog({
                 )}
 
                 {pay.deposit > 0 && (
-                  <>
-                    <div className="flex justify-between text-emerald-500">
-                      <span>Deposit Paid</span>
-                      <span>-${pay.deposit.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between font-medium text-yellow-500">
-                      <span>Balance Due</span>
-                      <span>${remainingBalance.toFixed(2)}</span>
-                    </div>
-                  </>
+                  <div className="flex justify-between text-emerald-500">
+                    <span>Deposit Paid</span>
+                    <span>-${pay.deposit.toFixed(2)}</span>
+                  </div>
+                )}
+                {pay.hasTotal && (
+                  <div className="flex justify-between font-medium" data-testid="balance-due">
+                    <span>Balance Due</span>
+                    <span className={balanceNeedsReview ? "text-destructive" : "text-yellow-500"}>
+                      {balanceNeedsReview ? "Needs review — contact AV Detailing" : balance && !balance.review ? `$${(balance.amountCents / 100).toFixed(2)}` : "Checking…"}
+                    </span>
+                  </div>
                 )}
               </div>
               <div className="mt-3 flex items-center gap-2 flex-wrap">
@@ -711,7 +727,7 @@ export function BookingDetailsDialog({
               </>
             )}
 
-            <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={onStatusChange} />
+            {!balanceNeedsReview && balance && <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={onStatusChange} />}
             <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} booking={{ ...booking, profiles: profileData }} />
             {isAdmin&&<AccountActivity bookingId={booking.id} isAdmin />}
             <AppointmentPhotos bookingId={booking.id} allowUpload={!isAdmin&&!['completed','canceled','cancelled'].includes(booking.status)} />

@@ -12,4 +12,19 @@ describe('appointment card charges', () => {
   it('refuses mixed deposit credits that cannot be reliably deduplicated',()=>expect(()=>balanceQuote(500,'deposit_paid',100,[{amount_cents:10350,payment_type:'balance',status:'succeeded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
   it('refuses negative service credits',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'succeeded',metadata:{service_amount_cents:-100}}])).toThrow('reconciliation'));
   it('never guesses a remaining balance after a partial refund',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'partially_refunded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
+});import { portalBalanceOrReview } from '../../supabase/functions/_shared/portal-payment-rules';
+describe('client balance uses saved-card rules', () => {
+  const ok = (r: ReturnType<typeof portalBalanceOrReview>) => r.review ? null : r.amountCents;
+  it('unpaid $145.18 owes 14518', () => expect(ok(portalBalanceOrReview(145.18, 'unpaid', 0, []))).toBe(14518));
+  it('paid owes 0', () => expect(ok(portalBalanceOrReview(145.18, 'paid', 0, []))).toBe(0));
+  it('paid $100 deposit deducted once', () => expect(ok(portalBalanceOrReview(500, 'deposit_paid', 100, [{ amount_cents: 10000, payment_type: 'deposit', status: 'succeeded', metadata: { service_amount_cents: 10000 } }]))).toBe(40000));
+  it('unpaid deposit not deducted', () => expect(ok(portalBalanceOrReview(500, 'unpaid', 100, []))).toBe(50000));
+  it('partial balance payment deducted', () => expect(ok(portalBalanceOrReview(500, 'unpaid', 0, [{ amount_cents: 20000, payment_type: 'balance', status: 'succeeded', metadata: { service_amount_cents: 20000 } }]))).toBe(30000));
+  it('pending and failed attempts are not deducted', () => expect(ok(portalBalanceOrReview(500, 'unpaid', 0, [{ amount_cents: 20000, payment_type: 'balance', status: 'pending', metadata: { service_amount_cents: 20000 } }, { amount_cents: 20000, payment_type: 'balance', status: 'failed', metadata: { service_amount_cents: 20000 } }]))).toBe(50000));
+  it('duplicate records for one payment count once', () => { const r = { amount_cents: 20000, payment_type: 'balance', status: 'succeeded', stripe_payment_intent_id: 'pi_1', metadata: { service_amount_cents: 20000 } }; expect(ok(portalBalanceOrReview(500, 'unpaid', 0, [r, r]))).toBe(30000); });
+  it('refunded booking owes 0', () => expect(ok(portalBalanceOrReview(500, 'refunded', 0, []))).toBe(0));
+  it('refunded record needs review', () => expect(portalBalanceOrReview(500, 'unpaid', 0, [{ amount_cents: 20000, payment_type: 'balance', status: 'refunded', metadata: { service_amount_cents: 20000 } }]).review).toBe(true));
+  it('deposit plus extra payment needs review', () => expect(portalBalanceOrReview(500, 'deposit_paid', 100, [{ amount_cents: 10000, payment_type: 'balance', status: 'succeeded', metadata: { service_amount_cents: 10000 } }]).review).toBe(true));
+  it('old fee-inclusive record without service amount needs review', () => expect(portalBalanceOrReview(200, 'unpaid', 0, [{ amount_cents: 10350, payment_type: 'online', status: 'succeeded' }]).review).toBe(true));
+  it('an approval for the old $150.26 cannot authorize the new $145.18', () => expect(authorizationMatches(15026, null, 14518)).toBe(false));
 });
