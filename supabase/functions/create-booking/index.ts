@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { bookingAmounts, packageVehicleTypes } from "../_shared/booking-pricing.ts";
 import { canOverrideBookingHours } from "../_shared/admin-booking-hours.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -273,14 +274,15 @@ const handler = async (req: Request): Promise<Response> => {
     // Calculate add-on total from DB prices (not client-supplied values)
     let serverAddOnsTotal = 0;
     if (addOnIds.length > 0) {
-      const { data: addOnsData } = await serviceClient
+      const { data: addOnsData, error: addOnsError } = await serviceClient
         .from("service_add_ons")
         .select("id, price")
         .in("id", addOnIds)
         .eq("is_active", true);
-      if (addOnsData) {
-        serverAddOnsTotal = addOnsData.reduce((sum, a) => sum + Number(a.price), 0);
+      if (addOnsError || !addOnsData || addOnsData.length !== new Set(addOnIds).size) {
+        return new Response(JSON.stringify({ error: "An add-on is no longer available. Please review your selections." }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      serverAddOnsTotal = bookingAmounts(0, addOnsData.map(a => Number(a.price))).addOnsTotal;
     }
 
     // Check if caller is admin/staff — if so, trust their supplied pricing (package-based)
@@ -316,16 +318,27 @@ const handler = async (req: Request): Promise<Response> => {
           .eq("slug", body.package_slug)
           .eq("is_active", true);
         if (pkgVehicleType) {
-          pkgQuery = pkgQuery.eq("vehicle_type", pkgVehicleType);
+          pkgQuery = pkgQuery.in("vehicle_type", packageVehicleTypes(pkgVehicleType));
         }
         const { data: pkgRows } = await pkgQuery;
         if (pkgRows && pkgRows.length > 0) {
-          pkgPrice = Number(pkgRows[0].price);
+          const orderedTypes = packageVehicleTypes(pkgVehicleType || "");
+          const match = orderedTypes.map(type => pkgRows.find(row => row.vehicle_type === type)).find(Boolean);
+          if (match) pkgPrice = Number(match.price);
         }
+      }
+      if (body.package_slug && pkgPrice == null) {
+        return new Response(JSON.stringify({ error: "This package is no longer available for your vehicle. Please review your selections." }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       finalSubtotal = pkgPrice != null ? pkgPrice : Number(service.base_price);
       finalAddOnsTotal = serverAddOnsTotal;
-      finalTotal = finalSubtotal + finalAddOnsTotal;
+      const amounts = bookingAmounts(finalSubtotal, [finalAddOnsTotal]);
+      finalSubtotal = amounts.subtotal;
+      finalAddOnsTotal = amounts.addOnsTotal;
+      finalTotal = amounts.total;
+      if (body.package_slug && body.total_price != null && Math.round(Number(body.total_price) * 100) !== Math.round(finalTotal * 100)) {
+        return new Response(JSON.stringify({ error: "Pricing has changed. Please reload and review the current total before booking." }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     // Determine status: admin can set custom status for past bookings

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { bookingCheckoutCents } from "../_shared/booking-pricing.ts";
 import { logEdgeError } from "../_shared/error-log.ts";
 
 const corsHeaders = {
@@ -121,7 +122,8 @@ serve(async (req) => {
     // If booking_id is provided but no price_id, create dynamic price from booking total
     // This is more reliable than looking up stripe_prices since the booking already has
     // the correct total calculated from the selected package + vehicle type
-    if (booking_id && !price_id) {
+    if (booking_id) {
+      price_id = undefined;
       logStep("Looking up booking details", { booking_id });
       
       const bookingSelect = `
@@ -202,70 +204,17 @@ serve(async (req) => {
         userEmail = booking.guest_email;
       }
 
-      // SECURITY: Recalculate base price from service_packages or services table
-      // Never trust stored booking prices for payment amount
-      const packageSlug = metadata?.package_slug || '';
-      const vehicleSubType = metadata?.vehicle_sub_type || '';
-      const vehicleType = booking.vehicle_type || '';
-
-      let serverBasePrice = 0;
-
-      if (packageSlug && (vehicleSubType || vehicleType)) {
-        // Look up exact price from service_packages
-        const packageVehicleType = vehicleSubType || vehicleType;
-        const { data: pkg } = await serviceClient
-          .from("service_packages")
-          .select("price")
-          .eq("service_id", booking.service_id)
-          .eq("slug", packageSlug)
-          .eq("vehicle_type", packageVehicleType)
-          .eq("is_active", true)
-          .single();
-
-        if (pkg) {
-          serverBasePrice = Number(pkg.price);
-          logStep("Price validated from service_packages", { serverBasePrice, packageSlug, packageVehicleType });
-        }
-      }
-
-      // Fallback to services.base_price if no package match
-      if (serverBasePrice <= 0) {
-        const { data: svc } = await serviceClient
-          .from("services")
-          .select("base_price")
-          .eq("id", booking.service_id)
-          .single();
-        serverBasePrice = Number(svc?.base_price || 0);
-        logStep("Price fallback to services.base_price", { serverBasePrice });
-      }
-
-      const basePrice = serverBasePrice;
-      
-      if (!price_id && basePrice > 0) {
-        // Use inline Stripe price_data for bookings so checkout starts with one Stripe API call.
-        // Prices in service_packages already include any processing fee — do NOT add again.
-        const amountCents = Math.round(basePrice * 100);
-
-        logStep("Creating inline price for base service", { basePrice, amountCents });
-
-        const productName = packageSlug
-          ? getStripeProductName(packageSlug, vehicleSubType, booking.vehicle_type || '')
-          : `${serviceName} - ${booking.vehicle_type || 'Vehicle'}`;
-
-        logStep("Stripe product name", { productName, packageSlug, vehicleSubType });
-
-        baseLineItem = {
-          price_data: {
-            currency: 'usd',
-            unit_amount: amountCents,
-            product_data: {
-              name: productName,
-            },
-          },
-          quantity: 1,
-        };
-        logStep("Inline base line item ready", { amountCents });
-      }
+      // Persisted total is authoritative, including saved add-ons and existing fees/taxes.
+      // Do not re-price at checkout or add selected add-ons a second time.
+      const amountCents = bookingCheckoutCents(Number(booking.total_price));
+      baseLineItem = {
+        price_data: {
+          currency: 'usd',
+          unit_amount: amountCents,
+          product_data: { name: metadata?.service_name || `${serviceName} - ${booking.vehicle_type || 'Vehicle'}` },
+        },
+        quantity: 1,
+      };
 
       if (!price_id && !baseLineItem) throw new Error("Missing price_id and unable to determine from booking");
     } else if (!price_id) {
@@ -298,7 +247,7 @@ serve(async (req) => {
       : [{ price: price_id, quantity: 1 }];
 
     // Add add-on line items if provided
-    if (add_on_ids && add_on_ids.length > 0) {
+    if (!booking_id && add_on_ids && add_on_ids.length > 0) {
       logStep("Looking up add-on Stripe prices", { add_on_ids });
       const { data: addOns, error: addOnError } = await serviceClient
         .from("service_add_ons")

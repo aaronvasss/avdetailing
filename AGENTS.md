@@ -13,5 +13,6 @@
 - Store reminder preferences and STOP suppression durably, and claim each appointment/channel/time reminder before dispatch through existing Resend and Twilio providers to honor consent and prevent duplicate sends.
 - Authenticate reminder cron callbacks with a private service-only scheduler credential; never embed tokens in cron definitions or expose the credential through customer access.
 - Public prices come only from src/lib/pricing.ts (active service_packages, membership_plans, and the booking flow's ceramic tiers) so pages and booking cannot contradict each other.
+- Booking uses active authoritative package/add-on rows with shared booking-pricing cent arithmetic and vehicle resolution; checkout charges persisted bookings.total_price without re-adding add-ons or included fees, so the quoted and collected amounts agree.
 - Each public page emits exactly one LocalBusiness JSON-LD (from localBusinessSchema, referenced elsewhere by @id); main.tsx clears prerendered JSON-LD before Helmet re-adds it, so schemas never duplicate after hydration.
 - Legacy /services/* and /terms URLs are served as noindex canonical+refresh stubs by postbuild-seo (static hosting can't send 301s) plus client Navigate routes; internal links always use the keyword landing URLs.
