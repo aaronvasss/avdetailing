@@ -1,3 +1,8 @@
+# Appointment email links
+- [ ] Audit all appointment senders and unify production-domain action links.
+- [ ] Reuse server-validated cancellation/rescheduling for verified signed-out email access and safe legacy routes.
+- [ ] Test generated links, expired/restricted states and signed-out desktop/phone flows using mocks only; report coordinated release requirements.
+
 # Customer cancellation
 - [x] Clarify customer actions and confirmation with service, vehicle, Central Time, optional reason, Keep appointment and existing advisory deposit consequences.
 - [x] Add authenticated ownership/policy checks, atomic cancellation and post-save owner alerts with duplicate/failure protections; preserve notes and all financial fields.
