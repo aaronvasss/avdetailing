@@ -1,7 +1,7 @@
 # Customer-space layout
 - [x] Put next appointment before preparation guidance, simplify customer header and primary actions, remove duplicate next-appointment card and expose history/receipts.
-- [ ] Check mocked upcoming, past-only and empty customers at desktop/375px/390px; preserve corrected dates/payments/action dialogs and run regression tests.
-- [ ] Report preview-only results; no real records, messages, publication or deployment.
+- [x] Nine mocked account flows passed at desktop/375px/390px: next appointment before prep, no duplicate next card, saved $145.18/October 28/Central Time, Details and Keep appointment, history and printable receipt access, past-only/empty states; screenshots inspected, no overflow/runtime errors. All 226 regression tests passed; preview build OK.
+- [x] Preview-only layout change; existing cancellation/rescheduling, payment calculations, email links and recovery logic untouched. No real customer records, messages, publication or deployment. Live account and receipt delivery intentionally untested.
 
 # Customer password recovery
 - [x] Add neutral email request and public recovery screen using existing authentication, without new profiles or custom email senders.
