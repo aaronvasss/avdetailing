@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect, vi } from "vitest";
 import { createRescheduleHandler } from "../../supabase/functions/reschedule-booking/handler";
 import { notifyRescheduleOwner, centralAppointmentLabel, type RescheduleNotice } from "../../supabase/functions/reschedule-booking/owner-notification";
