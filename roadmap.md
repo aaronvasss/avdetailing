@@ -1,3 +1,7 @@
+# Booking progress visibility
+- [ ] Add accurate branch-aware step counts, current selections and authoritative running total; label Central Time/end time and optional-extras action.
+- [ ] Verify preview at desktop/375px/390px, Back and selection changes; no bookings, payments, deployment or publication.
+
 # Exact payable booking pricing
 - [x] Reverified existing pricing against current active catalog: 72 browser final-summary cases at 1280px/375px/390px and 114 pure pricing/payment/scheduling tests passed; no bookings, payment sessions, charges, deployment, publication or data changes. Only regression tests added; results and verification limits in pricing-verification_v2.md.
 - [x] Replace booking display-price overrides with authoritative package/add-on prices; shared cent arithmetic and vehicle resolution; checkout uses persisted total without duplicated add-ons/fees. Deployed booking and checkout functions.

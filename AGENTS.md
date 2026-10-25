@@ -1,4 +1,5 @@
 # Architecture rules
+- Booking progress maps the existing screen IDs by service branch; the selection summary derives directly from current booking state and the shared payable-total calculation, never a separate price or selection store.
 - Public /book and /auth responses use utility-route-seo in postbuild-seo and SEOHead for matching initial/rendered noindex metadata; never prerender authenticated portals, and allow utility crawling so noindex is readable.
 - Outside-hours creation requires explicit internal-form opt-in and a server-verified admin role; public/client scheduling never opts in, so owner exceptions cannot widen customer hours.
 - Store the featured Google review selection as one atomic, admin-only editable collection in public.featured_google_reviews; public readers receive only complete selections, preventing partial updates across pages.
