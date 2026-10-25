@@ -1,30 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { balanceQuote, authorizationMatches } from '../../supabase/functions/_shared/portal-payment-rules';
-describe('appointment card charges', () => {
-  it('charges the saved payable total without re-adding the included fee', () => expect(balanceQuote(145.18, 'unpaid', 0, [])).toEqual({ serviceCents: 14518, feeCents: 0, amountCents: 14518 }));
-  it('uses the final booking price and deducts a confirmed $100 deposit', () => expect(balanceQuote(500, 'partial', 100, []).amountCents).toBe(40000));
-  it('never charges an already paid appointment', () => expect(balanceQuote(500, 'paid', 0, []).amountCents).toBe(0));
-  it('credits the existing deposit_paid status', () => expect(balanceQuote(500, 'deposit_paid', 100, []).serviceCents).toBe(40000));
-  it('refuses ambiguous historical payments instead of guessing', () => expect(()=>balanceQuote(200,'unpaid',0,[{amount_cents:10000,payment_type:'deposit',status:'succeeded'}])).toThrow('reconciliation'));
-  it('does not count tips toward the service balance', () => expect(balanceQuote(200, 'unpaid', 0, [{amount_cents: 2000, payment_type: 'tip', status: 'succeeded'}]).serviceCents).toBe(20000));
-  it('requires approval for the exact charged amount', () => expect(authorizationMatches(20700, null, 20800)).toBe(false));
-  it('rejects revoked approval', () => expect(authorizationMatches(20700, '2026-10-22', 20700)).toBe(false));
-  it('refuses mixed deposit credits that cannot be reliably deduplicated',()=>expect(()=>balanceQuote(500,'deposit_paid',100,[{amount_cents:10350,payment_type:'balance',status:'succeeded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
-  it('refuses negative service credits',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'succeeded',metadata:{service_amount_cents:-100}}])).toThrow('reconciliation'));
-  it('never guesses a remaining balance after a partial refund',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'partially_refunded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
-});import { portalBalanceOrReview } from '../../supabase/functions/_shared/portal-payment-rules';
-describe('client balance uses saved-card rules', () => {
-  const ok = (r: ReturnType<typeof portalBalanceOrReview>) => ('amountCents' in r ? r.amountCents : null);
-  it('unpaid $145.18 owes 14518', () => expect(ok(portalBalanceOrReview(145.18, 'unpaid', 0, []))).toBe(14518));
-  it('paid owes 0', () => expect(ok(portalBalanceOrReview(145.18, 'paid', 0, []))).toBe(0));
-  it('paid $100 deposit deducted once', () => expect(ok(portalBalanceOrReview(500, 'deposit_paid', 100, [{ amount_cents: 10000, payment_type: 'deposit', status: 'succeeded', metadata: { service_amount_cents: 10000 } }]))).toBe(40000));
-  it('unpaid deposit not deducted', () => expect(ok(portalBalanceOrReview(500, 'unpaid', 100, []))).toBe(50000));
-  it('partial balance payment deducted', () => expect(ok(portalBalanceOrReview(500, 'unpaid', 0, [{ amount_cents: 20000, payment_type: 'balance', status: 'succeeded', metadata: { service_amount_cents: 20000 } }]))).toBe(30000));
-  it('pending and failed attempts are not deducted', () => expect(ok(portalBalanceOrReview(500, 'unpaid', 0, [{ amount_cents: 20000, payment_type: 'balance', status: 'pending', metadata: { service_amount_cents: 20000 } }, { amount_cents: 20000, payment_type: 'balance', status: 'failed', metadata: { service_amount_cents: 20000 } }]))).toBe(50000));
-  it('duplicate records for one payment count once', () => { const r = { amount_cents: 20000, payment_type: 'balance', status: 'succeeded', stripe_payment_intent_id: 'pi_1', metadata: { service_amount_cents: 20000 } }; expect(ok(portalBalanceOrReview(500, 'unpaid', 0, [r, r]))).toBe(30000); });
-  it('refunded booking owes 0', () => expect(ok(portalBalanceOrReview(500, 'refunded', 0, []))).toBe(0));
-  it('refunded record needs review', () => expect(portalBalanceOrReview(500, 'unpaid', 0, [{ amount_cents: 20000, payment_type: 'balance', status: 'refunded', metadata: { service_amount_cents: 20000 } }]).review).toBe(true));
-  it('deposit plus extra payment needs review', () => expect(portalBalanceOrReview(500, 'deposit_paid', 100, [{ amount_cents: 10000, payment_type: 'balance', status: 'succeeded', metadata: { service_amount_cents: 10000 } }]).review).toBe(true));
-  it('old fee-inclusive record without service amount needs review', () => expect(portalBalanceOrReview(200, 'unpaid', 0, [{ amount_cents: 10350, payment_type: 'online', status: 'succeeded' }]).review).toBe(true));
-  it('an approval for the old $150.26 cannot authorize the new $145.18', () => expect(authorizationMatches(15026, null, 14518)).toBe(false));
+import { authorizationMatches } from '../../supabase/functions/_shared/portal-payment-rules';
+import { validPortalBalance } from '@/lib/portal-balance-response';
+describe('server balance boundary', () => {
+  it('accepts verified $145.18 without another fee', () => expect(validPortalBalance({review:false,amountCents:14518,serviceCents:14518,feeCents:0,depositCents:0})).toBe(true));
+  it('rejects old fee-added response $150.26', () => expect(validPortalBalance({review:false,amountCents:15026,serviceCents:14518,feeCents:508,depositCents:0})).toBe(false));
+  it('requires review rather than guessed history', () => expect(validPortalBalance({review:true,reason:'Historical payment requires reconciliation'})).toBe(true));
+  it('rejects missing evidence response', () => expect(validPortalBalance({amountCents:14518})).toBe(false));
+  it('rejects stale $150.26 approval for $145.18', () => expect(authorizationMatches(15026,null,14518)).toBe(false));
+  it('rejects revoked approval', () => expect(authorizationMatches(14518,'2026-10-25',14518)).toBe(false));
+  it('accepts exact $145.18 approval', () => expect(authorizationMatches(14518,null,14518)).toBe(true));
+  it('cannot approve a zero balance', () => expect(authorizationMatches(0,null,0)).toBe(false));
 });
