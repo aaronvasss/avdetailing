@@ -36,7 +36,7 @@ export function GoogleReviews() {
     return () => { controller.abort(); window.clearTimeout(timeout); };
   }, []);
   return (
-    <div className="max-w-6xl mx-auto" data-testid="google-reviews">
+    <div className="max-w-6xl mx-auto" data-testid="google-reviews" data-crawl-pending={reviews === null ? "reviews" : undefined}>
       {reviews === null ? <div className="min-h-[340px] grid grid-cols-1 gap-4 md:grid-cols-3" aria-label="Loading Google reviews">{[0,1,2].map(i => <div key={i} className="min-h-[340px] rounded-lg border border-border bg-background motion-safe:animate-pulse" />)}</div> : reviews.length === 3 ? <FeaturedReviewCards reviews={reviews} /> : <ReviewsFallback />}
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
         <Button asChild variant="outline" className="font-semibold">
