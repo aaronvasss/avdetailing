@@ -223,9 +223,7 @@ export function BookingsTab({ userId }: BookingsTabProps) {
           <div className="flex justify-between items-center mt-3">
             {booking.total_price && (
               <p className="font-semibold text-primary">
-                ${booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card'
-                  ? (booking.total_price * 1.035).toFixed(2)
-                  : Number(booking.total_price).toFixed(2)}
+                ${Number(booking.total_price).toFixed(2)}
               </p>
             )}
             {canModify && (
