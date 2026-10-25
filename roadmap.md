@@ -1,5 +1,5 @@
 # Exact payable booking pricing
-- [ ] Reverify existing pricing at 1280px/375px/390px for both payment methods using read-only catalog inspection and pure/mocked tests only; no bookings, payment sessions, charges, deployment, publication or data changes.
+- [x] Reverified existing pricing against current active catalog: 72 browser final-summary cases at 1280px/375px/390px and 114 pure pricing/payment/scheduling tests passed; no bookings, payment sessions, charges, deployment, publication or data changes. Only regression tests added; results and verification limits in pricing-verification_v2.md.
 - [x] Replace booking display-price overrides with authoritative package/add-on prices; shared cent arithmetic and vehicle resolution; checkout uses persisted total without duplicated add-ons/fees. Deployed booking and checkout functions.
 - [x] Test Basic, Silver and Gold for all vehicle types, both payment methods, Back and add-on changes at desktop, 375px and 390px: 72 final-summary checks and 33 regression tests passed; no records, sessions, charges or website publication.
 - [x] Report displayed and payable amounts and verification limits in pricing-verification.md; actual saved-record/Stripe read-back intentionally untested because real creation was prohibited. Unsupported referral discount is no longer promised or redeemed.
