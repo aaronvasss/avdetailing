@@ -1,3 +1,4 @@
+import { parseDateString } from "@/lib/time-format";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -161,13 +162,13 @@ export function BookingsTab({ userId }: BookingsTabProps) {
 
   const today = startOfToday();
   const upcomingBookings = bookings.filter(
-    (b) => isAfter(new Date(b.scheduled_date), today) || 
-           (format(new Date(b.scheduled_date), "yyyy-MM-dd") === format(today, "yyyy-MM-dd") && 
+    (b) => isAfter(parseDateString(b.scheduled_date), today) || 
+           (format(parseDateString(b.scheduled_date), "yyyy-MM-dd") === format(today, "yyyy-MM-dd") && 
             b.status !== "cancelled" && b.status !== "completed")
   );
   const pastBookings = bookings.filter(
-    (b) => (isBefore(new Date(b.scheduled_date), today) && 
-            format(new Date(b.scheduled_date), "yyyy-MM-dd") !== format(today, "yyyy-MM-dd")) || 
+    (b) => (isBefore(parseDateString(b.scheduled_date), today) && 
+            format(parseDateString(b.scheduled_date), "yyyy-MM-dd") !== format(today, "yyyy-MM-dd")) || 
            b.status === "cancelled" || b.status === "completed"
   );
 
@@ -192,7 +193,7 @@ export function BookingsTab({ userId }: BookingsTabProps) {
               <CardDescription className="flex items-center gap-4 mt-1">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  {format(new Date(booking.scheduled_date), "MMM d, yyyy")}
+                  {format(parseDateString(booking.scheduled_date), "MMM d, yyyy")}
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />

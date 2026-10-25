@@ -1,3 +1,4 @@
+import { parseDateString } from "@/lib/time-format";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
@@ -296,7 +297,7 @@ export function BookingDetailsDialog({
 
 
   const isUpcoming =
-    new Date(booking.scheduled_date) >= new Date() &&
+    parseDateString(booking.scheduled_date) >= new Date() &&
     booking.status !== "cancelled" &&
     booking.status !== "completed";
 
@@ -422,7 +423,7 @@ export function BookingDetailsDialog({
                 </div>
                 <div>
                   <p className="text-lg font-semibold">
-                    {format(new Date(booking.scheduled_date), "EEEE, MMMM d, yyyy")}
+                    {format(parseDateString(booking.scheduled_date), "EEEE, MMMM d, yyyy")}
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <Clock className="h-4 w-4" />

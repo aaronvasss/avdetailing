@@ -1,3 +1,4 @@
+import { parseDateString } from "@/lib/time-format";
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -286,7 +287,7 @@ export default function BookingSuccessPage() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Date</span>
                         <span className="font-medium">
-                          {format(new Date(booking.scheduled_date), 'EEEE, MMMM d, yyyy')}
+                          {format(parseDateString(booking.scheduled_date), 'EEEE, MMMM d, yyyy')}
                         </span>
                       </div>
                       <div className="flex justify-between">
