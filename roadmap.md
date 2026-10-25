@@ -1,7 +1,8 @@
 # Customer cancellation
-- [ ] Clarify customer actions and confirmation with Central Time, optional reason and existing deposit consequences.
-- [ ] Add authenticated ownership/policy checks, atomic cancellation and post-save owner alerts with duplicate/failure protections.
-- [ ] Verify mocked allowed/restricted requests, failed saves/notifications and double-clicks on desktop/phone; no real changes, financial actions, messages, deployment or publication.
+- [x] Clarify customer actions and confirmation with service, vehicle, Central Time, optional reason, Keep appointment and existing advisory deposit consequences.
+- [x] Add authenticated ownership/policy checks, atomic cancellation and post-save owner alerts with duplicate/failure protections; preserve notes and all financial fields.
+- [x] Verify mocked allowed/restricted requests, failed saves/notifications and double-clicks at desktop/375px/390px: six browser flows, 198 regression tests and clean preview passed; no real changes, financial actions, messages, deployment or publication.
+- [ ] Activate only on request: deploy cancel-customer-booking before publishing the matching dialog. Shared owner delivery also changes reschedule-booking source; deploy it when releasing that pending feature. Existing Resend/Twilio settings are reused; real delivery is untested and failures require manual follow-up. No migration or refund integration is needed.
 
 # Owner reschedule notification
 - [x] Reuse existing owner email/SMS recipients after saved customer reschedules, with Central times, pending status and protected admin appointment link.
