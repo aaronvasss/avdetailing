@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { signInReturnUrl } from "@/lib/auth-return";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -21,8 +22,8 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   if (!user) {
-    const redirect = `${location.pathname}${location.search}`;
-    return <Navigate to={`/auth?redirect=${encodeURIComponent(redirect)}`} replace />;
+    const redirect = `${location.pathname}${location.search}${location.hash}`;
+    return <Navigate to={signInReturnUrl(redirect)} replace />;
   }
 
   if (requiredRole) {
