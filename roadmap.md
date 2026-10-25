@@ -1,3 +1,8 @@
+# Durable owner alerts
+- [x] Stage transactional outbox and lease/retry safeguards outside managed migrations; production untouched.
+- [x] Wire shared customer writers to atomic change/enqueue and a private recoverable email/SMS dispatcher with wake-on-enqueue and drain disarming.
+- [x] 24 isolated PostgreSQL/mocked-provider checks and 246 regression tests passed; report release order, scheduler configuration and uncertain SMS/provider duplicate limitations in owner-alert-outbox-verification.md. No real records/messages or release; hosted scheduler/provider delivery unverified.
+
 # Owner-alert sign-in destination
 - [x] Preserve the internal admin appointment destination through login, retain role enforcement and show an unavailable-appointment fallback.
 - [x] Fifteen mocked browser checks passed at desktop/375px/390px for signed-out/signed-in admin, non-admin, unsafe return and missing appointment; no private reads before authorization, no overflow/runtime errors, 255 regression tests passed. No real records/messages, deployment or publication; live authentication remains unverified.

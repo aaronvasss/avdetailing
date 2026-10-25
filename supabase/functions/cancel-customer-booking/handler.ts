@@ -1,12 +1,11 @@
 import { cancellationProblem } from "../_shared/cancellation-rules.ts";
-import type { CancellationNotice } from "./owner-notification.ts";
+import { cancellationNoticeContent } from "./owner-notification.ts";
+import { commitOwnerChange } from "../_shared/owner-alert-outbox.ts";
 
 export interface CancellationInput { bookingId: string; expectedDate: string; expectedTime: string; reason?: string; manageToken?: string }
 export interface CancellationDependencies {
   db: any; authenticate: (authorization: string) => Promise<string | null>;
   parse: (body: unknown) => CancellationInput | null;
-  notify: (notice: CancellationNotice) => Promise<void>;
-  logFailure: (bookingId: string, message: string) => Promise<void>;
   now: () => Date; cors: Record<string, string>;
   verifyLink?: (bookingId: string, token: string) => Promise<boolean>;
 }
@@ -42,23 +41,12 @@ export function createCancellationHandler(deps: CancellationDependencies) {
       }
       const reason = input.reason?.trim() || "";
       const note = reason ? `Cancellation reason: ${reason}` : "Customer cancelled";
-      let write = deps.db.from("bookings")
-        .update({ status: "cancelled", customer_notes: [booking.customer_notes, note].filter(Boolean).join("\n") })
-        .eq("id", bookingId).eq("status", booking.status).eq("updated_at", booking.updated_at)
-        .eq("scheduled_date", booking.scheduled_date).eq("scheduled_time", booking.scheduled_time);
-      if (linkVerified) write = write.eq("manage_token", input.manageToken);
-      else write = write.eq("user_id", userId);
-      const { data: updated, error } = await write.select("id, updated_at");
-      if (error) throw error;
-      if (!updated?.length) return reply(409, { error: "This appointment just changed. Refresh and try again." });
-      // No payment writes, refunds or forfeiture action. Notification failures cannot undo cancellation.
-      try {
-        await deps.notify({ bookingId, customerName: customerName || "Customer", serviceName: booking.services?.name || "Detailing Service",
+      const changed = await commitOwnerChange(deps.db, { booking, userId, manageToken: linkVerified ? input.manageToken : undefined,
+        kind: "cancellation", notes: [booking.customer_notes, note].filter(Boolean).join("\n"),
+        content: cancellationNoticeContent({ bookingId, customerName: customerName || "Customer", serviceName: booking.services?.name || "Detailing Service",
           vehicle: [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || booking.vehicle_type || "Vehicle not listed",
-          date: booking.scheduled_date, time: booking.scheduled_time, reason, revision: updated[0].updated_at });
-      } catch {
-        await deps.logFailure(bookingId, "Owner notification failed after appointment was successfully cancelled.").catch(() => undefined);
-      }
+          date: booking.scheduled_date, time: booking.scheduled_time, reason, revision: booking.updated_at }) });
+      if (!changed) return reply(409, { error: "This appointment just changed. Refresh and try again." });
       return reply(200, { ok: true });
     } catch {
       return reply(500, { error: "We couldn't cancel right now. Your appointment is unchanged. Try again or contact us." });
