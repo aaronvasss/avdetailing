@@ -1,7 +1,7 @@
 # Payment safeguard correction
-- [ ] Stage a corrective migration without applying it to production; share the database-verified balance between client and wallet.
-- [ ] Run isolated PostgreSQL integration checks for exact amounts, deposits, partials, stale approvals, duplicate requests and retained guards.
-- [ ] Report release order and live-service limitations; no deployment, publication or real transactions.
+- [x] Stage corrective SQL outside managed migration history; client/wallet/reservation share the locked ledger balance and reject legacy fee-added responses.
+- [x] Thirty isolated PostgreSQL checks passed for $145.18, verified/unpaid deposits, partials, stale approvals, simultaneous requests, audit and ledger guards; desktop/375px/390px verified amount/review screens passed with intercepted requests.
+- [x] Report staged migration, release order and live-service limitations; no production migration, deployment, publication or real transactions.
 
 # Customer-space layout
 - [x] Put next appointment before preparation guidance, simplify customer header and primary actions, remove duplicate next-appointment card and expose history/receipts.
