@@ -248,7 +248,7 @@ export function AppointmentCard({
                       className="text-destructive focus:text-destructive"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Cancel
+                      Cancel appointment
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -345,7 +345,7 @@ export function AppointmentCard({
               className="text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              Cancel
+              Cancel appointment
             </Button>
 
             <DropdownMenu>

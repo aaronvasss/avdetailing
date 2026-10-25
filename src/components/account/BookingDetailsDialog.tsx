@@ -942,7 +942,7 @@ export function BookingDetailsDialog({
 
                 {/* Actions */}
                 {isUpcoming && (
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     {canReschedule && (
                       <Button
                         variant="outline"
@@ -955,12 +955,12 @@ export function BookingDetailsDialog({
                     )}
                     {canCancel && (
                       <Button
-                        variant="destructive"
-                        className="flex-1"
+                        variant="outline"
+                        className="flex-1 text-destructive"
                         onClick={() => onCancel(booking)}
                       >
                         <XCircle className="h-4 w-4 mr-2" />
-                        Cancel Booking
+                        Cancel appointment
                       </Button>
                     )}
                   </div>

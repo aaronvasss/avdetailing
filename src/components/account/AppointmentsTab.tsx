@@ -291,7 +291,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
                 <Button size="sm" variant="outline" asChild><a href="tel:2255216264"><Phone className="h-4 w-4 mr-1" />Call Us</a></Button>
                 <Button size="sm" variant="outline" asChild><a href="sms:2255216264"><MessageSquare className="h-4 w-4 mr-1" />Text Us</a></Button>
                 {!isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/book?repeat=${b.id}`}><RotateCcw className="h-4 w-4 mr-1" />Book Again</Link></Button>}
-                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleCancel(b)}><XCircle className="h-4 w-4 mr-1" />Cancel</Button>
+                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleCancel(b)}><XCircle className="h-4 w-4 mr-1" />Cancel appointment</Button>
               </div>
             </CardContent>
           </Card>
