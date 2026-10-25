@@ -34,12 +34,12 @@ try {
       throw new Error("Unexpected RPC");
     } catch (error) { return { error }; }
   } };
-  const deps = { db, env: () => "mock-only", failure: async () => {}, fetch: async (url: any, init: any) => {
+  const deps = { db, env: () => "mock-only", failure: async () => {}, fetch: (async (url: any, init: any) => {
     const channel = String(url).includes("resend") ? "email" : "sms";
     calls.push({ channel, key: init.headers["Idempotency-Key"] });
     if (channel === "sms" && throwSms) throw new Error("mock lost response");
     return new Response(JSON.stringify({ id: "mock-email", sid: "mock-sms" }), { status: channel === "email" ? emailStatus : smsStatus });
-  } as typeof fetch };
+  }) as typeof fetch };
   async function fixture() {
     const b = randomUUID(), user = randomUUID(), rev = "2026-10-25T23:35:00Z";
     await sql`insert into bookings(id,user_id,updated_at,scheduled_date,scheduled_time,status,manage_token) values(${b},${user},${rev},'2026-10-28','09:00','confirmed','mock-capability')`;
