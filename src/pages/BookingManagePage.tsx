@@ -9,6 +9,7 @@ import { parseDateString, formatTime12h, businessToday } from "@/lib/time-format
 import { CancelBookingDialog } from "@/components/account/CancelBookingDialog";
 import { RescheduleDialog } from "@/components/account/RescheduleDialog";
 import { cancellationProblem } from "../../supabase/functions/_shared/cancellation-rules";
+import { Helmet } from "react-helmet-async";
 
 interface Appointment {
   id: string; scheduled_date: string; scheduled_time: string; status: string; deposit_amount: number | null;
@@ -46,6 +47,7 @@ export default function BookingManagePage({ defaultAction = "reschedule" }: { de
   const problem = booking ? cancellationProblem(booking, businessToday()) : null;
   const success = (kind: string) => { setDialog(""); setNotice(kind === "cancel" ? "Appointment cancelled." : "Appointment rescheduled — pending confirmation."); void load(); };
   return <Layout>
+    <Helmet><meta name="referrer" content="no-referrer" /></Helmet>
     <SEOHead title="Manage Appointment" description="Secure access to your AV Detailing appointment." path="/booking/manage" noIndex />
     <div className="container max-w-lg py-12 space-y-6">
       <h1 className="text-2xl font-bold">Manage appointment</h1>

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { redactUrl } from "./redact-url";
 
 /**
  * Lightweight frontend error logging.
@@ -47,7 +48,7 @@ export async function logAppError(input: LogErrorInput): Promise<void> {
       code: truncate(input.code, 120),
       message: truncate(input.message, 2000) || "Unknown error",
       route: typeof window !== "undefined" ? window.location.pathname : null,
-      url: truncate(typeof window !== "undefined" ? window.location.href : null, 1000),
+      url: truncate(typeof window !== "undefined" ? redactUrl(window.location.href) : null, 1000),
       user_agent: truncate(typeof navigator !== "undefined" ? navigator.userAgent : null, 500),
       user_id: userId,
       booking_id: input.bookingId || null,

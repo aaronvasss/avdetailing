@@ -44,9 +44,10 @@ export function createCancellationHandler(deps: CancellationDependencies) {
       const note = reason ? `Cancellation reason: ${reason}` : "Customer cancelled";
       let write = deps.db.from("bookings")
         .update({ status: "cancelled", customer_notes: [booking.customer_notes, note].filter(Boolean).join("\n") })
-        .eq("id", bookingId).eq("user_id", userId).eq("status", booking.status).eq("updated_at", booking.updated_at)
+        .eq("id", bookingId).eq("status", booking.status).eq("updated_at", booking.updated_at)
         .eq("scheduled_date", booking.scheduled_date).eq("scheduled_time", booking.scheduled_time);
       if (linkVerified) write = write.eq("manage_token", input.manageToken);
+      else write = write.eq("user_id", userId);
       const { data: updated, error } = await write.select("id, updated_at");
       if (error) throw error;
       if (!updated?.length) return reply(409, { error: "This appointment just changed. Refresh and try again." });
