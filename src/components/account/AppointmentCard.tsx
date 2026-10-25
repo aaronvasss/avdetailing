@@ -1,4 +1,4 @@
-import { parseDateString } from "@/lib/time-format";
+import { parseDateString, businessToday } from "@/lib/time-format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -125,7 +125,7 @@ export function AppointmentCard({
   compact = false,
 }: AppointmentCardProps) {
   const isUpcoming =
-    parseDateString(booking.scheduled_date) >= new Date() &&
+    booking.scheduled_date.split("T")[0] >= businessToday() &&
     booking.status !== "cancelled" &&
     booking.status !== "completed";
   const canModify =

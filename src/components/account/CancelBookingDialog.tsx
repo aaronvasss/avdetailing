@@ -1,4 +1,4 @@
-import { parseDateString } from "@/lib/time-format";
+import { parseDateString, businessAppointmentInstant } from "@/lib/time-format";
 import { useState } from "react";
 import { format, differenceInHours } from "date-fns";
 import {
@@ -46,13 +46,7 @@ export function CancelBookingDialog({
   if (!booking) return null;
 
   // Calculate hours until appointment
-  const appointmentDate = parseDateString(booking.scheduled_date);
-  const [hours, minutes] = booking.scheduled_time.match(/(\d+):(\d+)/)?.slice(1) || ["9", "00"];
-  const isPM = booking.scheduled_time.toLowerCase().includes("pm");
-  let hour = parseInt(hours);
-  if (isPM && hour !== 12) hour += 12;
-  if (!isPM && hour === 12) hour = 0;
-  appointmentDate.setHours(hour, parseInt(minutes), 0, 0);
+  const appointmentDate = businessAppointmentInstant(booking.scheduled_date, booking.scheduled_time);
 
   const hoursUntil = differenceInHours(appointmentDate, new Date());
   const isLastMinute = hoursUntil < 24;

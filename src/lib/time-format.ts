@@ -139,3 +139,15 @@ export function businessNowMinutes(): number {
 export function isBusinessToday(dateStr: string): boolean {
   return dateStr.split("T")[0] === businessToday();
 }
+
+/** Real instant of a Chicago wall-clock appointment (date + time), independent of the viewer's timezone. */
+export function businessAppointmentInstant(dateStr: string, timeStr?: string | null): Date {
+  const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
+  const minutes = parseTimeToMinutes(timeStr) ?? 0;
+  const guess = Date.UTC(y, m - 1, d, Math.floor(minutes / 60), minutes % 60);
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: BUSINESS_TIMEZONE, hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    .formatToParts(new Date(guess)).map(p => [p.type, p.value]));
+  const asChicago = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute);
+  return new Date(guess + (guess - asChicago));
+}

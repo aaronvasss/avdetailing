@@ -1,4 +1,4 @@
-import { parseDateString } from "@/lib/time-format";
+import { parseDateString, businessToday } from "@/lib/time-format";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
@@ -297,7 +297,7 @@ export function BookingDetailsDialog({
 
 
   const isUpcoming =
-    parseDateString(booking.scheduled_date) >= new Date() &&
+    booking.scheduled_date.split("T")[0] >= businessToday() &&
     booking.status !== "cancelled" &&
     booking.status !== "completed";
 
