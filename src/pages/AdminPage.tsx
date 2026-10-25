@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -31,6 +31,7 @@ import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { formatTime12h, parseDateString } from "@/lib/time-format";
+import { signInReturnUrl } from "@/lib/auth-return";
 
 interface BookingDetails {
   id: string;
@@ -52,6 +53,7 @@ interface BookingDetails {
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const linkedBookingId = searchParams.get("booking");
   const { isAdmin, isStaff, isLoading, user, role } = useRoleCheck();
@@ -59,6 +61,7 @@ export default function AdminPage() {
   const [newBookingOpen, setNewBookingOpen] = useState(false);
   const [bookingRefreshKey, setBookingRefreshKey] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(null);
+  const [linkedBookingUnavailable, setLinkedBookingUnavailable] = useState(false);
   const [replyPhone, setReplyPhone] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
   const [sendingSms, setSendingSms] = useState(false);
@@ -67,23 +70,38 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate("/auth?redirect=/admin");
+      navigate(signInReturnUrl(location.pathname + location.search + location.hash), { replace: true });
     }
-  }, [isLoading, user, navigate]);
+  }, [isLoading, user, navigate, location.pathname, location.search, location.hash]);
 
   useEffect(() => {
     if (isLoading || !user || !isStaff || !linkedBookingId) return;
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(linkedBookingId)) return;
-    let cancelled = false;
+    setLinkedBookingUnavailable(false);
+    setSelectedBooking(null);
+    setBookingPhotos([]);
     setCurrentTab("appointments");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(linkedBookingId)) {
+      setLinkedBookingUnavailable(true);
+      return;
+    }
+    let cancelled = false;
     void (async () => {
-      const { data, error } = await supabase.from("bookings").select("*, services(name)").eq("id", linkedBookingId).maybeSingle();
-      if (cancelled) return;
-      if (error || !data) { toast.error("Unable to open this appointment. Find it in Appointments."); return; }
-      setSelectedBooking({ ...data, profiles: null } as BookingDetails);
+      try {
+        const { data, error } = await supabase.from("bookings").select("*, services(name)").eq("id", linkedBookingId).maybeSingle();
+        if (cancelled) return;
+        if (error || !data) { setLinkedBookingUnavailable(true); return; }
+        setSelectedBooking({ ...data, profiles: null } as BookingDetails);
+      } catch {
+        if (!cancelled) setLinkedBookingUnavailable(true);
+      }
     })();
     return () => { cancelled = true; };
   }, [isLoading, user, isStaff, linkedBookingId]);
+
+  useEffect(() => {
+    if (searchParams.get("tab") === "appointments") setCurrentTab("appointments");
+    if (!linkedBookingId) setLinkedBookingUnavailable(false);
+  }, [searchParams, linkedBookingId]);
 
   const getCustomerName = (booking: BookingDetails) => {
     return booking.guest_name || booking.profiles?.full_name || "Unknown";
@@ -274,6 +292,10 @@ export default function AdminPage() {
             {currentTab === "settings" && "Manage phone numbers, emails, and business configuration"}
           </p>
         </div>
+        {linkedBookingUnavailable && <div role="alert" className="mb-6 border border-border rounded-md p-4 space-y-2">
+          <p>This appointment is unavailable or could not be loaded. You can find other appointments in the admin list.</p>
+          <Button variant="outline" onClick={() => navigate("/admin?tab=appointments", { replace: true })}>Open appointment list</Button>
+        </div>}
         <div key={bookingRefreshKey}>{renderTab()}</div>
       </AdminLayout>
 

@@ -11,14 +11,13 @@ import { authFormSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { ForgotPasswordForm } from "@/components/account/ForgotPasswordForm";
+import { safeAuthReturn } from "@/lib/auth-return";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const requestedRedirect = searchParams.get("redirect");
-  const safeRedirect = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
-    ? requestedRedirect
-    : null;
+  const safeRedirect = safeAuthReturn(requestedRedirect);
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [recovering, setRecovering] = useState(searchParams.get("mode") === "recovery");
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +52,7 @@ export default function AuthPage() {
       }
     };
     checkSession();
-  }, [navigate, recovering]);
+  }, [navigate, recovering, safeRedirect, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

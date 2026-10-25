@@ -1,3 +1,7 @@
+# Owner-alert sign-in destination
+- [x] Preserve the internal admin appointment destination through login, retain role enforcement and show an unavailable-appointment fallback.
+- [ ] Verify mocked signed-out/signed-in admin, non-admin, unsafe return and missing appointment on desktop/phone; no real records or release.
+
 # Appointment date/time completion
 - [x] Use the Central calendar day for client classification without changing each view's status policies.
 - [x] Share timezone-aware conversion across Add to Calendar, download-ics and calendar-feed; retain durations and stored values, emit UTC instants with valid line folding.
