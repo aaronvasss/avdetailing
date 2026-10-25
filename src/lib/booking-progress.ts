@@ -1,6 +1,6 @@
 /** Step IDs follow the existing booking flow; skipped screens never count as remaining. */
 export function bookingProgress(service: string, step: number) {
-  const screens = service === "ceramic"
+  const screens: ReadonlyArray<readonly [number, string]> = service === "ceramic"
     ? [[1, "Service"], [2, "Tier & Pricing"], [5, "Schedule"], [7, "Details"]] as const
     : service === "aircraft"
       ? [[1, "Service"], [2, "Quote Request"]] as const
