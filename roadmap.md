@@ -1,3 +1,7 @@
+# Owner reschedule notification
+- [ ] Reuse existing owner recipients/channels after saved customer reschedules, with Central times, pending status and admin appointment link.
+- [ ] Verify intercepted notification delivery, duplicate submissions/retries and failure logging with mocks only; no deployment, publication or real changes/messages.
+
 # Booking progress visibility
 - [x] Add accurate branch-aware step counts, current selections and authoritative running total; label Central Time/end time and optional-extras action.
 - [x] Desktop/375px/390px preview passed: all three package links, Back, vehicle/package/extras changes, 18 payment-choice/final-screen checks, long extras and labels fit; 114 regression tests passed, build OK, no runtime errors, bookings, payment sessions, charges, deployment or publication.
