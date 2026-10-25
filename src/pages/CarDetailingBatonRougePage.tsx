@@ -138,7 +138,7 @@ export default function CarDetailingBatonRougePage() {
                 Perfect for regular maintenance. Keeps your vehicle clean and fresh between full details.
               </p>
               <div className="mb-5 pb-5 border-b border-white/10">
-                <span className="text-3xl font-bold">from {pricing.label(pricing.packageFrom("car", "Basic Package"))}</span>
+                <span className="text-3xl font-bold">from {formatPrice(CAR_PAGE_DISPLAY_FROM.basic)}</span>
                 <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes</span>
               </div>
               <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
@@ -150,7 +150,7 @@ export default function CarDetailingBatonRougePage() {
                 <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Exterior windows cleaned</span></li>
               </ul>
               <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
-                <Link to="/book">Book Now</Link>
+                <Link to="/book?service=car&package=basic">Book Now</Link>
               </Button>
             </article>
 
@@ -180,13 +180,13 @@ export default function CarDetailingBatonRougePage() {
                 <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Door jamb cleaning</span></li>
               </ul>
               <Button asChild className="w-full bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_60%)] font-semibold shadow-md">
-                <Link to="/book">Book Now</Link>
+                <Link to="/book?service=car&package=gold">Book Now</Link>
               </Button>
             </article>
 
             {/* Silver */}
             <article className="order-3 lg:order-3 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-gradient-to-b from-[hsl(0_0%_97%)] to-[hsl(0_0%_86%)] text-[hsl(0_0%_10%)] border border-[hsl(0_0%_72%)] shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">Most Popular</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">Daily Driver</span>
               <h3 className="text-2xl font-bold mb-1.5">Silver Package</h3>
               <p className="text-sm text-[hsl(0_0%_30%)] mb-4 leading-relaxed">
                 A thorough interior and exterior clean for vehicles that see daily use.
@@ -206,7 +206,7 @@ export default function CarDetailingBatonRougePage() {
               </ul>
               <p className="text-xs italic text-[hsl(0_0%_35%)] mb-5">Seat shampoo not included — upgrade to Gold.</p>
               <Button asChild className="w-full bg-black text-white hover:bg-black/85">
-                <Link to="/book">Book Now</Link>
+                <Link to="/book?service=car&package=silver">Book Now</Link>
               </Button>
             </article>
           </div>
