@@ -3,10 +3,10 @@ import Stripe from 'https://esm.sh/stripe@18.5.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3';
-import { portalBalance, authorizationMatches } from '../_shared/portal-payment-rules.ts';
+import { authorizationMatches } from '../_shared/portal-payment-rules.ts';
 import { syncPortalCharge } from '../_shared/portal-charge-sync.ts';
 
-const schema = z.object({ action: z.enum(['list','setup','complete','default','remove','quote','authorize','revoke','charge']), bookingId: z.string().uuid().optional(), paymentMethodId: z.string().regex(/^pm_[a-zA-Z0-9]+$/).optional(), sessionId: z.string().regex(/^cs_[a-zA-Z0-9_]+$/).optional(), amountCents: z.number().int().positive().optional(), accepted: z.boolean().optional() });
+const schema = z.object({ action: z.enum(['list','setup','complete','default','remove','balance','quote','authorize','revoke','charge']), bookingId: z.string().uuid().optional(), paymentMethodId: z.string().regex(/^pm_[a-zA-Z0-9]+$/).optional(), sessionId: z.string().regex(/^cs_[a-zA-Z0-9_]+$/).optional(), amountCents: z.number().int().positive().optional(), accepted: z.boolean().optional() });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {status, headers: {...corsHeaders, 'Content-Type':'application/json'}});
 serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', {headers:corsHeaders});
@@ -37,6 +37,18 @@ serve(async req => {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {apiVersion:'2025-08-27.basil'});
     const {data: profile, error: profileError} = await db.from('profiles').select('stripe_customer_id,email,full_name').eq('user_id',targetId).single();
     if (profileError || !profile) return json({error:'Customer profile unavailable'},400);
+    // The balance read needs no saved card and performs no Stripe request or mutation.
+    // The reservation trigger reuses this exact function under the booking lock.
+    let quote: any = null;
+    if (['balance','quote','authorize','charge'].includes(body.action)) {
+      if (!booking) return json({error:'Select an appointment'},400);
+      if (booking.guest_email && booking.guest_email.toLowerCase() !== (profile.email ?? '').toLowerCase()) return json({error:'Appointment customer does not match the linked account'},409);
+      const {data,error} = await db.rpc('portal_booking_balance', {_booking_id:booking.id});
+      if (error || !data) return json({error:'Payment balance needs review; unable to verify payment history'},409);
+      quote = data;
+      if (body.action === 'balance') return json(quote);
+      if (quote.review) return json({error:'Payment balance needs review; contact AV Detailing'},409);
+    }
     let customerId = profile.stripe_customer_id;
     if (!customerId) {
       // Metadata identity prevents linking another account merely by matching its email.
@@ -87,17 +99,6 @@ serve(async req => {
     if (!booking || ['cancelled','canceled','no_show'].includes(booking.status)) return json({error:'Select an eligible appointment'},400);
     // Guest contact must match the linked account; never charge an admin who booked for a guest.
     if (booking.guest_email && booking.guest_email.toLowerCase() !== (profile.email ?? '').toLowerCase()) return json({error:'Appointment customer does not match the linked account'},409);
-    const {data: records,error: recordsError} = await db.from('payment_records').select('amount_cents,payment_type,status,metadata,stripe_payment_intent_id').eq('booking_id',booking.id);
-    if (recordsError) throw recordsError;
-    const {data: depositQuotes,error: depositError} = await db.from('quotes').select('deposit_amount,stripe_payment_intent_id,guest_email').eq('booking_id',booking.id);
-    if(depositError)throw depositError;
-    let confirmedDeposit=['partial','deposit_paid'].includes(booking.payment_status)?Number(booking.deposit_amount||0):0;
-    for(const deposit of depositQuotes??[]){
-      if(!deposit.stripe_payment_intent_id)continue;
-      const intent=await stripe.paymentIntents.retrieve(deposit.stripe_payment_intent_id);
-      if(intent.status==='succeeded' && deposit.guest_email?.toLowerCase()===(profile.email??'').toLowerCase())confirmedDeposit=Math.max(confirmedDeposit,Number(deposit.deposit_amount||0));
-    }
-    const quote = portalBalance(booking.total_price,booking.payment_status,confirmedDeposit,records ?? []);
     const {data: authorization,error: authorizationError} = await db.from('card_authorizations').select('*').eq('booking_id',booking.id).eq('user_id',targetId).maybeSingle();
     if (authorizationError) throw authorizationError;
     const {data: existing,error: existingError} = await db.from('portal_charge_requests').select('*').eq('booking_id',booking.id).maybeSingle();

@@ -1,36 +1,5 @@
-export function balanceQuote(total: number, paymentStatus: string | null, deposit: number, records: Array<{ amount_cents: number; payment_type: string; status: string | null; metadata?: Record<string, unknown> | null }>) {
-  const totalCents = Math.round(Number(total) * 100);
-  if (!Number.isSafeInteger(totalCents) || totalCents <= 0) throw new Error('Invalid appointment price');
-  if (paymentStatus === 'paid' || paymentStatus === 'refunded') return { serviceCents: 0, feeCents: 0, amountCents: 0 };
-  if(records.some(r=>r.status==='partially_refunded'||r.status==='refunded'))throw new Error('Refund balance needs reconciliation before card charging');
-  const paid = records.filter(r => ['succeeded', 'paid'].includes(r.status ?? '') && r.payment_type !== 'tip');
-  const uniquePaid = paid.filter((r, i) => paid.findIndex(p => p.metadata?.stripe_payment_intent_id && p.metadata.stripe_payment_intent_id === r.metadata?.stripe_payment_intent_id) === i || !r.metadata?.stripe_payment_intent_id);
-  // Old records include the 3.5% card fee; it does not pay down the service balance.
-  if (uniquePaid.some(r => typeof r.metadata?.service_amount_cents !== 'number')) throw new Error('Payment balance needs reconciliation before card charging');
-  const paidService = uniquePaid.reduce((sum, r) => sum + Number(r.metadata?.service_amount_cents ?? 0), 0);
-  const confirmedDeposit = ['partial','deposit_paid'].includes(paymentStatus ?? '') ? Math.round(Number(deposit || 0) * 100) : 0;
-  if(uniquePaid.some(r=>!Number.isSafeInteger(r.metadata?.service_amount_cents)||Number(r.metadata?.service_amount_cents)<0||Number(r.metadata?.service_amount_cents)>r.amount_cents))throw new Error('Payment balance needs reconciliation before card charging');
-  if(confirmedDeposit>0&&uniquePaid.some(r=>r.payment_type!=='deposit'))throw new Error('Deposit and payment balance needs reconciliation before card charging');
-  const serviceCents = Math.max(0, totalCents - Math.max(paidService, confirmedDeposit));
-  // Saved booking totals already include the card processing fee; never add it again.
-  const feeCents = 0;
-  return { serviceCents, feeCents, amountCents: serviceCents + feeCents };
-}
-
+// Balances are calculated only by the service-only portal_booking_balance database
+// function, reused under lock by the reservation trigger. No browser/status-only credits.
 export function authorizationMatches(authorizedCents: number, revokedAt: string | null, quoteCents: number) {
   return revokedAt === null && quoteCents > 0 && authorizedCents === quoteCents;
-}
-type PaymentRecord = { amount_cents: number; payment_type: string; status: string | null; stripe_payment_intent_id?: string | null; metadata?: Record<string, unknown> | null };
-
-/** Single balance calculation for the client screen and the saved-card action. */
-export function portalBalance(total: number, bookingPaymentStatus: string | null, confirmedDeposit: number, records: PaymentRecord[]) {
-  const status = ['paid', 'refunded'].includes(bookingPaymentStatus ?? '') ? bookingPaymentStatus : confirmedDeposit > 0 ? 'deposit_paid' : bookingPaymentStatus;
-  return balanceQuote(total, status, confirmedDeposit, records.map(r => ({ ...r, metadata: { ...(r.metadata ?? {}), stripe_payment_intent_id: r.stripe_payment_intent_id ?? r.metadata?.stripe_payment_intent_id } })));
-}
-
-/** Screen-safe wrapper: ambiguous history means "needs review", never a guessed number. */
-export function portalBalanceOrReview(total: number, bookingPaymentStatus: string | null, deposit: number, records: PaymentRecord[]) {
-  const confirmedDeposit = ['partial', 'deposit_paid'].includes(bookingPaymentStatus ?? '') ? Number(deposit || 0) : 0;
-  try { return { review: false as const, ...portalBalance(total, bookingPaymentStatus, confirmedDeposit, records) }; }
-  catch { return { review: true as const }; }
 }
