@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { useEffect } from "react";
 import { UTILITY_ROUTE_SEO } from "@/lib/utility-route-seo";
 
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
@@ -23,6 +24,15 @@ export function SEOHead({
   title = utility?.title ?? title;
   description = utility?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
+  useEffect(() => {
+    if (!noIndex) return;
+    // The generic development shell (or a client-side service→utility visit)
+    // has an unmanaged index directive. Let Helmet own the utility policy.
+    const fallback = document.querySelector<HTMLMetaElement>('meta[name="robots"]:not([data-rh])');
+    if (!fallback) return;
+    fallback.remove();
+    return () => { document.head.appendChild(fallback); };
+  }, [noIndex]);
   const fullTitle = path === "/"
     ? title
     : title.includes("AV Detailing")
