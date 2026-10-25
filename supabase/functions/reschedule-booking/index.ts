@@ -4,6 +4,7 @@ import { z } from "npm:zod@3.25.76";
 import { createRescheduleHandler } from "./handler.ts";
 import { notifyRescheduleOwner } from "./owner-notification.ts";
 import { logEdgeError } from "../_shared/error-log.ts";
+import { verifyAppointmentLink } from "../_shared/appointment-links.ts";
 
 const url = Deno.env.get("SUPABASE_URL") ?? "";
 const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -13,10 +14,11 @@ const calendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value;
 });
 const time = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d(?::00)?$/);
-const schema = z.object({ bookingId: z.string().uuid(), newDate: calendarDate, newTime: time, expectedDate: calendarDate, expectedTime: time });
+const schema = z.object({ bookingId: z.string().uuid(), newDate: calendarDate, newTime: time, expectedDate: calendarDate, expectedTime: time, manageToken: z.string().min(32).max(100).optional() });
 
 Deno.serve(createRescheduleHandler({
   db, cors: corsHeaders, now: () => new Date(),
+  verifyLink: (id, token) => verifyAppointmentLink(db, id, token, new Date()),
   parse: (body) => { const result = schema.safeParse(body); return result.success ? result.data : null; },
   authenticate: async (authorization) => {
     const { data, error } = await createClient(url, anon, { global: { headers: { Authorization: authorization } } }).auth.getUser();

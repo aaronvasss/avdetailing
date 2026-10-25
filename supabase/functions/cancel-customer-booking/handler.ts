@@ -1,13 +1,14 @@
 import { cancellationProblem } from "../_shared/cancellation-rules.ts";
 import type { CancellationNotice } from "./owner-notification.ts";
 
-export interface CancellationInput { bookingId: string; expectedDate: string; expectedTime: string; reason?: string }
+export interface CancellationInput { bookingId: string; expectedDate: string; expectedTime: string; reason?: string; manageToken?: string }
 export interface CancellationDependencies {
   db: any; authenticate: (authorization: string) => Promise<string | null>;
   parse: (body: unknown) => CancellationInput | null;
   notify: (notice: CancellationNotice) => Promise<void>;
   logFailure: (bookingId: string, message: string) => Promise<void>;
   now: () => Date; cors: Record<string, string>;
+  verifyLink?: (bookingId: string, token: string) => Promise<boolean>;
 }
 export function createCancellationHandler(deps: CancellationDependencies) {
   const reply = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { ...deps.cors, "Content-Type": "application/json" } });
@@ -16,18 +17,18 @@ export function createCancellationHandler(deps: CancellationDependencies) {
     if (req.method !== "POST") return reply(405, { error: "Method not allowed." });
     try {
       const auth = req.headers.get("Authorization");
-      if (!auth?.startsWith("Bearer ")) return reply(401, { error: "Please sign in again to cancel your appointment." });
-      const userId = await deps.authenticate(auth);
-      if (!userId) return reply(401, { error: "Please sign in again to cancel your appointment." });
+      const userId = auth?.startsWith("Bearer ") ? await deps.authenticate(auth) : null;
       let input: CancellationInput | null;
       try { input = deps.parse(await req.json()); } catch { input = null; }
       if (!input) return reply(400, { error: "Please refresh the appointment and try again. Reasons must be 1,000 characters or fewer." });
       const { bookingId, expectedDate, expectedTime } = input;
+      const linkVerified = Boolean(input.manageToken && deps.verifyLink && await deps.verifyLink(bookingId, input.manageToken));
+      if (!userId && !linkVerified) return reply(401, { error: "This link is invalid or expired. Use your latest appointment email or sign in." });
       const { data: booking, error: readError } = await deps.db.from("bookings")
         .select("id, user_id, status, scheduled_date, scheduled_time, updated_at, customer_notes, deposit_amount, guest_name, vehicle_year, vehicle_make, vehicle_model, vehicle_type, services(name)")
         .eq("id", bookingId).maybeSingle();
       if (readError) throw readError;
-      if (!booking || booking.user_id !== userId) return reply(404, { error: "Appointment not found in your account." });
+      if (!booking || (!linkVerified && booking.user_id !== userId)) return reply(404, { error: "Appointment not found in your account." });
       if (["cancelled", "canceled"].includes(booking.status)) return reply(200, { ok: true, unchanged: true });
       if (booking.scheduled_date !== expectedDate || booking.scheduled_time.slice(0, 5) !== expectedTime.slice(0, 5))
         return reply(409, { error: "This appointment has changed. Refresh your appointments before cancelling." });
@@ -35,8 +36,8 @@ export function createCancellationHandler(deps: CancellationDependencies) {
       const problem = cancellationProblem(booking, todayChicago);
       if (problem) return reply(409, { error: problem });
       let customerName = booking.guest_name?.trim();
-      if (!customerName) {
-        const { data } = await deps.db.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
+      if (!customerName && booking.user_id) {
+        const { data } = await deps.db.from("profiles").select("full_name").eq("user_id", booking.user_id).maybeSingle();
         customerName = data?.full_name || "Customer";
       }
       const reason = input.reason?.trim() || "";
@@ -49,7 +50,7 @@ export function createCancellationHandler(deps: CancellationDependencies) {
       if (!updated?.length) return reply(409, { error: "This appointment just changed. Refresh and try again." });
       // No payment writes, refunds or forfeiture action. Notification failures cannot undo cancellation.
       try {
-        await deps.notify({ bookingId, customerName, serviceName: booking.services?.name || "Detailing Service",
+        await deps.notify({ bookingId, customerName: customerName || "Customer", serviceName: booking.services?.name || "Detailing Service",
           vehicle: [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || booking.vehicle_type || "Vehicle not listed",
           date: booking.scheduled_date, time: booking.scheduled_time, reason, revision: updated[0].updated_at });
       } catch {

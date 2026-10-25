@@ -1,7 +1,7 @@
 import { rescheduleProblem } from "../_shared/reschedule-rules.ts";
 import type { RescheduleNotice } from "./owner-notification.ts";
 
-export interface RescheduleInput { bookingId: string; newDate: string; newTime: string; expectedDate: string; expectedTime: string }
+export interface RescheduleInput { bookingId: string; newDate: string; newTime: string; expectedDate: string; expectedTime: string; manageToken?: string }
 export interface RescheduleDependencies {
   db: any;
   authenticate: (authorization: string) => Promise<string | null>;
@@ -10,6 +10,7 @@ export interface RescheduleDependencies {
   logFailure: (bookingId: string, message: string) => Promise<void>;
   now: () => Date;
   cors: Record<string, string>;
+  verifyLink?: (bookingId: string, token: string) => Promise<boolean>;
 }
 
 /** Dependency-injected server flow: tests use only an in-memory database and intercepted senders. */
@@ -20,18 +21,18 @@ export function createRescheduleHandler(deps: RescheduleDependencies) {
     if (req.method !== "POST") return reply(405, { error: "Method not allowed." });
     try {
       const auth = req.headers.get("Authorization");
-      if (!auth?.startsWith("Bearer ")) return reply(401, { error: "Please sign in again." });
-      const userId = await deps.authenticate(auth);
-      if (!userId) return reply(401, { error: "Please sign in again." });
+      const userId = auth?.startsWith("Bearer ") ? await deps.authenticate(auth) : null;
       let input: RescheduleInput | null;
       try { input = deps.parse(await req.json()); } catch { input = null; }
       if (!input) return reply(400, { error: "Please choose a valid appointment, date and time, then try again." });
       const { bookingId, newDate, newTime, expectedDate, expectedTime } = input;
+      const linkVerified = Boolean(input.manageToken && deps.verifyLink && await deps.verifyLink(bookingId, input.manageToken));
+      if (!userId && !linkVerified) return reply(401, { error: "This link is invalid or expired. Use your latest appointment email or sign in." });
       const db = deps.db;
       const { data: booking, error: bookingError } = await db.from("bookings")
         .select("id, user_id, status, duration_minutes, scheduled_date, scheduled_time, updated_at, guest_name, services(name)").eq("id", bookingId).maybeSingle();
       if (bookingError) throw bookingError;
-      if (!booking || booking.user_id !== userId) return reply(404, { error: "Appointment not found." });
+      if (!booking || (!linkVerified && booking.user_id !== userId)) return reply(404, { error: "Appointment not found." });
       const sameTime = (a: string, b: string) => a.slice(0, 5) === b.slice(0, 5);
       // A retry after a lost success response must not send again or update pending status again.
       if (booking.scheduled_date === newDate && sameTime(booking.scheduled_time, newTime)) {
@@ -63,8 +64,8 @@ export function createRescheduleHandler(deps: RescheduleDependencies) {
 
       // Capture fallback identity before saving; an identity lookup failure cannot mask a successful save.
       let customerName = booking.guest_name?.trim();
-      if (!customerName) {
-        const { data: profile } = await db.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
+      if (!customerName && booking.user_id) {
+        const { data: profile } = await db.from("profiles").select("full_name").eq("user_id", booking.user_id).maybeSingle();
         customerName = profile?.full_name || "Customer";
       }
       // Atomic compare-and-set: only one concurrent request wins and is allowed to notify.
@@ -77,7 +78,7 @@ export function createRescheduleHandler(deps: RescheduleDependencies) {
 
       // Separate delivery from save errors: preserve the new time even if a provider or logger fails.
       try {
-        await deps.notify({ bookingId, customerName, serviceName: booking.services?.name || "Detailing Service",
+        await deps.notify({ bookingId, customerName: customerName || "Customer", serviceName: booking.services?.name || "Detailing Service",
           oldDate: booking.scheduled_date, oldTime: booking.scheduled_time, newDate, newTime,
           revision: updated[0].updated_at || booking.updated_at });
       } catch {
