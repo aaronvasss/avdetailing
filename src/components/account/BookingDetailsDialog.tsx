@@ -43,6 +43,8 @@ import { AppointmentDocuments } from "./AppointmentDocuments";
 import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
 import { AccountActivity } from './AccountActivity';
 import { AppointmentPhotos } from "./AppointmentPhotos";
+import { bookingPaymentSummary } from "@/lib/booking-payment-summary";
+import { formatPaymentMethod } from "@/lib/payment-display";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -663,12 +665,10 @@ export function BookingDetailsDialog({
                   const conf = labels[ps] || { text: ps, cls: paymentStatusColors[ps] || "" };
                   return <Badge className={conf.cls}>{conf.text}</Badge>;
                 })()}
-                {isAdmin && booking.payment_method && (
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
-                    <CreditCard className="h-3 w-3" />
-                    {booking.payment_method.replace("_", " ")}
-                  </span>
-                )}
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <CreditCard className="h-3 w-3" />
+                  Method: {booking.payment_method ? formatPaymentMethod(booking.payment_method) : "Not chosen"}
+                </span>
               </div>
             </div>
 
