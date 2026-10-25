@@ -43,6 +43,8 @@ import { AppointmentDocuments } from "./AppointmentDocuments";
 import { AppointmentPaymentApproval } from "./AppointmentPaymentApproval";
 import { AccountActivity } from './AccountActivity';
 import { AppointmentPhotos } from "./AppointmentPhotos";
+import { bookingPaymentSummary } from "@/lib/booking-payment-summary";
+import { formatPaymentMethod } from "@/lib/payment-display";
 
 interface BookingDetailsDialogProps {
   booking: Booking | null;
@@ -293,9 +295,10 @@ export function BookingDetailsDialog({
   const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
   // Use total_price as source of truth (admin may have overridden it)
   const effectiveTotal = booking.total_price || 0;
-  const processingFee = isOnlinePayment && effectiveTotal ? effectiveTotal * 0.035 : 0;
-  const totalWithFee = effectiveTotal + processingFee;
-  const remainingBalance = totalWithFee - (booking.deposit_amount || 0);
+  // Saved payable total already includes any processing fee; never add it again.
+  const pay = bookingPaymentSummary(booking);
+  const totalWithFee = pay.total;
+  const remainingBalance = pay.balance;
 
   // Resolve customer info: ONLY use guest fields from the booking record.
   // Never fall back to profileData (which is the admin's own profile) for email/phone,
@@ -515,12 +518,6 @@ export function BookingDetailsDialog({
                     ))}
                   </div>
                 )}
-                {isOnlinePayment && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Processing Fee (3.5%)</span>
-                    <span>${processingFee.toFixed(2)}</span>
-                  </div>
-                )}
                 <Separator className="my-2" />
                 <div className="flex justify-between font-semibold text-base">
                   <span>{(booking as any).tip_amount > 0 ? "Service Total" : "Total"}</span>
@@ -640,11 +637,11 @@ export function BookingDetailsDialog({
                   </>
                 )}
 
-                {booking.deposit_amount && booking.deposit_amount > 0 && (
+                {pay.deposit > 0 && (
                   <>
                     <div className="flex justify-between text-emerald-500">
                       <span>Deposit Paid</span>
-                      <span>-${booking.deposit_amount.toFixed(2)}</span>
+                      <span>-${pay.deposit.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between font-medium text-yellow-500">
                       <span>Balance Due</span>
@@ -658,22 +655,20 @@ export function BookingDetailsDialog({
                 {(() => {
                   const ps = booking.payment_status || "unpaid";
                   const labels: Record<string, { text: string; cls: string }> = {
-                    paid: { text: "✅ Paid Online", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-                    unpaid: { text: "💵 Pay at Service", cls: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+                    paid: { text: "✅ Paid", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+                    unpaid: { text: "Unpaid", cls: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
                     pending: { text: "⏳ Payment Pending", cls: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
                     failed: { text: "❌ Payment Failed", cls: "bg-destructive/10 text-destructive border-destructive/20" },
-                    partial: { text: "Partial", cls: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+                    partial: { text: "Deposit Paid", cls: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
                     refunded: { text: "Refunded", cls: "bg-muted text-muted-foreground border-muted" },
                   };
                   const conf = labels[ps] || { text: ps, cls: paymentStatusColors[ps] || "" };
                   return <Badge className={conf.cls}>{conf.text}</Badge>;
                 })()}
-                {isAdmin && booking.payment_method && (
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
-                    <CreditCard className="h-3 w-3" />
-                    {booking.payment_method.replace("_", " ")}
-                  </span>
-                )}
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <CreditCard className="h-3 w-3" />
+                  Method: {booking.payment_method ? formatPaymentMethod(booking.payment_method) : "Not chosen"}
+                </span>
               </div>
             </div>
 

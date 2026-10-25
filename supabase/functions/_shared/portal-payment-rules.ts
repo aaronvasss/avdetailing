@@ -12,7 +12,8 @@ export function balanceQuote(total: number, paymentStatus: string | null, deposi
   if(uniquePaid.some(r=>!Number.isSafeInteger(r.metadata?.service_amount_cents)||Number(r.metadata?.service_amount_cents)<0||Number(r.metadata?.service_amount_cents)>r.amount_cents))throw new Error('Payment balance needs reconciliation before card charging');
   if(confirmedDeposit>0&&uniquePaid.some(r=>r.payment_type!=='deposit'))throw new Error('Deposit and payment balance needs reconciliation before card charging');
   const serviceCents = Math.max(0, totalCents - Math.max(paidService, confirmedDeposit));
-  const feeCents = Math.round(serviceCents * 0.035);
+  // Saved booking totals already include the card processing fee; never add it again.
+  const feeCents = 0;
   return { serviceCents, feeCents, amountCents: serviceCents + feeCents };
 }
 

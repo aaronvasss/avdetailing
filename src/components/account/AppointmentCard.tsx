@@ -158,12 +158,9 @@ export function AppointmentCard({
 
   const isOnlinePayment = booking.payment_method === 'online' || booking.payment_method === 'stripe' || booking.payment_method === 'card';
   // Use total_price as source of truth
+  // Saved payable total already includes any processing fee; never add it again.
   const effectiveTotal = booking.total_price || 0;
-  const displayTotal = effectiveTotal > 0
-    ? isOnlinePayment
-      ? (effectiveTotal * 1.035).toFixed(2)
-      : effectiveTotal.toFixed(2)
-    : null;
+  const displayTotal = effectiveTotal > 0 ? Number(effectiveTotal).toFixed(2) : null;
 
   if (compact) {
     return (
@@ -299,7 +296,7 @@ export function AppointmentCard({
           {displayTotal && (
             <div className="text-right">
               <p className="text-xl font-bold text-primary">${displayTotal}</p>
-              <p className="text-xs text-muted-foreground">{isOnlinePayment ? "Total with fees" : "Total"}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
             </div>
           )}
         </div>

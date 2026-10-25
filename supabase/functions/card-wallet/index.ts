@@ -102,7 +102,7 @@ serve(async req => {
     if (authorizationError) throw authorizationError;
     const {data: existing,error: existingError} = await db.from('portal_charge_requests').select('*').eq('booking_id',booking.id).maybeSingle();
     if (existingError) throw existingError;
-    const terms = `I authorize AV Detailing to charge my default saved card once for the remaining balance of appointment ${booking.id.slice(0,8).toUpperCase()}: $${(quote.serviceCents/100).toFixed(2)} plus $${(quote.feeCents/100).toFixed(2)} processing fee (3.5%), total $${(quote.amountCents/100).toFixed(2)}. This approval covers this appointment only, not additional fees or future appointments. I can revoke it before the charge starts.`;
+    const terms = `I authorize AV Detailing to charge my default saved card once for the remaining balance of appointment ${booking.id.slice(0,8).toUpperCase()}: $${(quote.amountCents/100).toFixed(2)} (processing fees already included). This approval covers this appointment only, not additional fees or future appointments. I can revoke it before the charge starts.`;
     if (body.action === 'quote') return json({...quote,terms,authorization,charge:existing,hasDefault:!!defaultId});
     if (body.action === 'revoke') {
       if (existing) return json({error:'Charge already started; contact AV Detailing'},409);
