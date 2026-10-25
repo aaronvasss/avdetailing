@@ -1,153 +1,74 @@
-import { parseDateString, businessAppointmentInstant } from "@/lib/time-format";
-import { useState } from "react";
-import { format, differenceInHours } from "date-fns";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+import { parseDateString, businessAppointmentInstant, businessToday, formatTime12h } from "@/lib/time-format";
+import { useState, useEffect, useRef } from "react";
+import { format } from "date-fns";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, Loader2, XCircle } from "lucide-react";
-import { formatTime12h } from "@/lib/time-format";
+import { Loader2, XCircle } from "lucide-react";
+import { cancellationProblem, cancellationConsequences } from "../../../supabase/functions/_shared/cancellation-rules";
 
 interface Booking {
-  id: string;
-  scheduled_date: string;
-  scheduled_time: string;
-  deposit_amount: number | null;
-  services: {
-    name: string;
-  } | null;
+  id: string; scheduled_date: string; scheduled_time: string; status: string; deposit_amount: number | null;
+  vehicle_year?: number | null; vehicle_make?: string | null; vehicle_model?: string | null; vehicle_type?: string | null;
+  services: { name: string } | null;
 }
-
-interface CancelBookingDialogProps {
-  booking: Booking | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-}
-
-export function CancelBookingDialog({
-  booking,
-  open,
-  onOpenChange,
-  onSuccess,
-}: CancelBookingDialogProps) {
+interface Props { booking: Booking | null; open: boolean; onOpenChange: (open: boolean) => void; onSuccess: () => void }
+export function CancelBookingDialog({ booking, open, onOpenChange, onSuccess }: Props) {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
+  const submitting = useRef(false);
+  useEffect(() => { if (open) { setReason(""); setError(null); } }, [open, booking?.id]);
   if (!booking) return null;
-
-  // Calculate hours until appointment
-  const appointmentDate = businessAppointmentInstant(booking.scheduled_date, booking.scheduled_time);
-
-  const hoursUntil = differenceInHours(appointmentDate, new Date());
-  const isLastMinute = hoursUntil < 24;
-  const depositForfeited = isLastMinute && booking.deposit_amount && booking.deposit_amount > 0;
-
+  const problem = cancellationProblem(booking, businessToday());
+  const hoursUntil = (businessAppointmentInstant(booking.scheduled_date, booking.scheduled_time).getTime() - Date.now()) / 3600000;
+  const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ") || booking.vehicle_type || "Vehicle not listed";
   const handleCancel = async () => {
-    setLoading(true);
-
+    if (submitting.current || problem) return;
+    submitting.current = true; setLoading(true); setError(null);
     try {
-      const { error } = await supabase
-        .from("bookings")
-        .update({
-          status: "cancelled",
-          customer_notes: booking.services?.name
-            ? `${reason ? `Cancellation reason: ${reason}` : "Customer cancelled"}`
-            : reason || "Customer cancelled",
-        })
-        .eq("id", booking.id);
-
-      if (error) throw error;
-
-      toast.success("Booking cancelled", {
-        description: "We're sorry to see you go. We hope to serve you again soon!",
+      const { data, error: requestError } = await supabase.functions.invoke("cancel-customer-booking", {
+        body: { bookingId: booking.id, expectedDate: booking.scheduled_date, expectedTime: booking.scheduled_time, reason: reason.trim() },
       });
-      onSuccess();
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error("Error cancelling:", error);
-      toast.error("Failed to cancel", {
-        description: error.message || "Please try again or contact us.",
-      });
-    } finally {
-      setLoading(false);
-    }
+      if (requestError || data?.error || !data?.ok) {
+        let message = data?.error;
+        if (!message && requestError?.context instanceof Response) {
+          try { message = (await requestError.context.json()).error; } catch { /* Use safe fallback. */ }
+        }
+        setError(message || "We couldn't cancel right now. Your appointment is unchanged. Try again or contact us.");
+        return;
+      }
+      toast.success("Appointment cancelled");
+      onOpenChange(false); onSuccess();
+    } catch {
+      setError("We couldn't cancel right now. Your appointment is unchanged. Try again or contact us.");
+    } finally { submitting.current = false; setLoading(false); }
   };
-
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+    <AlertDialog open={open} onOpenChange={(value) => { if (!submitting.current) onOpenChange(value); }}>
+      <AlertDialogContent className="max-h-[90dvh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <XCircle className="h-5 w-5" />
-            Cancel Booking
-          </AlertDialogTitle>
-          <AlertDialogDescription asChild>
-            <div className="space-y-4">
-              <p>
-                Are you sure you want to cancel your{" "}
-                <strong>{booking.services?.name || "appointment"}</strong> on{" "}
-                <strong>
-                  {format(parseDateString(booking.scheduled_date), "MMMM d, yyyy")}
-                </strong>{" "}
-                at <strong>{formatTime12h(booking.scheduled_time)}</strong>?
-              </p>
-
-              {isLastMinute && (
-                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex gap-3">
-                  <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-destructive">
-                      Late Cancellation Notice
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This booking is within 24 hours.
-                      {depositForfeited && (
-                        <>
-                          {" "}
-                          Your deposit of{" "}
-                          <strong>${booking.deposit_amount?.toFixed(2)}</strong> may
-                          be forfeited.
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="text-sm font-medium mb-2 block text-foreground">
-                  Reason for cancellation (optional)
-                </label>
-                <Textarea
-                  placeholder="Let us know why you're cancelling..."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </div>
-          </AlertDialogDescription>
+          <AlertDialogTitle className="flex items-center gap-2"><XCircle className="h-5 w-5 text-destructive" />Cancel appointment?</AlertDialogTitle>
+          <AlertDialogDescription>Review your appointment before confirming cancellation.</AlertDialogDescription>
         </AlertDialogHeader>
+        <div className="space-y-4 text-sm">
+          <dl className="space-y-2 border-b border-border pb-4">
+            <div><dt className="text-muted-foreground">Service</dt><dd className="font-semibold break-words">{booking.services?.name || "Detailing Service"}</dd></div>
+            <div><dt className="text-muted-foreground">Vehicle</dt><dd className="break-words">{vehicle}</dd></div>
+            <div><dt className="text-muted-foreground">Appointment</dt><dd>{format(parseDateString(booking.scheduled_date), "EEEE, MMMM d, yyyy")} at {formatTime12h(booking.scheduled_time)} Central Time</dd></div>
+          </dl>
+          <p className="text-muted-foreground">{cancellationConsequences(booking, hoursUntil)}</p>
+          {(error || problem) && <p role="alert" className="border border-destructive/30 bg-destructive/10 p-3 rounded-md text-destructive">{error || problem}</p>}
+          <div>
+            <label htmlFor="cancellation-reason" className="font-medium block mb-2">Reason for cancellation (optional)</label>
+            <Textarea id="cancellation-reason" value={reason} onChange={(event) => setReason(event.target.value)} rows={3} maxLength={1000} disabled={loading} />
+          </div>
+        </div>
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-          <Button
-            variant="destructive"
-            onClick={handleCancel}
-            disabled={loading}
-          >
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Yes, Cancel Booking
-          </Button>
+          <AlertDialogCancel disabled={loading}>Keep appointment</AlertDialogCancel>
+          <Button variant="destructive" onClick={handleCancel} disabled={loading || Boolean(problem)}>{loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Confirm cancellation</Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
