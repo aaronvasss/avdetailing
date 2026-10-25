@@ -29,4 +29,7 @@ export function recoveryCredentials(hash: string) {
   return accessToken && values.get("refresh_token") ? { accessToken } : null;
 }
 
+// Loaded with App before lazy pages or the auth client can consume the URL hash.
+export const initialRecovery = typeof window === "undefined" ? null : recoveryCredentials(window.location.hash);
+
 export const RECOVERY_CONFIRMATION = "If an account uses that email, you’ll receive a password reset link. Check your inbox and spam folder.";

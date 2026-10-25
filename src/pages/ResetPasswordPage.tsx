@@ -6,10 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { recoveryCredentials, recoveryDestination, replacementPasswordSchema } from "@/lib/password-recovery";
-
-// Capture the implicit recovery intent before the provider consumes the hash.
-const initialRecovery = recoveryCredentials(window.location.hash);
+import { initialRecovery, recoveryCredentials, recoveryDestination, replacementPasswordSchema } from "@/lib/password-recovery";
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();

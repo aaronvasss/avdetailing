@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GhlChatWidget } from "@/components/GhlChatWidget";
 import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
 import { LOCATION_PAGES } from "@/data/locationPages";
+import "@/lib/password-recovery";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
