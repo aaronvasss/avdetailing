@@ -1,3 +1,9 @@
+# Published-domain HTTPS and genuine 404 handling
+- [x] Check production TLS, DNS, HTTP/HTTPS redirect chains, canonical service pages, booking/sign-in and three unknown URLs without changing design/content.
+- [x] Recheck www after DNS convergence: correct A record and valid hostname certificate; path/query preserved.
+- [ ] Permanent HTTPS www redirect: hosting currently returns 302; requires an external permanent redirect rule or hosting support for 301/308.
+- [ ] Genuine unknown-route 404: Lovable's production SPA fallback returns homepage HTML with 200; requires route-aware hosting/proxy support outside app code.
+
 # Crawlable homepage FAQs and reviews
 - [x] Keep existing FAQ answers mounted in collapsed accordions and wait for verified reviews before initial-page capture; no copy, policy or review-schema changes.
 - [x] Verified prerender-equivalent captures through postbuild-seo: all 13 FAQ answers and three original attributed reviews in initial HTML; mobile accordion/keyboard/carousel and desktop cards work, eight existing tests passed, no browser errors; live verification awaits publication.
