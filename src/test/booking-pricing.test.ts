@@ -6,7 +6,36 @@ const packages = {
   silver: { sedan: 259.17, "suv-5": 259.17, "suv-8": 274.72, truck: 274.72 },
   gold: { sedan: 362.80, "suv-5": 362.80, "suv-8": 378.34, truck: 378.34 },
 };
+const payableCases = [
+  { slug: "basic", small: [145.18, 191.81, 466.53], large: [155.54, 202.17, 476.89] },
+  { slug: "silver", small: [259.17, 305.80, 580.52], large: [274.72, 321.35, 596.07] },
+  { slug: "gold", small: [362.80, 409.43, 684.15], large: [378.34, 424.97, 699.69] },
+] as const;
+const addOnCases = [[], [46.63], [46.63, 62.18, 67.36, 72.59, 72.59]];
 describe("authoritative booking prices", () => {
+  for (const row of payableCases) {
+    for (const vehicle of ["sedan", "suv-5", "suv-8", "truck"] as const) {
+      for (const method of ["in_person", "online"] as const) {
+        addOnCases.forEach((addOns, index) => {
+          const expected = (vehicle === "sedan" || vehicle === "suv-5" ? row.small : row.large)[index];
+          it(`${row.slug} ${vehicle} ${method} with ${addOns.length} add-ons preserves the payable total ${expected}`, () => {
+            const price = authoritativePackagePrice(packages[row.slug], vehicle, 0);
+            const amounts = bookingAmounts(price, addOns);
+            // Model the persisted record without invoking booking or Stripe services.
+            const savedBooking = { ...amounts, total_price: amounts.total, payment_method: method };
+            expect(amounts.total).toBe(expected);
+            expect(savedBooking.total_price).toBe(expected);
+            expect(bookingCheckoutCents(savedBooking.total_price)).toBe(Math.round(expected * 100));
+          });
+        });
+      }
+    }
+  }
+  it("prefers exact vehicle rows before generic SUV and all-vehicle prices", () => {
+    const prices = { "suv-8": 155.54, "suv-5": 145.18, suv: 999, all: 800 };
+    expect(authoritativePackagePrice(prices, "suv-8", 0)).toBe(155.54);
+    expect(authoritativePackagePrice(prices, "suv-5", 0)).toBe(145.18);
+  });
   for (const [slug, prices] of Object.entries(packages)) {
     for (const [vehicle, expected] of Object.entries(prices)) {
       it(`${slug} ${vehicle} displays and submits ${expected} for either payment method`, () => {
