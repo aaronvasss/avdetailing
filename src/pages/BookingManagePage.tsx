@@ -61,7 +61,7 @@ export default function BookingManagePage({ defaultAction = "reschedule" }: { de
           <div><dt className="text-muted-foreground">Appointment status</dt><dd>{booking.status === "pending" ? "Pending confirmation" : booking.status}</dd></div>
           <div><dt className="text-muted-foreground">Total</dt><dd>${Number(booking.total_price).toFixed(2)}</dd></div>
         </dl>
-        {problem ? <p role="alert">{problem}</p> : <div className="flex flex-wrap gap-3"><Button onClick={() => setDialog("reschedule")}>Reschedule</Button><Button variant="outline-destructive" onClick={() => setDialog("cancel")}>Cancel appointment</Button></div>}
+        {problem ? <p role="alert">{problem}</p> : <div className="flex flex-wrap gap-3"><Button onClick={() => setDialog("reschedule")}>Reschedule</Button><Button variant="outline" className="text-destructive border-destructive/30" onClick={() => setDialog("cancel")}>Cancel appointment</Button></div>}
         <RescheduleDialog booking={booking} open={dialog === "reschedule"} onOpenChange={o => setDialog(o ? "reschedule" : "")} onSuccess={() => success("reschedule")} manageToken={token} emailLink />
         <CancelBookingDialog booking={booking} open={dialog === "cancel"} onOpenChange={o => setDialog(o ? "cancel" : "")} onSuccess={() => success("cancel")} manageToken={token} />
       </>}
