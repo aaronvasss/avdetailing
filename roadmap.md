@@ -1,7 +1,8 @@
 # Appointment email links
-- [ ] Audit all appointment senders and unify production-domain action links.
-- [ ] Reuse server-validated cancellation/rescheduling for verified signed-out email access and safe legacy routes.
-- [ ] Test generated links, expired/restricted states and signed-out desktop/phone flows using mocks only; report coordinated release requirements.
+- [x] Audit appointment confirmation/resend/update, reminder, legacy cancellation/reschedule, review and owner senders; unify customer action links on avdetailing.net.
+- [x] Reuse customer writers with appointment-specific capability checks, read-only management/slots and legacy-route compatibility; retire legacy mutation endpoints and redact URL secrets.
+- [x] 211 regression tests and 21 signed-out desktop/375px/390px browser cases passed; actual confirmation HTML links generated locally, failed mutations intercepted, Back preserved selection, Central dates/invalid/cancelled/missing-token states verified. No real data/messages/deployment/publication.
+- [ ] Release only on request: deploy manage-booking, cancel-customer-booking, reschedule-booking, cancel-booking-public together, publish matching pages, then deploy process-booking-notifications and send-reminder-sms. Existing secrets reused; live delivery/capacity remain untested. See appointment-email-links-verification.md for legacy and concurrency limits.
 
 # Customer cancellation
 - [x] Clarify customer actions and confirmation with service, vehicle, Central Time, optional reason, Keep appointment and existing advisory deposit consequences.
