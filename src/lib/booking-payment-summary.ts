@@ -14,18 +14,16 @@ const ONLINE = ["online", "stripe", "card"];
 export function bookingPaymentSummary(b: PaymentSummaryInput) {
   const totalCents = Math.max(0, Math.round(Number(b.total_price || 0) * 100));
   const status = (b.payment_status || "unpaid").toLowerCase();
-  const depositCents = Math.max(0, Math.round(Number(b.deposit_amount || 0) * 100));
-  // A deposit only counts once its payment is confirmed by the booking's payment status.
-  const depositConfirmed = depositCents > 0 && ["partial", "deposit_paid"].includes(status);
   const fullyPaid = ["paid", "completed", "succeeded"].includes(status);
-  const paidCents = fullyPaid ? totalCents : depositConfirmed ? Math.min(depositCents, totalCents) : 0;
+  const paidCents = fullyPaid ? totalCents : 0;
   const method = (b.payment_method || "").toLowerCase();
   return {
     total: totalCents / 100,
     hasTotal: totalCents > 0,
-    deposit: depositConfirmed ? Math.min(depositCents, totalCents) / 100 : 0,
+    // Informational fields cannot verify deposits. Use portal_booking_balance for money due.
+    deposit: 0,
     paid: paidCents / 100,
-    balance: status === "refunded" ? 0 : (totalCents - paidCents) / 100,
+    balance: ["partial", "deposit_paid"].includes(status) ? null : status === "refunded" ? 0 : (totalCents - paidCents) / 100,
     status,
     isOnline: ONLINE.includes(method),
   };

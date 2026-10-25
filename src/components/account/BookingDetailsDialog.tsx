@@ -157,7 +157,7 @@ export function BookingDetailsDialog({
         else setVerifiedBalance(data);
       }).catch(() => { if (active) setRecordsFailed(true); });
     return () => { active = false; };
-  }, [open, initialBooking?.id, liveBooking?.updated_at]);
+  }, [open, initialBooking?.id, liveBooking]);
 
   useEffect(() => {
     if (open && initialBooking?.id) {
