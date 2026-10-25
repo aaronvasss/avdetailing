@@ -57,7 +57,7 @@ export function createRescheduleHandler(deps: RescheduleDependencies) {
       const problem = rescheduleProblem({
         status: booking.status, newDate, newTime, duration: booking.duration_minutes, todayChicago,
         blocked: Boolean(blockedResult.data?.length), dayBookings: dayResult.data || [],
-        settings: { open: toMin(m.business_hours_start || "06:00"), close: toMin(m.business_hours_end || "20:00"), latest: toMin(m.latest_start_time || "18:00"),
+        settings: { open: Math.max(360, toMin(m.business_hours_start || "06:00")), close: Math.min(1200, toMin(m.business_hours_end || "20:00")), latest: Math.min(1080, toMin(m.latest_start_time || "18:00")),
           buffer: parseInt(m.buffer_minutes || "30"), defaultDuration: parseInt(m.default_duration || "135"), capacity: Number(capacityResult.data) || 1 },
       });
       if (problem) return reply(409, { error: problem });
@@ -69,10 +69,12 @@ export function createRescheduleHandler(deps: RescheduleDependencies) {
         customerName = profile?.full_name || "Customer";
       }
       // Atomic compare-and-set: only one concurrent request wins and is allowed to notify.
-      const { data: updated, error } = await db.from("bookings")
+      let write = db.from("bookings")
         .update({ scheduled_date: newDate, scheduled_time: newTime, status: "pending" })
         .eq("id", bookingId).eq("scheduled_date", booking.scheduled_date).eq("scheduled_time", booking.scheduled_time)
-        .eq("status", booking.status).eq("updated_at", booking.updated_at).select("id, updated_at");
+        .eq("status", booking.status).eq("updated_at", booking.updated_at);
+      if (linkVerified) write = write.eq("manage_token", input.manageToken);
+      const { data: updated, error } = await write.select("id, updated_at");
       if (error) throw error;
       if (!updated?.length) return reply(409, { error: "This appointment just changed. Please refresh and try again." });
 
