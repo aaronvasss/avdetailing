@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { format, addMinutes, parse } from "https://esm.sh/date-fns@3.6.0";
+import { appointmentCalendarRange, formatCalendarUTC as formatICSDate, calendarLines } from "../_shared/appointment-calendar.ts";
 import { timingSafeEqual } from "https://deno.land/std@0.190.0/crypto/timing_safe_equal.ts";
 
 const corsHeaders = {
@@ -9,10 +9,6 @@ const corsHeaders = {
 
 // In-memory rate limiting store
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-function formatICSDate(date: Date): string {
-  return format(date, "yyyyMMdd'T'HHmmss");
-}
 
 function escapeICSText(text: string): string {
   return text
@@ -103,8 +99,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Verify the token matches the user's calendar token
@@ -170,24 +166,7 @@ Deno.serve(async (req) => {
     const events: string[] = [];
 
     for (const booking of bookings || []) {
-      let startDate: Date;
-      const dateStr = booking.scheduled_date;
-      const timeStr = booking.scheduled_time;
-
-      try {
-        startDate = parse(`${dateStr} ${timeStr}`, "yyyy-MM-dd HH:mm:ss", new Date());
-        if (isNaN(startDate.getTime())) {
-          startDate = parse(`${dateStr} ${timeStr}`, "yyyy-MM-dd HH:mm", new Date());
-        }
-        if (isNaN(startDate.getTime())) {
-          startDate = new Date(dateStr);
-        }
-      } catch {
-        startDate = new Date(dateStr);
-      }
-
-      const duration = booking.duration_minutes || 120;
-      const endDate = addMinutes(startDate, duration);
+      const {startDate,endDate} = appointmentCalendarRange(booking.scheduled_date,booking.scheduled_time,booking.duration_minutes || 120);
 
       const location = [
         booking.service_address,
@@ -221,7 +200,7 @@ Deno.serve(async (req) => {
         "https://avdetailing.net",
       ]
         .filter((line) => line !== null)
-        .join("\\n");
+        .join("\n");
 
       events.push([
         "BEGIN:VEVENT",
@@ -251,7 +230,7 @@ Deno.serve(async (req) => {
       ? `AV Detailing - ${profile.full_name}` 
       : "AV Detailing Appointments";
 
-    const icsContent = [
+    const icsContent = calendarLines([
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
       "PRODID:-//AV Detailing//Booking System//EN",
@@ -263,7 +242,7 @@ Deno.serve(async (req) => {
       "X-PUBLISHED-TTL:PT1H",
       ...events,
       "END:VCALENDAR",
-    ].join("\r\n");
+    ]);
 
     return new Response(icsContent, {
       headers: {

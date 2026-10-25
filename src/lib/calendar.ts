@@ -1,4 +1,4 @@
-import { format, addMinutes, parse } from "date-fns";
+import { appointmentCalendarRange, formatCalendarUTC, calendarLines, centralCalendarDate } from '../../supabase/functions/_shared/appointment-calendar';
 
 interface CalendarEvent {
   title: string;
@@ -13,7 +13,7 @@ interface CalendarEvent {
  * Formats a date to ICS format (YYYYMMDDTHHMMSSZ)
  */
 function formatICSDate(date: Date): string {
-  return format(date, "yyyyMMdd'T'HHmmss");
+  return formatCalendarUTC(date);
 }
 
 /**
@@ -61,9 +61,9 @@ export function generateICS(event: CalendarEvent): string {
     "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("\r\n");
+  ];
 
-  return icsContent;
+  return calendarLines(icsContent);
 }
 
 /**
@@ -76,7 +76,7 @@ export function downloadICS(event: CalendarEvent): void {
   
   const link = document.createElement("a");
   link.href = url;
-  link.download = `av-detailing-${format(event.startDate, "yyyy-MM-dd")}.ics`;
+  link.download = `av-detailing-${centralCalendarDate(event.startDate)}.ics`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -100,28 +100,7 @@ export function createBookingCalendarEvent(booking: {
   vehicle_model?: string | null;
   vehicle_year?: number | null;
 }): CalendarEvent {
-  // Parse the scheduled time (format: "HH:mm" or "h:mm AM/PM")
-  let startDate: Date;
-  const dateStr = booking.scheduled_date;
-  const timeStr = booking.scheduled_time;
-  
-  try {
-    // Try 24-hour format first
-    startDate = parse(`${dateStr} ${timeStr}`, "yyyy-MM-dd HH:mm", new Date());
-    if (isNaN(startDate.getTime())) {
-      // Try 12-hour format
-      startDate = parse(`${dateStr} ${timeStr}`, "yyyy-MM-dd h:mm a", new Date());
-    }
-    if (isNaN(startDate.getTime())) {
-      // Fallback: just use the date
-      startDate = new Date(dateStr);
-    }
-  } catch {
-    startDate = new Date(dateStr);
-  }
-
-  const duration = booking.duration_minutes || 120; // Default 2 hours
-  const endDate = addMinutes(startDate, duration);
+  const {startDate,endDate} = appointmentCalendarRange(booking.scheduled_date,booking.scheduled_time,booking.duration_minutes || 120);
 
   const location = [
     booking.service_address,
@@ -166,10 +145,11 @@ export function createBookingCalendarEvent(booking: {
  * Generates a Google Calendar URL for adding an event
  */
 export function generateGoogleCalendarUrl(event: CalendarEvent): string {
-  const formatGoogleDate = (date: Date) => format(date, "yyyyMMdd'T'HHmmss");
+  const formatGoogleDate = formatCalendarUTC;
   
   const params = new URLSearchParams({
     action: "TEMPLATE",
+    ctz: "America/Chicago",
     text: event.title,
     dates: `${formatGoogleDate(event.startDate)}/${formatGoogleDate(event.endDate)}`,
     details: event.description,
