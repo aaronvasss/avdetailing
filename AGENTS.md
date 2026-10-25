@@ -10,6 +10,7 @@
 - Keep homepage FAQ answers force-mounted but hidden when collapsed, and wait for data-crawl-pending to clear before prerender capture so initial HTML contains real content without changing accordion behavior or adding review schema.
 - Keep account email dispatch in the scaffolded managed SDK handler; preserve independent Resend feature senders so the email update does not change their provider or content.
 - Record booking changes via the bookings_audit database trigger into public.booking_audit_log, never from app code, so every change path (app, functions, admin) is captured.
+- Client balance and card-wallet consume the service-only portal_booking_balance RPC also used by the locked reservation trigger; successful identity-matched ledger credits are authoritative, quote-only/stale deposit evidence requires review, and saved payable totals never gain a second fee. Stage unauthorized migrations outside managed migration history.
 - Keep card data in Stripe; use the authenticated card-wallet function and durable per-booking authorization/reservation guards for balance charges, refusing ambiguous ledgers and uncertain retries to avoid unauthorized or duplicate payments.
 - Settle portal charges atomically with a service-only database function and serialize payment/deposit writes on the booking lock so ledger, receipt and booking payment state cannot diverge.
 - Publish customer service notes separately from internal notes, and keep documents protected by booking ownership so staff-only content never appears in the customer portal.
