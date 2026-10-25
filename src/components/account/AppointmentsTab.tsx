@@ -1,3 +1,4 @@
+import { parseDateString } from "@/lib/time-format";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -168,8 +169,8 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const today = startOfToday();
   const upcomingBookings = bookings.filter(
     (b) =>
-      (isAfter(new Date(b.scheduled_date), today) ||
-        format(new Date(b.scheduled_date), "yyyy-MM-dd") ===
+      (isAfter(parseDateString(b.scheduled_date), today) ||
+        format(parseDateString(b.scheduled_date), "yyyy-MM-dd") ===
           format(today, "yyyy-MM-dd")) &&
       b.status !== "cancelled" &&
       b.status !== "completed"
@@ -179,7 +180,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     (b) =>
       b.status === "cancelled" ||
       b.status === "completed" ||
-      new Date(b.scheduled_date) < today
+      parseDateString(b.scheduled_date) < today
   );
 
   const vehicleLabelOf = (b: Booking) =>
@@ -214,7 +215,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const filteredPastBookings = pastBookings.filter((b) => {
     if (filterDateRange !== "all") {
       const cutoff = subDays(today, Number(filterDateRange));
-      if (new Date(b.scheduled_date) < cutoff) return false;
+      if (parseDateString(b.scheduled_date) < cutoff) return false;
     }
     if (filterVehicle !== "all" && vehicleLabelOf(b) !== filterVehicle) return false;
     if (filterService !== "all" && b.service_id !== filterService) return false;

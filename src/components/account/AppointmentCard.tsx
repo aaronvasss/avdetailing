@@ -1,3 +1,4 @@
+import { parseDateString, businessToday } from "@/lib/time-format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -124,7 +125,7 @@ export function AppointmentCard({
   compact = false,
 }: AppointmentCardProps) {
   const isUpcoming =
-    new Date(booking.scheduled_date) >= new Date() &&
+    booking.scheduled_date.split("T")[0] >= businessToday() &&
     booking.status !== "cancelled" &&
     booking.status !== "completed";
   const canModify =
@@ -174,10 +175,10 @@ export function AppointmentCard({
               {/* Date Block */}
               <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
                 <span className="text-xs font-medium text-primary uppercase">
-                  {format(new Date(booking.scheduled_date), "MMM")}
+                  {format(parseDateString(booking.scheduled_date), "MMM")}
                 </span>
                 <span className="text-xl font-bold text-primary">
-                  {format(new Date(booking.scheduled_date), "d")}
+                  {format(parseDateString(booking.scheduled_date), "d")}
                 </span>
               </div>
 
@@ -305,7 +306,7 @@ export function AppointmentCard({
         <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4 text-primary/70" />
-            <span>{format(new Date(booking.scheduled_date), "EEE, MMM d, yyyy")}</span>
+            <span>{format(parseDateString(booking.scheduled_date), "EEE, MMM d, yyyy")}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4 text-primary/70" />
