@@ -1,3 +1,8 @@
+# Exact payable booking pricing
+- [ ] Replace booking display-price overrides with authoritative package/add-on prices; reconcile saved booking and checkout paths without changing calculations.
+- [ ] Test Basic, Silver and Gold for all vehicle types, both payment methods, Back and add-on changes at desktop, 375px and 390px; do not create bookings/charges or publish.
+- [ ] Report displayed and payable amounts, and any verification limitations.
+
 # Published-domain HTTPS and genuine 404 handling
 - [x] Check production TLS, DNS, HTTP/HTTPS redirect chains, canonical service pages, booking/sign-in and three unknown URLs without changing design/content.
 - [x] Recheck www after DNS convergence: correct A record and valid hostname certificate; path/query preserved.
