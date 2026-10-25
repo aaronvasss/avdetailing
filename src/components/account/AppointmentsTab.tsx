@@ -335,14 +335,6 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
             Calendar
           </Button>
         </div>
-        {false && !isAdmin && (
-          <Button asChild>
-            <Link to="/book">
-              <Plus className="h-4 w-4 mr-2" />
-              Book New Appointment
-            </Link>
-          </Button>
-        )}
       </div>
 
       {/* Calendar View */}
