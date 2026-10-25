@@ -1,6 +1,6 @@
 # Booking progress visibility
-- [ ] Add accurate branch-aware step counts, current selections and authoritative running total; label Central Time/end time and optional-extras action.
-- [ ] Verify preview at desktop/375px/390px, Back and selection changes; no bookings, payments, deployment or publication.
+- [x] Add accurate branch-aware step counts, current selections and authoritative running total; label Central Time/end time and optional-extras action.
+- [x] Desktop/375px/390px preview passed: all three package links, Back, vehicle/package/extras changes, 18 payment-choice/final-screen checks, long extras and labels fit; 114 regression tests passed, build OK, no runtime errors, bookings, payment sessions, charges, deployment or publication.
 
 # Exact payable booking pricing
 - [x] Reverified existing pricing against current active catalog: 72 browser final-summary cases at 1280px/375px/390px and 114 pure pricing/payment/scheduling tests passed; no bookings, payment sessions, charges, deployment, publication or data changes. Only regression tests added; results and verification limits in pricing-verification_v2.md.
