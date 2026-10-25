@@ -1,3 +1,8 @@
+# Customer cancellation
+- [ ] Clarify customer actions and confirmation with Central Time, optional reason and existing deposit consequences.
+- [ ] Add authenticated ownership/policy checks, atomic cancellation and post-save owner alerts with duplicate/failure protections.
+- [ ] Verify mocked allowed/restricted requests, failed saves/notifications and double-clicks on desktop/phone; no real changes, financial actions, messages, deployment or publication.
+
 # Owner reschedule notification
 - [x] Reuse existing owner email/SMS recipients after saved customer reschedules, with Central times, pending status and protected admin appointment link.
 - [x] Verify intercepted notification delivery, concurrent submissions, lost-response retries, unavailable/save-failed requests and failure logging with mocks only: 183 tests passed; desktop/375px/390px customer flow and desktop/375px owner link passed; no deployment, publication or real changes/messages.
