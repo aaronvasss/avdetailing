@@ -1,5 +1,5 @@
 import { parseDateString } from "@/lib/time-format";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,15 +48,17 @@ import { AppointmentsCalendarView } from "./AppointmentsCalendarView";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
 import { RescheduleDialog } from "./RescheduleDialog";
 import { CancelBookingDialog } from "./CancelBookingDialog";
+import { CustomerAppointmentSummary } from "./CustomerAppointmentSummary";
 
 interface AppointmentsTabProps {
   userId: string;
   isAdmin?: boolean;
   onAdminBook?: () => void;
   defaultView?: "list" | "calendar";
+  afterNext?: ReactNode;
 }
 
-export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list" }: AppointmentsTabProps) {
+export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list", afterNext }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialLoaded, setInitialLoaded] = useState(false);
@@ -70,6 +72,12 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [filterDateRange, setFilterDateRange] = useState("all");
   const [filterVehicle, setFilterVehicle] = useState("all");
   const [filterService, setFilterService] = useState("all");
+  const [listTab, setListTab] = useState("upcoming");
+  const listHeading = useRef<HTMLDivElement>(null);
+  const showHistory = () => {
+    setActiveView("list"); setListTab("past");
+    requestAnimationFrame(() => { listHeading.current?.scrollIntoView({ block: "start", behavior: "smooth" }); listHeading.current?.focus({ preventScroll: true }); });
+  };
 
 
   const fetchBookings = useCallback(async () => {
@@ -255,7 +263,16 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   return (
     <div className="space-y-6">
       {/* Next Appointment Highlight */}
-      {nextAppointment && (() => {
+      {!isAdmin && (nextAppointment ?
+        <CustomerAppointmentSummary booking={nextAppointment} onDetails={handleViewDetails} onReschedule={handleReschedule} onCancel={handleCancel} /> :
+        <section className="py-5 border-b border-border space-y-3">
+          <h2 className="text-xl font-bold">No upcoming appointments</h2>
+          <p className="text-sm text-muted-foreground">Book your next detail whenever you’re ready.</p>
+          <Button asChild><Link to="/book"><Plus className="h-4 w-4 mr-2" />Book a detail</Link></Button>
+        </section>)}
+      {!isAdmin && <Button variant="outline" onClick={showHistory}><Clock className="h-4 w-4 mr-2" />History & receipts{pastBookings.length > 0 ? ` (${pastBookings.length})` : ""}</Button>}
+      {nextAppointment && afterNext}
+      {isAdmin && nextAppointment && (() => {
         const b = nextAppointment;
         const addr = [b.service_address, b.service_city, b.service_state, b.service_zip].filter(Boolean).join(", ");
         const vehicle = [b.vehicle_year, b.vehicle_make, b.vehicle_model].filter(Boolean).join(" ") || b.vehicle_type;
@@ -299,7 +316,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
       })()}
 
       {/* View Toggle & Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div ref={listHeading} tabIndex={-1} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 scroll-mt-24 focus:outline-none">
         <div className="flex items-center gap-2">
           <Button
             variant={activeView === "list" ? "secondary" : "ghost"}
@@ -318,7 +335,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
             Calendar
           </Button>
         </div>
-        {!isAdmin && (
+        {false && !isAdmin && (
           <Button asChild>
             <Link to="/book">
               <Plus className="h-4 w-4 mr-2" />
@@ -348,18 +365,20 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
 
       {/* List View */}
       {activeView === "list" && (
-        <Tabs defaultValue="upcoming" className="space-y-4">
+        <Tabs value={listTab} onValueChange={setListTab} className="space-y-4">
           <TabsList className="bg-muted/50">
             <TabsTrigger value="upcoming">
               Upcoming ({upcomingBookings.length})
             </TabsTrigger>
             <TabsTrigger value="past">
-              History ({filtersActive ? filteredPastBookings.length : pastBookings.length})
+              {isAdmin ? "History" : "History & receipts"} ({filtersActive ? filteredPastBookings.length : pastBookings.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-3">
-            {upcomingBookings.length === 0 ? (
+            {!isAdmin && upcomingBookings.length <= 1 ? (
+              <p className="text-sm text-muted-foreground py-3">{nextAppointment ? "No other upcoming appointments." : "Your upcoming appointments will appear here."}</p>
+            ) : upcomingBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-16 text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -384,7 +403,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
                 </CardContent>
               </Card>
             ) : (
-              upcomingBookings.map((booking) => (
+              upcomingBookings.filter(booking => isAdmin || booking.id !== nextAppointment?.id).map((booking) => (
                 <AppointmentCard
                   key={booking.id}
                   booking={booking}
@@ -468,7 +487,8 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
               <Card>
                 <CardContent className="py-16 text-center">
                   <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No past appointments yet</p>
+                  <h3 className="font-semibold mb-2">No service history yet</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">Your past appointments, available receipts and completed service records will appear here.</p>
                 </CardContent>
               </Card>
             ) : filteredPastBookings.length === 0 ? (

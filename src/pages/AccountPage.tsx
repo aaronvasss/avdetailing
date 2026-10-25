@@ -155,29 +155,23 @@ export default function AccountPage() {
     <Layout>
       <SEOHead title="My Account" description="Private page." path="/account" noIndex />
       {isAdmin&&<div className="container-custom pt-4"><Button variant="outline" onClick={()=>navigate('/account')}>Back to Admin</Button></div>}
-      <div className="section-padding">
+      <div className="py-5 sm:py-8">
         <div className="container-custom max-w-6xl">
           {/* Header */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border/50 p-6 sm:p-8 mb-8">
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
-            </div>
-
-            <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="mb-4 sm:mb-6">
+            <div className="flex justify-between items-center gap-3">
               <div>
                 <p className="text-sm font-medium text-primary mb-1">Welcome back</p>
                 <h1 className="text-2xl sm:text-3xl font-bold">{firstName}</h1>
-                <p className="text-muted-foreground text-sm mt-1">{user?.email}</p>
               </div>
               <div className="flex gap-3">
-                <Button asChild size="lg" className="shadow-lg shadow-primary/20">
+                <Button asChild size="sm">
                   <a href="/book">
                     <Plus className="mr-2 h-4 w-4" />
-                    Book Service
+                    Book
                   </a>
                 </Button>
-                <Button variant="outline" size="icon" onClick={handleSignOut}>
+                <Button variant="outline" size="icon" onClick={handleSignOut} aria-label="Sign out" title="Sign out">
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
@@ -241,8 +235,7 @@ export default function AccountPage() {
             </div>
 
             <TabsContent value="appointments" className="mt-6 space-y-6">
-              <PrepChecklist />
-              <AppointmentsTab userId={user?.id} />
+              <AppointmentsTab userId={user?.id} afterNext={<PrepChecklist />} />
               <AccountActivity userId={user?.id} />
             </TabsContent>
 

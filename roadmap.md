@@ -1,3 +1,8 @@
+# Customer-space layout
+- [x] Put next appointment before preparation guidance, simplify customer header and primary actions, remove duplicate next-appointment card and expose history/receipts.
+- [ ] Check mocked upcoming, past-only and empty customers at desktop/375px/390px; preserve corrected dates/payments/action dialogs and run regression tests.
+- [ ] Report preview-only results; no real records, messages, publication or deployment.
+
 # Customer password recovery
 - [x] Add neutral email request and public recovery screen using existing authentication, without new profiles or custom email senders.
 - [x] 226 regression tests and 15 intercepted browser cases passed at desktop/375px/390px: email request, replacement success, mismatch rejection, expired/invalid links, request/save failures and preserved account return; screenshots inspected, no overflow/page errors.
