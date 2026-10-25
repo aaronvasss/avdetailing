@@ -1,13 +1,12 @@
 import { rescheduleProblem } from "../_shared/reschedule-rules.ts";
-import type { RescheduleNotice } from "./owner-notification.ts";
+import { ownerNoticeContent } from "./owner-notification.ts";
+import { commitOwnerChange } from "../_shared/owner-alert-outbox.ts";
 
 export interface RescheduleInput { bookingId: string; newDate: string; newTime: string; expectedDate: string; expectedTime: string; manageToken?: string }
 export interface RescheduleDependencies {
   db: any;
   authenticate: (authorization: string) => Promise<string | null>;
   parse: (body: unknown) => RescheduleInput | null;
-  notify: (notice: RescheduleNotice) => Promise<void>;
-  logFailure: (bookingId: string, message: string) => Promise<void>;
   now: () => Date;
   cors: Record<string, string>;
   verifyLink?: (bookingId: string, token: string) => Promise<boolean>;
@@ -68,24 +67,12 @@ export function createRescheduleHandler(deps: RescheduleDependencies) {
         const { data: profile } = await db.from("profiles").select("full_name").eq("user_id", booking.user_id).maybeSingle();
         customerName = profile?.full_name || "Customer";
       }
-      // Atomic compare-and-set: only one concurrent request wins and is allowed to notify.
-      let write = db.from("bookings")
-        .update({ scheduled_date: newDate, scheduled_time: newTime, status: "pending" })
-        .eq("id", bookingId).eq("scheduled_date", booking.scheduled_date).eq("scheduled_time", booking.scheduled_time)
-        .eq("status", booking.status).eq("updated_at", booking.updated_at);
-      if (linkVerified) write = write.eq("manage_token", input.manageToken);
-      const { data: updated, error } = await write.select("id, updated_at");
-      if (error) throw error;
-      if (!updated?.length) return reply(409, { error: "This appointment just changed. Please refresh and try again." });
-
-      // Separate delivery from save errors: preserve the new time even if a provider or logger fails.
-      try {
-        await deps.notify({ bookingId, customerName: customerName || "Customer", serviceName: booking.services?.name || "Detailing Service",
+      const changed = await commitOwnerChange(db, { booking, userId, manageToken: linkVerified ? input.manageToken : undefined,
+        kind: "reschedule", newDate, newTime,
+        content: ownerNoticeContent({ bookingId, customerName: customerName || "Customer", serviceName: booking.services?.name || "Detailing Service",
           oldDate: booking.scheduled_date, oldTime: booking.scheduled_time, newDate, newTime,
-          revision: updated[0].updated_at || booking.updated_at });
-      } catch {
-        await deps.logFailure(bookingId, "Owner notification failed after appointment was successfully rescheduled.").catch(() => undefined);
-      }
+          revision: booking.updated_at }) });
+      if (!changed) return reply(409, { error: "This appointment just changed. Please refresh and try again." });
       return reply(200, { ok: true, scheduled_date: newDate, scheduled_time: newTime });
     } catch {
       return reply(500, { error: "We couldn't reschedule right now. Your original appointment is unchanged." });
