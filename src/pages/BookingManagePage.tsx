@@ -52,7 +52,7 @@ export default function BookingManagePage({ defaultAction = "reschedule" }: { de
     <div className="container max-w-lg py-12 space-y-6">
       <h1 className="text-2xl font-bold">Manage appointment</h1>
       {loading && <p role="status">Verifying appointment link…</p>}
-      {error && <div className="space-y-4"><p role="alert" className="text-destructive">{error}</p><Button variant="outline" onClick={() => void load(true)}>Retry</Button><Button asChild variant="outline"><a href="/account">My account</a></Button></div>}
+      {error && <div className="space-y-4"><p role="alert" className="text-destructive">{error}</p><Button variant="outline" onClick={() => void load(true)}>Retry</Button><Button asChild variant="outline"><a href={`/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`}>Sign in to verify</a></Button></div>}
       {!loading && !error && booking && <>
         {notice && <p role="status" className="text-primary">{notice}</p>}
         <dl className="space-y-4 border-y border-border py-5">

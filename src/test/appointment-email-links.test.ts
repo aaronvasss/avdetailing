@@ -3,6 +3,7 @@ import { appointmentLinks, appointmentLinkValid } from "../../supabase/functions
 import { createManageHandler } from "../../supabase/functions/manage-booking/handler";
 import { createCancellationHandler } from "../../supabase/functions/cancel-customer-booking/handler";
 import { createRescheduleHandler } from "../../supabase/functions/reschedule-booking/handler";
+import { redactUrl } from "@/lib/redact-url";
 
 const id = "00000000-0000-4000-8000-000000000022", token = "a".repeat(64), now = () => new Date("2026-10-25T22:39:00Z");
 const booking = { id, user_id: null, manage_token: token, scheduled_date: "2026-10-28", scheduled_time: "09:00:00", status: "confirmed", updated_at: "rev0", services: { name: "Car Detailing" } };
@@ -12,6 +13,10 @@ function dbFor(state = { ...booking }) {
   return { db, writes };
 }
 describe("appointment email capabilities", () => {
+  it("redacts appointment secrets from error URLs", () => {
+    const value = redactUrl(appointmentLinks(booking).cancel);
+    expect(value).not.toContain(token); expect(new URL(value).searchParams.get("booking")).toBe(id);
+  });
   it.each(["manage", "cancel", "reschedule"] as const)("generates production %s destination bound to appointment and secret", action => {
     const urls = appointmentLinks(booking); const url = new URL(urls[action]);
     expect(url.origin).toBe("https://avdetailing.net"); expect(url.pathname).toBe("/booking/manage");
