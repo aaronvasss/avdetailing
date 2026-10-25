@@ -3,7 +3,7 @@ import Stripe from 'https://esm.sh/stripe@18.5.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3';
-import { balanceQuote, authorizationMatches } from '../_shared/portal-payment-rules.ts';
+import { portalBalance, authorizationMatches } from '../_shared/portal-payment-rules.ts';
 import { syncPortalCharge } from '../_shared/portal-charge-sync.ts';
 
 const schema = z.object({ action: z.enum(['list','setup','complete','default','remove','quote','authorize','revoke','charge']), bookingId: z.string().uuid().optional(), paymentMethodId: z.string().regex(/^pm_[a-zA-Z0-9]+$/).optional(), sessionId: z.string().regex(/^cs_[a-zA-Z0-9_]+$/).optional(), amountCents: z.number().int().positive().optional(), accepted: z.boolean().optional() });
@@ -97,7 +97,7 @@ serve(async req => {
       const intent=await stripe.paymentIntents.retrieve(deposit.stripe_payment_intent_id);
       if(intent.status==='succeeded' && deposit.guest_email?.toLowerCase()===(profile.email??'').toLowerCase())confirmedDeposit=Math.max(confirmedDeposit,Number(deposit.deposit_amount||0));
     }
-    const quote = balanceQuote(booking.total_price,['paid','refunded'].includes(booking.payment_status)?booking.payment_status:confirmedDeposit>0?'deposit_paid':booking.payment_status,confirmedDeposit,(records ?? []).map(r=>({...r,metadata:{...r.metadata,stripe_payment_intent_id:r.stripe_payment_intent_id}})));
+    const quote = portalBalance(booking.total_price,booking.payment_status,confirmedDeposit,records ?? []);
     const {data: authorization,error: authorizationError} = await db.from('card_authorizations').select('*').eq('booking_id',booking.id).eq('user_id',targetId).maybeSingle();
     if (authorizationError) throw authorizationError;
     const {data: existing,error: existingError} = await db.from('portal_charge_requests').select('*').eq('booking_id',booking.id).maybeSingle();
