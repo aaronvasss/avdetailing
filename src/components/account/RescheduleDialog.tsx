@@ -115,7 +115,8 @@ export function RescheduleDialog({ booking, open, onOpenChange, onSuccess }: Res
     setErrorMsg("");
     try {
       const { data, error } = await supabase.functions.invoke("reschedule-booking", {
-        body: { bookingId: booking.id, newDate: toDateString(selectedDate), newTime: dbTime },
+        body: { bookingId: booking.id, newDate: toDateString(selectedDate), newTime: dbTime,
+          expectedDate: booking.scheduled_date, expectedTime: toDbTime(booking.scheduled_time) },
       });
       if (error || !data?.ok) {
         const msg = await readError(error, data);
