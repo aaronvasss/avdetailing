@@ -135,7 +135,9 @@ BEGIN
  -- Serialize arm/disarm transitions with enqueues so newly committed work cannot lose its timer.
  PERFORM pg_advisory_xact_lock(624851);
  IF EXISTS(SELECT 1 FROM public.owner_alert_deliveries WHERE status IN ('pending','retry','leased','sending')) THEN
-  PERFORM public.wake_owner_alert_dispatch();
+  IF EXISTS(SELECT 1 FROM public.owner_alert_deliveries WHERE status IN ('pending','retry') AND next_attempt_at<=now() OR status IN ('leased','sending') AND lease_until<=now()) THEN
+   PERFORM public.wake_owner_alert_dispatch();
+  END IF;
  ELSE
   IF to_regnamespace('cron') IS NOT NULL THEN
    FOR jid IN SELECT jobid FROM cron.job WHERE jobname='owner-alert-retry' LOOP PERFORM cron.unschedule(jid); END LOOP;
