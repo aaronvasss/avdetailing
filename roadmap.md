@@ -1,3 +1,8 @@
+# Customer password recovery
+- [x] Add neutral email request and public recovery screen using existing authentication, without new profiles or custom email senders.
+- [ ] Test intercepted requests/recovery sessions at desktop/375px/390px; validate mismatch, expiry, failures and safe return destination.
+- [ ] Report release and redirect settings; no real emails/password changes, deployment or publication.
+
 # Appointment email links
 - [x] Audit appointment confirmation/resend/update, reminder, legacy cancellation/reschedule, review and owner senders; unify customer action links on avdetailing.net.
 - [x] Reuse customer writers with appointment-specific capability checks, read-only management/slots and legacy-route compatibility; retire legacy mutation endpoints and redact URL secrets.

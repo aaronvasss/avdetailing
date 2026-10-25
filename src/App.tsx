@@ -37,6 +37,7 @@ const PublicCancelPage = lazy(() => import("@/pages/PublicCancelPage"));
 const BookingSuccessPage = lazy(() => import("./pages/BookingSuccessPage"));
 const BookingCanceledPage = lazy(() => import("./pages/BookingCanceledPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
@@ -120,6 +121,7 @@ const App = () => (
                 <Route path="/booking/success" element={<BookingSuccessPage />} />
                 <Route path="/booking/canceled" element={<BookingCanceledPage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />

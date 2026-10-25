@@ -1,6 +1,12 @@
 /** Public utility pages are crawlable but never search-indexable. */
 export const UTILITY_ROUTE_SEO = [
   {
+    path: "/reset-password",
+    title: "Reset Password — AV Detailing",
+    description: "Securely reset your AV Detailing account password.",
+    heading: "Reset password",
+  },
+  {
     path: "/book",
     title: "Book a Mobile Detailing Appointment — AV Detailing",
     description: "Schedule an AV Detailing appointment. Choose your detailing service, vehicle, package, add-ons, and available appointment time.",
