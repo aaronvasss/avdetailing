@@ -49,7 +49,7 @@ export function formatCalendarUTC(date: Date): string {
 /** RFC 5545 content lines: CRLF, 75-octet folding and final CRLF. */
 export function calendarLines(lines: string[]): string {
   const encoder = new TextEncoder();
-  return lines.map(line => {
+  return lines.flatMap(line => line.split(/\r?\n/)).map(line => {
     const folded: string[] = []; let current = ''; let bytes = 0;
     for (const character of line) {
       const size = encoder.encode(character).length;
