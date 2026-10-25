@@ -104,3 +104,10 @@ export function usePricing(): Pricing {
   const { data } = useQuery({ queryKey: ["public-pricing"], queryFn: loadPricing, staleTime: 5 * 60_000 });
   return buildPricing(data?.packages ?? FALLBACK_PACKAGES, data?.plans ?? FALLBACK_PLANS);
 }
+
+/**
+ * Displayed "from" prices on the car detailing page that intentionally differ
+ * from the charged package price (fees/taxes are included in the charged price).
+ * Matches the booking flow's displayed sedan price; charges are unchanged.
+ */
+export const CAR_PAGE_DISPLAY_FROM = { basic: 140 } as const;

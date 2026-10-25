@@ -152,7 +152,6 @@ const fallbackPackages = [
     time: "3-5 hours",
     description: bookingFlowDescriptions["silver"],
     service_id: null,
-    is_popular: true,
   },
   { 
     id: "gold", 
@@ -162,11 +161,16 @@ const fallbackPackages = [
     time: "5-6 hours",
     description: bookingFlowDescriptions["gold"],
     service_id: null,
+    is_popular: true,
   },
 ];
 
 // Display price overrides — used ONLY for what the customer sees during selection.
 // Actual DB prices are preserved for backend calculations, Stripe, and booking totals.
+const CAR_PACKAGE_SLUGS = ["exterior-only", "basic", "silver", "gold"];
+/** Gold is the single recommended car package, matching the car detailing page. */
+const CAR_POPULAR_SLUG = "gold";
+
 const DISPLAY_PACKAGE_PRICES: Record<string, Record<string, number>> = {
   "exterior-only": { sedan: 75, "suv-5": 75, "suv-8": 75, truck: 75 },
   "basic": { sedan: 140, "suv-5": 150, "suv-8": 150, truck: 150 },
@@ -322,6 +326,17 @@ const BookingPage = () => {
     aircraftType: "",
     tailNumber: "",
   });
+
+  // Package deep links from service pages (e.g. /book?service=car&package=gold):
+  // preselect the service and package, then ask for vehicle type.
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const pkg=params.get('package');
+    if(params.get('service')!=='car'||!pkg||!CAR_PACKAGE_SLUGS.includes(pkg))return;
+    setServiceType('car');
+    setSelectedPackage(pkg);
+    setStep(2);
+  },[]);
 
   // Fetch packages from database
   useEffect(()=>{
@@ -982,8 +997,8 @@ const BookingPage = () => {
                 <button
                   key={type.id}
                   onClick={() => {
+                    if (type.id !== serviceType) setSelectedPackage(""); // Reset package only when the service changes
                     setServiceType(type.id);
-                    setSelectedPackage(""); // Reset package selection when changing service
                     if (quoteOnlyServices.includes(type.id)) {
                       setStep(2);
                     } else if (servicesWithVehicleSelection.includes(type.id)) {
@@ -1305,7 +1320,9 @@ const BookingPage = () => {
                   key={type.id}
                   onClick={() => {
                     setVehicleSubType(type.id);
-                    setSelectedPackage(""); // Reset package when vehicle changes
+                    // Car package slugs exist for every vehicle type, so keep the choice;
+                    // the price updates to the new vehicle automatically.
+                    if (serviceType !== "car") setSelectedPackage("");
                     setStep(3);
                   }}
                   className={cn(
@@ -1362,7 +1379,7 @@ const BookingPage = () => {
               <div className="space-y-4">
                 {packages.map((pkg) => {
                   const displayPrice = getDisplayPackagePrice(pkg);
-                  const isPopular = pkg.is_popular;
+                  const isPopular = serviceType === "car" ? pkg.id === CAR_POPULAR_SLUG : pkg.is_popular;
                   return (
                     <button
                       key={pkg.id}
