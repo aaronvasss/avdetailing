@@ -12,7 +12,7 @@ export function appointmentLinks(booking: { id: string; manage_token?: string | 
 /** Existing 256-bit random capabilities remain valid until 30 days after the appointment.
  * A changed/revoked token stops working immediately. No booking ID grants guest access. */
 export function appointmentLinkValid(booking: { manage_token?: string | null; scheduled_date: string }, token: unknown, now: Date): boolean {
-  if (typeof token !== "string" || !/^(?:[a-f0-9]{64}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.test(token)) return false;
+  if (typeof token !== "string" || !/^(?:[a-f0-9]{64}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}(?:[a-f0-9]{32})?)$/i.test(token)) return false;
   if (booking.manage_token !== token) return false;
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
   const expiry = new Date(`${booking.scheduled_date}T12:00:00Z`);
