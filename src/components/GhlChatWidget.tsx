@@ -12,6 +12,7 @@ const EXCLUDED_PREFIXES = [
   "/contact",
   "/memberships", // membership signup modal collects phone + SMS consent
   "/auth",
+  "/reset-password",
   "/account",
   "/admin",
   "/worker",

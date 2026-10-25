@@ -10,6 +10,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { authFormSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { ForgotPasswordForm } from "@/components/account/ForgotPasswordForm";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ export default function AuthPage() {
     ? requestedRedirect
     : null;
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
+  const [recovering, setRecovering] = useState(searchParams.get("mode") === "recovery");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -31,6 +33,7 @@ export default function AuthPage() {
   });
 
   useEffect(() => {
+    if (recovering || searchParams.get("recovered") === "1") return;
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -50,7 +53,7 @@ export default function AuthPage() {
       }
     };
     checkSession();
-  }, [navigate]);
+  }, [navigate, recovering]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,16 +144,17 @@ export default function AuthPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">
-              {isLogin ? "Welcome Back" : "Create Account"}
+              {recovering ? "Forgot password?" : isLogin ? "Welcome Back" : "Create Account"}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin
+              {recovering ? "Request a link to reset your account password" : isLogin
                 ? "Sign in to manage your bookings and memberships"
                 : "Join AV Detailing for exclusive member benefits"}
             </p>
           </div>
 
           {/* Form */}
+          {recovering ? <ForgotPasswordForm destination={safeRedirect} onBack={() => { setRecovering(false); setIsLogin(true); }} /> : <>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <>
@@ -243,6 +247,7 @@ export default function AuthPage() {
               {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
             </div>
 
+            {isLogin && <div className="text-right"><Button type="button" variant="link" className="px-0" onClick={() => setRecovering(true)}>Forgot password?</Button></div>}
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading
                 ? "Please wait..."
@@ -278,6 +283,7 @@ export default function AuthPage() {
               </ul>
             </div>
           )}
+          </>}
         </div>
       </div>
     </Layout>
