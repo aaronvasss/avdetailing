@@ -124,10 +124,12 @@ BEGIN
  IF to_regnamespace('cron') IS NULL OR to_regnamespace('net') IS NULL THEN RAISE EXCEPTION 'Owner alert scheduler extensions unavailable'; END IF;
  SELECT token INTO secret FROM public.portal_scheduler_credentials WHERE id=true;
  IF secret IS NULL THEN RAISE EXCEPTION 'Private scheduler credential unavailable'; END IF;
- PERFORM net.http_post(url:=c.function_url,headers:=jsonb_build_object('Content-Type','application/json','X-Reminder-Scheduler',secret),body:='{}'::jsonb);
  IF NOT EXISTS(SELECT 1 FROM cron.job WHERE jobname='owner-alert-retry') THEN
   PERFORM cron.schedule('owner-alert-retry','* * * * *','SELECT public.tick_owner_alert_dispatch();');
  END IF;
+ BEGIN
+  PERFORM net.http_post(url:=c.function_url,headers:=jsonb_build_object('Content-Type','application/json','X-Reminder-Scheduler',secret),body:='{}'::jsonb);
+ EXCEPTION WHEN OTHERS THEN RAISE WARNING 'Owner alert wake request failed; armed retry retains durable work'; END;
 END $$;
 CREATE OR REPLACE FUNCTION public.tick_owner_alert_dispatch() RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE jid bigint;

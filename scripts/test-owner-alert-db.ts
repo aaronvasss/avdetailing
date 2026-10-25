@@ -102,5 +102,25 @@ try {
   assert.equal(Number(saved.total_price),145.18);assert.equal(saved.payment_status,"unpaid");assert.equal(Number(saved.deposit_amount),0);pass("cancellation preserves payment fields and creates no financial actions");
   const [priv]=await sql`select has_table_privilege('authenticated','owner_alert_events','SELECT') as table_access,has_function_privilege('authenticated','claim_owner_alert_deliveries(integer)','EXECUTE') as function_access`;
   assert.equal(priv.table_access,false);assert.equal(priv.function_access,false);pass("outbox and dispatch RPCs inaccessible to customer roles");
-  await drainOld();console.log(`${checks} isolated PostgreSQL + mocked-provider checks passed`);
+  await drainOld();
+  // Local scheduler stand-ins exercise the real arm/wake/drain SQL, not hosted cron/net.
+  await sql.unsafe(`CREATE SCHEMA cron; CREATE SCHEMA net;
+   CREATE TABLE cron.job(jobid bigserial,jobname text UNIQUE,schedule text,command text);
+   CREATE TABLE public.test_http_calls(body jsonb);
+   CREATE FUNCTION cron.schedule(n text,s text,c text) RETURNS bigint LANGUAGE plpgsql AS $$ DECLARE j bigint; BEGIN INSERT INTO cron.job(jobname,schedule,command) VALUES(n,s,c) RETURNING jobid INTO j; RETURN j; END $$;
+   CREATE FUNCTION cron.unschedule(j bigint) RETURNS boolean LANGUAGE plpgsql AS $$ BEGIN DELETE FROM cron.job WHERE jobid=j; RETURN FOUND; END $$;
+   CREATE FUNCTION net.http_post(url text,headers jsonb,body jsonb) RETURNS bigint LANGUAGE plpgsql AS $$ BEGIN INSERT INTO public.test_http_calls VALUES(body); RETURN 1; END $$;
+   INSERT INTO portal_scheduler_credentials VALUES(true,'mock-private-only');
+   INSERT INTO owner_alert_dispatch_config VALUES(true,'https://example.test/mock-worker',true);`);
+  f=await fixture();await commit(f);
+  assert.equal((await sql`select count(*)::int as n from cron.job`)[0].n,1);pass("enqueue arms one bounded retry job and wakes processor");
+  await processOwnerAlerts(deps);assert.equal((await sql`select count(*)::int as n from cron.job`)[0].n,0);pass("drained queue unschedules retry job");
+  f=await fixture();await commit(f);emailStatus=503;await processOwnerAlerts(deps);
+  const wakes=(await sql`select count(*)::int as n from test_http_calls`)[0].n;
+  await sql`select tick_owner_alert_dispatch()`;assert.equal((await sql`select count(*)::int as n from test_http_calls`)[0].n,wakes);pass("future retry remains armed without repeatedly waking before deadline");
+  await expire(f.b);emailStatus=200;await processOwnerAlerts(deps);
+  await sql.unsafe(`CREATE OR REPLACE FUNCTION net.http_post(url text,headers jsonb,body jsonb) RETURNS bigint LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'mock network extension unavailable'; END $$;`);
+  f=await fixture();await commit(f);assert.equal((await rows(f.b)).length,2);assert.equal((await sql`select count(*)::int as n from cron.job`)[0].n,1);pass("wake network failure preserves appointment/outbox and armed recovery timer");
+  await processOwnerAlerts(deps);
+  console.log(`${checks} isolated PostgreSQL + mocked-provider checks passed`);
 } finally { await sql.end(); }
