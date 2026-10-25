@@ -8,6 +8,7 @@
  *    calendar strings (yyyy-MM-dd) so UTC conversion can never shift a day.
  */
 
+import { appointmentInstant, centralCalendarDate } from '../../supabase/functions/_shared/appointment-calendar';
 export const BUSINESS_TIMEZONE = "America/Chicago";
 
 /** Parse any mixed legacy value ("9:00 AM", "09:00:00", "9:00") to minutes from midnight. */
@@ -116,12 +117,7 @@ export function combineDateAndTime(dateStr: string, timeStr?: string | null): Da
 
 /** Today's calendar date in the business timezone (America/Chicago). */
 export function businessToday(): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: BUSINESS_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  return centralCalendarDate();
 }
 
 /** Current minutes-from-midnight in the business timezone. */
@@ -142,12 +138,5 @@ export function isBusinessToday(dateStr: string): boolean {
 
 /** Real instant of a Chicago wall-clock appointment (date + time), independent of the viewer's timezone. */
 export function businessAppointmentInstant(dateStr: string, timeStr?: string | null): Date {
-  const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
-  const minutes = parseTimeToMinutes(timeStr) ?? 0;
-  const guess = Date.UTC(y, m - 1, d, Math.floor(minutes / 60), minutes % 60);
-  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: BUSINESS_TIMEZONE, hourCycle: "h23",
-    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
-    .formatToParts(new Date(guess)).map(p => [p.type, p.value]));
-  const asChicago = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute);
-  return new Date(guess + (guess - asChicago));
+  return appointmentInstant(dateStr.split('T')[0],timeStr || '00:00');
 }
