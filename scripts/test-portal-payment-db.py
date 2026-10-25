@@ -20,7 +20,7 @@ assert sql("SELECT current_user||':'||coalesce(inet_server_port()::text,'')")=='
 sql("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 sql("""CREATE TABLE bookings(id uuid PRIMARY KEY,user_id uuid,total_price numeric,deposit_amount numeric,payment_status text,status text,guest_email text);
 CREATE TABLE card_authorizations(id uuid PRIMARY KEY,user_id uuid,booking_id uuid,amount_cents integer,revoked_at timestamptz);
-CREATE TABLE payment_records(id uuid PRIMARY KEY,booking_id uuid,user_id uuid,amount_cents integer,payment_type text,status text,currency text,stripe_payment_intent_id text,metadata jsonb);
+CREATE TABLE payment_records(id uuid PRIMARY KEY,booking_id uuid,user_id uuid,amount_cents integer,payment_type text,status text,currency text,stripe_payment_intent_id text,metadata jsonb,stripe_checkout_session_id text);
 CREATE TABLE quotes(id uuid PRIMARY KEY,booking_id uuid,status text,stripe_payment_intent_id text,deposit_amount numeric);
 CREATE TABLE portal_charge_requests(id uuid PRIMARY KEY,booking_id uuid UNIQUE,user_id uuid,authorization_id uuid,amount_cents integer,service_amount_cents integer,status text DEFAULT 'reserved',requested_by uuid);
 CREATE TABLE booking_audit_log(booking_id uuid,booking_user_id uuid,changed_by uuid,action text,field text,old_value text,new_value text);
@@ -46,7 +46,7 @@ def balance(b):return json.loads(sql(f"SELECT portal_booking_balance('{b}')"))
 def record(b,u,cents,kind='balance',status='succeeded',intent=None,service=None,currency='usd'):
  rid=uid(); service=cents if service is None else service
  meta=json.dumps({'service_amount_cents':service}) if service!='missing' else '{}'
- sql(f"INSERT INTO payment_records VALUES('{rid}','{b}','{u}',{cents},'{kind}','{status}','{currency}',{repr(intent) if intent else 'NULL'},'{meta}')")
+ sql(f"INSERT INTO payment_records(id,booking_id,user_id,amount_cents,payment_type,status,currency,stripe_payment_intent_id,metadata) VALUES('{rid}','{b}','{u}',{cents},'{kind}','{status}','{currency}',{repr(intent) if intent else 'NULL'},'{meta}')")
  return rid
 def approval(b,u,a,cents):sql(f"INSERT INTO card_authorizations VALUES('{a}','{u}','{b}',{cents},NULL)")
 def reserve(b,u,a,cents,rid=None):
@@ -57,7 +57,7 @@ def passed(name):
  checks+=1;print('PASS',name)
 b,u,a=booking();assert balance(b)['amountCents']==14518;approval(b,u,a,14518);sql(reserve(b,u,a,14518));passed('$145.18 accepted, zero extra fee')
 assert 'Charge already started' in sql(f"UPDATE card_authorizations SET amount_cents=15026 WHERE id='{a}'",True);passed('reserved approval cannot change')
-assert 'Resolve reserved' in sql(f"INSERT INTO payment_records VALUES('{uid()}','{b}','{u}',100,'balance','paid','usd',NULL,'{{}}')",True);passed('pending charge locks ledger')
+assert 'Resolve reserved' in sql(f"INSERT INTO payment_records(id,booking_id,user_id,amount_cents,payment_type,status,currency,stripe_payment_intent_id,metadata) VALUES('{uid()}','{b}','{u}',100,'balance','paid','usd',NULL,'{{}}')",True);passed('pending charge locks ledger')
 assert 'Resolve reserved' in sql(f"INSERT INTO quotes VALUES('{uid()}','{b}','accepted','pi_late',100)",True);passed('pending charge locks quote credits')
 sql(reserve(b,u,a,14518),True);passed('duplicate reservation rejected')
 assert sql(f"SELECT count(*) FROM booking_audit_log WHERE booking_id='{b}'")=='1';passed('one winning reservation audited')
@@ -86,4 +86,8 @@ b,u,a=booking();approval(b,u,a,14518);record(b,u,1000);assert 'Balance changed' 
 b,u,a=booking(145.18);record(b,u,14518);assert balance(b)['amountCents']==0;approval(b,u,a,14518);sql(reserve(b,u,a,14518),True);passed('fully credited ledger blocks another charge')
 b,u,a=booking(500);record(b,u,10000,currency='eur');assert balance(b)['review'];passed('currency mismatch requires review')
 b,u,a=booking(500);record(b,u,10000,'deposit',intent='pi_mismatch');sql(f"INSERT INTO quotes VALUES('{uid()}','{b}','deposit_paid','pi_mismatch',90)");assert balance(b)['review'];passed('quote amount disagreement requires review')
+b,u,a=booking(500);sql(f"INSERT INTO quotes VALUES('{uid()}','{b}','deposit_paid',NULL,100)");assert balance(b)['review'];passed('paid quote missing intent requires review')
+b,u,a=booking(500);sql(f"INSERT INTO quotes VALUES('{uid()}','{b}','expired','pi_stale',100)");assert balance(b)['review'];passed('stale quote status does not hide payment evidence')
+b,u,a=booking(500,'deposit_paid',100);record(b,u,2000);assert balance(b)['review'];passed('unrelated partial cannot verify a deposit')
+b,u,a=booking(500);rid=record(b,u,10000);sql(f"UPDATE payment_records SET stripe_checkout_session_id='cs_only' WHERE id='{rid}'");assert balance(b)['review'];passed('session-only credit cannot be double counted')
 print(f'{checks} isolated PostgreSQL integration checks passed')
