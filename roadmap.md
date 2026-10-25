@@ -1,7 +1,7 @@
 # Durable owner alerts
-- [ ] Stage transactional outbox and lease/retry safeguards outside managed migrations; keep production untouched.
-- [ ] Wire shared customer writers to atomic change/enqueue and a private recoverable email/SMS dispatcher.
-- [ ] Verify crashes, retries, duplicates and split-channel outcomes with isolated PostgreSQL and mocked providers; report release/duplicate-delivery limits.
+- [x] Stage transactional outbox and lease/retry safeguards outside managed migrations; production untouched.
+- [x] Wire shared customer writers to atomic change/enqueue and a private recoverable email/SMS dispatcher with wake-on-enqueue and drain disarming.
+- [x] 24 isolated PostgreSQL/mocked-provider checks and 246 regression tests passed; report release order, scheduler configuration and uncertain SMS/provider duplicate limitations in owner-alert-outbox-verification.md. No real records/messages or release; hosted scheduler/provider delivery unverified.
 
 # Owner-alert sign-in destination
 - [x] Preserve the internal admin appointment destination through login, retain role enforcement and show an unavailable-appointment fallback.
