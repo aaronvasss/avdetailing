@@ -1,6 +1,6 @@
 # Owner-alert sign-in destination
 - [x] Preserve the internal admin appointment destination through login, retain role enforcement and show an unavailable-appointment fallback.
-- [ ] Verify mocked signed-out/signed-in admin, non-admin, unsafe return and missing appointment on desktop/phone; no real records or release.
+- [x] Fifteen mocked browser checks passed at desktop/375px/390px for signed-out/signed-in admin, non-admin, unsafe return and missing appointment; no private reads before authorization, no overflow/runtime errors, 255 regression tests passed. No real records/messages, deployment or publication; live authentication remains unverified.
 
 # Appointment date/time completion
 - [x] Use the Central calendar day for client classification without changing each view's status policies.
