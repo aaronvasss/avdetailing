@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { authorizationMatches } from '../../supabase/functions/_shared/portal-payment-rules';
 import { validPortalBalance } from '@/lib/portal-balance-response';
 describe('server balance boundary', () => {
-  it('accepts verified $145.18 without another fee', () => expect(validPortalBalance({review:false,amountCents:14518,serviceCents:14518,feeCents:0,depositCents:0})).toBe(true));
+  it('accepts verified $145.18 without another fee', () => expect(validPortalBalance({review:false,totalCents:14518,creditedCents:0,amountCents:14518,serviceCents:14518,feeCents:0,depositCents:0})).toBe(true));
+  it('rejects negative deposit evidence', () => expect(validPortalBalance({review:false,totalCents:14518,creditedCents:0,amountCents:14518,serviceCents:14518,feeCents:0,depositCents:-100})).toBe(false));
   it('rejects old fee-added response $150.26', () => expect(validPortalBalance({review:false,amountCents:15026,serviceCents:14518,feeCents:508,depositCents:0})).toBe(false));
   it('requires review rather than guessed history', () => expect(validPortalBalance({review:true,reason:'Historical payment requires reconciliation'})).toBe(true));
   it('rejects missing evidence response', () => expect(validPortalBalance({amountCents:14518})).toBe(false));

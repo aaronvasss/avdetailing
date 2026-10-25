@@ -29,6 +29,12 @@ BEGIN
       AND r.stripe_payment_intent_id <> r.metadata->>'stripe_payment_intent_id' THEN
       reason := 'Payment identity conflict'; CONTINUE;
     END IF;
+    -- Session-only online credits cannot prove distinct payments; fail closed.
+    IF nullif(r.stripe_payment_intent_id,'') IS NULL
+      AND nullif(r.metadata->>'stripe_payment_intent_id','') IS NULL
+      AND nullif(r.stripe_checkout_session_id,'') IS NOT NULL THEN
+      reason := 'Checkout credit lacks verified payment identity'; CONTINUE;
+    END IF;
     key := coalesce(nullif(r.stripe_payment_intent_id,''),nullif(r.metadata->>'stripe_payment_intent_id',''),'record:'||r.id::text);
     signature := jsonb_build_object('cents',cents,'amount',r.amount_cents,'type',r.payment_type);
     IF seen ? key THEN
@@ -42,7 +48,7 @@ BEGIN
   -- A quote status or booking deposit field is not proof of payment. Quote-only
   -- legacy deposits require reconciliation into the ledger, never an inferred credit.
   FOR q IN SELECT * FROM public.quotes WHERE booking_id=b.id LOOP
-    IF q.status IN ('deposit_paid','converted','accepted') AND q.stripe_payment_intent_id IS NOT NULL THEN
+    IF q.status='deposit_paid' OR nullif(q.stripe_payment_intent_id,'') IS NOT NULL THEN
       IF NOT (seen ? q.stripe_payment_intent_id) THEN reason:='Quote deposit lacks verified ledger evidence';
       ELSIF (seen->q.stripe_payment_intent_id->>'type') IS DISTINCT FROM 'deposit'
         OR (seen->q.stripe_payment_intent_id->>'cents')::bigint IS DISTINCT FROM round(q.deposit_amount*100)::bigint THEN
@@ -50,7 +56,9 @@ BEGIN
       END IF;
     END IF;
   END LOOP;
-  IF b.payment_status IN ('partial','deposit_paid') AND paid=0 THEN reason:='Deposit status lacks verified payment evidence'; END IF;
+  IF b.payment_status='partial' AND paid=0 OR b.payment_status='deposit_paid' AND deposits=0 THEN
+    reason:='Deposit status lacks verified payment evidence';
+  END IF;
   IF paid>total THEN reason:='Credits exceed saved total'; END IF;
   -- Terminal status suppresses charges but does not conceal ambiguous ledger history.
   IF reason IS NOT NULL THEN RETURN jsonb_build_object('review',true,'reason',reason); END IF;

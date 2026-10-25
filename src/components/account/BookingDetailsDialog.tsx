@@ -732,7 +732,7 @@ export function BookingDetailsDialog({
               </>
             )}
 
-            {!balanceNeedsReview && balance && <AppointmentPaymentApproval bookingId={booking.id} isAdmin={isAdmin} onPaid={() => { refreshBookingFromDatabase(booking.id).catch(() => setRecordsFailed(true)); onStatusChange?.(); }} />}
+            {!balanceNeedsReview && balance && <AppointmentPaymentApproval bookingId={booking.id} expectedAmountCents={verifiedBalance?.amountCents} isAdmin={isAdmin} onPaid={() => { refreshBookingFromDatabase(booking.id).catch(() => setRecordsFailed(true)); onStatusChange?.(); }} />}
             <AppointmentDocuments bookingId={booking.id} isAdmin={isAdmin} booking={{ ...booking, profiles: profileData }} />
             {isAdmin&&<AccountActivity bookingId={booking.id} isAdmin />}
             <AppointmentPhotos bookingId={booking.id} allowUpload={!isAdmin&&!['completed','canceled','cancelled'].includes(booking.status)} />

@@ -16,5 +16,11 @@ export function validPortalBalance(value: unknown): value is PortalBalanceRespon
   if (q.review === true) return true;
   return q.review === false && q.feeCents === 0 &&
     Number.isSafeInteger(q.amountCents) && Number(q.amountCents) >= 0 &&
-    q.amountCents === q.serviceCents && Number.isSafeInteger(q.depositCents);
+    q.amountCents === q.serviceCents &&
+    Number.isSafeInteger(q.totalCents) && Number(q.totalCents) > 0 &&
+    Number.isSafeInteger(q.creditedCents) && Number(q.creditedCents) >= 0 &&
+    Number.isSafeInteger(q.depositCents) && Number(q.depositCents) >= 0 &&
+    Number(q.depositCents) <= Number(q.creditedCents) &&
+    Number(q.creditedCents) <= Number(q.totalCents) &&
+    Number(q.amountCents) <= Number(q.totalCents) - Number(q.creditedCents);
 }
