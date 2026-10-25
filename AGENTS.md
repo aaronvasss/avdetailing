@@ -1,4 +1,5 @@
 # Architecture rules
+- Preserve protected admin destinations in an encoded auth return URL validated by auth-return; destination pages retain role checks and appointment reads stay behind authentication so navigation intent never grants access.
 - Calendar exports and feeds share appointment-calendar Chicago wall-time conversion and emit UTC RFC 5545 instants; classification uses the Chicago calendar day without altering each view's status rules, so device zones cannot shift appointments.
 - Customer appointment overview renders the next booking once ahead of preparation guidance, reuses current booking dialog actions, and links history/receipts to the existing records view; admin appointment presentation remains separate.
 - Password recovery uses the existing auth provider's recovery session and updateUser, never custom reset tokens; validate recovery intent and current user, clear the local session after saving, and preserve only safe account destinations.
