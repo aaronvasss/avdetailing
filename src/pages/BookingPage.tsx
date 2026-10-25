@@ -28,7 +28,9 @@ import {
   formatDuration
 } from "@/lib/scheduling";
 import { useSchedulingSettings } from "@/hooks/useSchedulingSettings";
-import { toDbTime, formatTime12h, toDateString } from "@/lib/time-format";
+import { toDbTime, formatTime12h, toDateString, addMinutesTo12h } from "@/lib/time-format";
+import { bookingProgress } from "@/lib/booking-progress";
+import { BookingSelectionSummary } from "@/components/booking/BookingSelectionSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { SavedVehiclePicker } from "@/components/booking/SavedVehiclePicker";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
@@ -218,7 +220,7 @@ const BookingPage = () => {
       target.setAttribute("tabindex", "-1");
       target.style.scrollMarginTop = "96px";
       target.style.outline = "none";
-      target.scrollIntoView({ behavior: "auto", block: "start" });
+      stepContainerRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
       target.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
@@ -804,37 +806,6 @@ const BookingPage = () => {
     }
   };
 
-  const getProgressLabels = () => {
-    if (serviceType === "ceramic") {
-      return ["Service", "Tier & Pricing", "Schedule", "Details"];
-    }
-    // Quote-only services have a different flow
-    if (quoteOnlyServices.includes(serviceType)) {
-      return ["Service", "Quote Request"];
-    }
-    // In-person-only services skip the payment step
-    if (inPersonOnlyServices.includes(serviceType)) {
-      if (servicesWithoutAddOns.includes(serviceType)) {
-        return ["Service", "Package", "Schedule", "Details"];
-      }
-      return ["Service", "Package", "Add-ons", "Schedule", "Details"];
-    }
-    // Services that need vehicle sub-type selection
-    if (servicesWithVehicleSelection.includes(serviceType)) {
-      return ["Service", "Vehicle", "Package", "Add-ons", "Schedule", "Payment", "Details"];
-    }
-    return ["Service", "Package", "Add-ons", "Schedule", "Payment", "Details"];
-  };
-
-  const getTotalSteps = () => {
-    if (serviceType === "ceramic") return 4;
-    if (quoteOnlyServices.includes(serviceType)) return 2;
-    if (inPersonOnlyServices.includes(serviceType)) {
-      return servicesWithoutAddOns.includes(serviceType) ? 4 : 5;
-    }
-    return servicesWithVehicleSelection.includes(serviceType) ? 7 : 6;
-  };
-
   const isQuoteOnlyService = () => quoteOnlyServices.includes(serviceType);
 
   const renderStep = () => {
@@ -1405,11 +1376,11 @@ const BookingPage = () => {
                 Back
               </Button>
               <Button 
-                className="flex-1 glow-red" 
+                className="flex-1 min-w-0 h-auto min-h-10 whitespace-normal glow-red" 
                 onClick={() => setStep(5)}
               >
-                Continue
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {selectedAddOns.length === 0 ? "Continue without extras" : "Continue"}
+                <ArrowRight className="ml-2 h-4 w-4 shrink-0" />
               </Button>
             </div>
           </div>
@@ -1437,8 +1408,8 @@ const BookingPage = () => {
               </div>
 
               <div>
-                <Label className="mb-4 block flex items-center justify-between">
-                  <span>Select Time</span>
+                <Label className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <span>Select Time (Central Time)</span>
                   <span className="text-xs text-muted-foreground font-normal">
                     Hours: {getWorkingHoursDisplay(schedulingConfig)}
                   </span>
@@ -1484,6 +1455,11 @@ const BookingPage = () => {
                     <p className="text-xs text-muted-foreground mt-3">
                       Duration: {formatDuration(selectedPackageDuration)} + 30min buffer between appointments
                     </p>
+                    {selectedTime && (
+                      <p aria-live="polite" className="mt-2 text-sm font-medium">
+                        Estimated service end: {addMinutesTo12h(selectedTime, selectedPackageDuration)} Central Time
+                      </p>
+                    )}
                   </>
                 )}
               </div>
@@ -2092,24 +2068,11 @@ const BookingPage = () => {
     );
   };
 
-  const currentStepForProgress = () => {
-    if (serviceType === "ceramic") {
-      // Ceramic flow: step 1 → 1, step 2 → 2, step 5 → 3, step 7 → 4
-      if (step <= 2) return step;
-      if (step === 5) return 3;
-      if (step === 7) return 4;
-      return step;
-    }
-    // Quote-only services have their own flow
-    if (quoteOnlyServices.includes(serviceType)) {
-      return step;
-    }
-    // For services without vehicle selection, we skip step 2, so adjust the progress
-    if (!servicesWithVehicleSelection.includes(serviceType) && step >= 3) {
-      return step - 1;
-    }
-    return step;
-  };
+  const progress = bookingProgress(serviceType, step);
+  const summaryPackage = packages.find(p => p.id === selectedPackage);
+  const summaryPriceReady = serviceType === "ceramic"
+    ? Boolean(ceramicPrice())
+    : Boolean(summaryPackage && (!servicesWithVehicleSelection.includes(serviceType) || vehicleSubType));
 
   return (
     <Layout>
@@ -2121,21 +2084,26 @@ const BookingPage = () => {
             <h1 className="sr-only">Book a Mobile Detailing Appointment</h1>
             {repeatSource&&!bookingId&&<div className="mb-4 border-l-2 border-primary pl-3 text-sm"><p className="font-medium">{repeatSource.name}</p><p className="text-muted-foreground">{repeatSource.price!==null?`Previous appointment: $${Number(repeatSource.price).toFixed(2)}. `:''}Choose a current package and new date. Today's price is confirmed before payment.</p></div>}
 
-            {!bookingId && step <= getTotalSteps() && (
-              <div className="mb-4 text-center">
-                <span className="text-sm font-semibold text-primary">
-                  Step {currentStepForProgress()}
-                </span>
-                {currentStepForProgress() > 1 && (
-                  <span className="text-sm text-muted-foreground">
-                    {" — "}{getProgressLabels()[currentStepForProgress() - 1]}
-                  </span>
-                )}
-              </div>
-            )}
-
-
-            <div ref={stepContainerRef}>{renderStep()}</div>
+            <div ref={stepContainerRef} className="scroll-mt-24">
+              {!bookingId && (
+                <>
+                  <div aria-live="polite" aria-atomic="true" className="mb-3 flex flex-wrap justify-between gap-1 text-sm">
+                    <p><span className="font-semibold text-primary">Step {progress.current} of {progress.total}</span><span className="text-muted-foreground"> — {progress.label}</span></p>
+                    <p className="text-muted-foreground">{progress.remaining === 0 ? 'Final step' : `${progress.remaining} ${progress.remaining === 1 ? 'step' : 'steps'} remaining`}</p>
+                  </div>
+                  {serviceType && <BookingSelectionSummary
+                    service={serviceTypes.find(s => s.id === serviceType)?.label || serviceType}
+                    vehicle={serviceType === 'ceramic' ? ceramicVehicleLabel() : carVehicleTypes.find(v => v.id === vehicleSubType)?.label || (serviceType === 'boat' ? 'Boat' : serviceType === 'rv' ? 'RV / Motorhome' : serviceType === 'aircraft' ? 'Aircraft' : '')}
+                    packageName={serviceType === 'ceramic' ? ceramicTierLabel() : summaryPackage?.name || selectedPackage}
+                    extras={addOns.filter(a => selectedAddOns.includes(a.id)).map(a => a.name)}
+                    extrasApplicable={!quoteOnlyServices.includes(serviceType) && !servicesWithoutAddOns.includes(serviceType)}
+                    total={summaryPriceReady ? calculateTotal() : null}
+                    quoteOnly={serviceType === 'aircraft' || (serviceType === 'ceramic' && ceramicVehicleClass === 'rv-boat-aircraft')}
+                  />}
+                </>
+              )}
+              {renderStep()}
+            </div>
           </div>
         </div>
       </section>
