@@ -1,4 +1,5 @@
 # Architecture rules
+- Calendar exports and feeds share appointment-calendar Chicago wall-time conversion and emit UTC RFC 5545 instants; classification uses the Chicago calendar day without altering each view's status rules, so device zones cannot shift appointments.
 - Customer appointment overview renders the next booking once ahead of preparation guidance, reuses current booking dialog actions, and links history/receipts to the existing records view; admin appointment presentation remains separate.
 - Password recovery uses the existing auth provider's recovery session and updateUser, never custom reset tokens; validate recovery intent and current user, clear the local session after saving, and preserve only safe account destinations.
 - Generate appointment email actions through appointment-links on the production origin; verify the stored appointment capability (including supported legacy random formats) or authenticated ownership, then reuse customer writers. Management reads/slots never mutate, old mutation endpoints are retired, and verified token writes include token compare-and-set to reject revocation races.

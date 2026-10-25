@@ -1,4 +1,5 @@
-import { parseDateString } from "@/lib/time-format";
+import { parseDateString, businessToday } from "@/lib/time-format";
+import { classifyAppointment } from '@/lib/appointment-classification';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { downloadICS, createBookingCalendarEvent } from "@/lib/calendar";
-import { format, isAfter, startOfToday, parse as parseDate, subDays, addDays } from "date-fns";
+import { format, parse as parseDate, subDays, addDays } from "date-fns";
 
 function formatTime12h(time: string): string {
   if (!time) return "";
@@ -131,7 +132,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
         end = addDays(calendarRange.end, 1);
       } else {
         // List view: recent window by default, expandable via "Load older"
-        const today = startOfToday();
+        const today = parseDateString(businessToday());
         start = subDays(today, historyDaysBack);
         end = addDays(today, 180);
       }
@@ -174,21 +175,13 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
     setSelectedBooking(null);
   };
 
-  const today = startOfToday();
+  const today = parseDateString(businessToday());
   const upcomingBookings = bookings.filter(
-    (b) =>
-      (isAfter(parseDateString(b.scheduled_date), today) ||
-        format(parseDateString(b.scheduled_date), "yyyy-MM-dd") ===
-          format(today, "yyyy-MM-dd")) &&
-      b.status !== "cancelled" &&
-      b.status !== "completed"
+    (b) => classifyAppointment(b) === 'upcoming'
   );
 
   const pastBookings = bookings.filter(
-    (b) =>
-      b.status === "cancelled" ||
-      b.status === "completed" ||
-      parseDateString(b.scheduled_date) < today
+    (b) => classifyAppointment(b) === 'past'
   );
 
   const vehicleLabelOf = (b: Booking) =>

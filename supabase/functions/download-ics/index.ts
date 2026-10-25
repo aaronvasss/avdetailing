@@ -1,22 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+import { appointmentCalendarRange, formatCalendarUTC as formatICSDate, calendarLines } from "../_shared/appointment-calendar.ts";
 const PHONE = "(225) 521-6264";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-function padTwo(n: number): string {
-  return n.toString().padStart(2, "0");
-}
-
-function formatICSDate(d: Date): string {
-  return `${d.getFullYear()}${padTwo(d.getMonth() + 1)}${padTwo(d.getDate())}T${padTwo(d.getHours())}${padTwo(d.getMinutes())}${padTwo(d.getSeconds())}`;
-}
 
 function escapeICS(text: string): string {
   return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
@@ -57,15 +50,7 @@ serve(async (req) => {
     const location = [booking.service_address, booking.service_city, booking.service_state || "LA", booking.service_zip].filter(Boolean).join(", ");
     const vehicle = [booking.vehicle_year, booking.vehicle_make, booking.vehicle_model].filter(Boolean).join(" ");
 
-    // Parse start date/time
-    const startDate = new Date(booking.scheduled_date);
-    const timeParts = booking.scheduled_time.match(/(\d+):(\d+)/);
-    if (timeParts) {
-      startDate.setHours(parseInt(timeParts[1]), parseInt(timeParts[2]), 0, 0);
-    }
-
-    const durationMin = booking.duration_minutes || 180;
-    const endDate = new Date(startDate.getTime() + durationMin * 60 * 1000);
+    const {startDate,endDate} = appointmentCalendarRange(booking.scheduled_date,booking.scheduled_time,booking.duration_minutes || 180);
 
     const description = [
       `Service: ${serviceName}`,
@@ -74,9 +59,9 @@ serve(async (req) => {
       "",
       `Questions? Call ${PHONE}`,
       "https://avdetailing.net",
-    ].filter((l) => l !== null).join("\\n");
+    ].filter((l) => l !== null).join("\n");
 
-    const icsContent = [
+    const icsContent = calendarLines([
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
       "PRODID:-//AV Detailing//Booking System//EN",
@@ -103,7 +88,7 @@ serve(async (req) => {
       "END:VALARM",
       "END:VEVENT",
       "END:VCALENDAR",
-    ].join("\r\n");
+    ]);
 
     return new Response(icsContent, {
       status: 200,
