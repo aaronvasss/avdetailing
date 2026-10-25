@@ -1,3 +1,8 @@
+# Payment safeguard correction
+- [ ] Stage a corrective migration without applying it to production; share the database-verified balance between client and wallet.
+- [ ] Run isolated PostgreSQL integration checks for exact amounts, deposits, partials, stale approvals, duplicate requests and retained guards.
+- [ ] Report release order and live-service limitations; no deployment, publication or real transactions.
+
 # Customer-space layout
 - [x] Put next appointment before preparation guidance, simplify customer header and primary actions, remove duplicate next-appointment card and expose history/receipts.
 - [x] Nine mocked account flows passed at desktop/375px/390px: next appointment before prep, no duplicate next card, saved $145.18/October 28/Central Time, Details and Keep appointment, history and printable receipt access, past-only/empty states; screenshots inspected, no overflow/runtime errors. All 226 regression tests passed; preview build OK.
