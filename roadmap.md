@@ -1,7 +1,7 @@
 # Customer password recovery
 - [x] Add neutral email request and public recovery screen using existing authentication, without new profiles or custom email senders.
-- [ ] Test intercepted requests/recovery sessions at desktop/375px/390px; validate mismatch, expiry, failures and safe return destination.
-- [ ] Report release and redirect settings; no real emails/password changes, deployment or publication.
+- [x] 226 regression tests and 15 intercepted browser cases passed at desktop/375px/390px: email request, replacement success, mismatch rejection, expired/invalid links, request/save failures and preserved account return; screenshots inspected, no overflow/page errors.
+- [x] Confirm existing production Site URL and allowed redirects cover /reset-password; frontend publication only when requested, existing auth email template unchanged. No real emails/password changes, deployment or publication. Live delivery/password validation remains untested.
 
 # Appointment email links
 - [x] Audit appointment confirmation/resend/update, reminder, legacy cancellation/reschedule, review and owner senders; unify customer action links on avdetailing.net.
