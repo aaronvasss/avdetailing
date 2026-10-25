@@ -170,7 +170,7 @@ export function AppointmentCard({
         onClick={() => onViewDetails(booking)}
       >
         <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4 flex-1 min-w-0">
               {/* Date Block */}
               <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
@@ -185,7 +185,7 @@ export function AppointmentCard({
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="font-semibold truncate">
+                  <h4 className="font-semibold break-words">
                     {booking.services?.name || "Detailing Service"}
                   </h4>
                   <Badge variant="outline" className={status.className}>
@@ -195,10 +195,10 @@ export function AppointmentCard({
                 <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {formatTime12h(booking.scheduled_time)}
+                    {formatTime12h(booking.scheduled_time)} Central Time
                   </span>
                   {vehicle && (
-                    <span className="flex items-center gap-1 truncate">
+                    <span className="flex items-start gap-1 break-words">
                       <Car className="h-3 w-3" />
                       {vehicle}
                     </span>
@@ -257,7 +257,7 @@ export function AppointmentCard({
           </div>
           {booking.status === "completed" && (
             <Button size="sm" variant="outline" className="mt-3" onClick={event => { event.stopPropagation(); onViewDetails(booking); }}>
-              <FileText className="mr-2 h-4 w-4" />View Service Records
+              <FileText className="mr-2 h-4 w-4" />Receipts & service records
             </Button>
           )}
         </CardContent>
@@ -310,7 +310,7 @@ export function AppointmentCard({
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4 text-primary/70" />
-            <span>{formatTime12h(booking.scheduled_time)}</span>
+            <span>{formatTime12h(booking.scheduled_time)} Central Time</span>
           </div>
           {vehicle && (
             <div className="flex items-center gap-2 text-muted-foreground">
