@@ -17,6 +17,7 @@ import { dirname, join } from "node:path";
 import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
 import { LOCATION_PAGES } from "../src/data/locationPages";
+import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -351,6 +352,15 @@ for (const route of ALL_ROUTES) {
 
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, rewritten);
+  written++;
+}
+
+// Public utility routes deliberately use an anonymous shell, not a captured
+// account session or homepage snapshot. React mounts the existing interactive UI.
+for (const route of UTILITY_ROUTE_SEO) {
+  const target = join(DIST, route.path.slice(1), "index.html");
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, rewriteUtilityHtml(SHELL, route));
   written++;
 }
 

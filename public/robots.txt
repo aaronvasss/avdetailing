@@ -6,10 +6,12 @@ Disallow: /admin/
 Disallow: /worker
 Disallow: /worker/
 Disallow: /account
-Disallow: /auth
-Disallow: /auth/
-Disallow: /book
 Disallow: /booking/
 Disallow: /booking/manage
+
+# Public booking and sign-in pages must be crawlable so their HTML noindex
+# directives can be read. Private portals remain protected by authentication.
+Allow: /book$
+Allow: /auth$
 
 Sitemap: https://avdetailing.net/sitemap.xml
