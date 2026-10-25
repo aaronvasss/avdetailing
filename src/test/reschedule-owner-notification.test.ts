@@ -1,9 +1,10 @@
-// @vitest-environment node
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
 import { createRescheduleHandler } from "../../supabase/functions/reschedule-booking/handler";
 import { notifyRescheduleOwner, centralAppointmentLabel, type RescheduleNotice } from "../../supabase/functions/reschedule-booking/owner-notification";
 
 const ID = "00000000-0000-4000-8000-000000000201";
+// jsdom's AbortSignal lacks the runtime timeout API; no actual requests run here.
+beforeAll(() => { vi.spyOn(AbortSignal, "timeout").mockImplementation(() => new AbortController().signal); });
 const input = { bookingId: ID, expectedDate: "2026-10-28", expectedTime: "09:00:00", newDate: "2026-10-30", newTime: "11:00:00" };
 function setup(options: { failSave?: boolean; blocked?: boolean; failDelivery?: boolean; guest?: string | null } = {}) {
   const state = { id: ID, user_id: "customer", scheduled_date: "2026-10-28", scheduled_time: "09:00:00", status: "confirmed", updated_at: "rev0", guest_name: options.guest === undefined ? "Mock Customer" : options.guest, services: { name: "Car Detailing" }, duration_minutes: 135 };
