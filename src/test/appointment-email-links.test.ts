@@ -51,7 +51,7 @@ describe("appointment email capabilities", () => {
   });
   it.each([createCancellationHandler, createRescheduleHandler])("guest mutations require exact appointment verification and preserve restricted appointments", async factory => {
     const s = dbFor({ ...booking, status: "completed" }); const notify = vi.fn(); const verifyLink = vi.fn(async (bookingId, capability) => bookingId === id && capability === token);
-    const handler = factory({ db: s.db, cors: {}, now, authenticate: async () => null, verifyLink, notify, logFailure: vi.fn(), parse: body => body as any });
+    const handler = factory({ db: s.db, cors: {}, now, authenticate: async () => null, verifyLink, parse: body => body as any });
     const body = { bookingId: id, manageToken: token, expectedDate: "2026-10-28", expectedTime: "09:00", newDate: "2026-10-29", newTime: "09:00" };
     // Reschedule reads scheduling dependencies only after ownership; use cancellation for restricted status and both for denial.
     const denied = await handler(new Request("https://test", { method: "POST", body: JSON.stringify({ ...body, manageToken: "wrong" }) }));
