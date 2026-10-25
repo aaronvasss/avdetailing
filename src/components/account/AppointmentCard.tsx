@@ -331,7 +331,6 @@ export function AppointmentCard({
             onClick={(e) => e.stopPropagation()}
           >
             <Button
-              variant="outline"
               size="sm"
               onClick={() => onReschedule(booking)}
               className="flex-1"
