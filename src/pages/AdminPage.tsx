@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -30,7 +30,7 @@ import { PhotoGallery } from "@/components/photos/PhotoGallery";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { formatTime12h } from "@/lib/time-format";
+import { formatTime12h, parseDateString } from "@/lib/time-format";
 
 interface BookingDetails {
   id: string;
@@ -52,6 +52,8 @@ interface BookingDetails {
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const linkedBookingId = searchParams.get("booking");
   const { isAdmin, isStaff, isLoading, user, role } = useRoleCheck();
   const [currentTab, setCurrentTab] = useState("overview");
   const [newBookingOpen, setNewBookingOpen] = useState(false);
@@ -69,8 +71,22 @@ export default function AdminPage() {
     }
   }, [isLoading, user, navigate]);
 
+  useEffect(() => {
+    if (isLoading || !user || !isStaff || !linkedBookingId) return;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(linkedBookingId)) return;
+    let cancelled = false;
+    setCurrentTab("appointments");
+    void (async () => {
+      const { data, error } = await supabase.from("bookings").select("*, services(name)").eq("id", linkedBookingId).maybeSingle();
+      if (cancelled) return;
+      if (error || !data) { toast.error("Unable to open this appointment. Find it in Appointments."); return; }
+      setSelectedBooking({ ...data, profiles: null } as BookingDetails);
+    })();
+    return () => { cancelled = true; };
+  }, [isLoading, user, isStaff, linkedBookingId]);
+
   const getCustomerName = (booking: BookingDetails) => {
-    return booking.profiles?.full_name || booking.guest_name || "Unknown";
+    return booking.guest_name || booking.profiles?.full_name || "Unknown";
   };
 
   const getCustomerPhone = (booking: BookingDetails) => {
@@ -278,11 +294,11 @@ export default function AdminPage() {
               <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{format(new Date(selectedBooking.scheduled_date), "EEEE, MMMM d, yyyy")}</span>
+                  <span>{format(parseDateString(selectedBooking.scheduled_date), "EEEE, MMMM d, yyyy")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatTime12h(selectedBooking.scheduled_time)}</span>
+                  <span>{formatTime12h(selectedBooking.scheduled_time)} Central Time</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -320,6 +336,10 @@ export default function AdminPage() {
                 <div className="flex justify-between">
                   <span>Service</span>
                   <span className="font-medium">{selectedBooking.services?.name || "Detailing"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status</span>
+                  <span className="font-medium">{selectedBooking.status === "pending" ? "Pending confirmation" : selectedBooking.status}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Vehicle</span>
@@ -396,7 +416,7 @@ export default function AdminPage() {
                     variant="outline" 
                     className="flex-1"
                     onClick={() => {
-                      setReplyPhone(getCustomerPhone(selectedBooking)!);
+                      setReplyPhone(getCustomerPhone(selectedBooking));
                       setSelectedBooking(null);
                     }}
                   >
