@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { appointmentLinks } from "../_shared/appointment-links.ts";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Unified Booking Notification System
@@ -30,13 +31,13 @@ function htmlEncode(str: string): string {
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  return new Date(`${dateStr}T12:00:00Z`).toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/Chicago",
   });
 }
 
 function shortDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(`${dateStr}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" });
 }
 
 function formatTime12(time: string): string {
@@ -103,9 +104,14 @@ async function sendEmail(to: string, from: string, subject: string, html: string
 // ━━━━ Calendar Helpers ━━━━
 
 function buildCalendarLinks(booking: any, serviceName: string) {
-  const startDate = new Date(booking.scheduled_date);
-  const [hours, minutes] = (booking.scheduled_time.match(/(\d+):(\d+)/) || ["", "9", "00"]).slice(1);
-  startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  const displayTime = formatTime12(booking.scheduled_time);
+  const parts = displayTime.match(/(\d+):(\d+) (AM|PM)/);
+  const hours = parts ? Number(parts[1]) % 12 + (parts[3] === "PM" ? 12 : 0) : 9;
+  const minutes = parts ? Number(parts[2]) : 0;
+  const guess = Date.parse(`${booking.scheduled_date}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00Z`);
+  const ct = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(guess)).map(p => [p.type, p.value]));
+  const represented = Date.parse(`${ct.year}-${ct.month}-${ct.day}T${ct.hour}:${ct.minute}:00Z`);
+  const startDate = new Date(guess + guess - represented);
 
   const endDate = new Date(startDate);
   endDate.setMinutes(endDate.getMinutes() + (booking.duration_minutes || 180));
@@ -157,7 +163,8 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
   const vtName = vehicleTypeLabel(vehicleType);
 
   const { googleUrl, icsUrl, outlookUrl } = buildCalendarLinks(booking, serviceName);
-  const rescheduleUrl = `${BASE_URL}/booking/manage?token=${booking.manage_token}`;
+  const links = appointmentLinks(booking);
+  const rescheduleUrl = htmlEncode(links.reschedule);
 
   const isQuote = isQuoteBasedService(vehicleType);
   const hasCeramic = includesCeramic(serviceName, addOns);
@@ -216,7 +223,7 @@ function buildCustomerHtml(booking: any, serviceName: string, addOns: { name: st
 <!-- Date Card -->
 <div style="background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);border-radius:12px;padding:24px;margin-bottom:24px;text-align:center;">
   <p style="color:rgba(255,255,255,0.8);font-size:12px;text-transform:uppercase;letter-spacing:2px;margin:0 0 8px;">Your Appointment</p>
-  <p style="color:#fff;font-size:28px;font-weight:700;margin:0 0 4px;">${short} at ${time}</p>
+  <p style="color:#fff;font-size:28px;font-weight:700;margin:0 0 4px;">${short} at ${time} Central Time</p>
   <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">📍 ${city}, ${state}</p>
 </div>
 
@@ -248,11 +255,11 @@ ${paymentBanner}
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
       <tr>
         <td width="33%" style="padding-right:4px;"><a href="${rescheduleUrl}" style="display:block;background-color:#3b82f6;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">📅 Reschedule</a></td>
-        <td width="34%" style="padding:0 4px;"><a href="${BASE_URL}/account" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">👤 My Account</a></td>
-        <td width="33%" style="padding-left:4px;"><a href="${BASE_URL}/cancel/${booking.id}?token=${booking.manage_token}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">✕ Cancel</a></td>
+        <td width="34%" style="padding:0 4px;"><a href="${htmlEncode(links.manage)}" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">Manage Appointment</a></td>
+        <td width="33%" style="padding-left:4px;"><a href="${htmlEncode(links.cancel)}" style="display:block;background-color:#525252;color:#fff;text-decoration:none;padding:12px 0;border-radius:8px;font-weight:600;font-size:12px;text-align:center;">✕ Cancel</a></td>
       </tr>
     </table>
-    ${!booking.user_id ? '<p style="color:#737373;font-size:11px;text-align:center;margin:0 0 12px;">To manage your appointment, create a free account using the same email you booked with.</p>' : ''}
+    <p style="color:#737373;font-size:11px;text-align:center;margin:0 0 12px;">Keep these private appointment links secure. Opening a link does not change your appointment.</p>
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
       <tr>
         <td width="50%" style="padding-right:6px;"><a href="tel:2255216264" style="display:block;background-color:#262626;color:#fff;text-decoration:none;padding:10px 0;border-radius:8px;font-size:13px;text-align:center;">📞 Call Us</a></td>
@@ -279,7 +286,7 @@ ${paymentBanner}
       <tr><td style="padding:14px 16px;background-color:#0a0a0a;border-radius:8px 8px 0 0;">
         <span style="color:#737373;font-size:11px;text-transform:uppercase;">Date & Time</span>
         <p style="color:#fff;font-size:16px;font-weight:600;margin:6px 0 0;">${date}</p>
-        <p style="color:#ef4444;font-size:18px;font-weight:700;margin:4px 0 0;">${time}</p>
+        <p style="color:#ef4444;font-size:18px;font-weight:700;margin:4px 0 0;">${time} Central Time</p>
         <p style="color:#a3a3a3;font-size:12px;margin:4px 0 0;">Estimated: ${Math.floor(duration / 60)}h${duration % 60 > 0 ? ` ${duration % 60}m` : ""}</p>
       </td></tr>
       <tr><td style="padding:14px 16px;background-color:rgba(10,10,10,0.5);">

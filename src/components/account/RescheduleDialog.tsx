@@ -30,6 +30,8 @@ interface RescheduleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  manageToken?: string;
+  emailLink?: boolean;
 }
 
 const CT = "Central Time";
@@ -49,7 +51,7 @@ async function readError(error: any, data: any): Promise<string> {
   return "We couldn't reschedule right now. Your original appointment is unchanged.";
 }
 
-export function RescheduleDialog({ booking, open, onOpenChange, onSuccess }: RescheduleDialogProps) {
+export function RescheduleDialog({ booking, open, onOpenChange, onSuccess, manageToken, emailLink }: RescheduleDialogProps) {
   const { config: schedulingConfig, isDateBlocked } = useSchedulingSettings();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -82,16 +84,24 @@ export function RescheduleDialog({ booking, open, onOpenChange, onSuccess }: Res
     setSelectedTime("");
     const dateStr = toDateString(date);
     try {
-      const { data: existingBookings } = await supabase
+      if (emailLink) {
+        const { data, error } = await supabase.functions.invoke("manage-booking", { body: { bookingId: booking?.id, token: manageToken, action: "slots", date: dateStr } });
+        if (error || !Array.isArray(data?.slots)) throw new Error("Availability could not be verified.");
+        setAvailableSlots(data.slots);
+        return;
+      }
+      const { data: existingBookings, error: availabilityError } = await supabase
         .from("bookings")
         .select("id, scheduled_time, duration_minutes")
         .eq("scheduled_date", dateStr)
         .neq("id", booking?.id || "")
         .in("status", ["pending", "confirmed", "in_progress"]);
+      if (availabilityError) throw availabilityError;
       setAvailableSlots(generateTimeSlots(serviceDuration, existingBookings || [], schedulingConfig, { dateStr }));
     } catch (error) {
       console.error("Error checking availability:", error);
-      setAvailableSlots(generateTimeSlots(serviceDuration, [], schedulingConfig, { dateStr }));
+      setAvailableSlots([]);
+      setErrorMsg("Availability could not be verified. Please retry or choose another date.");
     } finally {
       setLoadingSlots(false);
     }
@@ -116,7 +126,7 @@ export function RescheduleDialog({ booking, open, onOpenChange, onSuccess }: Res
     try {
       const { data, error } = await supabase.functions.invoke("reschedule-booking", {
         body: { bookingId: booking.id, newDate: toDateString(selectedDate), newTime: dbTime,
-          expectedDate: booking.scheduled_date, expectedTime: toDbTime(booking.scheduled_time) },
+          expectedDate: booking.scheduled_date, expectedTime: toDbTime(booking.scheduled_time), ...(manageToken ? { manageToken } : {}) },
       });
       if (error || !data?.ok) {
         const msg = await readError(error, data);

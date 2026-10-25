@@ -14,8 +14,8 @@ interface Booking {
   vehicle_year?: number | null; vehicle_make?: string | null; vehicle_model?: string | null; vehicle_type?: string | null;
   services: { name: string } | null;
 }
-interface Props { booking: Booking | null; open: boolean; onOpenChange: (open: boolean) => void; onSuccess: () => void }
-export function CancelBookingDialog({ booking, open, onOpenChange, onSuccess }: Props) {
+interface Props { booking: Booking | null; open: boolean; onOpenChange: (open: boolean) => void; onSuccess: () => void; manageToken?: string }
+export function CancelBookingDialog({ booking, open, onOpenChange, onSuccess, manageToken }: Props) {
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export function CancelBookingDialog({ booking, open, onOpenChange, onSuccess }: 
     submitting.current = true; setLoading(true); setError(null);
     try {
       const { data, error: requestError } = await supabase.functions.invoke("cancel-customer-booking", {
-        body: { bookingId: booking.id, expectedDate: booking.scheduled_date, expectedTime: booking.scheduled_time, reason: reason.trim() },
+        body: { bookingId: booking.id, expectedDate: booking.scheduled_date, expectedTime: booking.scheduled_time, reason: reason.trim(), ...(manageToken ? { manageToken } : {}) },
       });
       if (requestError || data?.error || !data?.ok) {
         let message = data?.error;

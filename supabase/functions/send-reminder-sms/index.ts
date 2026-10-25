@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 import { normalizePhone, reminderConsent, smsNotSuppressed } from "../_shared/reminder-permissions.ts";
+import { appointmentLinks } from "../_shared/appointment-links.ts";
 
 const schema=z.object({sendAll:z.boolean().optional(),bookingId:z.string().uuid().optional(),reminderType:z.enum(['24h','2h','custom']).optional(),dryRun:z.boolean().optional()});
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...corsHeaders,'Content-Type':'application/json'}});
@@ -52,7 +53,8 @@ serve(async req=>{
       const name=booking.guest_name||profile?.full_name||'there';
       const [h,m]=booking.scheduled_time.split(':').map(Number);const time=`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
       const date=new Date(`${booking.scheduled_date}T12:00:00Z`).toLocaleDateString('en-US',{month:'long',day:'numeric',timeZone:'America/Chicago'});
-      const message=`AV Detailing 🚗\nHi ${name.split(' ')[0]}! Your appointment is ${date} at ${time} (30-minute arrival window).\n${[booking.service_address,booking.service_city].filter(Boolean).join(', ')}\nRemove valuables and secure hazards before service.\nQuestions? Call ${values.public_business_phone||'(225) 521-6264'}. Reply STOP to opt out.`;
+      const links=appointmentLinks(booking);
+      const message=`AV Detailing 🚗\nHi ${name.split(' ')[0]}! Your appointment is ${date} at ${time} Central Time (30-minute arrival window).\n${[booking.service_address,booking.service_city].filter(Boolean).join(', ')}\nRemove valuables and secure hazards before service.\nQuestions? Call ${values.public_business_phone||'(225) 521-6264'}. Reply STOP to opt out.`;
       for(const channel of ['email','sms'] as const){
         const destination=channel==='email'?email:phone;
         const consent=await reminderConsent(db,booking,channel);
