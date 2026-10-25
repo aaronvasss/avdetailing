@@ -1,6 +1,7 @@
 # Owner reschedule notification
-- [ ] Reuse existing owner recipients/channels after saved customer reschedules, with Central times, pending status and admin appointment link.
-- [ ] Verify intercepted notification delivery, duplicate submissions/retries and failure logging with mocks only; no deployment, publication or real changes/messages.
+- [x] Reuse existing owner email/SMS recipients after saved customer reschedules, with Central times, pending status and protected admin appointment link.
+- [x] Verify intercepted notification delivery, concurrent submissions, lost-response retries, unavailable/save-failed requests and failure logging with mocks only: 183 tests passed; desktop/375px/390px customer flow and desktop/375px owner link passed; no deployment, publication or real changes/messages.
+- [ ] Activate only when requested: deploy reschedule-booking before publishing the matching customer request/admin-link changes; existing Resend/Twilio secret names are present, but live delivery remains intentionally untested. Failed sends require manual follow-up; no automatic SMS retry or transactional outbox was added.
 
 # Booking progress visibility
 - [x] Add accurate branch-aware step counts, current selections and authoritative running total; label Central Time/end time and optional-extras action.
