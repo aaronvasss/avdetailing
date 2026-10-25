@@ -1,6 +1,6 @@
 # Utility-route SEO
-- [ ] Emit route-specific anonymous initial HTML and noindex for booking and sign-in; preserve service indexing and sitemap exclusions.
-- [ ] Verify generated responses, rendered booking/sign-in, and authentication redirects; no publication.
+- [x] Emit route-specific anonymous initial HTML and noindex for booking and sign-in; preserve service indexing and sitemap exclusions.
+- [x] Verified postbuild output via local HTTP (200, self canonicals, single noindex), rendered metadata, booking service selection, sign-up toggle and signed-out private-portal redirects; 15 tests and preview build passed. Live response verification awaits publication; no publication requested.
 
 # Owner-only appointment hours
 - [x] Allow owner/admin portal creation and editing outside customer hours without changing public settings.
