@@ -7,7 +7,7 @@ import { appointmentCalendarRange,formatCalendarUTC,calendarLines } from '../../
 function endpoint(name:string,booking:object) {
   let handler: ((request:Request)=>Promise<Response>)|undefined;
   const query:any={select:()=>query,eq:()=>query,in:()=>query,order:async()=>({data:[booking],error:null}),single:async()=>({data:booking,error:null})};
-  const profile={...query,single:async()=>({data:{calendar_token:'mock-token',full_name:'Mock'},error:null})};
+  const profile:any={select:()=>profile,eq:()=>profile,single:async()=>({data:{calendar_token:'mock-token',full_name:'Mock'},error:null})};
   const source=readFileSync(`${process.cwd()}/supabase/functions/${name}/index.ts`,'utf8')
     .replace(/^import .*;\r?\n/gm,'');
   runInNewContext(ts.transpile(source,{target:ts.ScriptTarget.ES2022}),{
