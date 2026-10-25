@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { bookingAmounts, packageVehicleTypes } from "../_shared/booking-pricing.ts";
 import { canOverrideBookingHours } from "../_shared/admin-booking-hours.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -316,16 +317,21 @@ const handler = async (req: Request): Promise<Response> => {
           .eq("slug", body.package_slug)
           .eq("is_active", true);
         if (pkgVehicleType) {
-          pkgQuery = pkgQuery.eq("vehicle_type", pkgVehicleType);
+          pkgQuery = pkgQuery.in("vehicle_type", packageVehicleTypes(pkgVehicleType));
         }
         const { data: pkgRows } = await pkgQuery;
         if (pkgRows && pkgRows.length > 0) {
-          pkgPrice = Number(pkgRows[0].price);
+          const orderedTypes = packageVehicleTypes(pkgVehicleType || "");
+          const match = orderedTypes.map(type => pkgRows.find(row => row.vehicle_type === type)).find(Boolean);
+          if (match) pkgPrice = Number(match.price);
         }
       }
       finalSubtotal = pkgPrice != null ? pkgPrice : Number(service.base_price);
       finalAddOnsTotal = serverAddOnsTotal;
-      finalTotal = finalSubtotal + finalAddOnsTotal;
+      const amounts = bookingAmounts(finalSubtotal, [finalAddOnsTotal]);
+      finalSubtotal = amounts.subtotal;
+      finalAddOnsTotal = amounts.addOnsTotal;
+      finalTotal = amounts.total;
     }
 
     // Determine status: admin can set custom status for past bookings

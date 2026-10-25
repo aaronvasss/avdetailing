@@ -1,4 +1,5 @@
 import { CERAMIC_BOOKING_PRICES, formatPrice, type CeramicTier } from "@/lib/pricing";
+import { authoritativePackagePrice, bookingAmounts } from "../../supabase/functions/_shared/booking-pricing";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -124,72 +125,9 @@ const bookingFlowDescriptions: Record<string, string> = {
   "gold": "Full interior detailing + full exterior detail (includes shampoo + paint sealant)",
 };
 
-// Fallback packages in case database fetch fails
-const fallbackPackages = [
-  { 
-    id: "exterior-only", 
-    name: "Exterior Only", 
-    basePrice: 75,
-    prices: { sedan: 75, "suv-5": 75, "suv-8": 85, truck: 85 },
-    time: "1 hour",
-    description: bookingFlowDescriptions["exterior-only"],
-    service_id: null,
-  },
-  { 
-    id: "basic", 
-    name: "Basic Package", 
-    basePrice: 145.18,
-    prices: { sedan: 145.18, "suv-5": 145.18, "suv-8": 155.54, truck: 155.54 },
-    time: "1-2 hours",
-    description: bookingFlowDescriptions["basic"],
-    service_id: null,
-  },
-  { 
-    id: "silver", 
-    name: "Silver Package", 
-    basePrice: 259.17,
-    prices: { sedan: 259.17, "suv-5": 259.17, "suv-8": 274.72, truck: 274.72 },
-    time: "3-5 hours",
-    description: bookingFlowDescriptions["silver"],
-    service_id: null,
-  },
-  { 
-    id: "gold", 
-    name: "Gold Package", 
-    basePrice: 362.80,
-    prices: { sedan: 362.80, "suv-5": 362.80, "suv-8": 378.34, truck: 378.34 },
-    time: "5-6 hours",
-    description: bookingFlowDescriptions["gold"],
-    service_id: null,
-    is_popular: true,
-  },
-];
-
-// Display price overrides — used ONLY for what the customer sees during selection.
-// Actual DB prices are preserved for backend calculations, Stripe, and booking totals.
 const CAR_PACKAGE_SLUGS = ["exterior-only", "basic", "silver", "gold"];
 /** Gold is the single recommended car package, matching the car detailing page. */
 const CAR_POPULAR_SLUG = "gold";
-
-const DISPLAY_PACKAGE_PRICES: Record<string, Record<string, number>> = {
-  "exterior-only": { sedan: 75, "suv-5": 75, "suv-8": 75, truck: 75 },
-  "basic": { sedan: 140, "suv-5": 150, "suv-8": 150, truck: 150 },
-  "silver": { sedan: 250, "suv-5": 250, "suv-8": 260, truck: 250 },
-  "gold": { sedan: 350, "suv-5": 350, "suv-8": 360, truck: 350 },
-  "interior-basic": { sedan: 100, "suv-5": 100, "suv-8": 100, truck: 100 },
-  "interior-full-detail": { sedan: 260, "suv-5": 260, "suv-8": 260, truck: 260 },
-  "boat-basic": { boat: 280 },
-  "boat-full": { boat: 380 },
-  "boat-premium": { boat: 480 },
-};
-
-const DISPLAY_ADDON_PRICES: Record<string, number> = {
-  "pet hair removal": 45,
-  "engine bay cleaning": 60,
-  "odor elimination": 50,
-  "headlight restoration": 70,
-  "clay bar treatment": 70,
-};
 
 interface ServicePackage {
   id: string;
@@ -306,8 +244,6 @@ const BookingPage = () => {
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [referralChecking, setReferralChecking] = useState(false);
   const [referralCredit, setReferralCredit] = useState(0);
-  const [referralRewardIds, setReferralRewardIds] = useState<string[]>([]);
-  const [useCredit, setUseCredit] = useState(true);
   const [customerInfo, setCustomerInfo] = useState({
     firstName: "",
     lastName: "",
@@ -404,7 +340,7 @@ const BookingPage = () => {
 
   // Transform database packages into the format needed by the UI - filtered by service type
   const packages = useMemo(() => {
-    if (!dbPackages || dbPackages.length === 0) return fallbackPackages;
+    if (!dbPackages || dbPackages.length === 0) return [];
 
     // Get the service ID for the current service type
     const currentServiceId = getServiceIdForType(serviceType);
@@ -417,7 +353,7 @@ const BookingPage = () => {
 
     if (filteredPackages.length === 0) {
       // Fallback for car detailing if no packages found
-      if (serviceType === "car") return fallbackPackages;
+      if (serviceType === "car") return [];
       return [];
     }
 
@@ -458,7 +394,8 @@ const BookingPage = () => {
           service_id: pkg.service_id,
         });
       }
-      const existing = packageMap.get(pkg.slug)!;
+      const existing = packageMap.get(pkg.slug);
+      if (!existing) return;
       existing.prices[pkg.vehicle_type] = Number(pkg.price);
       existing.stripePriceIds[pkg.vehicle_type] = pkg.stripe_price_id || null;
     });
@@ -468,15 +405,7 @@ const BookingPage = () => {
 
   // Use database add-ons or fallback
   const addOns = useMemo(() => {
-    if (!dbAddOns || dbAddOns.length === 0) {
-      return [
-        { id: "pet", name: "Pet Hair Removal", price: 46.63, description: "Deep extraction of pet hair from all surfaces" },
-        { id: "engine", name: "Engine Bay Cleaning", price: 62.18, description: "Detailed cleaning of engine compartment" },
-        { id: "odor", name: "Odor Elimination", price: 67.36, description: "Eliminate stubborn odors with ozone treatment" },
-        { id: "headlight", name: "Headlight Restoration", price: 72.59, description: "Restore clarity to foggy headlights" },
-        { id: "clay", name: "Clay Bar Treatment", price: 72.59, description: "Removes embedded contaminants for a smooth finish" },
-      ];
-    }
+    if (!dbAddOns) return [];
     return dbAddOns.map(addon => ({
       id: addon.id,
       name: addon.name,
@@ -529,7 +458,6 @@ const BookingPage = () => {
       if (rewards && rewards.length > 0) {
         const total = rewards.reduce((sum: number, r: any) => sum + Number(r.reward_amount), 0);
         setReferralCredit(total);
-        setReferralRewardIds(rewards.map((r: any) => r.id));
       }
     };
     fetchCredits();
@@ -599,68 +527,17 @@ const BookingPage = () => {
     );
   };
 
-  const getPackagePrice = (pkg: { basePrice: number; prices: Record<string, number> }) => {
-    // Direct match on UI vehicle sub-type
-    if (vehicleSubType && pkg.prices[vehicleSubType]) {
-      return pkg.prices[vehicleSubType];
-    }
-    
-    // Try DB vehicle type mapping (for services like Paint Correction that use "car", "suv", "truck")
-    if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
-      for (const dbType of vehicleSubTypeToDbType[vehicleSubType]) {
-        if (pkg.prices[dbType]) {
-          return pkg.prices[dbType];
-        }
-      }
-    }
-    
-    return pkg.basePrice;
-  };
+  const getPackagePrice = (pkg: { basePrice: number; prices: Record<string, number> }) =>
+    authoritativePackagePrice(pkg.prices, vehicleSubType || serviceType, pkg.basePrice);
 
-  // Display-only prices for UI rendering (package selection, add-ons, summary)
-  const getDisplayPackagePrice = (pkg: { id: string; name: string; basePrice: number; prices: Record<string, number> }) => {
-    const displayMap = DISPLAY_PACKAGE_PRICES[pkg.id];
-    if (displayMap) {
-      if (vehicleSubType && displayMap[vehicleSubType]) {
-        return displayMap[vehicleSubType];
-      }
-      if (vehicleSubType && vehicleSubTypeToDbType[vehicleSubType]) {
-        for (const dbType of vehicleSubTypeToDbType[vehicleSubType]) {
-          if (displayMap[dbType]) {
-            return displayMap[dbType];
-          }
-        }
-      }
-      const firstPrice = Object.values(displayMap)[0];
-      if (firstPrice !== undefined) return firstPrice;
-    }
-
-    // Name-based fallback for interior packages with unknown slugs
-    const nameLower = pkg.name.toLowerCase();
-    if (nameLower.includes("interior basic")) return 100;
-    if (nameLower.includes("interior full")) return 260;
-
-    return getPackagePrice(pkg);
-  };
-
-  const getDisplayAddOnPrice = (addon: { name: string; price: number }) => {
-    const nameLower = addon.name.toLowerCase();
-    for (const [key, price] of Object.entries(DISPLAY_ADDON_PRICES)) {
-      if (nameLower.includes(key)) return price;
-    }
-    return addon.price;
-  };
-
-  const calculateTotal = () => {
-    if (serviceType === "ceramic") return ceramicPrice();
+  const selectedAmounts = () => {
     const pkg = packages.find(p => p.id === selectedPackage);
-    const packagePrice = pkg ? getDisplayPackagePrice(pkg) : 0;
-    const addOnsTotal = selectedAddOns.reduce((sum, id) => {
-      const addon = addOns.find(a => a.id === id);
-      return sum + (addon ? getDisplayAddOnPrice(addon) : 0);
-    }, 0);
-    return packagePrice + addOnsTotal;
+    return bookingAmounts(
+      serviceType === "ceramic" ? ceramicPrice() : pkg ? getPackagePrice(pkg) : 0,
+      selectedAddOns.map(id => addOns.find(a => a.id === id)?.price ?? 0),
+    );
   };
+  const calculateTotal = () => selectedAmounts().total;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -718,11 +595,7 @@ const BookingPage = () => {
       if(!pkg&&serviceType!=='ceramic')throw new Error('Please choose a current package');
       const isCeramic = serviceType === "ceramic";
       const isInPersonOnly = inPersonOnlyServices.includes(serviceType);
-      const totalPrice = isCeramic ? ceramicPrice() : pkg ? getPackagePrice(pkg) : 0;
-      const addOnsTotal = selectedAddOns.reduce((sum, id) => {
-        const addon = addOns.find(a => a.id === id);
-        return sum + (addon?.price || 0);
-      }, 0);
+      const { subtotal: totalPrice, addOnsTotal, total: payableTotal } = selectedAmounts();
 
       const vehicleTypeLabel = carVehicleTypes.find(v => v.id === vehicleSubType)?.label || serviceType;
 
@@ -771,7 +644,7 @@ const BookingPage = () => {
         address_notes: customerInfo.notes || null,
         subtotal: totalPrice,
         add_ons_total: addOnsTotal,
-        total_price: totalPrice + addOnsTotal,
+        total_price: payableTotal,
         // Ceramic coating and boat detailing are in-person payment only (no Stripe)
         status: isInPersonOnly ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
         payment_status: isInPersonOnly ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
@@ -821,24 +694,6 @@ const BookingPage = () => {
         } catch (refErr) {
           console.error("Referral tracking error:", refErr);
           // Don't fail the booking over referral tracking
-        }
-      }
-
-      // Redeem referral credits if used
-      if (referralCredit > 0 && useCredit && referralRewardIds.length > 0) {
-        try {
-          for (const rewardId of referralRewardIds) {
-            await supabase
-              .from("referral_rewards")
-              .update({
-                is_redeemed: true,
-                redeemed_booking_id: createdId,
-                redeemed_at: new Date().toISOString(),
-              } as any)
-              .eq("id", rewardId);
-          }
-        } catch (creditErr) {
-          console.error("Credit redemption error:", creditErr);
         }
       }
 
@@ -926,7 +781,7 @@ const BookingPage = () => {
         scheduledTime: formatTime12h(selectedTime),
         serviceAddress: customerInfo.address,
         serviceCity: customerInfo.city,
-        totalPrice: totalPrice + addOnsTotal,
+        totalPrice: Number(createResp.booking.total_price),
         bookingId: createdId,
         notifyBusiness: true,
       }).catch((smsError) => {
@@ -1378,7 +1233,7 @@ const BookingPage = () => {
             ) : (
               <div className="space-y-4">
                 {packages.map((pkg) => {
-                  const displayPrice = getDisplayPackagePrice(pkg);
+                  const displayPrice = getPackagePrice(pkg);
                   const isPopular = serviceType === "car" ? pkg.id === CAR_POPULAR_SLUG : pkg.is_popular;
                   return (
                     <button
@@ -1396,8 +1251,8 @@ const BookingPage = () => {
                           Most Popular
                         </span>
                       )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-4">
                           {selectedPackage === pkg.id && (
                             <Check className="h-5 w-5 text-primary" />
                           )}
@@ -1407,12 +1262,12 @@ const BookingPage = () => {
                             <p className="text-xs text-muted-foreground mt-1">{pkg.time}</p>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           {startingAtPricingServices.includes(serviceType) && (
                             <span className="text-xs text-muted-foreground block">Starting at</span>
                           )}
-                          <span className="text-2xl font-bold text-primary">
-                            ${displayPrice}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
+                          <span className="text-xl sm:text-2xl font-bold text-primary">
+                            ${displayPrice.toFixed(2)}{startingAtPricingServices.includes(serviceType) ? '+' : ''}
                           </span>
                         </div>
                       </div>
@@ -1484,7 +1339,7 @@ const BookingPage = () => {
                             <p className="text-xs text-muted-foreground">{reason}</p>
                           </div>
                         </div>
-                        <span className="font-semibold text-primary">${getDisplayAddOnPrice(addon)}</span>
+                        <span className="font-semibold text-primary">${addon.price.toFixed(2)}</span>
                       </button>
                     );
                   })}
@@ -1524,7 +1379,7 @@ const BookingPage = () => {
                           <p className="text-sm text-muted-foreground">{addon.description}</p>
                         </div>
                       </div>
-                      <span className="font-semibold text-primary">${getDisplayAddOnPrice(addon)}</span>
+                      <span className="font-semibold text-primary">${addon.price.toFixed(2)}</span>
                     </button>
                   );
                 })}
@@ -1536,7 +1391,7 @@ const BookingPage = () => {
               <CardContent className="py-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Current Total</span>
-                  <span className="text-2xl font-bold text-primary">${calculateTotal()}</span>
+                  <span className="text-2xl font-bold text-primary">${calculateTotal().toFixed(2)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1847,7 +1702,7 @@ const BookingPage = () => {
                   </>
                 ) : (() => {
                   const pkg = packages.find((p) => p.id === selectedPackage);
-                  const pkgPrice = pkg ? getDisplayPackagePrice(pkg) : 0;
+                  const pkgPrice = pkg ? getPackagePrice(pkg) : 0;
                   return (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{pkg?.name || 'Package'}</span>
@@ -1863,7 +1718,7 @@ const BookingPage = () => {
                       .map((a) => (
                         <div key={a.id} className="flex justify-between pl-3">
                           <span className="text-sm">{a.name}</span>
-                          <span className="font-medium">${getDisplayAddOnPrice(a).toFixed(2)}</span>
+                          <span className="font-medium">${a.price.toFixed(2)}</span>
                         </div>
                       ))}
                     <div className="flex justify-between pl-3 text-sm text-muted-foreground border-t pt-1">
@@ -1871,7 +1726,7 @@ const BookingPage = () => {
                       <span>
                         ${selectedAddOns.reduce((sum, id) => {
                           const a = addOns.find((x) => x.id === id);
-                          return sum + (a ? getDisplayAddOnPrice(a) : 0);
+                          return sum + (a ? a.price : 0);
                         }, 0).toFixed(2)}
                       </span>
                     </div>
@@ -1891,35 +1746,15 @@ const BookingPage = () => {
                     {inPersonOnlyServices.includes(serviceType) ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
                   </span>
                 </div>
-                {referralCredit > 0 && useCredit && (
-                  <div className="flex justify-between items-center text-green-500">
-                    <span className="flex items-center gap-1">
-                      <Gift className="h-4 w-4" />
-                      Referral Credit
-                    </span>
-                    <span className="font-medium">-${Math.min(referralCredit, calculateTotal()).toFixed(2)}</span>
-                  </div>
-                )}
                 {referralCredit > 0 && (
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <Checkbox
-                      checked={useCredit}
-                      onCheckedChange={(checked) => setUseCredit(checked === true)}
-                      className="border-primary data-[state=checked]:bg-primary"
-                    />
-                    Apply ${referralCredit} referral credit
-                  </label>
+                  <p className="text-sm text-muted-foreground">
+                    You have ${referralCredit.toFixed(2)} in referral credit. Contact us to apply it; it is not deducted from this booking.
+                  </p>
                 )}
                 <div className="border-t pt-4 flex justify-between">
                   <span className="font-semibold">Total</span>
                   <span className="text-xl font-bold text-primary">
-                    ${(() => {
-                      let total = calculateTotal();
-                      if (referralCredit > 0 && useCredit) {
-                        total = Math.max(0, total - referralCredit);
-                      }
-                      return total.toFixed(2);
-                    })()}
+                    ${calculateTotal().toFixed(2)}
                   </span>
                 </div>
               </CardContent>
