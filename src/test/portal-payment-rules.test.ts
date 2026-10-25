@@ -14,7 +14,7 @@ describe('appointment card charges', () => {
   it('never guesses a remaining balance after a partial refund',()=>expect(()=>balanceQuote(500,'unpaid',0,[{amount_cents:10000,payment_type:'balance',status:'partially_refunded',metadata:{service_amount_cents:10000}}])).toThrow('reconciliation'));
 });import { portalBalanceOrReview } from '../../supabase/functions/_shared/portal-payment-rules';
 describe('client balance uses saved-card rules', () => {
-  const ok = (r: ReturnType<typeof portalBalanceOrReview>) => r.review ? null : r.amountCents;
+  const ok = (r: ReturnType<typeof portalBalanceOrReview>) => ('amountCents' in r ? r.amountCents : null);
   it('unpaid $145.18 owes 14518', () => expect(ok(portalBalanceOrReview(145.18, 'unpaid', 0, []))).toBe(14518));
   it('paid owes 0', () => expect(ok(portalBalanceOrReview(145.18, 'paid', 0, []))).toBe(0));
   it('paid $100 deposit deducted once', () => expect(ok(portalBalanceOrReview(500, 'deposit_paid', 100, [{ amount_cents: 10000, payment_type: 'deposit', status: 'succeeded', metadata: { service_amount_cents: 10000 } }]))).toBe(40000));
