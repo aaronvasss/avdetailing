@@ -1,3 +1,8 @@
+# Appointment date/time completion
+- [ ] Use the Central calendar day for client classification without changing status policies.
+- [ ] Share timezone-aware conversion across Add to Calendar, download-ics and calendar-feed; retain durations and stored values.
+- [ ] Verify midnight/boundaries/DST with mocked browser/export tests and report import limitations; no release or real records.
+
 # Payment safeguard correction
 - [x] Stage corrective SQL outside managed migration history; client/wallet/reservation share the locked ledger balance and reject legacy fee-added responses.
 - [x] Thirty isolated PostgreSQL checks passed for $145.18, verified/unpaid deposits, partials, stale approvals, simultaneous requests, audit and ledger guards; desktop/375px/390px verified amount/review screens passed with intercepted requests.

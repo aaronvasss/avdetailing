@@ -1,4 +1,4 @@
-import { parseDateString } from "@/lib/time-format";
+import { parseDateString, businessToday } from "@/lib/time-format";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Clock, MapPin, Car, Plus, ChevronRight, CalendarClock, XCircle, Eye } from "lucide-react";
-import { format, isAfter, isBefore, startOfToday } from "date-fns";
+import { format, isAfter, isBefore } from "date-fns";
 import { BookingDetailsDialog } from "./BookingDetailsDialog";
 import { RescheduleDialog } from "./RescheduleDialog";
 import { CancelBookingDialog } from "./CancelBookingDialog";
@@ -160,7 +160,7 @@ export function BookingsTab({ userId }: BookingsTabProps) {
     );
   }
 
-  const today = startOfToday();
+  const today = parseDateString(businessToday());
   const upcomingBookings = bookings.filter(
     (b) => isAfter(parseDateString(b.scheduled_date), today) || 
            (format(parseDateString(b.scheduled_date), "yyyy-MM-dd") === format(today, "yyyy-MM-dd") && 
