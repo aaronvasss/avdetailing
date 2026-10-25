@@ -852,7 +852,10 @@ const BookingPage = () => {
                 <button
                   key={type.id}
                   onClick={() => {
-                    if (type.id !== serviceType) setSelectedPackage(""); // Reset package only when the service changes
+                    if (type.id !== serviceType) {
+                      setSelectedPackage("");
+                      setSelectedAddOns([]); // Do not carry hidden extras into a different service.
+                    }
                     setServiceType(type.id);
                     if (quoteOnlyServices.includes(type.id)) {
                       setStep(2);
