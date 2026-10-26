@@ -78,13 +78,13 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "ceramic-coating-baton-rouge",
     title: "Ceramic Coating in Baton Rouge, LA",
     metaDescription:
-      "System X ceramic coating in Baton Rouge — 3-year, 5-year, and 10-year tiers. Permanent hydrophobic protection against Louisiana UV, humidity, and water spots.",
+      "System X ceramic coating in Baton Rouge — 3-year, 6-year, and 10-year tiers. Hydrophobic protection against Louisiana UV, humidity, and water spots.",
     intro:
-      "Louisiana's UV index regularly tops 10 in summer — intense enough to break down standard wax and synthetic sealants in weeks. Ceramic coating is a semi-permanent hydrophobic protective layer that bonds chemically to your vehicle's clear coat, and AV Detailing exclusively uses System X, one of the most respected ceramic coating brands in the industry. We offer three tiers in Baton Rouge: 3-year, 5-year (our most popular), and 10-year. Black and dark-colored vehicles see the biggest visual improvement and the largest protection benefit in Louisiana's sun. According to {{l1}}, paint protection is one of the most cost-effective ways to preserve a vehicle's resale value, and {{l2}} highlights how UV and pollutant exposure accelerate finish degradation across South Louisiana. Coatings outlast traditional wax by years and dramatically reduce wash time.",
+      "Louisiana's UV index regularly tops 10 in summer — intense enough to break down standard wax and synthetic sealants in weeks. Ceramic coating is a semi-permanent hydrophobic protective layer that bonds chemically to your vehicle's clear coat, and AV Detailing exclusively uses System X, one of the most respected ceramic coating brands in the industry. We offer three tiers in Baton Rouge: 3-year, 6-year and 10-year. Black and dark-colored vehicles see the biggest visual improvement and the largest protection benefit in Louisiana's sun. According to {{l1}}, paint protection is one of the most cost-effective ways to preserve a vehicle's resale value, and {{l2}} highlights how UV and pollutant exposure accelerate finish degradation across South Louisiana. Coatings outlast traditional wax by years and dramatically reduce wash time.",
     link1: { text: "Consumer Reports", url: "https://www.consumerreports.org/cars/car-care/" },
     link2: { text: "the Louisiana DEQ", url: "https://www.deq.louisiana.gov/" },
     steps: [
-      "Free consultation — pick the 3-year, 5-year, or 10-year System X tier.",
+      "Free consultation — pick the 3-year, 6-year, or 10-year System X tier.",
       "Multi-stage paint correction to remove swirls and defects (mandatory prep).",
       "Surface prep with IPA wipedown to remove all oils and polish residue.",
       "System X ceramic coating applied in a controlled, contamination-free environment.",
@@ -92,7 +92,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     ],
     whyChoose: [
       "Exclusively System X — industry-leading ceramic coating brand.",
-      "Three tiers offered: 3-year, 5-year (most popular), and 10-year.",
+      "Three tiers offered: 3-year, 6-year and 10-year.",
       "Paint correction prep included to avoid locking in swirls under the coating.",
       "Hydrophobic protection engineered for Louisiana UV, humidity, and rain.",
     ],
@@ -420,7 +420,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     scopeHeading: "What to Send Before a Visit",
     whyChoose: [
       "Boat type, year, make, model and length.",
-      "Where it is kept and how it can be reached — trailer, lift, slip or afloat.",
+      "Where it is kept and whether it is on a trailer or lift.",
       "Any marina or storage rules for washing or detailing.",
       "The work you want and photos of the current condition, if you have them.",
     ],
@@ -488,22 +488,22 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     seoTitle: "Boat Hull Cleaning in Baton Rouge | Assessment & Quotes | AV Detailing",
     boatPage: true,
     metaDescription:
-      "Boat hull cleaning in Baton Rouge for waterline and hull staining. Tell us how your hull can be reached — trailer, lift, slip or afloat — so we can confirm what we can do.",
+      "Boat hull cleaning in Baton Rouge for waterline and hull staining. Hull cleaning is done with the boat out of the water on a trailer or lift. Tell us where it is so we can confirm the scope.",
     intro:
-      "Waterline stains, scum and hard-water deposits build up on boats used on local rivers and lakes. Hull cleaning depends on how the hull can be reached, so we review each request before quoting. In your inquiry, describe whether the boat is on a trailer, on a lift, in a slip or afloat, the hull material and what you are seeing, and we will confirm what we can do.",
+      "Waterline stains, scum and hard-water deposits build up on boats used on local rivers and lakes. We clean hulls only while the boat is out of the water on a trailer or a lift; we do not offer in-water cleaning. In your inquiry, tell us whether the boat is on a trailer or lift, where it is located, how we can reach the hull, the hull material and what you are seeing, and we will review the request before quoting.",
     link1: { text: "", url: "" },
     link2: { text: "", url: "" },
     processHeading: "How a Hull Cleaning Request Works",
     steps: [
       "Send your boat details, hull material and photos of the staining.",
-      "Describe how the hull can be reached — trailer, lift, slip or afloat.",
+      "Confirm the boat will be on a trailer or lift, and where it is located.",
       "We review the request and confirm the scope we can offer.",
       "We confirm the price before scheduling.",
     ],
     scopeHeading: "What to Include",
     whyChoose: [
       "Boat type, length and hull material (fiberglass, aluminum or painted).",
-      "Where the boat is kept and how the hull can be reached.",
+      "Whether it is on a trailer or lift, the location, and how we can reach the hull.",
       "The type of staining or buildup and how long it has been there.",
       "Your preferred dates and contact details.",
     ],

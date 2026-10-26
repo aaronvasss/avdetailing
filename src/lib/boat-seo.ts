@@ -5,7 +5,7 @@ import { FALLBACK_PACKAGES } from "./pricing-fallback";
  * active boat packages' catalog descriptions), boat page links and inquiry
  * guidance. Rendered pages and postbuild initial HTML both read from here.
  * No marine product identity, certification, lifespan or warranty is stated.
- * Hull-cleaning access (trailer/lift/slip/afloat) is unconfirmed: ask, don't promise.
+ * Hull cleaning is owner-confirmed as trailer or lift only (never in-water).
  */
 export const BOAT_HUB_PATH = "/boat-detailing-baton-rouge";
 export const BOAT_AREAS = "Baton Rouge, Gonzales, Prairieville, Walker, Denham Springs, Central and nearby areas";
@@ -50,7 +50,7 @@ export const relatedBoatLinks = (selfPath: string) => [
 /** What owners should include in an inquiry. */
 export const BOAT_INQUIRY_GUIDANCE = [
   "Boat type, year, make, model and length.",
-  "Where the boat is kept and how it can be reached — on a trailer, on a lift, in a slip or afloat.",
+  "Where the boat is kept, and for hull cleaning whether it will be on a trailer or lift (hull work is out of the water only).",
   "The work you want and current condition (oxidation, staining, previous coatings), with photos if you have them.",
   "Any marina or storage rules for washing or detailing on site, and your preferred dates.",
 ];

@@ -432,8 +432,7 @@ const BookingPage = () => {
     return CERAMIC_BOOKING_PRICES[ceramicVehicleClass as "car" | "suv-truck"]?.[ceramicTier as CeramicTier] || 0;
   };
   const ceramicTierLabel = (): string => {
-    const map: Record<string, string> = { "3-year": "3-Year Protection", "5-year": "5-Year Protection", "10-year": "10-Year Protection" };
-    return ceramicTier ? map[ceramicTier] || "" : "";
+    return ceramicTier ? CERAMIC_TIER_LABELS[ceramicTier as CeramicTier] || "" : "";
   };
   const ceramicVehicleLabel = (): string => {
     const map: Record<string, string> = { "car": "Car", "suv-truck": "SUV / Truck", "rv-boat-aircraft": "RV / Boat / Aircraft" };
@@ -868,9 +867,9 @@ const BookingPage = () => {
             ];
             const tiers = ceramicVehicleClass && ceramicVehicleClass !== "rv-boat-aircraft"
               ? [
-                  { id: "3-year", name: "3-Year Protection", price: cp("3-year") },
-                  { id: "5-year", name: "5-Year Protection", price: cp("5-year") },
-                  { id: "10-year", name: "10-Year Protection", price: cp("10-year") },
+                  { id: "3-year", name: CERAMIC_TIER_LABELS["3-year"], price: cp("3-year") },
+                  { id: "5-year", name: CERAMIC_TIER_LABELS["5-year"], price: cp("5-year") },
+                  { id: "10-year", name: CERAMIC_TIER_LABELS["10-year"], price: cp("10-year") },
                 ]
               : [];
 

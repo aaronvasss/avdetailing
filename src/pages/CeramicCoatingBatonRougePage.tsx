@@ -12,7 +12,7 @@ const SITE_URL = "https://avdetailing.net";
 const PAGE_PATH = "/ceramic-coating-baton-rouge";
 const TITLE = "Ceramic Coating in Baton Rouge, LA";
 const DESCRIPTION =
-  "System X ceramic coating in Baton Rouge — 3-year, 6-year, and 10-year tiers. Permanent hydrophobic protection against Louisiana UV, humidity, and water spots.";
+  "System X ceramic coating in Baton Rouge — 3-year, 6-year, and 10-year tiers. Hydrophobic protection against Louisiana UV, humidity, and water spots.";
 
 const serviceSchema = {
   "@context": "https://schema.org",
