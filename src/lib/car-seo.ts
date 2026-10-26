@@ -51,8 +51,13 @@ export const CAR_INTERIOR_BY_PACKAGE: { name: "Basic Package" | "Silver Package"
   { name: "Gold Package", slug: "gold", interior: ["Everything in Silver", "Seat & upholstery shampooing", "Leather cleaning & conditioning", "Carpet deep clean"] },
 ];
 
-/** Active car add-ons (service_add_ons). Odor and pet-hair work are not separate add-ons. */
-export const CAR_ACTIVE_ADD_ONS = ["Engine Bay Cleaning", "Headlight Restoration"];
+/**
+ * Add-ons customers can currently select at the booking add-ons step. BookingPage
+ * lists every active service_add_ons row (no service filter) and create-booking
+ * accepts any active add-on id, so all five are selectable for car bookings.
+ * Names only; prices always come from the catalog at booking time.
+ */
+export const CAR_ACTIVE_ADD_ONS = ["Clay Bar Treatment", "Engine Bay Cleaning", "Headlight Restoration", "Odor Elimination", "Pet Hair Removal"];
 
 export const CAR_RELATED_LINKS = [
   { href: CAR_HUB_PATH, text: "Compare car detailing packages in Baton Rouge" },
@@ -63,7 +68,7 @@ export const CAR_RELATED_LINKS = [
   { href: "/exterior-detailing-baton-rouge", text: "Exterior car detailing choices" },
   { href: "/headlight-restoration-baton-rouge", text: "Headlight restoration add-on" },
   { href: "/engine-bay-cleaning-baton-rouge", text: "Engine bay cleaning add-on" },
-  { href: "/odor-removal-baton-rouge", text: "Car odor assessment" },
+  { href: "/odor-removal-baton-rouge", text: "Car odor removal" },
   { href: "/pet-hair-removal-baton-rouge", text: "Pet hair removal for cars" },
 ];
 
