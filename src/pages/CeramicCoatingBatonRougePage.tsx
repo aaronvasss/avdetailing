@@ -12,7 +12,7 @@ const SITE_URL = "https://avdetailing.net";
 const PAGE_PATH = "/ceramic-coating-baton-rouge";
 const TITLE = "Ceramic Coating in Baton Rouge, LA";
 const DESCRIPTION =
-  "System X ceramic coating in Baton Rouge — 3-year, 6-year, and 10-year tiers. Hydrophobic protection against Louisiana UV, humidity, and water spots.";
+  "System X ceramic coating for cars in Baton Rouge in 3-year, 6-year and 10-year tiers, with a paint assessment first. Mobile service; see tier prices and book.";
 
 const serviceSchema = {
   "@context": "https://schema.org",
@@ -45,18 +45,18 @@ const SERVICE_AREAS = [
 ];
 
 const STEPS = [
-  "Free consultation — choose the 3-year, 6-year, or 10-year System X tier.",
-  "Multi-stage paint correction to remove swirls and defects (mandatory prep).",
-  "Surface prep with IPA wipedown to remove all oils and polish residue.",
-  "System X ceramic coating applied in a controlled, contamination-free environment.",
-  "24-hour cure period followed by a final walkaround inspection.",
+  "Choose the 3-year, 6-year or 10-year System X tier.",
+  "Paint assessment, with paint correction recommended where swirls or defects should be addressed first.",
+  "Surface prep to remove oils and polish residue before coating.",
+  "System X ceramic coating applied to the prepared paint.",
+  "Final walkaround with you and care instructions for the coating.",
 ];
 
 const WHY_CHOOSE = [
-  "Exclusively System X — one of the industry-leading ceramic coating brands.",
+  "We use System X ceramic coatings.",
   "Three tiers offered: 3-year, 6-year, and 10-year (most popular).",
-  "Paint correction prep included to avoid locking swirls in under the coating.",
-  "Hydrophobic protection engineered for Louisiana UV, humidity, and rain.",
+  "We assess paint first so swirls aren't sealed under the coating.",
+  "Mobile service at your home or office across the Baton Rouge area.",
 ];
 
 export default function CeramicCoatingBatonRougePage() {
@@ -99,38 +99,21 @@ export default function CeramicCoatingBatonRougePage() {
         <div className="relative container-custom max-w-5xl py-14 md:py-20">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-5">
             <Shield className="h-3.5 w-3.5" />
-            System X Certified • Baton Rouge, LA
+            System X Ceramic Coating • Baton Rouge, LA
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
             {TITLE}
           </h1>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-3xl">
-            Louisiana's UV index regularly tops 10 in summer — intense enough to break down standard wax and
-            synthetic sealants in just weeks. Ceramic coating is a semi-permanent hydrophobic protective layer
-            that bonds chemically to your vehicle's clear coat. AV Detailing exclusively installs{" "}
-            <strong className="text-foreground">System X</strong>, one of the most respected ceramic brands in the
-            industry, in three tiers: <strong className="text-foreground">3-year</strong>,{" "}
+            Ceramic coating adds a protective layer over your vehicle's clear coat that makes washing easier and
+            helps resist water spotting. AV Detailing uses{" "}
+            <strong className="text-foreground">System X</strong> ceramic coatings in three tiers:{" "}
+            <strong className="text-foreground">3-year</strong>,{" "}
             <strong className="text-foreground">6-year</strong>, and{" "}
-            <strong className="text-foreground">10-year (most popular)</strong>. Black and dark-colored vehicles see the biggest
-            visual improvement and the largest protection benefit under our Louisiana sun. According to{" "}
-            <a
-              href="https://www.consumerreports.org/cars/car-care/"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="text-primary underline hover:text-primary/80"
-            >
-              Consumer Reports
-            </a>
-            , paint protection is one of the most cost-effective ways to preserve a vehicle's resale value, and{" "}
-            <a
-              href="https://www.deq.louisiana.gov/"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="text-primary underline hover:text-primary/80"
-            >
-              the Louisiana DEQ
-            </a>{" "}
-            highlights how UV and pollutant exposure accelerate finish degradation across South Louisiana.
+            <strong className="text-foreground">10-year (most popular)</strong>. Because a coating seals in whatever is
+            underneath, we assess your paint first and recommend{" "}
+            <Link to="/paint-correction-baton-rouge" className="text-primary underline hover:text-primary/80">paint correction</Link>{" "}
+            where swirls or defects should be addressed before coating.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">

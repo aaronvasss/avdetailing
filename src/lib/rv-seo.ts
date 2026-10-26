@@ -31,7 +31,7 @@ export const RV_EXTERIOR_LINKS: RvLink[] = [
   { href: "/mobile-rv-detailing-baton-rouge", text: "Mobile RV detailing logistics", description: "How on-site service works at your home, storage lot or campground, and what we need to plan the visit." },
   { href: "/rv-oxidation-removal-baton-rouge", text: "RV oxidation removal", description: "Compounding and polishing for chalky or faded fiberglass, assessed on a test area first." },
   { href: "/rv-ceramic-coating-baton-rouge", text: "RV ceramic coating", description: "Exterior surface protection applied after washing and any needed polishing." },
-  { href: "/rv-roof-cleaning-baton-rouge", text: "RV roof cleaning", description: "Roof cleaning requests are reviewed case by case before scheduling." },
+  { href: "/rv-roof-cleaning-baton-rouge", text: "RV roof cleaning", description: "Roof cleaning, quoted after we review roof material, condition and access." },
 ];
 
 /** What customers should send so the exterior scope can be confirmed. */
