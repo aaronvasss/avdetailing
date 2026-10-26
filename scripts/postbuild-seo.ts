@@ -16,6 +16,8 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
+import { CAR_HUB_SEO, PAINT_CORRECTION_SEO, PAINT_OPTIONS, carHubHtml, paintCorrectionHtml, relatedCarLinks, interiorPackagesHtml, CAR_HUB_PATH } from "../src/lib/car-seo";
+import { FALLBACK_PACKAGES, CAR_PAGE_DISPLAY_FROM } from "../src/lib/pricing-fallback";
 import { RV_HUB_SEO, RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_INTERIOR_UNAVAILABLE, rvHubHtml, rvInteriorUnavailableHtml } from "../src/lib/rv-seo";
 import { LOCATION_PAGES } from "../src/data/locationPages";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
@@ -62,7 +64,22 @@ function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
   ].join("");
 }
 
+const money = (n: number | undefined) => (n == null ? "Custom quote" : `$${Math.round(n).toLocaleString("en-US")}`);
+const fallbackPrice = (service: string, name: string) => FALLBACK_PACKAGES.find(p => p.service === service && p.name === name)?.price;
+
 function bodyForService(p: (typeof SERVICE_LANDING_PAGES)[number]): string {
+  if (p.carPage) {
+    return [
+      `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="${CAR_HUB_PATH}">Car Detailing</a> / <span aria-current="page">${esc(p.title)}</span></nav>`,
+      `<h1>${esc(p.title)}</h1>`,
+      `<p>${esc(stripTokens(p.intro))}</p>`,
+      `<h2>${esc(p.processHeading ?? "Our Process")}</h2><ol>${p.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>`,
+      `<h2>${esc(p.scopeHeading ?? "Before You Book")}</h2><ul>${p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`,
+      ...(p.showInteriorPackages ? [interiorPackagesHtml()] : []),
+      `<h2>Related car services &amp; service areas</h2><ul>${relatedCarLinks(`/${p.slug}`).map(l => `<li><a href="${l.href}">${esc(l.text)}</a></li>`).join("")}</ul>`,
+      `<p>Call <a href="tel:2255216264">(225) 521-6264</a> or <a href="/book">book online</a>.</p>`,
+    ].join("");
+  }
   if (p.unavailable) return rvInteriorUnavailableHtml();
   if (p.rvPage) {
     const links = [{ href: RV_HUB_PATH, text: "Exterior RV detailing overview" }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${p.slug}`)];
@@ -162,10 +179,14 @@ const STATIC_ROUTES: RouteMeta[] = [
       "AV Detailing booking terms, SMS consent disclosure, cancellation policy, deposits, refunds and service guarantees for mobile detailing in Baton Rouge, LA.",
   },
   {
-    path: "/car-detailing-baton-rouge",
-    title: "Car Detailing in Baton Rouge, LA | AV Detailing",
-    description:
-      "Mobile car detailing in Baton Rouge — full interior + exterior, ceramic coating, paint correction and headlight restoration at your driveway.",
+    path: CAR_HUB_SEO.path,
+    title: CAR_HUB_SEO.title,
+    description: CAR_HUB_SEO.description,
+    body: carHubHtml({
+      basic: money(CAR_PAGE_DISPLAY_FROM.basic),
+      silver: money(fallbackPrice("car", "Silver Package")),
+      gold: money(fallbackPrice("car", "Gold Package")),
+    }),
   },
   {
     path: RV_HUB_SEO.path,
@@ -192,10 +213,10 @@ const STATIC_ROUTES: RouteMeta[] = [
       "System X ceramic coating in Baton Rouge — 3-year, 6-year and 10-year tiers with paint correction. Mobile install at your home or office.",
   },
   {
-    path: "/paint-correction-baton-rouge",
-    title: "Paint Correction in Baton Rouge, LA | AV Detailing",
-    description:
-      "Professional 1-step, 2-step and 3-step paint correction in Baton Rouge — remove swirls, water spots and oxidation. Mobile service available.",
+    path: PAINT_CORRECTION_SEO.path,
+    title: PAINT_CORRECTION_SEO.title,
+    description: PAINT_CORRECTION_SEO.description,
+    body: paintCorrectionHtml(PAINT_OPTIONS.map(o => ({ ...o, price: money(fallbackPrice("paint", o.name)) }))),
   },
 ];
 

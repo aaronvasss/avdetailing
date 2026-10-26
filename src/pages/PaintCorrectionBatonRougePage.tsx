@@ -19,13 +19,13 @@ import {
   Gauge,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { PAINT_CORRECTION_SEO, PAINT_OPTIONS, CAR_HUB_PATH, relatedCarLinks } from "@/lib/car-seo";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const SITE_URL = "https://avdetailing.net";
 const PAGE_PATH = "/paint-correction-baton-rouge";
-const TITLE = "Paint Correction in Baton Rouge, LA";
-const DESCRIPTION =
-  "Professional multi-stage paint correction in Baton Rouge — remove swirls, water spots, oxidation, and light scratches. 1-step, 2-step, and 3-step options with mirror-deep finish.";
+const TITLE = PAINT_CORRECTION_SEO.h1;
+const DESCRIPTION = PAINT_CORRECTION_SEO.description;
 
 const serviceSchema = {
   "@context": "https://schema.org",
@@ -74,7 +74,7 @@ const PROCESS = [
     icon: <Gauge className="h-5 w-5" />,
     title: "Test Panel & Calibration",
     body:
-      "We dial in the exact compound, pad, and machine speed on a single panel — so the rest of the car gets a proven combination, not a guess.",
+      "We dial in the exact compound, pad, and machine speed on a single panel — then apply that combination to the rest of the vehicle.",
   },
   {
     icon: <Wrench className="h-5 w-5" />,
@@ -86,106 +86,50 @@ const PROCESS = [
     icon: <Wind className="h-5 w-5" />,
     title: "IPA Wipedown & Final Inspection",
     body:
-      "Every panel is wiped with isopropyl alcohol to strip polishing oils so what you see is the true, finished result — not a temporary shine.",
+      "Panels are wiped down to remove polishing oils so you can see the actual result.",
   },
   {
     icon: <Shield className="h-5 w-5" />,
-    title: "Sealant or System X Coating",
+    title: "Protection Step",
     body:
-      "Protect the work with a long-lasting sealant or upgrade to a System X ceramic coating so the gloss lasts for years, not weeks.",
+      "Finish with a protection step, or add ceramic coating as a separate service.",
   },
 ];
 
-const TIERS = [
-  {
-    name: "1-Step Correction",
-    tag: "Enhancement Polish",
-    pkg: "1-Step Polish",
-    duration: "4–6 hours",
-    removes: "Removes 60–75% of defects",
-    description:
-      "Restores depth and gloss on paint with light swirls, haze, and dull spots. A great refresh for daily drivers and leased vehicles.",
-    bullets: [
-      "Single-stage machine polish",
-      "Clear-coat safe compound + finishing polish",
-      "Light to moderate swirl removal",
-      "Brings back the showroom shine",
-    ],
-    accent: "neutral",
-  },
-  {
-    name: "2-Step Correction",
-    tag: "Most Requested",
-    pkg: "2-Step Correction",
-    duration: "6–9 hours",
-    removes: "Removes 80–90% of defects",
-    description:
-      "Our most popular correction. Cuts deeper for moderate swirls and water spots, then refines to a true mirror finish on every panel.",
-    bullets: [
-      "Compound stage to level deeper defects",
-      "Refining polish for glass-clear clarity",
-      "Recommended prep for ceramic coating",
-      "Best balance of result, time, and value",
-    ],
-    accent: "primary",
-  },
-  {
-    name: "3-Step Correction",
-    tag: "Concours Level",
-    pkg: "3-Step Restoration",
-    duration: "8–12 hours",
-    removes: "Removes 95%+ of defects",
-    description:
-      "Maximum correction for neglected paint, deeper scratches, oxidation, or show-car standards. Every panel finished to its highest possible clarity.",
-    bullets: [
-      "Heavy cut, refining polish, and jeweling stage",
-      "Tackles deep scratches and heavy oxidation",
-      "Show-car / concours-level finish",
-      "Ideal foundation for 10-Year System X",
-    ],
-    accent: "neutral",
-  },
-];
+const TIERS = PAINT_OPTIONS.map((o, i) => ({
+  name: o.name,
+  pkg: o.name,
+  duration: o.duration,
+  description: o.description,
+  tag: ["Light defects", "Moderate defects", "Heavier defects"][i],
+  removes: "Result depends on paint condition",
+  bullets: [
+    ["Single machine-polishing stage", "Reduces light swirls and haze"],
+    ["Compound stage plus refining polish", "Common choice before ceramic coating"],
+    ["Compound, polish and finishing stages", "For heavier swirls, scratches and oxidation"],
+  ][i],
+  accent: "neutral",
+}));
 
 const REASONS = [
-  {
-    icon: <Award className="h-5 w-5" />,
-    title: "Trained on Baton Rouge Paint",
-    body:
-      "We correct paint every week on cars exposed to Louisiana sun, parish industrial fallout, and Gulf humidity. Local conditions, local experience.",
-  },
-  {
-    icon: <Sparkles className="h-5 w-5" />,
-    title: "Honest Paint Reading",
-    body:
-      "We tell you what your paint actually needs — 1, 2, or 3 stages. No upsell to a 3-step when a 1-step will already make it look incredible.",
-  },
-  {
-    icon: <Shield className="h-5 w-5" />,
-    title: "Safe, Measured Approach",
-    body:
-      "Test panels and paint-thickness awareness on every job. We level defects, not your clear coat — your finish has to last for years after we leave.",
-  },
-  {
-    icon: <Star className="h-5 w-5" />,
-    title: "Coating-Ready Finish",
-    body:
-      "Our corrections are prepped to System X spec — IPA wiped, oil-free, and ready to bond. Your ceramic coating locks in clarity, not swirls.",
-  },
+  { icon: <Search className="h-5 w-5" />, title: "Assessment first", body: "We look at your paint before recommending a stage, and tell you what improvement is realistic." },
+  { icon: <Gauge className="h-5 w-5" />, title: "Test area before the full job", body: "A test area shows how your paint responds before we polish the whole vehicle." },
+  { icon: <Shield className="h-5 w-5" />, title: "Clear coat is limited", body: "Deeper scratches may only be reduced, not removed, because polishing removes a thin layer of clear coat." },
+  { icon: <Star className="h-5 w-5" />, title: "Ready for coating", body: "If you plan to add ceramic coating, correction is usually done first." },
 ];
 
 export default function PaintCorrectionBatonRougePage() {
   const pricing = usePricing();
   return (
     <Layout>
-      <SEOHead title={TITLE} description={DESCRIPTION} path={PAGE_PATH} />
+      <SEOHead title={PAINT_CORRECTION_SEO.title} description={DESCRIPTION} path={PAGE_PATH} />
       <JsonLd
         data={[
           localBusinessSchema(),
           serviceSchema,
           breadcrumbSchema([
             { name: "Home", path: "/" },
-            { name: "Services", path: "/car-detailing-baton-rouge" },
+            { name: "Car Detailing", path: CAR_HUB_PATH },
             { name: TITLE, path: PAGE_PATH },
           ]),
         ]}
@@ -196,9 +140,9 @@ export default function PaintCorrectionBatonRougePage() {
         <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
-          <li><Link to="/car-detailing-baton-rouge" className="hover:text-primary transition-colors">Services</Link></li>
+          <li><Link to={CAR_HUB_PATH} className="hover:text-primary transition-colors">Car Detailing</Link></li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
-          <li className="text-foreground font-medium" aria-current="page">{TITLE}</li>
+          <li className="text-foreground font-medium" aria-current="page">Paint Correction</li>
         </ol>
       </nav>
 
@@ -209,17 +153,13 @@ export default function PaintCorrectionBatonRougePage() {
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-5">
                 <Sparkles className="h-3.5 w-3.5" />
-                Mirror-Finish Paint Correction
+                Paint Assessment &amp; Correction
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-5">
-                Bring your paint <span className="text-primary">back to glass.</span>
+                {TITLE}
               </h1>
               <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-2xl">
-                Every Baton Rouge car collects swirls, water spots, and light scratches — and our UV makes them
-                louder than they should be. Paint correction is a precise multi-stage machine-polishing process
-                that physically removes those defects from your clear coat and restores a deep, wet, mirror-like
-                finish. It's also the mandatory prep step before any ceramic coating — applying a coating over
-                swirls locks them in forever.
+                {PAINT_CORRECTION_SEO.intro}
               </p>
 
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
@@ -243,12 +183,12 @@ export default function PaintCorrectionBatonRougePage() {
               <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-xl">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-5">
                   <Star className="h-3.5 w-3.5 text-primary" />
-                  By the numbers
+                  At a glance
                 </div>
                 <dl className="grid grid-cols-2 gap-5">
                   <div>
-                    <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Defects removed</dt>
-                    <dd className="text-3xl font-bold">up to 95%</dd>
+                    <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">First step</dt>
+                    <dd className="text-3xl font-bold">Paint assessment</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Correction stages</dt>
@@ -266,8 +206,7 @@ export default function PaintCorrectionBatonRougePage() {
                 <div className="mt-6 pt-6 border-t border-border flex items-start gap-3">
                   <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Required prep before any <strong className="text-foreground">System X</strong> ceramic coating.
-                    Skip the swirls — don't lock them under your coating.
+                    Correction is the usual preparation before <Link to="/ceramic-coating-baton-rouge" className="text-primary underline">ceramic coating</Link>, because a coating seals in whatever is underneath.
                   </p>
                 </div>
               </div>
@@ -289,7 +228,7 @@ export default function PaintCorrectionBatonRougePage() {
             <p className="text-muted-foreground text-base md:text-lg">
               Final pricing depends on vehicle size and paint condition. Call{" "}
               <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a> for an
-              exact quote after a free paint inspection.
+              exact quote after we assess your paint.
             </p>
           </div>
 
@@ -463,18 +402,13 @@ export default function PaintCorrectionBatonRougePage() {
                 Why Baton Rouge customers choose AV Detailing for paint correction.
               </h2>
               <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
-                Paint correction is the most skill-dependent service in the detailing world. A bad polish job
-                burns through clear coat and can't be undone. We take it seriously — calibrated tools, paint
-                reading, and a finish built to hold up under Louisiana sun.
+                Paint correction removes a thin layer of clear coat, so we take a measured approach: assess, test, then polish only as much as your paint needs.
               </p>
               <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 md:p-6">
-                <p className="text-foreground/90 italic leading-relaxed text-sm md:text-base">
-                  "Our standard is simple: when the lights hit the paint after we finish, it looks like glass —
-                  and it stays that way."
-                </p>
-                <div className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  — AV Detailing Team
-                </div>
+                <p className="text-sm font-semibold mb-2">Related car services</p>
+                <ul className="space-y-2 text-sm">
+                  {relatedCarLinks(PAGE_PATH).map((l) => <li key={l.href}><Link to={l.href} className="text-primary underline underline-offset-4">{l.text}</Link></li>)}
+                </ul>
               </div>
             </div>
 
@@ -515,8 +449,7 @@ export default function PaintCorrectionBatonRougePage() {
                   Mobile across <span className="text-primary">Greater Baton Rouge.</span>
                 </h2>
                 <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
-                  We bring the correction setup to your driveway, office, or shop. If your address sits within
-                  Greater Baton Rouge, chances are we're already in your neighborhood.
+                  We bring the correction setup to your driveway, office, or shop. Call to confirm your address is in our service area.
                 </p>
                 <Button asChild size="lg" variant="outline">
                   <a href="tel:2255216264">
@@ -539,7 +472,7 @@ export default function PaintCorrectionBatonRougePage() {
                   ))}
                 </div>
                 <p className="mt-5 text-xs text-muted-foreground">
-                  Not listed? Call us — we cover most of the Greater Baton Rouge metro and surrounding parishes.
+                  Not listed? Call to check your address.
                 </p>
               </div>
             </div>

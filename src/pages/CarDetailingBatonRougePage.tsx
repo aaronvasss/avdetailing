@@ -17,6 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { CAR_HUB_SEO } from "@/lib/car-seo";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const SITE_URL = "https://avdetailing.net";
@@ -80,8 +81,8 @@ export default function CarDetailingBatonRougePage() {
   return (
     <Layout>
       <SEOHead
-        title="Car Detailing in Baton Rouge, LA"
-        description="Baton Rouge's premier mobile car detailing — System X ceramic coating, paint correction & interior detailing across Baton Rouge & surrounding parishes."
+        title={CAR_HUB_SEO.title}
+        description={CAR_HUB_SEO.description}
         path={PAGE_PATH}
       />
       <JsonLd data={[
@@ -89,7 +90,8 @@ export default function CarDetailingBatonRougePage() {
         serviceSchema,
         breadcrumbSchema([
           { name: "Home", path: "/" },
-          { name: "Car Detailing in Baton Rouge, LA", path: PAGE_PATH },
+          { name: "Services", path: "/services" },
+          { name: "Car Detailing", path: PAGE_PATH },
         ]),
       ]} />
 
@@ -99,9 +101,9 @@ export default function CarDetailingBatonRougePage() {
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
-          <li className="text-foreground font-medium" aria-current="page">
-            Car Detailing in Baton Rouge, LA
-          </li>
+          <li><Link to="/services" className="hover:text-primary transition-colors">Services</Link></li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">Car Detailing</li>
         </ol>
       </nav>
 
@@ -110,10 +112,10 @@ export default function CarDetailingBatonRougePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
         <div className="relative container-custom max-w-5xl py-8 md:py-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 leading-tight">
-            Car Detailing Baton Rouge, LA
+            {CAR_HUB_SEO.h1}
           </h1>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-2xl mb-6">
-            Serving Baton Rouge, Prairieville, Gonzales, Denham Springs, Walker, Central and nearby areas.
+            {CAR_HUB_SEO.intro}
           </p>
         </div>
       </section>
@@ -230,14 +232,8 @@ export default function CarDetailingBatonRougePage() {
               href="/mobile-car-detailing-baton-rouge"
               linkText="View mobile detailing"
             >
-              Most detailing shops make you drive across Baton Rouge traffic and wait. AV Detailing eliminates that
-              entirely — our{" "}
-              <Link to="/mobile-car-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">
-                mobile car detailing service in Baton Rouge
-              </Link>{" "}
-              brings professional equipment, System X products, and trained technicians directly to your location
-              across Highland Road, Shenandoah, Gonzales, Central Baton Rouge, and all surrounding areas. Same results
-              as a premium shop, delivered to your door.
+              See how mobile visits work — booking, the 30-minute arrival window and what to have ready — in our{" "}
+              <Link to="/mobile-car-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">mobile car detailing guide for Baton Rouge</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -246,15 +242,8 @@ export default function CarDetailingBatonRougePage() {
               href="/ceramic-coating-baton-rouge"
               linkText="View ceramic coating"
             >
-              Louisiana's UV index regularly exceeds 10 in summer — that level of sun exposure degrades standard wax
-              and sealants within weeks. System X ceramic coating bonds directly to your vehicle's clear coat and
-              delivers 3-year, 5-year, or 10-year protection against UV damage, water spots, oxidation, bird droppings,
-              and chemical stains. Our{" "}
-              <Link to="/ceramic-coating-baton-rouge" className="text-primary underline hover:text-primary/80">
-                System X ceramic coating service in Baton Rouge
-              </Link>{" "}
-              is the most advanced paint protection available and the smartest long-term investment for any vehicle in
-              Louisiana.
+              Ceramic coating adds a protective layer to your paint and is usually applied after paint correction. See the available tiers and pricing on our{" "}
+              <Link to="/ceramic-coating-baton-rouge" className="text-primary underline hover:text-primary/80">ceramic coating page</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -263,14 +252,8 @@ export default function CarDetailingBatonRougePage() {
               href="/paint-correction-baton-rouge"
               linkText="View paint correction"
             >
-              Swirl marks, water spots, light scratches, and oxidation build up on every vehicle driven on Baton Rouge
-              roads. Our professional multi-stage machine polishing process removes those defects and restores your
-              paint to a deep, mirror-like finish. Paint correction is also the required preparation step before any
-              ceramic coating application. Discover how our{" "}
-              <Link to="/paint-correction-baton-rouge" className="text-primary underline hover:text-primary/80">
-                paint correction service in Baton Rouge
-              </Link>{" "}
-              completely transforms your vehicle's appearance.
+              Machine polishing can reduce or remove swirls, water spots and light scratches. We assess your paint and recommend a 1-step, 2-step or 3-step option. Learn more about{" "}
+              <Link to="/paint-correction-baton-rouge" className="text-primary underline hover:text-primary/80">paint correction in Baton Rouge</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -279,14 +262,8 @@ export default function CarDetailingBatonRougePage() {
               href="/interior-detailing-baton-rouge"
               linkText="View interior detailing"
             >
-              Baton Rouge summers turn car interiors into bacteria and mold environments — heat, humidity, food spills,
-              and pet use compound fast without regular professional cleaning. Our interior service covers deep vacuum,
-              dashboard and console treatment, door panels, leather conditioning, seat shampooing, carpet deep clean,
-              and odor elimination — all on-site at your location. See what's included in our{" "}
-              <Link to="/interior-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">
-                interior car detailing service in Baton Rouge
-              </Link>
-              .
+              Need seat shampoo or a deeper cabin clean? Silver adds a deep vacuum and trim cleaning; seat and upholstery shampoo, leather conditioning and carpet deep cleaning are in Gold. Compare options on our{" "}
+              <Link to="/interior-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">interior car detailing page</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -295,14 +272,8 @@ export default function CarDetailingBatonRougePage() {
               href="/exterior-detailing-baton-rouge"
               linkText="View exterior detailing"
             >
-              Highway 190, Highland Road, I-10, and Baton Rouge's industrial corridors coat your vehicle in tar, road
-              grime, industrial fallout, and bugs that a regular car wash never fully removes. Our exterior detail
-              includes hand wash, clay bar treatment, decontamination, polish, and full surface protection for paint,
-              wheels, tires, trim, and glass. Explore our{" "}
-              <Link to="/exterior-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">
-                exterior car detailing service in Baton Rouge
-              </Link>
-              .
+              Hand wash and dry, wheels and tires, tire shine and exterior windows are in every package, and Exterior Only is available for washes. Explore{" "}
+              <Link to="/exterior-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">exterior car detailing in Baton Rouge</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -311,14 +282,8 @@ export default function CarDetailingBatonRougePage() {
               href="/headlight-restoration-baton-rouge"
               linkText="View headlight restoration"
             >
-              Louisiana's UV exposure yellows and oxidizes headlight lenses faster than almost any other state. Foggy
-              headlights reduce nighttime visibility by up to 80% and make your vehicle look poorly maintained. Our
-              process sands, compounds, polishes, and seals your lenses back to full clarity — at a fraction of
-              replacement cost. Book our{" "}
-              <Link to="/headlight-restoration-baton-rouge" className="text-primary underline hover:text-primary/80">
-                headlight restoration service in Baton Rouge
-              </Link>{" "}
-              standalone or added to any detailing package.
+              Cloudy or yellowed lenses can be cleaned up with sanding, polishing and sealing. Add{" "}
+              <Link to="/headlight-restoration-baton-rouge" className="text-primary underline hover:text-primary/80">headlight restoration</Link>{" "}to any car detailing booking.
             </ServiceCard>
 
             <ServiceCard
@@ -327,14 +292,8 @@ export default function CarDetailingBatonRougePage() {
               href="/odor-removal-baton-rouge"
               linkText="View odor removal"
             >
-              Smoke, mildew, pets, and food odors embed into fabric, carpet, and foam — and Louisiana's humidity makes
-              them significantly worse over time. AV Detailing uses professional ozone and enzyme treatments that
-              permanently neutralize odors at the source rather than masking them. Eliminate unwanted smells for good
-              with our{" "}
-              <Link to="/odor-removal-baton-rouge" className="text-primary underline hover:text-primary/80">
-                car odor removal service in Baton Rouge
-              </Link>
-              .
+              Lingering smells from smoke, pets or spills are addressed during interior cleaning; results depend on the source. Learn about{" "}
+              <Link to="/odor-removal-baton-rouge" className="text-primary underline hover:text-primary/80">car odor removal in Baton Rouge</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -343,13 +302,8 @@ export default function CarDetailingBatonRougePage() {
               href="/pet-hair-removal-baton-rouge"
               linkText="View pet hair removal"
             >
-              Pet hair embeds deep into carpet fibers and seat upholstery and resists ordinary vacuuming — especially
-              in the static-heavy environment of a hot Louisiana vehicle. AV Detailing uses specialized extraction
-              tools to remove pet hair from every interior surface. Our{" "}
-              <Link to="/pet-hair-removal-baton-rouge" className="text-primary underline hover:text-primary/80">
-                pet hair removal service in Baton Rouge
-              </Link>{" "}
-              restores your interior to a completely clean, hair-free finish.
+              Embedded pet hair takes extra time to remove from carpet and upholstery. Read about{" "}
+              <Link to="/pet-hair-removal-baton-rouge" className="text-primary underline hover:text-primary/80">pet hair removal in Baton Rouge</Link>.
             </ServiceCard>
 
             <ServiceCard
@@ -358,13 +312,8 @@ export default function CarDetailingBatonRougePage() {
               href="/engine-bay-cleaning-baton-rouge"
               linkText="View engine bay cleaning"
             >
-              Louisiana heat accelerates grease and oil buildup in engine bays, making leaks harder to detect and
-              components harder to access during maintenance. Our controlled steam and professional degreaser process
-              safely cleans your engine bay without damaging electronics or components. Add our{" "}
-              <Link to="/engine-bay-cleaning-baton-rouge" className="text-primary underline hover:text-primary/80">
-                engine bay cleaning service in Baton Rouge
-              </Link>{" "}
-              to any detailing package.
+              A careful clean and dressing of the engine compartment. Add{" "}
+              <Link to="/engine-bay-cleaning-baton-rouge" className="text-primary underline hover:text-primary/80">engine bay cleaning</Link>{" "}to any car detailing booking.
             </ServiceCard>
           </div>
         </div>

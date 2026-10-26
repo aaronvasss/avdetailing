@@ -1,3 +1,4 @@
+import { MOBILE_CAR_SEO, INTERIOR_CAR_SEO, PAINT_CORRECTION_SEO } from "../lib/car-seo";
 /**
  * Service landing pages for Baton Rouge SEO.
  * Each entry powers one route via <ServiceLandingTemplate />.
@@ -25,6 +26,10 @@ export interface ServiceLandingConfig {
   steps: string[];        // 4–5 numbered process steps
   whyChoose: string[];    // 4 bullets
   serviceType: string;    // schema.org Service serviceType
+  /** Car supporting page: breadcrumbs to the car hub and car related links from car-seo. */
+  carPage?: boolean;
+  /** Show the interior-by-package comparison from car-seo. */
+  showInteriorPackages?: boolean;
   /** Exterior RV supporting page: RV breadcrumbs, links and guidance from rv-seo. */
   rvPage?: boolean;
   /** Legacy page for a service that is not offered: noindex,follow, no Service schema, excluded from sitemap. */
@@ -39,26 +44,29 @@ export const SERVICE_AREAS_TEXT = SERVICE_AREAS_PARAGRAPH;
 export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   // ===================== CAR (9) =====================
   {
-    slug: "mobile-car-detailing-baton-rouge",
-    title: "Mobile Car Detailing in Baton Rouge, LA",
-    metaDescription:
-      "Mobile car detailing in Baton Rouge — System X products, fully equipped rig at your home or office. Highland Rd, Shenandoah, Gonzales & more.",
+    slug: MOBILE_CAR_SEO.slug,
+    title: MOBILE_CAR_SEO.title,
+    seoTitle: MOBILE_CAR_SEO.seoTitle,
+    carPage: true,
+    metaDescription: MOBILE_CAR_SEO.description,
     intro:
-      "Driving across Baton Rouge for a detail appointment means I-10 traffic, Highland Road congestion, and a half day lost waiting at a shop. AV Detailing eliminates that entirely — our mobile car detailing service brings the same professional equipment, System X products, and trained technicians directly to your home, office, or jobsite anywhere in Greater Baton Rouge. We service every neighborhood from Shenandoah and Central to Gonzales and Prairieville with a fully self-contained mobile rig — power, water, and pro-grade tools on board. Louisiana's UV, humidity, and road grime make professional detailing essential, not optional, for keeping paint and interior in good condition. According to {{l1}}, regular professional care preserves long-term vehicle value, and {{l2}} encourages residents to maintain their vehicles for safer roads.",
-    link1: { text: "Consumer Reports", url: "https://www.consumerreports.org/cars/car-care/" },
-    link2: { text: "the City of Baton Rouge", url: "https://www.brla.gov/" },
+      "AV Detailing is a mobile service: we detail your car at your home, office or another location you choose in Baton Rouge, Prairieville, Gonzales, Denham Springs, Walker, Central, Zachary and nearby areas, so there is no shop drop-off. Appointments run between 6 AM and 8 PM, and we give you a 30-minute arrival window. You don't need to be present as long as the vehicle is accessible; we let you know when the service is complete.",
+    link1: { text: "", url: "" },
+    link2: { text: "", url: "" },
+    processHeading: "How a Mobile Car Detailing Visit Works",
     steps: [
-      "Schedule online or by phone — pick a date, time, and package.",
-      "Our technician arrives at your location with a fully self-contained mobile rig.",
-      "Exterior decontamination, interior deep clean, and optional System X protection performed on-site.",
-      "Final inspection and walkaround with you before we leave.",
-      "Same-day completion at your home, office, or jobsite — no drop-off required.",
+      "Book online or call — choose your vehicle, package, any add-ons and an available time.",
+      "We confirm your appointment and the address where the vehicle will be parked.",
+      "We arrive within your 30-minute arrival window.",
+      "We complete the package you booked on-site.",
+      "We let you know when the service is complete.",
     ],
+    scopeHeading: "What to Have Ready",
     whyChoose: [
-      "System X professional products used on-site at every appointment.",
-      "Fully self-contained mobile rig — own water, power, and pro tools.",
-      "Serves Highland Road, Shenandoah, Gonzales, Prairieville and all of Greater Baton Rouge.",
-      "Save hours by skipping shop drop-off — we work around your schedule.",
+      "The exact address and where the vehicle will be parked.",
+      "Access to the vehicle if you won't be there (keys or unlocked doors as arranged).",
+      "Your vehicle year, make and model, and the package you want.",
+      "Personal items removed from the cabin and trunk where possible.",
     ],
     serviceType: "Mobile Car Detailing",
   },
@@ -88,49 +96,52 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   },
   {
     slug: "paint-correction-baton-rouge",
-    title: "Paint Correction in Baton Rouge, LA",
-    metaDescription:
-      "Multi-stage paint correction in Baton Rouge — remove swirls, water spots & oxidation. Required prep before System X ceramic coating. 1/2/3-step pricing.",
-    intro:
-      "Every car driven on Baton Rouge roads accumulates swirl marks, water spots, light scratches, and oxidation — and Louisiana's relentless UV makes the damage faster and more visible than in northern climates. Paint correction is a precise multi-stage machine polishing process that physically removes those defects from your clear coat, restoring a deep, glassy, mirror-like finish. It is also the mandatory prep step before any ceramic coating — applying a coating over swirls locks them in forever. AV Detailing performs 1-step, 2-step, and 3-step corrections depending on paint condition, using professional dual-action and rotary polishers with quality compounds and polishes. According to {{l1}}, well-maintained paint contributes to overall vehicle condition and safety, and {{l2}} notes how Louisiana's environmental conditions accelerate surface wear on parked vehicles.",
-    link1: { text: "NHTSA", url: "https://www.nhtsa.gov/vehicle-safety" },
-    link2: { text: "the Louisiana DEQ", url: "https://www.deq.louisiana.gov/" },
+    title: PAINT_CORRECTION_SEO.h1,
+    seoTitle: PAINT_CORRECTION_SEO.title,
+    carPage: true,
+    metaDescription: PAINT_CORRECTION_SEO.description,
+    intro: PAINT_CORRECTION_SEO.intro,
+    link1: { text: "", url: "" },
+    link2: { text: "", url: "" },
     steps: [
-      "Inspection under direct light to grade swirls, scratches, and oxidation.",
-      "Decontamination wash plus clay-bar treatment to remove embedded contaminants.",
-      "Test panel to dial in the correct compound, pad, and machine combination.",
-      "Machine polishing stages — compound, polish, and finishing pass.",
-      "IPA wipedown and protection step (sealant or System X ceramic coating).",
+      "Paint assessment under good light to identify swirls, water spots and scratches.",
+      "Wash and decontamination.",
+      "Test area to choose the right compound, pad and polish.",
+      "Machine polishing in one, two or three stages.",
+      "Wipe-down and protection step.",
     ],
     whyChoose: [
-      "1-step, 2-step, and 3-step correction pricing — matched to your paint condition.",
-      "Required prep step before any System X ceramic coating installation.",
-      "Professional dual-action and rotary tooling with premium compounds.",
-      "Performed mobile across Baton Rouge — at your home, office, or shop.",
+      "Options: 1-Step Polish, 2-Step Correction or 3-Step Restoration.",
+      "Improvement depends on defect depth and available clear coat.",
+      "Usual preparation before ceramic coating.",
+      "Mobile service across Greater Baton Rouge.",
     ],
     serviceType: "Paint Correction",
   },
   {
-    slug: "interior-detailing-baton-rouge",
-    title: "Interior Car Detailing in Baton Rouge, LA",
-    metaDescription:
-      "Mobile interior car detailing in Baton Rouge — deep vacuum, leather conditioning, fabric shampoo & odor removal. Built for Louisiana heat.",
+    slug: INTERIOR_CAR_SEO.slug,
+    title: INTERIOR_CAR_SEO.title,
+    seoTitle: INTERIOR_CAR_SEO.seoTitle,
+    carPage: true,
+    showInteriorPackages: true,
+    metaDescription: INTERIOR_CAR_SEO.description,
     intro:
-      "Baton Rouge summers regularly push interior cabin temperatures past 140°F — that heat plus Louisiana humidity turns car interiors into a textbook environment for bacteria, mold, and mildew growth, and accelerates leather cracking and dashboard fade. AV Detailing's interior service is a full top-to-bottom reset: deep vacuum of every crevice, hand-cleaning of dash and console, door panels, A/B/C pillars, headliner spot treatment, leather cleaning and conditioning, fabric seat shampooing, carpet extraction, glass, and odor neutralization. We come to your driveway or office and treat the cabin on-site. According to {{l1}}, indoor air quality directly impacts respiratory health, and your vehicle is one of the most-used indoor spaces in your day. {{l2}} also encourages residents to maintain clean, healthy living and travel environments.",
-    link1: { text: "the EPA's indoor air quality guidance", url: "https://www.epa.gov/indoor-air-quality-iaq" },
-    link2: { text: "the City of Baton Rouge", url: "https://www.brla.gov/" },
+      "If your car's cabin needs more than a quick clean, start by matching the work to the right package. Basic covers a light vacuum and wipe-down, Silver adds a deep vacuum of seats, carpets, mats and trunk plus console, door panel, dashboard and trim cleaning, and Gold adds seat and upholstery shampooing, leather cleaning and conditioning and a carpet deep clean. Seat shampoo is only included in Gold. We do the work at your home or office in Baton Rouge and nearby areas.",
+    link1: { text: "", url: "" },
+    link2: { text: "", url: "" },
+    processHeading: "How to Choose Your Interior Service",
     steps: [
-      "Trash removal and full cabin vacuum including under seats and trunk.",
-      "Brush and steam clean fabric, carpet, and headliner spot areas.",
-      "Leather cleaning and conditioning to prevent Louisiana heat cracking.",
-      "Hard surface wipe-down with UV protectant on dash and trim.",
-      "Glass cleaning and final odor neutralization throughout the cabin.",
+      "Light dust and crumbs: Basic covers a light vacuum and interior wipe-down.",
+      "Daily-use cabins: Silver adds a deep vacuum and console, door panel, dashboard and trim cleaning.",
+      "Stained seats or carpets: Gold adds seat and upholstery shampooing and a carpet deep clean.",
+      "Leather seats: Gold includes leather cleaning and conditioning.",
     ],
+    scopeHeading: "Tell Us About Your Interior",
     whyChoose: [
-      "Mobile service at your home or office location in Baton Rouge.",
-      "Leather conditioning specifically suited to Louisiana heat exposure.",
-      "Fabric seat shampooing and carpet extraction included.",
-      "Ozone odor treatment available as an add-on for tougher smells.",
+      "Seat material (cloth or leather) and any stains you want addressed.",
+      "Pet hair, odors or spills — describe them so we can set expectations; results depend on the source and how long it has been there.",
+      "Your vehicle year, make and model.",
+      "Results vary with material and stain type; some stains may not fully come out.",
     ],
     serviceType: "Interior Car Detailing",
   },
