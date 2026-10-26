@@ -282,7 +282,7 @@ export default function CarDetailingBatonRougePage() {
               href="/headlight-restoration-baton-rouge"
               linkText="View headlight restoration"
             >
-              Cloudy or yellowed lenses can be cleaned up with sanding, polishing and sealing. Add{" "}
+              We check cloudy or yellowed lenses before restoring them. Add{" "}
               <Link to="/headlight-restoration-baton-rouge" className="text-primary underline hover:text-primary/80">headlight restoration</Link>{" "}to any car detailing booking.
             </ServiceCard>
 
@@ -292,7 +292,7 @@ export default function CarDetailingBatonRougePage() {
               href="/odor-removal-baton-rouge"
               linkText="View odor removal"
             >
-              Lingering smells from smoke, pets or spills are addressed during interior cleaning; results depend on the source. Learn about{" "}
+              Tell us what the smell is and where it comes from, and we will recommend an interior package; results depend on the source. Learn about{" "}
               <Link to="/odor-removal-baton-rouge" className="text-primary underline hover:text-primary/80">car odor removal in Baton Rouge</Link>.
             </ServiceCard>
 
