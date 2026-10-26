@@ -17,7 +17,7 @@ const services = [
     icon: Caravan,
     heading: "RV Detailing in Baton Rouge, LA",
     sentence:
-      "Full mobile RV detailing including oxidation removal, roof cleaning, interior deep clean & System X ceramic coating.",
+      "Exterior-only mobile RV detailing: washing, oxidation removal and protective coating, with roof requests reviewed case by case.",
     link: {
       to: "/rv-detailing-baton-rouge",
       text: "RV detailing services in Baton Rouge",

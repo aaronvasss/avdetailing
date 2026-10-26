@@ -270,6 +270,12 @@ const ALL_ROUTES: RouteMeta[] = [
   ...LOCATION_ROUTES,
 ];
 
+const SERVICE_SCHEMA_PATHS = new Set<string>([
+  CAR_HUB_PATH, RV_HUB_PATH, BOAT_HUB_PATH, PAINT_CORRECTION_SEO.path, "/ceramic-coating-baton-rouge",
+  ...SERVICE_LANDING_PAGES.filter((p) => !p.unavailable).map((p) => `/${p.slug}`),
+  ...LOCATION_PAGES.map((p) => `/${p.slug}`),
+]);
+
 const SHELL = readFileSync(SHELL_PATH, "utf8");
 
 function escapeAttr(s: string): string {
@@ -431,6 +437,20 @@ function rewrite(html: string, m: RouteMeta): string {
   // JS. Helmet-rendered JSON-LD isn't reliably captured by the prerenderer, so
   // inject the public LocalBusiness schema here when it's missing.
   out = dedupeLocalBusiness(out);
+  // Service pages: an empty-shell fallback has no page schema. Add the same
+  // minimal Service relation the rendered page declares (no offers/ratings).
+  if (SERVICE_SCHEMA_PATHS.has(m.path) && !/"@type":\s*"Service"/.test(out)) {
+    const service = {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: m.title.replace(/\s*[|—-]\s*AV Detailing$/, ""),
+      description: m.description,
+      provider: { "@id": `${SITE}/#business` },
+      areaServed: { "@type": "City", name: "Baton Rouge" },
+      url,
+    };
+    out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(service).replace(/</g, "\\u003c")}</script></head>`);
+  }
   if (!LEGAL_PATHS.has(m.path) && !/"@type":"LocalBusiness"/.test(out)) {
     out = out.replace(
       /<\/head>/i,
