@@ -1,6 +1,7 @@
 # GA4 preparation part 1
-- [ ] Audit existing tags/consent and official Google guidance; prepare one gated production-only integration and optional analytics controls.
-- [ ] Verify mocked collection/privacy/consent and desktop/375/390 controls; report build evidence and activation prerequisites without release or real Google traffic.
+- [x] Audit existing tags/consent and official Google guidance; prepare one gated production-only integration and optional analytics controls.
+- [x] Verify mocked collection/privacy/consent and desktop/375/390 controls; report preview-build evidence and activation prerequisites without release or real Google traffic.
+- [ ] Final production build/prerender after GA4 changes: manual builds prohibited in this session; authorized full-pipeline workflow unavailable. Activation also awaits separately authorized release and verified GA4 stream settings. See docs/ga4-preparation-2026-10-26.md.
 
 # Aviation SEO part 2
 - [x] Refined supporting intents: cleaning assessment only (no exterior package), private-aircraft cabin deep cleaning/shampooing, polishing/coating explicitly not repainting. Updated distinct metadata, quote scope and contextual links; aviation visible/schema breadcrumbs use /services and access guidance uses aviation-policy. Main overview, booking/payment enforcement and other service content unchanged.
