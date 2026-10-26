@@ -50,3 +50,13 @@ The source gates `releaseAuthorized` and `streamSettingsVerified` are still **fa
 - The live www 302, the soft-404 and the legacy stubs.
 
 Both GA source gates stay false. This audit closes the inventory gap for measurement. It does not claim SEO or lead growth, or that the four-service SEO work is complete.
+
+## Update: finding 1 resolved in source (2026-10-26, preview only)
+- **What was searched:** all of `src/`, `public/` and `index.html` for `reputationhub`, `review-widget`, `review_widget`, `GOOGLE_REVIEWS_WIDGET_URL` and iframe/widget embeds.
+- **What renders the reviews:** `ReviewsWidgetSection.tsx` (homepage and /reviews) uses `GoogleReviews.tsx`, which uses `loadFeaturedReviews`, `FeaturedReviewCards` and `FeaturedReviewCard`, plus Google Maps/g.page links. Admin uses `AdminGoogleReviews.tsx`. No component has an embed iframe or widget element. The only other reference is the unused exported constant `GOOGLE_REVIEWS_WIDGET_URL` in `src/lib/google-business.ts`, which was left unchanged.
+- **What changed:** removed the global review-widget script and the reputationhub preconnect/dns-prefetch from `index.html`. Chat, external tracking, the other preconnects, the privacy policy and the GA4 gates are unchanged.
+- **Evidence (agency-reported):**
+  - The new `src/test/review-widget-script.test.ts` passed 3 of 3.
+  - Preview /reviews ran with the featured-reviews data mocked and all outside traffic blocked. With 3 mock cards, the cards and Google links rendered at 1280, 375 and 390, and no reputationhub request was made.
+  - The empty and error states still show the "Open Google Reviews" link.
+- **Limitations:** this does not prove the remote script collected any data. The full production build is still unverified, and a live check is pending after an authorized release.
