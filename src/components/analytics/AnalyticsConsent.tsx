@@ -4,8 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ANALYTICS_PREFERENCE_KEY, publicAnalyticsPage, readAnalyticsPreference, type AnalyticsPreference } from "@/lib/analytics-policy";
 import { AnalyticsRuntime, browserAnalyticsPort, observeAnalyticsNavigation } from "@/lib/analytics-runtime";
+import { contactMethod, type MeasurementEvent } from "@/lib/analytics-events";
 
-const ConsentContext = createContext<{ openSettings: () => void } | null>(null);
+const ConsentContext = createContext<{ openSettings: () => void; track: (event: MeasurementEvent | null, occurrence: object) => void } | null>(null);
+const ignoreMeasurement = () => {};
+export function useLeadMeasurement() {
+  return useContext(ConsentContext)?.track || ignoreMeasurement;
+}
 
 export function AnalyticsSettingsControl() {
   const context = useContext(ConsentContext);
@@ -32,6 +37,12 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     setPreference(saved);
     setHydrated(true);
     const stopObserving = observeAnalyticsNavigation(controller);
+    const contactClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const method = contactMethod(event.target.closest("a")?.getAttribute("href") || null);
+      if (method) controller.track({ name: "contact_click", params: { method } }, event);
+    };
+    document.addEventListener("click", contactClick, true);
     const storageChanged = (event: StorageEvent) => {
       if (event.key !== ANALYTICS_PREFERENCE_KEY && event.key !== null) return;
       const choice = readAnalyticsPreference(window.localStorage);
@@ -41,6 +52,7 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     window.addEventListener("storage", storageChanged);
     return () => {
       stopObserving(); controller.dispose(); runtime.current = null;
+      document.removeEventListener("click", contactClick, true);
       window.removeEventListener("storage", storageChanged);
     };
   }, []);
@@ -62,7 +74,8 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     <Button onClick={() => choose("accepted")}>Accept analytics</Button>
   </div>;
 
-  return <ConsentContext.Provider value={{ openSettings: () => setSettingsOpen(true) }}>
+  return <ConsentContext.Provider value={{ openSettings: () => setSettingsOpen(true),
+    track: (event, occurrence) => runtime.current?.track(event, occurrence) }}>
     {children}
     {hydrated && preference === "unset" && publicPage && <section aria-label="Optional analytics" className="fixed bottom-16 lg:bottom-4 left-3 right-3 z-40 mx-auto max-w-xl border border-border rounded-md bg-card p-4 shadow-lg">
       <div className="space-y-3">

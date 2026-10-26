@@ -3,6 +3,7 @@ import {
   publicAnalyticsPage, safeAnalyticsReferrer,
   type AnalyticsPreference,
 } from "./analytics-policy";
+import { safeMeasurementEvent, type MeasurementEvent } from "./analytics-events";
 
 type Command = (command: string, ...args: unknown[]) => void;
 export interface AnalyticsPort {
@@ -27,6 +28,7 @@ export class AnalyticsRuntime {
   private pending = false;
   private generation = 0;
   private cancelLoad?: () => void;
+  private handled = new WeakSet<object>();
 
   constructor(private port: AnalyticsPort, private gates: Gates = ANALYTICS_RELEASE) {
     this.port.disable(true);
@@ -111,6 +113,20 @@ export class AnalyticsRuntime {
     this.port.disable(false);
     this.port.command("event", "page_view", { ...page, page_referrer: referrer });
     this.sentPath = this.path;
+  }
+
+  /** Drop (never queue/replay) unconsented, private, pre-load or disabled activity. */
+  track(event: MeasurementEvent | null, occurrence: object) {
+    if (!event || this.handled.has(occurrence)) return;
+    this.handled.add(occurrence);
+    if (!this.eligible() || !this.loaded) return;
+    const safe = safeMeasurementEvent(event);
+    const page = publicAnalyticsPage(this.path);
+    if (!safe || !page) return;
+    try {
+      this.port.command("event", safe.name, { ...safe.params, ...page,
+        page_referrer: this.previousPublic || safeAnalyticsReferrer(this.port.referrer()) });
+    } catch { /* Measurement must never break the customer's action. */ }
   }
 
   dispose() {

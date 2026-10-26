@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, contactPageSchema, breadcrumbSchema, localBusinessSchema } from "@/components/seo/JsonLd";
 import { Layout } from "@/components/layout/Layout";
@@ -19,6 +19,8 @@ import { sendContactEmail } from "@/lib/email";
 import { contactFormSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
 import { supabase } from "@/integrations/supabase/client";
+import { useLeadMeasurement } from "@/components/analytics/AnalyticsConsent";
+import { acceptedQuoteEvent, inquiryService } from "@/lib/analytics-events";
 
 const services = [
   "Car Detailing",
@@ -32,6 +34,8 @@ const services = [
 ];
 
 const ContactPage = () => {
+  const measure = useLeadMeasurement();
+  const measurement = useRef<object>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
@@ -72,6 +76,7 @@ const ContactPage = () => {
     }
     
     setIsSubmitting(true);
+    const occurrence = measurement.current;
 
     try {
       const { error: contactError } = await supabase
@@ -87,7 +92,7 @@ const ContactPage = () => {
 
       if (contactError) throw contactError;
 
-      await sendContactEmail({
+      const response = await sendContactEmail({
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         phone: formData.phone,
@@ -97,6 +102,8 @@ const ContactPage = () => {
 
       // Clear rate limit on successful submission
       clearRateLimit('contact-form');
+      measure(acceptedQuoteEvent(response, null, inquiryService(formData.service)), occurrence);
+      if (measurement.current === occurrence) measurement.current = {};
       
       toast.success("Message sent! We'll contact you to discuss your request.");
       setFormData({
