@@ -12,6 +12,8 @@ export interface ExtLink {
 export interface LocationServiceItem {
   name: string;
   description: string;
+  /** Internal page with the full, current scope for this service. */
+  href: string;
 }
 
 export interface LocationPageConfig {
@@ -21,7 +23,7 @@ export interface LocationPageConfig {
   titleTag: string;        // <title> (template appends nothing — full title)
   metaDescription: string;
   intro: string;           // 120–150 words with {{l1}} {{l2}}
-  link1: ExtLink;          // national
+  link1?: ExtLink;         // optional external reference (only when it supports a claim)
   link2?: ExtLink;         // local (omit when no relevant local authority exists)
   services: LocationServiceItem[];
   whyChoose: string[];     // 4 bullets
@@ -40,18 +42,22 @@ export interface LocationPageConfig {
   proofPlaceholder?: string;
 }
 
-const CR: ExtLink = { text: "Consumer Reports", url: "https://www.consumerreports.org/cars/car-care/" };
-const BRLA: ExtLink = { text: "the City of Baton Rouge", url: "https://www.brla.gov/" };
-
+/**
+ * Shared service list for every city page. Scope mirrors the active car
+ * packages/add-ons and the corrected car service pages; each item links to
+ * the page that carries full details and current prices.
+ */
 const COMMON_SERVICES: LocationServiceItem[] = [
-  { name: "Mobile Car Detailing", description: "Full interior and exterior detailing performed at your home, office, or jobsite with a self-contained mobile rig." },
-  { name: "Ceramic Coating", description: "Paint protection applied after any needed correction; see the ceramic coating page for available options." },
-  { name: "Paint Correction", description: "Paint assessment, then 1-step, 2-step or 3-step machine polishing to reduce swirls, oxidation and light scratches." },
-  { name: "Interior Detailing", description: "Deep vacuum and trim cleaning in Silver; seat and upholstery shampoo, leather conditioning and carpet deep cleaning in Gold." },
-  { name: "Exterior Detailing", description: "Hand wash, decontamination, clay bar, and protective sealant or wax application." },
-  { name: "Headlight Restoration", description: "Sand, polish, and seal cloudy or yellowed headlights for safer night driving." },
-  { name: "Pet Hair & Odor Removal", description: "Tell us about embedded hair or lingering odors and we will recommend the right interior package." },
+  { name: "Mobile Car Detailing", href: "/mobile-car-detailing-baton-rouge", description: "Basic, Silver and Gold packages performed at your home or office. Compare what each package includes on the car detailing page." },
+  { name: "Interior Detailing", href: "/interior-detailing-baton-rouge", description: "Deep vacuum and trim cleaning in Silver; seat and upholstery shampoo, leather conditioning and carpet deep cleaning in Gold." },
+  { name: "Exterior Detailing", href: "/exterior-detailing-baton-rouge", description: "Hand wash and dry, wheels and tires, tire shine and exterior windows. Clay bar treatment is a separate add-on; Gold adds paint sealant." },
+  { name: "Paint Correction", href: "/paint-correction-baton-rouge", description: "Paint assessment, then 1-step, 2-step or 3-step machine polishing to reduce swirls, haze and light scratches. Results depend on defect depth and clear coat." },
+  { name: "Ceramic Coating", href: "/ceramic-coating-baton-rouge", description: "Paint protection applied after any needed correction; see the ceramic coating page for available options." },
+  { name: "Headlight Restoration", href: "/headlight-restoration-baton-rouge", description: "Add-on chosen at the booking add-ons step. We check the lenses on arrival; cracks, moisture or damage can't be fixed by restoration." },
+  { name: "Pet Hair & Odor Help", href: "/pet-hair-removal-baton-rouge", description: "Describe the hair or odor (with photos if you can) and we'll recommend an interior package and confirm the scope before you book." },
 ];
+
+const SERVICE_AREA_NOTE = "Mobile service at your home or office, with appointments between 6 AM and 8 PM Central and a 30-minute arrival window.";
 
 export const LOCATION_PAGES: LocationPageConfig[] = [
   {
