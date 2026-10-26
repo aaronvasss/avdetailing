@@ -13,6 +13,8 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { usePricing } from "@/lib/pricing";
+import { BOAT_HUB_SEO, BOAT_PACKAGES, BOAT_INQUIRY_GUIDANCE } from "@/lib/boat-seo";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 const SITE_URL = "https://avdetailing.net";
@@ -47,76 +49,16 @@ interface ServiceCardData {
 }
 
 const SERVICES: ServiceCardData[] = [
-  {
-    title: "Mobile Boat Detailing",
-    href: "/mobile-boat-detailing-baton-rouge",
-    icon: Ship,
-    tagline: "We come to your marina, slip, or driveway",
-    linkLabel: "Mobile boat detailing in Baton Rouge",
-    body: (
-      <>
-        Fully equipped on-site service for every vessel type — fishing and bass boats, ski
-        boats, pontoons, cruisers, and yachts. No trailering, no hassle. We work at your
-        marina, storage facility, or home anywhere in the Baton Rouge area.
-      </>
-    ),
-  },
-  {
-    title: "Boat Ceramic Coating",
-    href: "/boat-ceramic-coating-baton-rouge",
-    icon: Shield,
-    tagline: "System X marine — long-term gelcoat protection",
-    linkLabel: "Boat ceramic coating service in Baton Rouge",
-    body: (
-      <>
-        A durable hydrophobic layer over your gelcoat and paint that resists UV burn,
-        oxidation, water spotting, and algae — the four biggest threats on Louisiana waters.
-        Cuts post-trip cleanup dramatically and preserves long-term resale value.
-      </>
-    ),
-  },
-  {
-    title: "Gelcoat Restoration",
-    href: "/gelcoat-restoration-baton-rouge",
-    icon: Sparkles,
-    tagline: "Bring back factory gloss on faded, chalky finishes",
-    linkLabel: "Gelcoat restoration service in Baton Rouge",
-    body: (
-      <>
-        Louisiana sun and humidity oxidize gelcoat fast. Professional compounding, machine
-        polishing, and sealing restore original depth and color. Our most-requested service
-        on boats five years and older.
-      </>
-    ),
-  },
-  {
-    title: "Hull Cleaning",
-    href: "/hull-cleaning-baton-rouge",
-    icon: Droplets,
-    tagline: "Waterline scum, algae, and hard-water deposits — gone",
-    linkLabel: "Hull cleaning service in Baton Rouge",
-    body: (
-      <>
-        Buildup from the Mississippi, False River, Blind River, and surrounding lakes stains
-        permanently if ignored. We safely strip contamination from fiberglass, aluminum, and
-        painted hulls without damaging the finish.
-      </>
-    ),
-  },
-  {
-    title: "Pontoon Cleaning",
-    href: "/pontoon-cleaning-baton-rouge",
-    icon: Waves,
-    tagline: "Aluminum logs, deck, vinyl seats & bimini",
-    linkLabel: "Pontoon cleaning service in Baton Rouge",
-    body: (
-      <>
-        Pontoon logs collect oxidation and stains a garden hose can't touch. We polish
-        aluminum logs, deep-clean decks, restore vinyl seating, and treat bimini tops so
-        your pontoon looks sharp all season.
-      </>
-    ),
-  },
+  { title: "Boat Ceramic Coating", href: "/boat-ceramic-coating-baton-rouge", icon: Shield, tagline: "Quoted after a finish assessment", linkLabel: "Boat ceramic coating in Baton Rouge",
+    body: <>A protective layer for gelcoat or paint that can make routine cleaning easier. We review your finish first; oxidized gelcoat may need <Link to="/gelcoat-restoration-baton-rouge" className="text-primary underline">gelcoat restoration</Link> before coating. Boat Premium Detail includes a ceramic sealant.</> },
+  { title: "Gelcoat Restoration", href: "/gelcoat-restoration-baton-rouge", icon: Sparkles, tagline: "For chalky, faded or oxidized finishes", linkLabel: "Gelcoat restoration assessment",
+    body: <>We assess the finish and test an area before recommending Boat Full Detail (includes oxidation removal), Boat Premium Detail or a quoted restoration. Results depend on gelcoat condition.</> },
+  { title: "Hull Cleaning", href: "/hull-cleaning-baton-rouge", icon: Droplets, tagline: "Waterline and hull staining, reviewed per request", linkLabel: "Boat hull cleaning assessment",
+    body: <>Tell us the hull material, the staining you see and how the hull can be reached — on a trailer, on a lift, in a slip or afloat — and we will confirm what we can do.</> },
+  { title: "Pontoon Cleaning", href: "/pontoon-cleaning-baton-rouge", icon: Waves, tagline: "Decks, vinyl seating and aluminum logs", linkLabel: "Pontoon boat cleaning and care",
+    body: <>Match deck and vinyl cleaning to a boat package; aluminum log cleaning and heavier staining are quoted after we see the condition.</> },
+  { title: "Mobile Boat Detailing", href: "/mobile-boat-detailing-baton-rouge", icon: Ship, tagline: "We come to where your boat is kept", linkLabel: "How mobile boat visits work",
+    body: <>Appointments between 6 AM and 8 PM with a 30-minute arrival window, at locations that allow detailing work. See what to send before a visit.</> },
 ];
 
 const SERVICE_AREAS = [
@@ -130,18 +72,14 @@ const SERVICE_AREAS = [
   "Central",
 ];
 
-const STATS = [
-  { value: "5", label: "Boat services offered" },
-  { value: "On-site", label: "Marina & driveway service" },
-  { value: "System X", label: "Marine ceramic certified" },
-];
 
 export default function BoatDetailingBatonRougePage() {
+  const pricing = usePricing();
   return (
     <Layout>
       <SEOHead
-        title="Boat Detailing in Baton Rouge, LA"
-        description="Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning & pontoon detailing at your marina or driveway."
+        title={BOAT_HUB_SEO.title}
+        description={BOAT_HUB_SEO.description}
         path={PAGE_PATH}
       />
       <JsonLd data={[
@@ -149,7 +87,8 @@ export default function BoatDetailingBatonRougePage() {
         serviceSchema,
         breadcrumbSchema([
           { name: "Home", path: "/" },
-          { name: "Boat Detailing in Baton Rouge, LA", path: PAGE_PATH },
+          { name: "Services", path: "/services" },
+          { name: "Boat Detailing", path: PAGE_PATH },
         ]),
       ]} />
 
@@ -158,9 +97,9 @@ export default function BoatDetailingBatonRougePage() {
         <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
-          <li className="text-foreground font-medium" aria-current="page">
-            Boat Detailing in Baton Rouge, LA
-          </li>
+          <li><Link to="/services" className="hover:text-primary transition-colors">Services</Link></li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">Boat Detailing</li>
         </ol>
       </nav>
 
@@ -177,33 +116,20 @@ export default function BoatDetailingBatonRougePage() {
             Marine Detailing · Baton Rouge, LA
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] max-w-4xl">
-            Boat Detailing in <span className="text-primary">Baton Rouge</span>, LA
+            {BOAT_HUB_SEO.h1}
           </h1>
           <p className="mt-6 max-w-2xl text-base md:text-lg text-muted-foreground leading-relaxed">
-            Louisiana has more boats per capita than almost any state, and the Mississippi,
-            False River, Blind River, and our local lakes punish every vessel with UV,
-            algae, and hard water. AV Detailing protects your boat where it lives — fully
-            mobile to your marina, launch, storage facility, or driveway. The{" "}
-            <a
-              href="https://www.wlf.louisiana.gov/page/boating"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="text-primary underline underline-offset-4 hover:text-primary/80"
-            >
-              Louisiana Department of Wildlife and Fisheries
-            </a>{" "}
-            encourages every owner to keep their vessel properly maintained for safety and
-            longevity on the water.
+            {BOAT_HUB_SEO.intro}
           </p>
 
-          {/* Stat strip */}
-          <div className="mt-12 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 max-w-2xl">
-            {STATS.map((s) => (
-              <div key={s.label} className="bg-card px-4 py-5 md:px-6 md:py-6">
-                <div className="text-xl md:text-2xl font-bold text-primary leading-none">{s.value}</div>
-                <div className="mt-2 text-[11px] md:text-xs uppercase tracking-wider text-muted-foreground">
-                  {s.label}
-                </div>
+          {/* Packages */}
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 max-w-4xl">
+            {BOAT_PACKAGES.map((p) => (
+              <div key={p.name} className="bg-card px-5 py-5 md:px-6 md:py-6">
+                <div className="text-sm font-semibold">{p.name}</div>
+                <div className="mt-1 text-2xl font-bold text-primary leading-none">from {pricing.label(pricing.packageFrom("boat", p.name))}</div>
+                <p className="mt-3 text-sm text-muted-foreground">{p.scope}</p>
+                <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">Typical time: {p.duration}</p>
               </div>
             ))}
           </div>
@@ -218,7 +144,7 @@ export default function BoatDetailingBatonRougePage() {
               Our Marine Services
             </div>
             <h2 className="text-3xl md:text-4xl font-bold">
-              Built for Louisiana water, sun, and humidity
+              Boat services and assessments
             </h2>
           </div>
 
@@ -281,12 +207,11 @@ export default function BoatDetailingBatonRougePage() {
                 Where We Run
               </div>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Service across the Baton Rouge waterways
+                Mobile boat detailing across Greater Baton Rouge
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                We meet your boat at the marina, the launch, the storage yard, or your
-                driveway. If you're on the water in the greater Baton Rouge area, we cover
-                you.
+                We work where your boat is kept when the location allows detailing. Call to
+                confirm your address and any marina or storage rules.
               </p>
             </div>
 
@@ -315,8 +240,7 @@ export default function BoatDetailingBatonRougePage() {
             Book your boat detail today
           </h2>
           <p className="text-muted-foreground mb-8">
-            Have questions about your vessel? Call us and we'll walk through the right
-            service for your boat and your water.
+            Include: {BOAT_INQUIRY_GUIDANCE.join(" ")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button asChild className="font-semibold tracking-wide">

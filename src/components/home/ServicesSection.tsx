@@ -83,7 +83,7 @@ const services = [
     icon: Ship,
     title: "Boat Detailing",
     heading: "Boat & Marine Detailing",
-    description: "Marine-grade detailing to protect your vessel from the elements.",
+    description: "Mobile boat detailing packages plus ceramic coating, gelcoat, hull and pontoon care quotes.",
     href: "/boat-detailing-baton-rouge",
     image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=800&auto=format&fit=crop",
     alt: "Boat detailing service in Louisiana",

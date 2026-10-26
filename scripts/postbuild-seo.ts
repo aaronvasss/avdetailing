@@ -16,6 +16,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
+import { BOAT_HUB_SEO, BOAT_HUB_PATH, boatHubHtml, boatPackagesHtml, boatLinksHtml } from "../src/lib/boat-seo";
 import { CAR_HUB_SEO, PAINT_CORRECTION_SEO, PAINT_OPTIONS, carHubHtml, paintCorrectionHtml, relatedCarLinks, interiorPackagesHtml, CAR_HUB_PATH } from "../src/lib/car-seo";
 import { FALLBACK_PACKAGES, CAR_PAGE_DISPLAY_FROM } from "../src/lib/pricing-fallback";
 import { RV_HUB_SEO, RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_INTERIOR_UNAVAILABLE, rvHubHtml, rvInteriorUnavailableHtml } from "../src/lib/rv-seo";
@@ -68,6 +69,18 @@ const money = (n: number | undefined) => (n == null ? "Custom quote" : `$${Math.
 const fallbackPrice = (service: string, name: string) => FALLBACK_PACKAGES.find(p => p.service === service && p.name === name)?.price;
 
 function bodyForService(p: (typeof SERVICE_LANDING_PAGES)[number]): string {
+  if (p.boatPage) {
+    return [
+      `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="${BOAT_HUB_PATH}">Boat Detailing</a> / <span aria-current="page">${esc(p.title)}</span></nav>`,
+      `<h1>${esc(p.title)}</h1>`,
+      `<p>${esc(stripTokens(p.intro))}</p>`,
+      `<h2>${esc(p.processHeading ?? "Our Process")}</h2><ol>${p.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>`,
+      `<h2>${esc(p.scopeHeading ?? "Before You Book")}</h2><ul>${p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`,
+      ...(p.showBoatPackages ? [boatPackagesHtml()] : []),
+      `<h2>Related boat services &amp; service areas</h2>${boatLinksHtml(`/${p.slug}`)}`,
+      `<p>Call <a href="tel:2255216264">(225) 521-6264</a> or <a href="/book">book online</a>.</p>`,
+    ].join("");
+  }
   if (p.carPage) {
     return [
       `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="${CAR_HUB_PATH}">Car Detailing</a> / <span aria-current="page">${esc(p.title)}</span></nav>`,
@@ -195,10 +208,10 @@ const STATIC_ROUTES: RouteMeta[] = [
     body: rvHubHtml(),
   },
   {
-    path: "/boat-detailing-baton-rouge",
-    title: "Boat Detailing in Baton Rouge, LA | AV Detailing",
-    description:
-      "Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning and pontoon detailing at your marina, dock or driveway.",
+    path: BOAT_HUB_SEO.path,
+    title: BOAT_HUB_SEO.title,
+    description: BOAT_HUB_SEO.description,
+    body: boatHubHtml(),
   },
   {
     path: AVIATION_OVERVIEW.path,

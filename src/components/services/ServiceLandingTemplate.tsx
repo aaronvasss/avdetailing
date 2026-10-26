@@ -6,6 +6,8 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
+import { BOAT_HUB_PATH, BOAT_PACKAGES, relatedBoatLinks } from "@/lib/boat-seo";
+import { usePricing } from "@/lib/pricing";
 import { CAR_HUB_PATH, CAR_INTERIOR_BY_PACKAGE, CAR_ACTIVE_ADD_ONS, relatedCarLinks } from "@/lib/car-seo";
 import { RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_BUYING_GUIDANCE } from "@/lib/rv-seo";
 import { aviationPolicy, AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "@/lib/aviation-policy";
@@ -56,12 +58,14 @@ function renderIntro(config: ServiceLandingConfig) {
 }
 
 export function ServiceLandingTemplate({ config }: Props) {
+  const pricing = usePricing();
   if (config.unavailable) return <UnavailableServicePage config={config} />;
   const isAircraft = config.slug.startsWith("aircraft-");
   const isRv = Boolean(config.rvPage);
   const isCar = Boolean(config.carPage);
-  const crumbParent = isCar ? { name: "Car Detailing", path: CAR_HUB_PATH } : isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
-  const relatedLinks = isCar ? relatedCarLinks(`/${config.slug}`) : isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
+  const isBoat = Boolean(config.boatPage);
+  const crumbParent = isBoat ? { name: "Boat Detailing", path: BOAT_HUB_PATH } : isCar ? { name: "Car Detailing", path: CAR_HUB_PATH } : isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
+  const relatedLinks = isBoat ? relatedBoatLinks(`/${config.slug}`) : isCar ? relatedCarLinks(`/${config.slug}`) : isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
   const pagePath = `/${config.slug}`;
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -171,6 +175,25 @@ export function ServiceLandingTemplate({ config }: Props) {
         </div>
       </section>
 
+      {config.showBoatPackages && (
+        <section className="section-padding">
+          <div className="container-custom max-w-4xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Boat detailing packages</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              {BOAT_PACKAGES.map((p) => (
+                <article key={p.name} className="rounded-2xl border border-border bg-card p-6 flex flex-col">
+                  <h3 className="text-xl font-bold mb-1">{p.name}</h3>
+                  <p className="text-primary font-semibold mb-3">from {pricing.label(pricing.packageFrom("boat", p.name))}</p>
+                  <p className="text-sm text-muted-foreground flex-1">{p.scope}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">Typical time: {p.duration}</p>
+                </article>
+              ))}
+            </div>
+            <p className="mt-6 text-muted-foreground">Work outside these packages is quoted after we review your boat.</p>
+          </div>
+        </section>
+      )}
+
       {config.showInteriorPackages && (
         <section className="section-padding">
           <div className="container-custom max-w-4xl">
@@ -195,7 +218,7 @@ export function ServiceLandingTemplate({ config }: Props) {
       {/* Service Areas */}
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : isRv ? "Related exterior RV services & service areas" : isCar ? "Related car services & service areas" : "Service Areas"}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : isRv ? "Related exterior RV services & service areas" : isCar ? "Related car services & service areas" : isBoat ? "Related boat services & service areas" : "Service Areas"}</h2>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
             {isAircraft ? <>{AVIATION_COVERAGE_TEXT} See the <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">private-aircraft detailing overview</Link> for the complete service overview and quote guidance.</> : SERVICE_AREAS_TEXT}
           </p>
