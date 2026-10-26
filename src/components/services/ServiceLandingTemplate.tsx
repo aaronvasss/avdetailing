@@ -58,12 +58,12 @@ function renderIntro(config: ServiceLandingConfig) {
 }
 
 export function ServiceLandingTemplate({ config }: Props) {
+  const pricing = usePricing();
   if (config.unavailable) return <UnavailableServicePage config={config} />;
   const isAircraft = config.slug.startsWith("aircraft-");
   const isRv = Boolean(config.rvPage);
   const isCar = Boolean(config.carPage);
   const isBoat = Boolean(config.boatPage);
-  const pricing = usePricing();
   const crumbParent = isBoat ? { name: "Boat Detailing", path: BOAT_HUB_PATH } : isCar ? { name: "Car Detailing", path: CAR_HUB_PATH } : isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
   const relatedLinks = isBoat ? relatedBoatLinks(`/${config.slug}`) : isCar ? relatedCarLinks(`/${config.slug}`) : isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
   const pagePath = `/${config.slug}`;
