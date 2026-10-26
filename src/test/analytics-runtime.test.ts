@@ -63,7 +63,7 @@ describe("fail-closed GA4 collection", () => {
     const serialized = JSON.stringify(h.commands.mock.calls);
     expect(serialized).not.toContain("secret"); expect(serialized).not.toContain("#token");
   });
-  it.each(["/account", "/admin", "/worker", "/auth", "/reset-password", "/book", "/booking/manage",
+  it.each(["/account", "/admin", "/worker", "/auth", "/reset-password", "/booking/manage",
     "/booking/cancel", "/booking/success", "/cancel/private-id", "/rate/private-id", "/unknown", "/rv-interior-detailing-baton-rouge"])
   ("halts already-loaded tracking on excluded route %s", path => {
     const h = setup(); h.runtime.navigate("/"); h.runtime.setPreference("accepted"); h.ready();
@@ -98,7 +98,7 @@ describe("fail-closed GA4 collection", () => {
     expect(readAnalyticsPreference({ getItem: key => key === ANALYTICS_PREFERENCE_KEY ? "accepted" : null })).toBe("accepted");
   });
   it("only allows exact static public paths; referrers drop every query/hash or private/external URL", () => {
-    expect(Object.keys(ANALYTICS_PUBLIC_PAGES)).toHaveLength(43);
+    expect(Object.keys(ANALYTICS_PUBLIC_PAGES)).toHaveLength(44);
     expect(publicAnalyticsPage("/contact?email=name@example.com")).toBeNull();
     expect(publicAnalyticsPage("/contact#secret")).toBeNull();
     expect(safeAnalyticsReferrer("https://avdetailing.net/contact?token=secret#name")).toBe("https://avdetailing.net/contact");

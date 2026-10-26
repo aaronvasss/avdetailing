@@ -40,6 +40,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { getFriendlyBookingError } from "@/lib/booking-errors";
+import { useLeadMeasurement } from "@/components/analytics/AnalyticsConsent";
+import { savedBookingEvent, acceptedQuoteEvent } from "@/lib/analytics-events";
 import { logAppError } from "@/lib/error-log";
 
 // Step 1: Service Types - now includes Ceramic Coating and Paint Correction
@@ -226,6 +228,9 @@ const BookingPage = () => {
     return () => cancelAnimationFrame(frame);
   }, [step]);
   const [serviceType, setServiceType] = useState<string>("");
+  const measure = useLeadMeasurement();
+  const bookingMeasurement = useRef<object>({});
+  const quoteMeasurement = useRef<object>({});
   const [vehicleSubType, setVehicleSubType] = useState<string>("");
   const [selectedPackage, setSelectedPackage] = useState<string>("");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
@@ -675,6 +680,7 @@ const BookingPage = () => {
       }
 
       setBookingId(createdId);
+      measure(savedBookingEvent(createResp, createErr, serviceType, createPayload.payment_method), bookingMeasurement.current);
 
       // Track referral if a valid referral code was used
       if (referralCode.trim() && referralValid) {
@@ -1089,7 +1095,7 @@ const BookingPage = () => {
                     
                     setIsSubmitting(true);
                     try {
-                      const { error } = await supabase.functions.invoke('send-contact-email', {
+                      const { data: quoteResponse, error } = await supabase.functions.invoke('send-contact-email', {
                         body: {
                           name: `${customerInfo.firstName} ${customerInfo.lastName}`,
                           email: customerInfo.email,
@@ -1100,6 +1106,7 @@ const BookingPage = () => {
                       });
                       
                       if (error) throw error;
+                      measure(acceptedQuoteEvent(quoteResponse, error, serviceType), quoteMeasurement.current);
                       
                       toast.success("Quote request submitted! We'll contact you to discuss your request.");
                       setBookingId("quote-" + Date.now());

@@ -27,6 +27,7 @@ const fixedPages: Record<string, string> = {
   "/gallery": "Detailing Gallery — AV Detailing",
   "/reviews": "Customer Reviews — AV Detailing",
   "/contact": "Contact AV Detailing",
+  "/book": "Book a Detailing Service — AV Detailing",
   "/service-areas": "Service Areas — AV Detailing",
   "/privacy-policy": "Privacy Policy — AV Detailing",
   "/terms-and-conditions": "Terms & Conditions — AV Detailing",

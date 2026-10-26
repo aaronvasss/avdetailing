@@ -1,3 +1,7 @@
+# GA4 preparation part 2
+- [ ] Prepare saved-booking, accepted-quote and separate call/text events through the same closed consent adapter; no payment claims or identifiers.
+- [ ] Verify mocked outcomes/privacy, desktop/375/390 controls and booking flows; document dictionary, GA4 UI steps and full-build limitation.
+
 # GA4 preparation part 1
 - [x] Audit existing tags/consent and official Google guidance; prepare one gated production-only integration and optional analytics controls.
 - [x] Verify mocked collection/privacy/consent and desktop/375/390 controls; report preview-build evidence and activation prerequisites without release or real Google traffic.

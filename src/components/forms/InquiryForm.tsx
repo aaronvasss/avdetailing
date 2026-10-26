@@ -9,6 +9,8 @@ import { sendContactEmail } from "@/lib/email";
 import { contactFormSchema } from "@/lib/validations";
 import { checkRateLimit, clearRateLimit } from "@/lib/security";
 import { supabase } from "@/integrations/supabase/client";
+import { useLeadMeasurement } from "@/components/analytics/AnalyticsConsent";
+import { acceptedQuoteEvent, inquiryService } from "@/lib/analytics-events";
 
 interface InquiryFormProps {
   /** Identifies where the form was submitted from (e.g. "homepage", "service:ceramic-coating") */
@@ -22,6 +24,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
+  const measure = useLeadMeasurement();
+  const measurement = useRef<object>({});
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -101,7 +105,7 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
 
       if (contactError) throw contactError;
 
-      await sendContactEmail({
+      const response = await sendContactEmail({
         name: fullName,
         email: formData.email,
         phone: formData.phone,
@@ -110,6 +114,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
       });
 
       clearRateLimit(`inquiry-form:${source}`);
+      measure(acceptedQuoteEvent(response, null, inquiryService(serviceContext)), measurement.current);
+      measurement.current = {};
       toast.success("Message sent! We'll contact you to discuss your request.");
       setFormData({ firstName: "", lastName: "", email: "", phone: "", message: "" });
     } catch (error) {
