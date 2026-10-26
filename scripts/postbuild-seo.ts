@@ -18,6 +18,7 @@ import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
 import { LOCATION_PAGES } from "../src/data/locationPages";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
+import { AVIATION_OVERVIEW, aviationOverviewHtml } from "../src/lib/aviation-overview";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -159,10 +160,10 @@ const STATIC_ROUTES: RouteMeta[] = [
       "Mobile boat detailing in Baton Rouge — ceramic coating, gelcoat restoration, hull cleaning and pontoon detailing at your marina, dock or driveway.",
   },
   {
-    path: "/aircraft-detailing-baton-rouge",
-    title: "Aircraft Detailing in Baton Rouge — AV Detailing",
-    description:
-      "Aviation-safe aircraft detailing at BTR, LFT, MSY & NEW — painted aluminum, composites & plexiglass. Mobile to your hangar.",
+    path: AVIATION_OVERVIEW.path,
+    title: AVIATION_OVERVIEW.title,
+    description: AVIATION_OVERVIEW.description,
+    body: aviationOverviewHtml(),
   },
   {
     path: "/ceramic-coating-baton-rouge",
