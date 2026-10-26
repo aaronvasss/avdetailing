@@ -50,8 +50,8 @@ const PrivacyPolicyPage = () => {
             <h2 className="text-xl font-semibold mt-8 mb-4">5. Getting Help</h2>
             <p className="text-muted-foreground leading-relaxed">
               For assistance with our SMS messaging program, reply <strong>HELP</strong> to any message or contact us at{" "}
-              <a href="mailto:aaronvasquez@avdetailing.com" className="text-primary hover:underline">
-                aaronvasquez@avdetailing.com
+              <a href="mailto:aaronvasquez@avdetailingg.com" className="text-primary hover:underline">
+                aaronvasquez@avdetailingg.com
               </a>.
             </p>
 
@@ -72,7 +72,7 @@ const PrivacyPolicyPage = () => {
               If you have questions about this Privacy Policy, please contact us:
             </p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2 mt-4">
-              <li>Email: <a href="mailto:aaronvasquez@avdetailing.com" className="text-primary hover:underline">aaronvasquez@avdetailing.com</a></li>
+              <li>Email: <a href="mailto:aaronvasquez@avdetailingg.com" className="text-primary hover:underline">aaronvasquez@avdetailingg.com</a></li>
               <li>Phone: <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a></li>
             </ul>
 

@@ -43,7 +43,7 @@ const TermsAndConditionsPage = () => {
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>Reply <strong>STOP</strong> to any SMS message to unsubscribe from notifications.</li>
               <li>Reply <strong>HELP</strong> to any SMS message for assistance.</li>
-              <li>You may also contact us at <a href="mailto:aaronvasquez@avdetailing.com" className="text-primary hover:underline">aaronvasquez@avdetailing.com</a> for support.</li>
+              <li>You may also contact us at <a href="mailto:aaronvasquez@avdetailingg.com" className="text-primary hover:underline">aaronvasquez@avdetailingg.com</a> for support.</li>
             </ul>
 
             <h2 className="text-xl font-semibold mt-8 mb-4">5. Carrier Liability</h2>
@@ -76,7 +76,7 @@ const TermsAndConditionsPage = () => {
               For questions about these Terms & Conditions, please contact us:
             </p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2 mt-4">
-              <li>Email: <a href="mailto:aaronvasquez@avdetailing.com" className="text-primary hover:underline">aaronvasquez@avdetailing.com</a></li>
+              <li>Email: <a href="mailto:aaronvasquez@avdetailingg.com" className="text-primary hover:underline">aaronvasquez@avdetailingg.com</a></li>
               <li>Phone: <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a></li>
             </ul>
 
