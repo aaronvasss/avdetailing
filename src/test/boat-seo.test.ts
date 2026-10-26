@@ -43,7 +43,10 @@ describe("boat section SEO", () => {
       expect(coat).not.toMatch(/noindex/i);
       expect(coat.match(/"@type":"LocalBusiness"/g)?.length).toBe(1);
       const hull = read("hull-cleaning-baton-rouge");
-      expect(hull).toMatch(/trailer, (on a )?lift, (in a )?slip or afloat/);
+      // Owner-confirmed: hull cleaning on a trailer or lift only, never in-water.
+      expect(hull).toMatch(/trailer or (a )?lift/);
+      expect(hull).not.toMatch(/slip or afloat|in a slip|afloat/i);
+      expect(hull).toMatch(/do not offer in-water cleaning/);
       expect(hull.slice(hull.indexOf('id="root"'))).not.toMatch(BANNED);
     } finally { rmSync(temp, { recursive: true, force: true }); }
   }, 60000);
