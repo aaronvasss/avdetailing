@@ -18,10 +18,14 @@ describe("car supporting pages", () => {
     expect(new Set(pages.map((p) => p.seoTitle)).size).toBe(5);
     expect(new Set(pages.map((p) => p.metaDescription)).size).toBe(5);
   });
-  it("headlight and engine bay are booked as add-ons; odor and pet hair ask for details first", () => {
-    expect(text(pages[1])).toMatch(/add-ons step/);
-    expect(text(pages[4])).toMatch(/add-ons step/);
-    for (const p of [pages[2], pages[3]]) expect(text(p)).toMatch(/confirm the scope/);
+  it("headlight, engine bay, odor and pet hair are all booked at the add-ons step", () => {
+    for (const p of pages.slice(1)) expect(text(p)).toMatch(/add-ons step/);
+    expect(text(pages[2])).toMatch(/Odor Elimination/);
+    expect(text(pages[3])).toMatch(/Pet Hair Removal/);
+    for (const p of [pages[2], pages[3]]) {
+      expect(text(p)).not.toMatch(/scope and price are agreed|ozone|HEPA|enzyme|allerg|permanent/i);
+      expect(text(p)).toMatch(/not part of any package/);
+    }
   });
   it("exterior page does not promise clay bar in every wash", () => {
     expect(text(pages[0])).toMatch(/Clay bar treatment is a separate add-on/);

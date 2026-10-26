@@ -22,7 +22,8 @@ describe("car section SEO", () => {
       const has = pkg.interior.some(i => /shampoo/i.test(i));
       expect(has).toBe(pkg.name === "Gold Package");
     }
-    expect(CAR_ACTIVE_ADD_ONS).not.toContain("Odor Removal");
+    // All five active catalog add-ons are selectable at the booking add-ons step.
+    expect(CAR_ACTIVE_ADD_ONS).toEqual(["Clay Bar Treatment", "Engine Bay Cleaning", "Headlight Restoration", "Odor Elimination", "Pet Hair Removal"]);
   });
 
   it("mobile and interior pages drop authority links and absolute claims", () => {

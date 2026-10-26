@@ -54,7 +54,7 @@ const COMMON_SERVICES: LocationServiceItem[] = [
   { name: "Paint Correction", href: "/paint-correction-baton-rouge", description: "Paint assessment, then 1-step, 2-step or 3-step machine polishing to reduce swirls, haze and light scratches. Results depend on defect depth and clear coat." },
   { name: "Ceramic Coating", href: "/ceramic-coating-baton-rouge", description: "Paint protection applied after any needed correction; see the ceramic coating page for available options." },
   { name: "Headlight Restoration", href: "/headlight-restoration-baton-rouge", description: "Add-on chosen at the booking add-ons step. We check the lenses on arrival; cracks, moisture or damage can't be fixed by restoration." },
-  { name: "Pet Hair & Odor Help", href: "/pet-hair-removal-baton-rouge", description: "Describe the hair or odor (with photos if you can) and we'll recommend an interior package and confirm the scope before you book." },
+  { name: "Pet Hair Removal & Odor Elimination", href: "/pet-hair-removal-baton-rouge", description: "Separate add-ons you can choose at the booking add-ons step with any car package; note the hair or odor in your booking notes." },
 ];
 
 const SERVICE_AREA_NOTE = "Mobile service at your home or office, with appointments between 6 AM and 8 PM Central and a 30-minute arrival window.";
