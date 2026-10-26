@@ -249,12 +249,6 @@
   </url>
 
   <url>
-    <loc>https://avdetailing.net/services</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.60</priority>
-  </url>
-
-  <url>
     <loc>https://avdetailing.net/privacy-policy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.30</priority>
