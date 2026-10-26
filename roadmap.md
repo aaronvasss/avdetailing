@@ -1,3 +1,8 @@
+# GA4 search attribution correction
+- [x] Preserve exact allowlisted search origins and first-consented entry context; never raw referrers or private-history replay. Decline/private transitions clear entry; subsequent hits use safe navigation.
+- [x] Network-free attribution/consent/navigation regressions and both reports updated: 122 focused / 439 complete tests passed; automatic preview build OK at 15:02:20 UTC. No real Google or customer actions.
+- [ ] Full-production validation and activation: no approved automatic production-form workflow exposed (GitHub sitemap validation is not build/prerender); manual builds/typechecks prohibited. Both release/stream gates remain false.
+
 # Final source/report reconciliation
 - [x] Replace awkward 10-Year wording and fixed ceramic duration with timing-confirmation guidance; preserve scheduling and prices. Read-only catalog ~8 hours conflicts with booking 300 minutes; no new duration rule.
 - [x] Replace historical report with cohesive current facts, scope, measurement limits, latest tests and release gates. Final 400 tests and desktop/375/390 copy checks passed; preview build OK.

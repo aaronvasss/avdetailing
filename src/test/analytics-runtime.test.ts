@@ -97,13 +97,13 @@ describe("fail-closed GA4 collection", () => {
     expect(readAnalyticsPreference({ getItem: () => { throw new Error("blocked"); } })).toBe("unset");
     expect(readAnalyticsPreference({ getItem: key => key === ANALYTICS_PREFERENCE_KEY ? "accepted" : null })).toBe("accepted");
   });
-  it("only allows exact static public paths; referrers drop every query/hash or private/external URL", () => {
+  it("only allows exact static public paths; referrers drop queries/hashes and private paths", () => {
     expect(Object.keys(ANALYTICS_PUBLIC_PAGES)).toHaveLength(45);
     expect(publicAnalyticsPage("/contact?email=name@example.com")).toBeNull();
     expect(publicAnalyticsPage("/contact#secret")).toBeNull();
     expect(safeAnalyticsReferrer("https://avdetailing.net/contact?token=secret#name")).toBe("https://avdetailing.net/contact");
     expect(safeAnalyticsReferrer("https://avdetailing.net/account?token=secret")).toBe("");
-    expect(safeAnalyticsReferrer("https://google.com/search?q=private")).toBe("");
+    expect(safeAnalyticsReferrer("https://google.com/search?q=private")).toBe("https://google.com");
   });
   it("intercepts private pushState before other history listeners and ignores query/hash-only duplicates", () => {
     const h = setup(); h.runtime.navigate("/"); h.runtime.setPreference("accepted"); h.ready();

@@ -48,12 +48,23 @@ export function publicAnalyticsPage(pathname: string) {
     page_title: ANALYTICS_PUBLIC_PAGES[pathname] };
 }
 
-/** No external referrer, private path, query or hash enters Google payloads. */
+/** Exact HTTPS hosts only: deliberately incomplete, never suffix matching. */
+export const ANALYTICS_SEARCH_HOSTS: readonly string[] = Object.freeze([
+  "google.com", "www.google.com", "google.co.uk", "www.google.co.uk",
+  "google.ca", "www.google.ca", "bing.com", "www.bing.com",
+  "duckduckgo.com", "www.duckduckgo.com",
+  "yahoo.com", "www.yahoo.com", "search.yahoo.com",
+]);
+
+/** Search origins only; public same-origin paths only. Never retain raw input. */
 export function safeAnalyticsReferrer(value: string): string {
   try {
     const url = new URL(value);
-    return url.origin === ANALYTICS_ORIGIN
-      ? publicAnalyticsPage(url.pathname)?.page_location || "" : "";
+    if (url.username || url.password || url.protocol !== "https:" || url.port) return "";
+    if (url.origin === ANALYTICS_ORIGIN) {
+      return publicAnalyticsPage(url.pathname)?.page_location || "";
+    }
+    return ANALYTICS_SEARCH_HOSTS.includes(url.hostname) ? url.origin : "";
   } catch { return ""; }
 }
 

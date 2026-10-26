@@ -23,6 +23,9 @@ export class AnalyticsRuntime {
   private preference: AnalyticsPreference = "unset";
   private path = "";
   private previousPublic = "";
+  private entryReferrer = "";
+  private hasCollectedPage = false;
+  private currentHitReferrer = "";
   private sentPath: string | null = null;
   private loaded = false;
   private pending = false;
@@ -32,6 +35,11 @@ export class AnalyticsRuntime {
 
   constructor(private port: AnalyticsPort, private gates: Gates = ANALYTICS_RELEASE) {
     this.port.disable(true);
+    // Keep only a sanitized entry context in memory, never a raw referrer or
+    // browsing history. Private/noncanonical initial arrivals retain nothing.
+    if (this.port.origin() === ANALYTICS_ORIGIN && publicAnalyticsPage(this.port.pathname())) {
+      this.entryReferrer = safeAnalyticsReferrer(this.port.referrer());
+    }
   }
 
   private eligible() {
@@ -51,6 +59,9 @@ export class AnalyticsRuntime {
       this.cancelLoad = undefined;
       this.pending = false;
       this.sentPath = null;
+      this.currentHitReferrer = "";
+      this.previousPublic = "";
+      if (preference === "declined") this.entryReferrer = "";
     }
     this.sync();
   }
@@ -62,6 +73,13 @@ export class AnalyticsRuntime {
       this.previousPublic = publicAnalyticsPage(this.path)?.page_location || "";
       this.path = pathname;
       this.sentPath = null;
+      this.currentHitReferrer = "";
+      if (!publicAnalyticsPage(pathname)) {
+        // A private/unknown transition ends entry attribution. Returning to a
+        // public route must never resurrect the original source/private path.
+        this.entryReferrer = "";
+        this.previousPublic = "";
+      }
     }
     this.sync();
   }
@@ -103,7 +121,9 @@ export class AnalyticsRuntime {
     if (!page || !this.eligible() || this.sentPath === this.path) return;
     // Overrides also cover GA's session/engagement metadata. All Enhanced
     // Measurement options must be OFF in the verified stream (not a JS flag).
-    const referrer = this.previousPublic || safeAnalyticsReferrer(this.port.referrer());
+    // First hit uses the sanitized arrival (even when empty for direct entry),
+    // not the last pre-consent public page. Later hits describe safe navigation.
+    const referrer = this.hasCollectedPage ? this.previousPublic : this.entryReferrer;
     this.port.command("config", GA4_MEASUREMENT_ID, {
       send_page_view: false, allow_google_signals: false,
       allow_ad_personalization_signals: false,
@@ -113,6 +133,9 @@ export class AnalyticsRuntime {
     this.port.disable(false);
     this.port.command("event", "page_view", { ...page, page_referrer: referrer });
     this.sentPath = this.path;
+    this.currentHitReferrer = referrer;
+    this.hasCollectedPage = true;
+    this.entryReferrer = "";
   }
 
   /** Drop (never queue/replay) unconsented, private, pre-load or disabled activity. */
@@ -125,7 +148,7 @@ export class AnalyticsRuntime {
     if (!safe || !page) return;
     try {
       this.port.command("event", safe.name, { ...safe.params, ...page,
-        page_referrer: this.previousPublic || safeAnalyticsReferrer(this.port.referrer()) });
+        page_referrer: this.currentHitReferrer });
     } catch { /* Measurement must never break the customer's action. */ }
   }
 
