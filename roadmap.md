@@ -144,3 +144,5 @@
 - [x] Add database charge/refund audit and reconcile a single metadata-matched reserved intent; ambiguous cases remain manual-only.
 - [ ] Cash App URL awaits owner; keep the external option visible.
 - [ ] Publish only on explicit request.
+
+- [x] Aircraft quote buttons open the aircraft quote form directly (/book?service=aircraft)
