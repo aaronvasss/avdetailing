@@ -35,7 +35,7 @@ export const FALLBACK_PACKAGES: PackagePrice[] = [
   { service: "boat", name: "Boat Wash & Wax", price: 199 },
   { service: "boat", name: "Boat Full Detail", price: 399 },
   { service: "boat", name: "Boat Premium Detail", price: 649 },
-  { service: "rv", name: "RV Exterior Wash", price: 180 },
+  { service: "rv", name: "RV Exterior Wash", price: 350 },
 ];
 
 /**

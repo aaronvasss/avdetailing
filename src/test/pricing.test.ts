@@ -7,6 +7,10 @@ describe("shared pricing", () => {
     expect(p.label(p.packageFrom("car", "Basic Package"))).toBe("$145");
     expect(p.label(p.packageFrom("car", "Gold Package"))).toBe("$363");
   });
+  it("RV Exterior Wash uses the owner-approved $350 authoritative fallback", () => {
+    expect(p.packageFrom("rv", "RV Exterior Wash")).toBe(350);
+    expect(p.startingAt("rv")).toBe(350);
+  });
   it("ceramic starts at the booked 3-year car price", () => expect(ceramicFrom("3-year")).toBe(850));
   it("aircraft has no public price", () => expect(p.label(p.startingAt("aircraft"), "By Quote")).toBe("By Quote"));
   it("bi-weekly membership totals two visits a month", () => expect(p.planMonthly("bi-weekly")).toBe(260));

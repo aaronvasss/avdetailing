@@ -1,3 +1,7 @@
+# RV Exterior Wash price
+- [x] Updated only the owner-authorized shared RV Exterior Wash catalog row from $180 to $350 and aligned the public fallback; other packages and fee rules unchanged. Shared live/preview data change explicitly authorized; no historical bookings changed.
+- [x] Verified package, Back, running/final summaries and both payment methods at 1280/375/390px with mocked availability and blocked writes; 103 focused tests passed, including modeled saved totals and checkout cents ($350 / 35000 cents). Screenshots inspected and preview build OK; real save/Stripe deliberately untested, no bookings/charges, publish or deploy.
+
 # Aviation quote wording
 - [x] Update aircraft no-deposit wording, job-specific New Orleans access/coverage and remove unconfirmed quote deadlines without changing design or payment logic.
 - [x] Inspect and report legacy $500 admin metadata and separate $100 specialty checkout; 107 tests and desktop/390px aviation/FAQ/quote checks passed, no writes or release. See aviation-deposit-inspection.md; legacy payment logic and hosted email sender remain unchanged pending separate authorization.
