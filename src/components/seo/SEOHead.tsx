@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useEffect } from "react";
 import { UTILITY_ROUTE_SEO } from "@/lib/utility-route-seo";
 
+export const INDEX_ROBOTS = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
 
 interface SEOHeadProps {
@@ -63,7 +64,7 @@ export function SEOHead({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      {noIndex && <meta name="robots" content={follow && !utility ? "noindex, follow" : "noindex, nofollow"} />}
+      <meta name="robots" content={noIndex ? (follow && !utility ? "noindex, follow" : "noindex, nofollow") : INDEX_ROBOTS} />
 
       {/*
         NOTE: <link rel="canonical">, <meta property="og:url"> and
