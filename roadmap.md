@@ -1,7 +1,6 @@
-# Main aviation SEO overview
 # Aviation supporting-page targeting
-- [ ] Differentiate exterior inquiries, interior deep cleaning/shampooing, and polishing/coating; remove unsupported claims, retain URLs and existing quote flow.
-- [ ] Verify desktop/375/390, initial HTML/fallback and regressions without messages, bookings, publishing or deployment.
+- [x] Differentiated exterior inquiries, interior deep cleaning/shampooing, and polishing/coating with unique metadata, scope questions and related links; removed unsupported claims, retained URLs and existing quote flow.
+- [x] Nine desktop/375/390 page-to-quote checks passed with blocked writes, no overflow or runtime errors; screenshots inspected, captured initial HTML and empty-shell fallback verified, 13 regression tests passed and preview build OK. No messages, bookings, publishing or deployment; live changes await authorized publication.
 
 # Main aviation SEO overview
 - [x] Updated only the main aviation overview with confirmed services, coverage, quote questions and shared initial HTML; supporting URLs and quote/payment functionality preserved.
