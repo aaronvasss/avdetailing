@@ -61,19 +61,19 @@ export function HeroSection() {
           </div>
 
           {/* Headline - Single H1 */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 animate-fade-in-up">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6">
             <span className="text-primary">Car</span> Detailing Baton Rouge
           </h1>
 
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed mb-8">
             Premium detailing, ceramic coating, paint correction and interior services throughout Baton Rouge and nearby areas.
           </p>
 
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+          <div className="flex flex-col sm:flex-row gap-4 mb-12">
             <Button asChild size="lg" className="glow-red text-lg h-14 px-8">
               <Link to="/book">
                 Book Your Detail
