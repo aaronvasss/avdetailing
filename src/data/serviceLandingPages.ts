@@ -1,4 +1,4 @@
-import { MOBILE_CAR_SEO, INTERIOR_CAR_SEO, PAINT_CORRECTION_SEO } from "@/lib/car-seo";
+import { MOBILE_CAR_SEO, INTERIOR_CAR_SEO, PAINT_CORRECTION_SEO } from "../lib/car-seo";
 /**
  * Service landing pages for Baton Rouge SEO.
  * Each entry powers one route via <ServiceLandingTemplate />.
