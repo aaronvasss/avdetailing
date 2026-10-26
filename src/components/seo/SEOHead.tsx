@@ -11,6 +11,8 @@ interface SEOHeadProps {
   type?: "website" | "article";
   image?: string;
   noIndex?: boolean;
+  /** With noIndex, let crawlers follow links (legacy unavailable-service pages). */
+  follow?: boolean;
 }
 
 export function SEOHead({
@@ -19,13 +21,14 @@ export function SEOHead({
   path,
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
+  follow = false,
 }: SEOHeadProps) {
   const utility = UTILITY_ROUTE_SEO.find((route) => route.path === path);
   title = utility?.title ?? title;
   description = utility?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
   useEffect(() => {
-    if (!path.startsWith("/aircraft-") && path !== "/services") return;
+    if (!path.startsWith("/aircraft-") && !path.includes("rv-") && path !== "/services") return;
     // Aviation and the services directory own its static fallback tags during client navigation too.
     const fallbacks = [...document.querySelectorAll('meta[name="description"]:not([data-rh]), meta[property="og:title"]:not([data-rh]), meta[property="og:description"]:not([data-rh]), meta[name="twitter:title"]:not([data-rh]), meta[name="twitter:description"]:not([data-rh])')];
     const existingCanonical = document.querySelector('link[rel="canonical"]');
@@ -71,7 +74,7 @@ export function SEOHead({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      {noIndex && <meta name="robots" content="noindex, nofollow" />}
+      {noIndex && <meta name="robots" content={follow && !utility ? "noindex, follow" : "noindex, nofollow"} />}
 
       {/*
         NOTE: <link rel="canonical">, <meta property="og:url"> and

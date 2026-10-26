@@ -117,7 +117,7 @@ function validateAndNormalize(entries: SitemapEntry[]) {
 const allEntries: SitemapEntry[] = validateAndNormalize([
   ...staticEntries,
   // Service landing pages (SEO sub-pages for car, RV, boat, aircraft)
-  ...SERVICE_LANDING_PAGES.map((p): SitemapEntry => {
+  ...SERVICE_LANDING_PAGES.filter((p) => !p.unavailable).map((p): SitemapEntry => {
     const cat = p.slug.split("-")[0];
     const priority =
       cat === "mobile" ? "0.85" :

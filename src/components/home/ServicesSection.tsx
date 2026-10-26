@@ -92,7 +92,7 @@ const services = [
     icon: Caravan,
     title: "RV Detailing",
     heading: "RV Detailing",
-    description: "Comprehensive detailing for motorhomes and travel trailers of all sizes.",
+    description: "Exterior-only detailing for motorhomes, fifth wheels and travel trailers: wash, oxidation removal and ceramic coating.",
     href: "/rv-detailing-baton-rouge",
     image: rvDetailingImage,
     sources: rvDetailingSources,

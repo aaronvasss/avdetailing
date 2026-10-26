@@ -59,7 +59,6 @@ const boatRvLinks = [
   { name: "Gelcoat Restoration", href: "/gelcoat-restoration-baton-rouge" },
   { name: "Mobile RV Detailing", href: "/mobile-rv-detailing-baton-rouge" },
   { name: "RV Ceramic Coating", href: "/rv-ceramic-coating-baton-rouge" },
-  { name: "RV Interior Detailing", href: "/rv-interior-detailing-baton-rouge" },
   { name: "RV Roof Cleaning", href: "/rv-roof-cleaning-baton-rouge" },
   { name: "RV Oxidation Removal", href: "/rv-oxidation-removal-baton-rouge" },
 ];
