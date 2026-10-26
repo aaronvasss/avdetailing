@@ -146,3 +146,4 @@
 - [ ] Publish only on explicit request.
 
 - [x] Aircraft quote buttons open the aircraft quote form directly (/book?service=aircraft)
+- [x] /services indexable directory with shared initial/rendered head and sitemap entry
