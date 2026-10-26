@@ -28,8 +28,7 @@ export function SEOHead({
   description = utility?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
   useEffect(() => {
-    if (!path.startsWith("/aircraft-") && !path.includes("rv-") && path !== "/services") return;
-    // Aviation and the services directory own its static fallback tags during client navigation too.
+    // Every page owns its self-canonical, og:url and static fallback tags during client navigation.
     const fallbacks = [...document.querySelectorAll('meta[name="description"]:not([data-rh]), meta[property="og:title"]:not([data-rh]), meta[property="og:description"]:not([data-rh]), meta[name="twitter:title"]:not([data-rh]), meta[name="twitter:description"]:not([data-rh])')];
     const existingCanonical = document.querySelector('link[rel="canonical"]');
     const existingOgUrl = document.querySelector('meta[property="og:url"]');
@@ -46,7 +45,7 @@ export function SEOHead({
     const oldCanonical = canonical?.getAttribute("href");
     const oldOgUrl = ogUrl?.getAttribute("content");
     fallbacks.forEach(tag => tag.remove());
-    canonical?.setAttribute("href", `https://avdetailing.net${path}`);
+    canonical?.setAttribute("href", `https://avdetailing.net${path === "/" ? "/" : path}`);
     ogUrl?.setAttribute("content", `https://avdetailing.net${path}`);
     return () => {
       fallbacks.forEach(tag => document.head.appendChild(tag));
