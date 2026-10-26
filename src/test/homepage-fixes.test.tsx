@@ -45,7 +45,7 @@ describe("gallery photo prefetch and hero visibility", () => {
     const imgs = [...container.querySelectorAll("img")];
     expect(imgs.length).toBe(6);
     imgs.forEach((i) => expect(i.getAttribute("loading")).toBe("lazy"));
-    expect(margin).toBe("1500px 0px");
+    expect(margin).toBe("2500px 0px");
     act(() => cb!([{ isIntersecting: true }]));
     expect(imgs.some((i) => i.getAttribute("loading") === "eager")).toBe(true);
   });

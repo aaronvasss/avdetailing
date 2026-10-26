@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { GALLERY_CARD_SIZES, type ResponsivePhoto as Photo } from "@/lib/gallery-images";
 
 /** Start fetching this far ahead of the viewport so photos are ready before they scroll in. */
-export const PHOTO_PREFETCH_MARGIN = "1500px 0px";
+export const PHOTO_PREFETCH_MARGIN = "2500px 0px";
 
 interface Props {
   photo: Photo;
