@@ -12,13 +12,15 @@ import boatDetailBefore from "@/assets/gallery/boat-detail-before.jpg";
 import boatDetailAfter from "@/assets/gallery/boat-detail-after.jpg";
 import paintCorrectionBefore from "@/assets/gallery/paint-correction-before.jpg";
 import paintCorrectionAfter from "@/assets/gallery/paint-correction-after.jpg";
+import { GALLERY_PHOTOS } from "@/lib/gallery-images";
+import { ResponsivePhoto } from "@/components/ui/responsive-photo";
 
 const categories = ["All", "Cars", "Boats", "RVs", "Aircraft"];
 
 const galleryItems = [
-  { id: 1, category: "Cars", before: carDetailBefore, after: carDetailAfter, title: "BMW 5 Series Full Detail", service: "Signature Detail" },
-  { id: 2, category: "Cars", before: paintCorrectionBefore, after: paintCorrectionAfter, title: "Porsche 911 Paint Correction", service: "2-Step Correction" },
-  { id: 3, category: "Boats", before: boatDetailBefore, after: boatDetailAfter, title: "Yacht Marine Restoration", service: "Full Marine Detail" },
+  { id: 1, category: "Cars", before: carDetailBefore, after: carDetailAfter, beforePhoto: GALLERY_PHOTOS.carBefore, afterPhoto: GALLERY_PHOTOS.carAfter, title: "BMW 5 Series Full Detail", service: "Signature Detail" },
+  { id: 2, category: "Cars", before: paintCorrectionBefore, after: paintCorrectionAfter, beforePhoto: GALLERY_PHOTOS.paintBefore, afterPhoto: GALLERY_PHOTOS.paintAfter, title: "Porsche 911 Paint Correction", service: "2-Step Correction" },
+  { id: 3, category: "Boats", before: boatDetailBefore, after: boatDetailAfter, beforePhoto: GALLERY_PHOTOS.boatBefore, afterPhoto: GALLERY_PHOTOS.boatAfter, title: "Yacht Marine Restoration", service: "Full Marine Detail" },
 ];
 
 const GalleryPage = () => {
@@ -93,19 +95,13 @@ const GalleryPage = () => {
                 onMouseLeave={() => setHoveredItem(null)}
               >
                 {/* After (shown by default) */}
-                <img
-                  src={item.after}
-                  alt={`${item.title} - After`}
-                  className={cn(
+                <ResponsivePhoto photo={item.afterPhoto} alt={`${item.title} - After`} className={cn(
                     "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
                     hoveredItem === item.id ? "opacity-0" : "opacity-100"
                   )}
                 />
                 {/* Before (shown on hover) */}
-                <img
-                  src={item.before}
-                  alt={`${item.title} - Before`}
-                  className={cn(
+                <ResponsivePhoto photo={item.beforePhoto} alt={`${item.title} - Before`} className={cn(
                     "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
                     hoveredItem === item.id ? "opacity-100" : "opacity-0"
                   )}
