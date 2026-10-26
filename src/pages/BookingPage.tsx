@@ -1,4 +1,4 @@
-import { CERAMIC_BOOKING_PRICES, formatPrice, type CeramicTier } from "@/lib/pricing";
+import { CERAMIC_BOOKING_PRICES, CERAMIC_TIER_LABELS, formatPrice, type CeramicTier } from "@/lib/pricing";
 import { authoritativePackagePrice, bookingAmounts } from "../../supabase/functions/_shared/booking-pricing";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
