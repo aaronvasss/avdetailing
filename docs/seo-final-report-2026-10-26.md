@@ -8,7 +8,7 @@ Baseline commit: `6adda90`. This pass adds the next preview commit on top of it.
 - mobile-rv-detailing: 11 clicks / 3,511 impressions, average position 36.3
 - boat-ceramic-coating: 0 / 1,118, position 14.7 ("boat ceramic coating near me": 989, position 13)
 - hull-cleaning: 1,091 impressions, position 43.1
-- Boat hub and supporting boat pages ranked mostly for car searches.
+- Some boat pages also showed a few car-related queries in the partial Search Console rows; this is not evidence of a majority or of cannibalization.
 - Full audit: `/mnt/documents/seo-audit-car-rv-boat-2026-10-26.md`
 
 ## Changes in this pass
@@ -16,8 +16,8 @@ Baseline commit: `6adda90`. This pass adds the next preview commit on top of it.
 |---|---|
 | Removed the "Specialized aviation-safe products" quote bullet. The exterior/interior scope bullet now names the confirmed services. | `src/pages/BookingPage.tsx` |
 | Aircraft-cleaning intro is now inquiry guidance. It no longer mentions an "unconfirmed standalone wash package". | `src/data/serviceLandingPages.ts` |
-| Business schema: `hasMap` now uses the business's Google Maps listing (`GOOGLE_REVIEWS_URL`, cid). Removed the business `geo`, which was the Baton Rouge centroid. City and service-area geography are kept. Email corrected to aaronvasquez@avdetailing.com. | `src/components/seo/schema.ts` |
-| Contact email typo (`avdetailingg.com`) fixed everywhere it appeared | Footer, Contact, Privacy, Terms, BookingDetailsDialog |
+| Business schema: `hasMap` now uses the business's Google Maps listing (`GOOGLE_REVIEWS_URL`, cid). Removed the business `geo`, which was the Baton Rouge centroid. City and service-area geography are kept. Email: aaronvasquez@avdetailingg.com (restored; see correction below). | `src/components/seo/schema.ts` |
+| REVERSED: an earlier pass wrongly changed the customer email to `@avdetailing.com`. The owner-confirmed address `aaronvasquez@avdetailingg.com` (double g, not a typo) is restored | schema.ts, Footer, Contact, Privacy, Terms, BookingDetailsDialog, tests |
 | Homepage RV sentence no longer promotes interior deep cleaning | `src/components/home/ServiceContentSection.tsx` |
 | Prerender now waits for the page's own head tags, so page Service/Breadcrumb schema is captured | `vite.config.ts` |
 | Postbuild keeps exactly one title, description, canonical, og and twitter tag, and the page's own robots tag. Service pages built from the empty shell get a minimal Service node. | `scripts/postbuild-seo.ts` |
@@ -115,3 +115,6 @@ Files: src/pages/CeramicCoatingBatonRougePage.tsx, src/data/serviceLandingPages.
 - Not added anywhere: System X on aviation pages, product line, warranty, lifespan beyond tier names.
 - Evidence: 38 test files / 302 tests passed; full build exit 0, 54 HTML files, 43 sitemap URLs; System X appears only on home, contact, /services, car ceramic, boat hub and boat ceramic built pages; zero matches for "System X Certified", "industry-leading", "case by case" or the removed authority links.
 - Resolved owner questions: System X for car coatings; boat coating product; RV roof cleaning offered.
+
+## Correction: customer email restored
+The shared SEO pass changed the customer email domain without authorization. Restored `aaronvasquez@avdetailingg.com` (owner-confirmed Oct 22 2026) in business schema, Footer, Contact, Privacy, Terms and BookingDetailsDialog; admin login and email sender settings untouched. New src/test/contact-details.test.ts checks the exact email and phone in schema and every public contact file, and that `@avdetailing.com` customer addresses never return. Maps/geo and build fixes kept. The earlier "boat pages ranked mostly for car searches" statement was removed as unsupported.

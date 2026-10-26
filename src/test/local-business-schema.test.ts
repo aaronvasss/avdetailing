@@ -14,7 +14,7 @@ describe("localBusinessSchema", () => {
   it("keeps one stable entity with the public phone and email", () => {
     expect(s["@id"]).toBe("https://avdetailing.net/#business");
     expect(s.telephone).toBe("+12255216264");
-    expect(s.email).toBe("aaronvasquez@avdetailing.com");
+    expect(s.email).toBe("aaronvasquez@avdetailingg.com");
     expect(s.aggregateRating).toBeUndefined();
   });
 });
