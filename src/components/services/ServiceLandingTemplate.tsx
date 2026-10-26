@@ -6,6 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
+import { CAR_HUB_PATH, CAR_INTERIOR_BY_PACKAGE, CAR_ACTIVE_ADD_ONS, relatedCarLinks } from "@/lib/car-seo";
 import { RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_BUYING_GUIDANCE } from "@/lib/rv-seo";
 import { aviationPolicy, AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "@/lib/aviation-policy";
 
@@ -58,8 +59,9 @@ export function ServiceLandingTemplate({ config }: Props) {
   if (config.unavailable) return <UnavailableServicePage config={config} />;
   const isAircraft = config.slug.startsWith("aircraft-");
   const isRv = Boolean(config.rvPage);
-  const crumbParent = isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
-  const relatedLinks = isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
+  const isCar = Boolean(config.carPage);
+  const crumbParent = isCar ? { name: "Car Detailing", path: CAR_HUB_PATH } : isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
+  const relatedLinks = isCar ? relatedCarLinks(pagePath) : isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
   const pagePath = `/${config.slug}`;
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -169,10 +171,31 @@ export function ServiceLandingTemplate({ config }: Props) {
         </div>
       </section>
 
+      {config.showInteriorPackages && (
+        <section className="section-padding">
+          <div className="container-custom max-w-4xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Which package includes the interior work you need</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              {CAR_INTERIOR_BY_PACKAGE.map((p) => (
+                <article key={p.name} className="rounded-2xl border border-border bg-card p-6 flex flex-col">
+                  <h3 className="text-xl font-bold mb-3">{p.name}</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground flex-1">
+                    {p.interior.map((i) => <li key={i} className="flex gap-2"><span className="text-primary">✓</span><span>{i}</span></li>)}
+                  </ul>
+                  {p.excludes && <p className="mt-3 text-xs italic text-muted-foreground">{p.excludes}</p>}
+                  <Button asChild variant="outline" className="mt-5"><Link to={`/book?service=car&package=${p.slug}`}>Book {p.name.replace(" Package", "")}</Link></Button>
+                </article>
+              ))}
+            </div>
+            <p className="mt-6 text-muted-foreground">Available add-ons: {CAR_ACTIVE_ADD_ONS.join(", ")}. See <Link to={CAR_HUB_PATH} className="text-primary underline">package prices on the car detailing page</Link>.</p>
+          </div>
+        </section>
+      )}
+
       {/* Service Areas */}
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : isRv ? "Related exterior RV services & service areas" : "Service Areas"}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : isRv ? "Related exterior RV services & service areas" : isCar ? "Related car services & service areas" : "Service Areas"}</h2>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
             {isAircraft ? <>{AVIATION_COVERAGE_TEXT} See the <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">private-aircraft detailing overview</Link> for the complete service overview and quote guidance.</> : SERVICE_AREAS_TEXT}
           </p>
