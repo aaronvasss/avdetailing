@@ -21,6 +21,7 @@ import { CAR_HUB_SEO, PAINT_CORRECTION_SEO, PAINT_OPTIONS, carHubHtml, paintCorr
 import { FALLBACK_PACKAGES, CAR_PAGE_DISPLAY_FROM } from "../src/lib/pricing-fallback";
 import { RV_HUB_SEO, RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_INTERIOR_UNAVAILABLE, rvHubHtml, rvInteriorUnavailableHtml } from "../src/lib/rv-seo";
 import { LOCATION_PAGES } from "../src/data/locationPages";
+import { CERAMIC_SEO, ceramicPageHtml } from "../src/lib/ceramic-seo";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
 import { AVIATION_OVERVIEW, aviationOverviewHtml } from "../src/lib/aviation-overview";
 import { AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "../src/lib/aviation-policy";
@@ -220,10 +221,10 @@ const STATIC_ROUTES: RouteMeta[] = [
     body: aviationOverviewHtml(),
   },
   {
-    path: "/ceramic-coating-baton-rouge",
-    title: "Ceramic Coating in Baton Rouge, LA | AV Detailing",
-    description:
-      "System X ceramic coating in Baton Rouge — 3-year, 6-year and 10-year tiers with paint correction. Mobile install at your home or office.",
+    path: CERAMIC_SEO.path,
+    title: CERAMIC_SEO.title,
+    description: CERAMIC_SEO.description,
+    body: ceramicPageHtml(),
   },
   {
     path: PAINT_CORRECTION_SEO.path,

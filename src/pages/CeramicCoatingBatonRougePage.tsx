@@ -1,18 +1,17 @@
-import { usePricing, ceramicFrom } from "@/lib/pricing";
+import { usePricing } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Shield, Sun, Droplets, Sparkles, MapPin, CheckCircle2 } from "lucide-react";
+import { Phone, Shield, MapPin, CheckCircle2 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
+import { CERAMIC_PATH, CERAMIC_SEO, CERAMIC_TIERS, CERAMIC_STEPS, CERAMIC_BUYING_GUIDANCE, CERAMIC_LINKS, tierPrices } from "@/lib/ceramic-seo";
 
 const SITE_URL = "https://avdetailing.net";
-const PAGE_PATH = "/ceramic-coating-baton-rouge";
-const TITLE = "Ceramic Coating in Baton Rouge, LA";
-const DESCRIPTION =
-  "System X ceramic coating for cars in Baton Rouge in 3-year, 6-year and 10-year tiers, with a paint assessment first. Mobile service; see tier prices and book.";
+const PAGE_PATH = CERAMIC_PATH;
+const TITLE = CERAMIC_SEO.h1;
 
 const serviceSchema = {
   "@context": "https://schema.org",
@@ -44,33 +43,21 @@ const SERVICE_AREAS = [
   "Denham Springs",
 ];
 
-const STEPS = [
-  "Choose the 3-year, 6-year or 10-year System X tier.",
-  "Paint assessment, with paint correction recommended where swirls or defects should be addressed first.",
-  "Surface prep to remove oils and polish residue before coating.",
-  "System X ceramic coating applied to the prepared paint.",
-  "Final walkaround with you and care instructions for the coating.",
-];
-
-const WHY_CHOOSE = [
-  "We use System X ceramic coatings.",
-  "Three tiers offered: 3-year, 6-year, and 10-year (most popular).",
-  "We assess paint first so swirls aren't sealed under the coating.",
-  "Mobile service at your home or office across the Baton Rouge area.",
-];
+const STEPS = CERAMIC_STEPS;
+const WHY_CHOOSE = CERAMIC_BUYING_GUIDANCE;
 
 export default function CeramicCoatingBatonRougePage() {
   const pricing = usePricing();
   return (
     <Layout>
-      <SEOHead title={TITLE} description={DESCRIPTION} path={PAGE_PATH} />
+      <SEOHead title={CERAMIC_SEO.title} description={CERAMIC_SEO.description} path={PAGE_PATH} />
       <JsonLd
         data={[
           localBusinessSchema(),
           serviceSchema,
           breadcrumbSchema([
             { name: "Home", path: "/" },
-            { name: "Services", path: "/car-detailing-baton-rouge" },
+            { name: "Car Detailing", path: "/car-detailing-baton-rouge" },
             { name: TITLE, path: PAGE_PATH },
           ]),
         ]}
@@ -85,7 +72,7 @@ export default function CeramicCoatingBatonRougePage() {
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
           <li>
             <Link to="/car-detailing-baton-rouge" className="hover:text-primary transition-colors">
-              Services
+              Car Detailing
             </Link>
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
@@ -105,15 +92,13 @@ export default function CeramicCoatingBatonRougePage() {
             {TITLE}
           </h1>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-3xl">
-            Ceramic coating adds a protective layer over your vehicle's clear coat that makes washing easier and
-            helps resist water spotting. AV Detailing uses{" "}
-            <strong className="text-foreground">System X</strong> ceramic coatings in three tiers:{" "}
-            <strong className="text-foreground">3-year</strong>,{" "}
-            <strong className="text-foreground">6-year</strong>, and{" "}
-            <strong className="text-foreground">10-year (most popular)</strong>. Because a coating seals in whatever is
-            underneath, we assess your paint first and recommend{" "}
-            <Link to="/paint-correction-baton-rouge" className="text-primary underline hover:text-primary/80">paint correction</Link>{" "}
-            where swirls or defects should be addressed before coating.
+            AV Detailing applies <strong className="text-foreground">System X</strong> ceramic coatings at your home or
+            office in Baton Rouge in three tiers: 3-year, 6-year and 10-year. A coating adds a protective layer over clear
+            coat that makes routine washing easier. Because it seals in whatever is underneath, we look at your paint
+            first; swirls or scratches you want reduced are handled with{" "}
+            <Link to="/paint-correction-baton-rouge" className="text-primary underline hover:text-primary/80">paint correction</Link>
+            , which is quoted separately. Compare tiers below or see our{" "}
+            <Link to="/car-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">car detailing packages</Link>.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -152,121 +137,80 @@ export default function CeramicCoatingBatonRougePage() {
           <div className="mb-10 md:mb-12 text-center max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">System X Coating Tiers</h2>
             <p className="text-muted-foreground text-base md:text-lg">
-              Choose the protection level your vehicle deserves. All tiers include mandatory paint correction prep.
-              Call{" "}
-              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a> for exact
-              pricing on SUVs and trucks.
+              Starting prices by tier and vehicle type. Paint correction, if your paint needs it, is quoted separately —
+              see 
+              <Link to="/paint-correction-baton-rouge" className="text-primary hover:underline">paint correction options</Link>.
+              Questions? Call 
+              <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a>.
             </p>
           </div>
 
           <div className="grid gap-5 sm:gap-6 grid-cols-1 lg:grid-cols-3 lg:items-stretch">
-            {/* 3-Year — Black */}
+            {(() => { const t = CERAMIC_TIERS[0]; const p = tierPrices(t.key); return (
             <article className="order-2 lg:order-1 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-[hsl(0_0%_6%)] text-white border border-white/10 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55 mb-2">Entry Protection</span>
-              <h3 className="text-2xl font-bold mb-1.5">System X 3-Year</h3>
-              <p className="text-sm text-white/65 mb-4 leading-relaxed">
-                A strong starting point for daily drivers. Real ceramic protection without the long-term commitment.
-              </p>
-              <div className="mb-5 pb-5 border-b border/10 border-white/10">
-                <span className="text-3xl font-bold">from {pricing.label(ceramicFrom("3-year"))}</span>
-                <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes · 8-hour install</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55 mb-2">{t.label}</span>
+              <h3 className="text-2xl font-bold mb-1.5">{t.name}</h3>
+              <p className="text-sm text-white/65 mb-4 leading-relaxed">{t.summary}</p>
+              <div className="mb-5 pb-5 border-b border-white/10">
+                <span className="text-3xl font-bold">from {pricing.label(p.car)}</span>
+                <span className="block text-xs font-normal text-white/50 mt-1">Sedans & coupes · SUVs & trucks from {pricing.label(p.suvTruck)}</span>
               </div>
               <ul className="text-sm text-white/85 space-y-2.5 mb-7 flex-1">
-                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>3 years of hydrophobic protection</span></li>
-                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>UV, water-spot & oxidation resistance</span></li>
-                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Mandatory 1-step paint correction prep</span></li>
-                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Easier washes — dirt & grime release</span></li>
-                <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Deeper, glossier finish</span></li>
+                {t.points.map((pt) => (
+                  <li key={pt} className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>{pt}</span></li>
+                ))}
               </ul>
               <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
-                <Link to="/book">Book Now</Link>
+                <Link to="/book">Book {t.name}</Link>
               </Button>
             </article>
+            ); })()}
 
-            {/* 10-Year — Center, Elevated, Most Popular */}
+            {(() => { const t = CERAMIC_TIERS[1]; const p = tierPrices(t.key); return (
             <article className="order-1 lg:order-2 flex flex-col h-full rounded-2xl p-6 sm:p-8 bg-gradient-to-b from-[hsl(45_70%_14%)] via-[hsl(42_60%_9%)] to-[hsl(40_55%_5%)] border-2 border-[hsl(45_85%_55%)] shadow-2xl lg:scale-[1.04] lg:-my-2 relative mt-4 lg:mt-0">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <Badge className="bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_55%)] font-semibold px-3 py-1 shadow-lg whitespace-nowrap">
-                  ★ Most Popular
+                  Longest Tier
                 </Badge>
               </div>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(45_85%_65%)] mb-2">Lifetime Tier</span>
-              <h3 className="text-2xl font-bold mb-1.5 text-white">System X 10-Year</h3>
-              <p className="text-sm text-white/70 mb-4 leading-relaxed">
-                The highest level of System X protection we install. Built for long-term ownership and showroom standards.
-              </p>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(45_85%_65%)] mb-2">{t.label}</span>
+              <h3 className="text-2xl font-bold mb-1.5">{t.name}</h3>
+              <p className="text-sm text-white/70 mb-4 leading-relaxed">{t.summary}</p>
               <div className="mb-5 pb-5 border-b border-[hsl(45_85%_55%)]/25">
-                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from {pricing.label(ceramicFrom("10-year"))}</span>
-                <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes · 8-hour install</span>
+                <span className="text-3xl font-bold text-[hsl(45_85%_65%)]">from {pricing.label(p.car)}</span>
+                <span className="block text-xs font-normal text-white/60 mt-1">Sedans & coupes · SUVs & trucks from {pricing.label(p.suvTruck)}</span>
               </div>
               <ul className="text-sm text-white/90 space-y-2.5 mb-7 flex-1">
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span className="font-semibold">Everything in 6-Year</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>10 years of full ceramic protection</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Maximum hardness & scratch resistance</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Premium multi-step correction included</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Mirror-deep gloss finish</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>Best long-term resale-value play</span></li>
+                {t.points.map((pt) => (
+                  <li key={pt} className="flex gap-2"><span className="text-[hsl(45_85%_65%)] mt-0.5">✓</span><span>{pt}</span></li>
+                ))}
               </ul>
               <Button asChild className="w-full bg-[hsl(45_85%_55%)] text-black hover:bg-[hsl(45_85%_60%)] font-semibold shadow-md">
-                <Link to="/book">Book Now</Link>
+                <Link to="/book">Book {t.name}</Link>
               </Button>
             </article>
+            ); })()}
 
-            {/* 6-Year — Silver */}
+            {(() => { const t = CERAMIC_TIERS[2]; const p = tierPrices(t.key); return (
             <article className="order-3 lg:order-3 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-gradient-to-b from-[hsl(0_0%_97%)] to-[hsl(0_0%_86%)] text-[hsl(0_0%_10%)] border border-[hsl(0_0%_72%)] shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">Best Value</span>
-              <h3 className="text-2xl font-bold mb-1.5">System X 6-Year</h3>
-              <p className="text-sm text-[hsl(0_0%_30%)] mb-4 leading-relaxed">
-                Our most-installed tier. The sweet spot of protection, durability, and value for Louisiana drivers.
-              </p>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(0_0%_35%)] mb-2">{t.label}</span>
+              <h3 className="text-2xl font-bold mb-1.5">{t.name}</h3>
+              <p className="text-sm text-[hsl(0_0%_30%)] mb-4 leading-relaxed">{t.summary}</p>
               <div className="mb-5 pb-5 border-b border-[hsl(0_0%_60%)]/40">
-                <span className="text-3xl font-bold">from {pricing.label(ceramicFrom("5-year"))}</span>
-                <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes · 8-hour install</span>
+                <span className="text-3xl font-bold">from {pricing.label(p.car)}</span>
+                <span className="block text-xs font-normal text-[hsl(0_0%_35%)] mt-1">Sedans & coupes · SUVs & trucks from {pricing.label(p.suvTruck)}</span>
               </div>
-              <ul className="text-sm text-[hsl(0_0%_20%)] space-y-2.5 mb-3 flex-1">
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Everything in 3-Year</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>6 years of ceramic protection</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Stronger UV & chemical resistance</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Multi-stage paint correction included</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Maximum hydrophobic beading</span></li>
-                <li className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>Wheel face coating available as add-on</span></li>
+              <ul className="text-sm text-[hsl(0_0%_20%)] space-y-2.5 mb-7 flex-1">
+                {t.points.map((pt) => (
+                  <li key={pt} className="flex gap-2"><span className="text-[hsl(0_0%_45%)] mt-0.5">•</span><span>{pt}</span></li>
+                ))}
               </ul>
-              <p className="text-xs italic text-[hsl(0_0%_35%)] mb-5">Recommended for daily drivers looking for solid mid-term protection.</p>
               <Button asChild className="w-full bg-black text-white hover:bg-black/85">
-                <Link to="/book">Book Now</Link>
+                <Link to="/book">Book {t.name}</Link>
               </Button>
             </article>
-          </div>
-        </div>
-      </section>
+            ); })()}
 
-      {/* What Ceramic Coating Protects Against */}
-      <section className="section-padding bg-card border-y border-border">
-        <div className="container-custom max-w-5xl">
-          <div className="mb-10 max-w-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">What It Protects Against</h2>
-            <p className="text-muted-foreground text-base md:text-lg">
-              Built specifically for the conditions vehicles face across Greater Baton Rouge.
-            </p>
-          </div>
-          <div className="grid gap-5 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: <Sun className="h-6 w-6" />, title: "UV & Sun Damage", body: "Stops oxidation and color fade caused by Louisiana's 10+ UV index." },
-              { icon: <Droplets className="h-6 w-6" />, title: "Water Spots & Rain", body: "Hydrophobic surface beads water and resists hard-water etching." },
-              { icon: <Shield className="h-6 w-6" />, title: "Chemicals & Fallout", body: "Resists bird droppings, tree sap, bug acids, and industrial fallout." },
-              { icon: <Sparkles className="h-6 w-6" />, title: "Swirls & Dullness", body: "Locked-in gloss after correction — no need to constantly re-polish." },
-            ].map((c) => (
-              <div
-                key={c.title}
-                className="rounded-2xl border border-border bg-background p-5 md:p-6 transition-all hover:border-primary/40 hover:shadow-lg"
-              >
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  {c.icon}
-                </div>
-                <h3 className="text-base md:text-lg font-bold mb-1.5">{c.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{c.body}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -277,7 +221,7 @@ export default function CeramicCoatingBatonRougePage() {
           <div className="mb-10 md:mb-12 max-w-2xl">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">How Our Ceramic Coating Service Works</h2>
             <p className="text-muted-foreground text-base md:text-lg">
-              A clear, five-step process from consultation to a final, fully cured finish.
+              What happens from booking to the final walkaround.
             </p>
           </div>
 
@@ -306,13 +250,20 @@ export default function CeramicCoatingBatonRougePage() {
       <section className="section-padding bg-card border-y border-border">
         <div className="container-custom max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            Why Baton Rouge Customers Choose AV Detailing for Ceramic Coating
+            Before You Book Ceramic Coating
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2">
             {WHY_CHOOSE.map((item, i) => (
               <li key={i} className="flex gap-3 rounded-xl border border-border bg-background p-4">
                 <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-muted-foreground leading-relaxed text-sm md:text-base">{item}</p>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-8 flex flex-wrap gap-3">
+            {CERAMIC_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link to={l.href} className="text-primary underline hover:text-primary/80">{l.text}</Link>
               </li>
             ))}
           </ul>
@@ -354,7 +305,7 @@ export default function CeramicCoatingBatonRougePage() {
                 <a href="tel:2255216264" className="text-primary hover:underline font-medium">
                   (225) 521-6264
                 </a>{" "}
-                — we likely do.
+                and we'll confirm.
               </p>
             </div>
           </div>

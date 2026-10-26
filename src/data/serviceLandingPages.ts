@@ -1,3 +1,4 @@
+import { CERAMIC_SEO, CERAMIC_STEPS, CERAMIC_BUYING_GUIDANCE } from "../lib/ceramic-seo";
 import { MOBILE_CAR_SEO, INTERIOR_CAR_SEO, PAINT_CORRECTION_SEO } from "../lib/car-seo";
 /**
  * Service landing pages for Baton Rouge SEO.
@@ -76,26 +77,14 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   },
   {
     slug: "ceramic-coating-baton-rouge",
-    title: "Ceramic Coating in Baton Rouge, LA",
-    metaDescription:
-      "System X ceramic coating for cars in Baton Rouge in 3-year, 6-year and 10-year tiers, with a paint assessment first. Mobile service; see tier prices and book.",
-    intro:
-      "Ceramic coating adds a protective layer over your vehicle's clear coat that makes washing easier and helps resist water spotting. AV Detailing uses System X ceramic coatings in three tiers: 3-year, 6-year and 10-year. Because a coating seals in whatever is underneath, we assess your paint first and recommend paint correction where swirls or defects should be addressed before coating.",
+    title: CERAMIC_SEO.h1,
+    seoTitle: CERAMIC_SEO.title,
+    metaDescription: CERAMIC_SEO.description,
+    intro: CERAMIC_SEO.intro,
     link1: { text: "", url: "" },
     link2: { text: "", url: "" },
-    steps: [
-      "Choose the 3-year, 6-year or 10-year System X tier.",
-      "Paint assessment, with paint correction recommended where swirls or defects should be addressed first.",
-      "Surface prep to remove oils and polish residue before coating.",
-      "System X ceramic coating applied to the prepared paint.",
-      "Final walkaround with you and care instructions for the coating.",
-    ],
-    whyChoose: [
-      "We use System X ceramic coatings.",
-      "Three tiers offered: 3-year, 6-year and 10-year.",
-      "We assess paint first so swirls aren't sealed under the coating.",
-      "Mobile service at your home or office across the Baton Rouge area.",
-    ],
+    steps: CERAMIC_STEPS,
+    whyChoose: CERAMIC_BUYING_GUIDANCE,
     serviceType: "Ceramic Coating",
   },
   {
