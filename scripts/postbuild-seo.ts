@@ -16,6 +16,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
+import { RV_HUB_SEO, RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_INTERIOR_UNAVAILABLE, rvHubHtml, rvInteriorUnavailableHtml } from "../src/lib/rv-seo";
 import { LOCATION_PAGES } from "../src/data/locationPages";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
 import { AVIATION_OVERVIEW, aviationOverviewHtml } from "../src/lib/aviation-overview";
@@ -62,6 +63,19 @@ function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
 }
 
 function bodyForService(p: (typeof SERVICE_LANDING_PAGES)[number]): string {
+  if (p.unavailable) return rvInteriorUnavailableHtml();
+  if (p.rvPage) {
+    const links = [{ href: RV_HUB_PATH, text: "Exterior RV detailing overview" }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${p.slug}`)];
+    return [
+      `<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="${RV_HUB_PATH}">RV Detailing</a> / <span aria-current="page">${esc(p.title)}</span></nav>`,
+      `<h1>${esc(p.title)}</h1>`,
+      `<p>${esc(stripTokens(p.intro))}</p>`,
+      `<h2>${esc(p.processHeading ?? "Our Process")}</h2><ol>${p.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>`,
+      `<h2>${esc(p.scopeHeading ?? "Before You Book")}</h2><ul>${p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`,
+      `<h2>Related exterior RV services &amp; service areas</h2><p>Our RV service is exterior-only; we do not offer RV interior or upholstery cleaning.</p><ul>${links.map(l => `<li><a href="${l.href}">${esc(l.text)}</a></li>`).join("")}</ul>`,
+      `<p>Call <a href="tel:2255216264">(225) 521-6264</a> or <a href="/book">book online</a>.</p>`,
+    ].join("");
+  }
   const aircraft = p.slug.startsWith("aircraft-");
   const steps = p.steps.map((s) => `<li>${esc(s)}</li>`).join("");
   const why = p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("");
@@ -154,10 +168,10 @@ const STATIC_ROUTES: RouteMeta[] = [
       "Mobile car detailing in Baton Rouge — full interior + exterior, ceramic coating, paint correction and headlight restoration at your driveway.",
   },
   {
-    path: "/rv-detailing-baton-rouge",
-    title: "RV Detailing in Baton Rouge, LA | AV Detailing",
-    description:
-      "Mobile RV detailing in Baton Rouge — oxidation removal, ceramic coating and roof cleaning for Class A/B/C motorhomes, fifth wheels and travel trailers.",
+    path: RV_HUB_SEO.path,
+    title: RV_HUB_SEO.title,
+    description: RV_HUB_SEO.description,
+    body: rvHubHtml(),
   },
   {
     path: "/boat-detailing-baton-rouge",
@@ -289,6 +303,22 @@ function rewrite(html: string, m: RouteMeta): string {
     out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(schemas).replace(/</g, "\\u003c")}</script></head>`);
     out = out.replace(/<meta\s+name=["']robots["'][^>]*>/gi, "");
     out = out.replace(/<\/head>/i, `<meta name="robots" content="index, follow" /></head>`);
+  }
+
+  // The unavailable RV-interior page: noindex,follow and no Service/Offer claims.
+  if (m.path === RV_INTERIOR_UNAVAILABLE.path) {
+    const schemas = [localBusinessSchema(), {
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+        { "@type": "ListItem", position: 2, name: "RV Detailing", item: `${SITE}${RV_HUB_PATH}` },
+        { "@type": "ListItem", position: 3, name: "RV Interior", item: url },
+      ],
+    }];
+    out = out.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, "");
+    out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(schemas).replace(/</g, "\\u003c")}</script></head>`);
+    out = out.replace(/<meta\s+name=["']robots["'][^>]*>/gi, "");
+    out = out.replace(/<\/head>/i, `<meta name="robots" content="noindex, follow" /></head>`);
   }
 
   // <title>
