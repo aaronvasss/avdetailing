@@ -1,3 +1,7 @@
+# Aviation SEO part 2
+- [ ] Refine supporting intents (cleaning assessment only, cabin cleaning/shampooing, polishing/coating not repainting), aviation /services breadcrumbs and policy-based access guidance in rendered and initial HTML.
+- [ ] Verify scoped changes, desktop/375/390, metadata/links and initial HTML without inquiries or release. Exterior scope confirmation or later consolidation remains open pending owner decision.
+
 # Aviation discovery verification
 - [x] Strengthened homepage/directory and main-to-supporting contextual links, removed unsupported aviation approval/helicopter wording and repaired conflicting aviation descriptions/self-canonicals; initial aviation schemas now reference one existing business and the scoped service.
 - [x] All four live URLs returned 200 on direct recheck (research fetch initially received three 403s); live metadata remains older publication. 18 desktop/375/390 checks and four quote flows per viewport passed with writes blocked, 112 tests passed, captured/fallback initial HTML verified and automatic preview build OK. Sitemap contains all four aviation routes, omits noindex /services and inferred lastmod. No publication, deployment, messages or settings changes; current Google indexing, external keyword opportunities and full production-build capture remain unverified.
