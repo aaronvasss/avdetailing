@@ -45,9 +45,9 @@ const BRLA: ExtLink = { text: "the City of Baton Rouge", url: "https://www.brla.
 
 const COMMON_SERVICES: LocationServiceItem[] = [
   { name: "Mobile Car Detailing", description: "Full interior and exterior detailing performed at your home, office, or jobsite with a self-contained mobile rig." },
-  { name: "System X Ceramic Coating", description: "3-year, 5-year, and 10-year ceramic coating tiers engineered to withstand Louisiana UV, humidity, and rain." },
-  { name: "Paint Correction", description: "1-step, 2-step, and 3-step machine polishing to remove swirls, oxidation, and light scratches." },
-  { name: "Interior Detailing", description: "Deep shampoo, steam extraction, leather conditioning, and odor neutralization." },
+  { name: "Ceramic Coating", description: "Paint protection applied after any needed correction; see the ceramic coating page for available options." },
+  { name: "Paint Correction", description: "Paint assessment, then 1-step, 2-step or 3-step machine polishing to reduce swirls, oxidation and light scratches." },
+  { name: "Interior Detailing", description: "Deep vacuum and trim cleaning in Silver; seat and upholstery shampoo, leather conditioning and carpet deep cleaning in Gold." },
   { name: "Exterior Detailing", description: "Hand wash, decontamination, clay bar, and protective sealant or wax application." },
   { name: "Headlight Restoration", description: "Sand, polish, and seal cloudy or yellowed headlights for safer night driving." },
   { name: "Pet Hair & Odor Removal", description: "Specialized extraction and ozone treatment for embedded hair and lingering odors." },

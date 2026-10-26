@@ -46,7 +46,7 @@ const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "Do you offer ceramic coating in Baton Rouge?",
-    answer: `Yes. We offer professional ceramic coating packages starting at 3-Year (${formatPrice(ceramicFrom("3-year"))}), 5-Year (${formatPrice(ceramicFrom("5-year"))}), and 10-Year (${formatPrice(ceramicFrom("10-year"))}). Coatings are applied at your location and typically take a full day. Each coating includes paint decontamination and a light polish for proper bonding.`,
+    answer: `Yes. Ceramic coating starts at ${formatPrice(ceramicFrom("3-year"))}; see our ceramic coating page for the available options. Coatings are applied at your location and typically take a full day. Each coating includes paint decontamination and a light polish for proper bonding.`,
   },
   {
     question: "Can you detail my boat, RV, or aircraft?",
