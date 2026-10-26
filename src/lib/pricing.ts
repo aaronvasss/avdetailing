@@ -27,25 +27,9 @@ export interface PlanPrice { slug: string; frequency: string; price: number }
 export { FALLBACK_PACKAGES } from "./pricing-fallback";
 import { FALLBACK_PACKAGES } from "./pricing-fallback";
 
-/**
- * Ceramic coating is priced in the booking flow by vehicle class and tier
- * (these are the amounts booked and charged), not by service_packages.
- */
-export type CeramicTier = "3-year" | "5-year" | "10-year";
-/**
- * Customer-facing ceramic tier names (owner-confirmed 3/6/10 years). The
- * internal "5-year" id is a legacy billing/catalog key kept for compatibility;
- * it is always shown to customers as the 6-Year tier.
- */
-export const CERAMIC_TIER_LABELS: Record<CeramicTier, string> = {
-  "3-year": "3-Year Protection",
-  "5-year": "6-Year Protection",
-  "10-year": "10-Year Protection",
-};
-export const CERAMIC_BOOKING_PRICES: Record<"car" | "suv-truck", Record<CeramicTier, number>> = {
-  car: { "3-year": 850, "5-year": 1300, "10-year": 1700 },
-  "suv-truck": { "3-year": 950, "5-year": 1400, "10-year": 1800 },
-};
+export { CERAMIC_TIER_LABELS, CERAMIC_BOOKING_PRICES } from "./pricing-fallback";
+export type { CeramicTier } from "./pricing-fallback";
+import { CERAMIC_BOOKING_PRICES, type CeramicTier } from "./pricing-fallback";
 export const ceramicFrom = (tier: CeramicTier) =>
   Math.min(...Object.values(CERAMIC_BOOKING_PRICES).map((t) => t[tier]));
 

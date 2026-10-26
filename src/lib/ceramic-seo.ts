@@ -5,7 +5,7 @@
  * No product line, certification, warranty, guaranteed lifespan or bundled
  * paint correction is claimed.
  */
-import { CERAMIC_BOOKING_PRICES, CERAMIC_TIER_LABELS, type CeramicTier } from "./pricing";
+import { CERAMIC_BOOKING_PRICES, CERAMIC_TIER_LABELS, type CeramicTier } from "./pricing-fallback";
 
 export const CERAMIC_PATH = "/ceramic-coating-baton-rouge";
 
