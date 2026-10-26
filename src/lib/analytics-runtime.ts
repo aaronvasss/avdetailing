@@ -97,8 +97,6 @@ export class AnalyticsRuntime {
   private configure() {
     const page = publicAnalyticsPage(this.path);
     if (!page || !this.eligible() || this.sentPath === this.path) return;
-    this.port.disable(false);
-    this.port.command("consent", "update", { ...DENIED, analytics_storage: "granted" });
     // Overrides also cover GA's session/engagement metadata. All Enhanced
     // Measurement options must be OFF in the verified stream (not a JS flag).
     const referrer = this.previousPublic || safeAnalyticsReferrer(this.port.referrer());
@@ -107,6 +105,8 @@ export class AnalyticsRuntime {
       allow_ad_personalization_signals: false,
       ...page, page_referrer: referrer,
     });
+    this.port.command("consent", "update", { ...DENIED, analytics_storage: "granted" });
+    this.port.disable(false);
     this.port.command("event", "page_view", { ...page, page_referrer: referrer });
     this.sentPath = this.path;
   }
@@ -126,7 +126,7 @@ type AnalyticsWindow = Window & {
 
 /** One dedicated Google tag/data layer; never invoke unrelated site integrations. */
 export function browserAnalyticsPort(): AnalyticsPort {
-  const w = window as AnalyticsWindow;
+  const w = window as unknown as AnalyticsWindow;
   const command: Command = function (command, ...args) {
     void command; void args;
     w.avAnalyticsLayer = w.avAnalyticsLayer || [];

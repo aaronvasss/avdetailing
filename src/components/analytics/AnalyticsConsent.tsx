@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ANALYTICS_PREFERENCE_KEY, readAnalyticsPreference, type AnalyticsPreference } from "@/lib/analytics-policy";
+import { ANALYTICS_PREFERENCE_KEY, publicAnalyticsPage, readAnalyticsPreference, type AnalyticsPreference } from "@/lib/analytics-policy";
 import { AnalyticsRuntime, browserAnalyticsPort, observeAnalyticsNavigation } from "@/lib/analytics-runtime";
 
 const ConsentContext = createContext<{ openSettings: () => void } | null>(null);
@@ -17,7 +17,7 @@ export function AnalyticsSettingsControl() {
 
 export function AnalyticsConsentProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
-  // Preference UI is client-only: prerender must not capture an unset banner.
+  // Preference state is client-only; prerender remains collection-disabled.
   const [hydrated, setHydrated] = useState(false);
   const [preference, setPreference] = useState<AnalyticsPreference>("unset");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -30,8 +30,6 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     controller.navigate(window.location.pathname);
     controller.setPreference(saved);
     setPreference(saved);
-    // Render after initial page capture readiness; prerender still has no tag,
-    // and the non-blocking UI never changes the page's crawlable content.
     setHydrated(true);
     const stopObserving = observeAnalyticsNavigation(controller);
     const storageChanged = (event: StorageEvent) => {
@@ -58,7 +56,7 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     setSettingsOpen(false);
   };
 
-  const publicPage = !/^\/(account|admin|worker|auth|reset-password|book|booking|cancel|rate)(\/|$)/.test(location.pathname);
+  const publicPage = Boolean(publicAnalyticsPage(location.pathname));
   const actions = <div className="flex flex-wrap gap-3">
     <Button variant="outline" onClick={() => choose("declined")}>Decline analytics</Button>
     <Button onClick={() => choose("accepted")}>Accept analytics</Button>
@@ -80,6 +78,7 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
           <DialogDescription>Choose whether Google Analytics may measure visits to public pages. You can change this preference anytime.</DialogDescription>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">Current preference: {preference === "accepted" ? "Accepted" : preference === "declined" ? "Declined" : "Not chosen"}</p>
+        <p className="text-sm text-muted-foreground">Declining stops future collection; it does not remove visits already measured.</p>
         {actions}
       </DialogContent>
     </Dialog>
