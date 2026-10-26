@@ -1,3 +1,7 @@
+# Aviation quote wording
+- [ ] Update aircraft no-deposit wording, job-specific New Orleans access/coverage and remove unconfirmed quote deadlines without changing design or payment logic.
+- [ ] Inspect and report aircraft deposit enforcement; verify four aviation pages, homepage FAQ and quote instructions without submissions or release.
+
 # Durable owner alerts
 - [x] Stage transactional outbox and lease/retry safeguards outside managed migrations; production untouched.
 - [x] Wire shared customer writers to atomic change/enqueue and a private recoverable email/SMS dispatcher with wake-on-enqueue and drain disarming.
