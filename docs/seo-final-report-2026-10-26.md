@@ -55,10 +55,10 @@ Final audit, run on both the captured `dist` and an empty-shell fallback built f
 - Minor existing quirk: the summary shows the package key as "gold" in lower case.
 
 ## Status by section
-- **Cars — done:** distinct hub, mobile, interior and paint-correction intent; duration lists removed from teasers. ceramic tiers confirmed 3/6/10. **Pending:** which tier is "most popular"; whether Gold includes wax or a 2-month sealant; footer badge backing; System X for cars; odor and pet-hair handling; SUV and truck prices.
+- **Cars — done:** distinct hub, mobile, interior and paint-correction intent; duration lists removed from teasers; ceramic tiers confirmed 3/6/10. **Pending:** which tier is "most popular"; whether Gold includes wax or a 2-month sealant; footer badge backing; System X for cars; odor and pet-hair handling; SUV and truck prices.
 - **RV — done:** exterior-only hub and logistics pages; interior page is unavailable (noindex,follow); RV Exterior Wash shows $350. **Pending:** whether roof cleaning is offered; RV classes and lengths; water, power and site rules; RV coating product; a `service=rv` booking entry.
 - **Aviation — done:** overview and three supporting intents; no-deposit wording; quote entry link; aviation-safe product claim removed. **Pending:** product names, exact inclusions, airport and workspace requirements, standalone cleaning scope; the legacy $500 admin metadata and $100 checkout path need separate authorization.
-- **Boats — done:** hub and five supporting intents; certification and absolute claims removed. hull cleaning confirmed trailer/lift only. **Pending:** maximum length; coating product, lifespan and warranty; standalone coating price; aluminum or pontoon inclusions; water, power and marina permission.
+- **Boats — done:** hub and five supporting intents; certification and absolute claims removed; hull cleaning confirmed trailer/lift only. **Pending:** maximum length; coating product, lifespan and warranty; standalone coating price; aluminum or pontoon inclusions; water, power and marina permission.
 - **Technical foundation — done:** /services is an indexable directory; one business entity; per-page canonicals; prerender/postbuild agreement; sitemap. **Pending:** current Google indexing after publish; www redirect and real 404 status (static hosting).
 
 ## Release dependencies (unchanged gate)
