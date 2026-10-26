@@ -35,12 +35,12 @@ const services = [
   },
   {
     icon: Plane,
-    heading: "Aircraft Detailing — BTR · LFT · MSY · NEW",
+    heading: "Aircraft & Private Jet Detailing",
     sentence:
-      "Professional aircraft cleaning & detailing using aviation-safe products at Baton Rouge, Lafayette & New Orleans airports.",
+      "Discuss interior deep cleaning, shampooing, polishing and ceramic coating for your private aircraft. Scope and airport access are coordinated for each job.",
     link: {
       to: "/aircraft-detailing-baton-rouge",
-      text: "aircraft detailing services serving Baton Rouge, Lafayette, and New Orleans",
+      text: "Explore aircraft and private jet detailing in Baton Rouge",
     },
   },
 ];

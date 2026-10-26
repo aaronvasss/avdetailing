@@ -105,7 +105,7 @@ export default function AircraftDetailingBatonRougePage() {
           {/* CTAs + contact */}
           <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
             <Button asChild className="font-semibold tracking-wide">
-              <Link to={AVIATION_OVERVIEW.quoteHref}>Request Aircraft Quote</Link>
+              <Link to={AVIATION_OVERVIEW.quoteHref}>Request an Aircraft Quote</Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
               <a href="tel:2255216264">
@@ -271,8 +271,10 @@ export default function AircraftDetailingBatonRougePage() {
             ))}
           </div>
           <p className="mt-8 text-muted-foreground">
-            Explore our <Link to="/aircraft-cleaning-baton-rouge" className="text-primary underline">aircraft cleaning information</Link>,
-            or return to <Link to="/services" className="text-primary underline">all detailing services</Link>.
+            Discuss <Link to="/aircraft-cleaning-baton-rouge" className="text-primary underline">exterior aircraft cleaning and condition assessment</Link>,
+            explore <Link to="/aircraft-interior-detailing-baton-rouge" className="text-primary underline">aircraft interior deep cleaning and shampooing</Link>,
+            or review <Link to="/aircraft-paint-protection-baton-rouge" className="text-primary underline">aircraft polishing and ceramic coating</Link>.
+            Return to <Link to="/services" className="text-primary underline">all detailing services</Link>.
           </p>
         </div>
       </section>
@@ -289,7 +291,7 @@ export default function AircraftDetailingBatonRougePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button asChild className="font-semibold tracking-wide">
-              <Link to={AVIATION_OVERVIEW.quoteHref}>Request Aircraft Quote</Link>
+              <Link to={AVIATION_OVERVIEW.quoteHref}>Request an Aircraft Quote</Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
               <a href="tel:2255216264">

@@ -102,7 +102,7 @@ const services = [
     icon: Plane,
     title: "Aircraft Detailing",
     heading: "Aircraft Detailing",
-    description: "Precision detailing for private aircraft with aviation-approved products.",
+    description: "Private-aircraft interior cleaning, shampooing, polishing and ceramic coating by quote.",
     href: "/aircraft-detailing-baton-rouge",
     image: "https://images.unsplash.com/photo-1474302770737-173ee21bab63?q=80&w=800&auto=format&fit=crop",
     alt: "Aircraft detailing service for private planes in Baton Rouge",
@@ -185,7 +185,7 @@ export function ServicesSection() {
                   {service.description}
                 </p>
                 <div className="flex items-center text-primary text-sm font-medium">
-                  View Packages
+                  {service.icon === Plane ? "Explore Aircraft Detailing" : "View Packages"}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>

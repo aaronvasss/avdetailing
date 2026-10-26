@@ -194,6 +194,9 @@ function bodyForLegal(m: { title: string; description: string }): string {
 
 for (const r of STATIC_ROUTES) {
   if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
+  if (r.path === "/" || r.path === "/services") {
+    r.body += `<p>For private aircraft, explore <a href="/aircraft-detailing-baton-rouge">aircraft and private jet detailing in Baton Rouge</a>: interior deep cleaning, shampooing, polishing and ceramic coating, with scope and access coordinated per job.</p>`;
+  }
 }
 
 const SERVICE_ROUTES: RouteMeta[] = SERVICE_LANDING_PAGES.map((p) => ({
@@ -256,6 +259,34 @@ function rewrite(html: string, m: RouteMeta): string {
   const d = escapeAttr(m.description);
 
   let out = html;
+  // Aviation routes must not inherit homepage FAQ or unrelated Service nodes
+  // from the fallback shell. Emit the same truthful business/service relation
+  // as the page, with no new airport businesses or review claims.
+  if (m.path.startsWith("/aircraft-")) {
+    out = out.replace(/<meta\s+name=["']description["'][^>]*>/gi, "");
+    out = out.replace(/<link\s+rel=["']canonical["'][^>]*>/gi, "");
+    const config = SERVICE_LANDING_PAGES.find(p => `/${p.slug}` === m.path);
+    const schemas = [localBusinessSchema(), {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: config?.title ?? AVIATION_OVERVIEW.h1,
+      serviceType: config?.serviceType ?? "Aircraft and Private Jet Detailing",
+      provider: { "@id": `${SITE}/#business` },
+      areaServed: ["Baton Rouge", "Lafayette", "New Orleans"].map(name => ({ "@type": "City", name })),
+      url,
+    }, {
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+        ...(config ? [{ "@type": "ListItem", position: 2, name: "Aircraft Detailing", item: `${SITE}${AVIATION_OVERVIEW.path}` }] : []),
+        { "@type": "ListItem", position: config ? 3 : 2, name: config?.title ?? AVIATION_OVERVIEW.h1, item: url },
+      ],
+    }];
+    out = out.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, "");
+    out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(schemas).replace(/</g, "\\u003c")}</script></head>`);
+    out = out.replace(/<meta\s+name=["']robots["'][^>]*>/gi, "");
+    out = out.replace(/<\/head>/i, `<meta name="robots" content="index, follow" /></head>`);
+  }
 
   // <title>
   out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${t}</title>`);
