@@ -998,8 +998,7 @@ const BookingPage = () => {
                       <h3 className="font-semibold">What's Included in Your Quote</h3>
                       <ul className="text-sm text-muted-foreground mt-2 space-y-1">
                         <li>• Aircraft size and type assessment</li>
-                        <li>• Exterior and interior cleaning scope</li>
-                        <li>• Specialized aviation-safe products</li>
+                        <li>• Requested work: deep interior cleaning, shampooing, polishing or ceramic coating</li>
                         <li>• Airport, FBO or hangar access and workspace coordination</li>
                       </ul>
                     </div>
