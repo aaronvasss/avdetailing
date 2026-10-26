@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import carDetailBefore from "@/assets/gallery/car-detail-before.jpg";
-import carDetailAfter from "@/assets/gallery/car-detail-after.jpg";
-import boatDetailBefore from "@/assets/gallery/boat-detail-before.jpg";
-import boatDetailAfter from "@/assets/gallery/boat-detail-after.jpg";
-import paintCorrectionBefore from "@/assets/gallery/paint-correction-before.jpg";
-import paintCorrectionAfter from "@/assets/gallery/paint-correction-after.jpg";
+import { GALLERY_PHOTOS } from "@/lib/gallery-images";
+import { ResponsivePhoto } from "@/components/ui/responsive-photo";
 
 const beforeAfterImages = [
   {
     id: 1,
     category: "Car",
-    before: carDetailBefore,
-    after: carDetailAfter,
+    before: GALLERY_PHOTOS.carBefore,
+    after: GALLERY_PHOTOS.carAfter,
     title: "Full Detail - Range Rover Biography",
     altBefore: "Range Rover before mobile detailing service in Baton Rouge",
     altAfter: "Range Rover after full detail by AV Detailing Baton Rouge",
@@ -20,8 +16,8 @@ const beforeAfterImages = [
   {
     id: 2,
     category: "Boat",
-    before: boatDetailBefore,
-    after: boatDetailAfter,
+    before: GALLERY_PHOTOS.boatBefore,
+    after: GALLERY_PHOTOS.boatAfter,
     title: "Marine Detail - Yacht Restoration",
     altBefore: "Yacht before marine detailing service in Louisiana",
     altAfter: "Yacht after professional boat detailing by AV Detailing",
@@ -29,8 +25,8 @@ const beforeAfterImages = [
   {
     id: 3,
     category: "Car",
-    before: paintCorrectionBefore,
-    after: paintCorrectionAfter,
+    before: GALLERY_PHOTOS.paintBefore,
+    after: GALLERY_PHOTOS.paintAfter,
     title: "Paint Correction - Porsche 911",
     altBefore: "Porsche 911 paint with swirls before paint correction",
     altAfter: "Porsche 911 after professional paint correction by AV Detailing",
@@ -82,14 +78,7 @@ export function GalleryPreview() {
               onMouseMove={handleSliderMove}
             >
               {/* After Image (Full) */}
-              <img
-                src={item.after}
-                alt={item.altAfter}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-                width={800}
-                height={600}
-              />
+              <ResponsivePhoto photo={item.after} alt={item.altAfter} className="absolute inset-0 w-full h-full object-cover" />
 
               {/* Before Image (Clipped) */}
               <div
@@ -98,14 +87,7 @@ export function GalleryPreview() {
                   clipPath: `inset(0 ${100 - (activeImage === item.id ? sliderPosition : 50)}% 0 0)`,
                 }}
               >
-                <img
-                  src={item.before}
-                  alt={item.altBefore}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy"
-                  width={800}
-                  height={600}
-                />
+                <ResponsivePhoto photo={item.before} alt={item.altBefore} className="absolute inset-0 w-full h-full object-cover" />
               </div>
 
               {/* Slider Line */}
