@@ -90,6 +90,8 @@ export class AnalyticsRuntime {
         if (generation !== this.generation) return;
         this.pending = false;
         this.port.disable(true);
+        this.cancelLoad?.();
+        this.cancelLoad = undefined;
       });
     } else if (this.loaded) this.configure();
   }

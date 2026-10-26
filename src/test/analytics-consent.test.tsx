@@ -5,11 +5,19 @@ import { AnalyticsConsentProvider, AnalyticsSettingsControl } from "@/components
 import { ANALYTICS_PREFERENCE_KEY } from "@/lib/analytics-policy";
 
 afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks(); });
-const view = () => render(<MemoryRouter><AnalyticsConsentProvider>
+const view = (path = "/") => render(<MemoryRouter initialEntries={[path]}><AnalyticsConsentProvider>
   <AnalyticsSettingsControl /><a href="/book">Book now</a>
 </AnalyticsConsentProvider></MemoryRouter>);
 
 describe("optional analytics controls", () => {
+  it.each(["/account", "/booking/manage?token=private", "/unknown"])("does not prompt or load on initial excluded path %s", async path => {
+    const append = vi.spyOn(document.head, "appendChild");
+    view(path);
+    fireEvent.click(screen.getByRole("button", { name: "Analytics settings" }));
+    expect(await screen.findByText("Current preference: Not chosen")).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Optional analytics" })).toBeNull();
+    expect(append.mock.calls.some(([node]) => node instanceof HTMLScriptElement && node.src.includes("googletagmanager"))).toBe(false);
+  });
   it("lets customers decline, revisit settings, accept and revoke without Google requests or blocking booking", async () => {
     const append = vi.spyOn(document.head, "appendChild");
     view();
