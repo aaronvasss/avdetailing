@@ -944,7 +944,7 @@ export function AdminQuotesTab() {
                   Aircraft Booking Policy
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Aircraft bookings do not require a deposit. The existing quote payment workflow still enforces a deposit and must be reviewed before converting aircraft quotes.
+                  Aircraft bookings do not require a deposit. This form still saves legacy deposit metadata; payment workflow changes are pending review.
                 </p>
               </div>
             ) : (
