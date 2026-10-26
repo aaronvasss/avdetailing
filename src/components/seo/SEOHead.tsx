@@ -26,18 +26,29 @@ export function SEOHead({
   noIndex = Boolean(utility) || noIndex;
   useEffect(() => {
     if (!path.startsWith("/aircraft-")) return;
-    // The static dev/published shell is not managed by Helmet. Remove its
-    // conflicting description while this aviation route owns the head.
-    const descriptionFallback = document.querySelector('meta[name="description"]:not([data-rh])');
-    const canonical = document.querySelector('link[rel="canonical"]');
-    const ogUrl = document.querySelector('meta[property="og:url"]');
+    // Aviation owns its static fallback tags during client navigation too.
+    const fallbacks = [...document.querySelectorAll('meta[name="description"]:not([data-rh]), meta[property="og:title"]:not([data-rh]), meta[property="og:description"]:not([data-rh]), meta[name="twitter:title"]:not([data-rh]), meta[name="twitter:description"]:not([data-rh])')];
+    const existingCanonical = document.querySelector('link[rel="canonical"]');
+    const existingOgUrl = document.querySelector('meta[property="og:url"]');
+    const canonical = existingCanonical ?? document.createElement("link");
+    const ogUrl = existingOgUrl ?? document.createElement("meta");
+    if (!existingCanonical) {
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    if (!existingOgUrl) {
+      ogUrl.setAttribute("property", "og:url");
+      document.head.appendChild(ogUrl);
+    }
     const oldCanonical = canonical?.getAttribute("href");
     const oldOgUrl = ogUrl?.getAttribute("content");
-    descriptionFallback?.remove();
+    fallbacks.forEach(tag => tag.remove());
     canonical?.setAttribute("href", `https://avdetailing.net${path}`);
     ogUrl?.setAttribute("content", `https://avdetailing.net${path}`);
     return () => {
-      if (descriptionFallback) document.head.appendChild(descriptionFallback);
+      fallbacks.forEach(tag => document.head.appendChild(tag));
+      if (!existingCanonical) canonical.remove();
+      if (!existingOgUrl) ogUrl.remove();
       if (oldCanonical) canonical?.setAttribute("href", oldCanonical);
       if (oldOgUrl) ogUrl?.setAttribute("content", oldOgUrl);
     };

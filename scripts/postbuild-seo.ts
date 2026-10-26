@@ -19,6 +19,7 @@ import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
 import { LOCATION_PAGES } from "../src/data/locationPages";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
 import { AVIATION_OVERVIEW, aviationOverviewHtml } from "../src/lib/aviation-overview";
+import { AVIATION_COVERAGE_TEXT } from "../src/lib/aviation-policy";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -64,12 +65,13 @@ function bodyForService(p: (typeof SERVICE_LANDING_PAGES)[number]): string {
   const steps = p.steps.map((s) => `<li>${esc(s)}</li>`).join("");
   const why = p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("");
   return [
+    ...(aircraft ? [`<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/services">Services</a> / <span aria-current="page">${esc(p.title)}</span></nav>`] : []),
     `<h1>${esc(p.title)}</h1>`,
     `<p>${esc(stripTokens(p.intro))}</p>`,
     `<h2>${esc(p.processHeading ?? "Our Process")}</h2><ol>${steps}</ol>`,
     `<h2>${esc(p.scopeHeading ?? "Why Choose AV Detailing")}</h2><ul>${why}</ul>`,
     aircraft
-      ? `<h2>Related aircraft services &amp; location arrangements</h2><p>Tell us your airport and hangar or FBO location so access and workspace can be coordinated for your job.</p><ul>${(p.relatedLinks ?? []).map(link => `<li><a href="${link.href}">${esc(link.text)}</a></li>`).join("")}</ul><p>Aircraft bookings do not require a deposit. Include aircraft make/model, location, requested work, condition, preferred dates and contact details. Photos are optional.</p><a href="/book">Request an Aircraft Quote</a>`
+      ? `<h2>Related aircraft services &amp; location arrangements</h2><p>${esc(AVIATION_COVERAGE_TEXT)}</p><ul>${(p.relatedLinks ?? []).map(link => `<li><a href="${link.href}">${esc(link.text)}</a></li>`).join("")}</ul><p>Aircraft bookings do not require a deposit. Include aircraft make/model, location, requested work, condition, preferred dates and contact details. Photos are optional.</p><a href="/book">Request an Aircraft Quote</a>`
       : `<h2>Service Areas</h2><p>AV Detailing serves Greater Baton Rouge including Highland Road, Shenandoah, Gonzales, Prairieville, Central, Walker, Denham Springs, and Zachary, Louisiana. Call (225) 521-6264 to book.</p>`,
   ].join("");
 }
@@ -278,7 +280,7 @@ function rewrite(html: string, m: RouteMeta): string {
       "@context": "https://schema.org", "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-        ...(config ? [{ "@type": "ListItem", position: 2, name: "Aircraft Detailing", item: `${SITE}${AVIATION_OVERVIEW.path}` }] : []),
+        ...(config ? [{ "@type": "ListItem", position: 2, name: "Services", item: `${SITE}/services` }] : []),
         { "@type": "ListItem", position: config ? 3 : 2, name: config?.title ?? AVIATION_OVERVIEW.h1, item: url },
       ],
     }];

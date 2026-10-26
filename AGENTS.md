@@ -1,7 +1,7 @@
 # Architecture rules
 - Aviation public-policy data and shared wording live in aviation-policy and remain separate from payment enforcement so copy updates cannot silently change charges.
 - The main aviation overview and its initial-HTML fallback share aviation-overview content so crawler-visible service, coverage and quote information cannot diverge from the page.
-- Aviation supporting pages use serviceLandingPages for distinct metadata, scope questions and related links in both the template and initial-HTML fallback; optional fields preserve other services' rendering.
+- Aviation supporting pages use serviceLandingPages for distinct metadata, scope questions and related links in both the template and initial-HTML fallback; aviation breadcrumbs point to /services in both representations and access wording comes from aviation-policy, while scoped optional fields preserve other services' rendering.
 - Aviation initial HTML replaces shell schemas with one existing business and a scoped Service provider reference, preventing inherited homepage claims; sitemaps omit inferred source/file timestamps because those do not prove significant page changes.
 - Preserve protected admin destinations in an encoded auth return URL validated by auth-return; destination pages retain role checks and appointment reads stay behind authentication so navigation intent never grants access.
 - Calendar exports and feeds share appointment-calendar Chicago wall-time conversion and emit UTC RFC 5545 instants; classification uses the Chicago calendar day without altering each view's status rules, so device zones cannot shift appointments.

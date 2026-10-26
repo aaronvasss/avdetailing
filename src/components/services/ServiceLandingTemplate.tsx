@@ -6,7 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
-import { aviationPolicy } from "@/lib/aviation-policy";
+import { aviationPolicy, AVIATION_COVERAGE_TEXT } from "@/lib/aviation-policy";
 
 const SITE_URL = "https://avdetailing.net";
 
@@ -86,7 +86,7 @@ export function ServiceLandingTemplate({ config }: Props) {
         serviceSchema,
         breadcrumbSchema([
           { name: "Home", path: "/" },
-          { name: isAircraft ? "Aircraft Detailing" : "Services", path: isAircraft ? "/aircraft-detailing-baton-rouge" : "/car-detailing-baton-rouge" },
+          { name: "Services", path: isAircraft ? "/services" : "/car-detailing-baton-rouge" },
           { name: config.title, path: `/${config.slug}` },
         ]),
       ]} />
@@ -98,8 +98,8 @@ export function ServiceLandingTemplate({ config }: Props) {
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
           <li>
-            <Link to={isAircraft ? "/aircraft-detailing-baton-rouge" : "/car-detailing-baton-rouge"} className="hover:text-primary transition-colors">
-              {isAircraft ? "Aircraft Detailing" : "Services"}
+            <Link to={isAircraft ? "/services" : "/car-detailing-baton-rouge"} className="hover:text-primary transition-colors">
+              Services
             </Link>
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
@@ -169,7 +169,7 @@ export function ServiceLandingTemplate({ config }: Props) {
         <div className="container-custom max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : "Service Areas"}</h2>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
-            {isAircraft ? <>Tell us your airport and hangar or FBO location so access and workspace can be coordinated for your job. See the <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">main aviation overview</Link> for Baton Rouge, Lafayette, New Orleans and Lake Charles inquiry information.</> : SERVICE_AREAS_TEXT}
+            {isAircraft ? <>{AVIATION_COVERAGE_TEXT} See the <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">private-aircraft detailing overview</Link> for the complete service overview and quote guidance.</> : SERVICE_AREAS_TEXT}
           </p>
           {config.relatedLinks && <ul className="mt-6 space-y-3">{config.relatedLinks.map(link => <li key={link.href}><Link to={link.href} className="text-primary underline underline-offset-4">{link.text}</Link></li>)}</ul>}
         </div>
