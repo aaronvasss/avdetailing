@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
+import { AnalyticsSettingsControl } from "@/components/analytics/AnalyticsConsent";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -254,13 +255,14 @@ export function Footer() {
             <p className="text-sm text-muted-foreground">
               © {currentYear} AV Detailing. All rights reserved.
             </p>
-            <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+            <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
               <Link to="/privacy-policy" className="hover:text-primary transition-colors">
                 Privacy Policy
               </Link>
               <Link to="/terms-and-conditions" className="hover:text-primary transition-colors">
                 Terms & Conditions
               </Link>
+              <AnalyticsSettingsControl />
             </div>
           </div>
           <p className="mt-4 text-xs text-center text-muted-foreground">

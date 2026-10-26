@@ -11,6 +11,7 @@ import { GhlChatWidget } from "@/components/GhlChatWidget";
 import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
 import { LOCATION_PAGES } from "@/data/locationPages";
 import "@/lib/password-recovery";
+import { AnalyticsConsentProvider } from "@/components/analytics/AnalyticsConsent";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -75,6 +76,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <AnalyticsConsentProvider>
             <GhlChatWidget />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
@@ -208,6 +210,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            </AnalyticsConsentProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
