@@ -67,7 +67,7 @@ export function GalleryPreview() {
             <div
               key={item.id}
               className={cn(
-                "relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group animate-fade-in-up"
+                "relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group bg-muted animate-fade-in-up"
               )}
               style={{ animationDelay: `${index * 0.1}s` }}
               onMouseEnter={() => {

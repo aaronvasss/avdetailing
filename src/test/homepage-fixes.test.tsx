@@ -22,3 +22,31 @@ describe("homepage fixes", () => {
     });
   });
 });
+
+describe("gallery photo prefetch and hero visibility", () => {
+  it("hero headline, description and buttons render without an opacity entrance animation", () => {
+    const hero = readFileSync("src/components/home/HeroSection.tsx", "utf8");
+    const h1 = hero.slice(hero.indexOf("<h1"), hero.indexOf(">", hero.indexOf("<h1")));
+    expect(h1).not.toMatch(/animate-fade/);
+    expect(hero).not.toMatch(/mb-8 animate-fade-in-up/);
+    expect(hero).not.toMatch(/mb-12 animate-fade-in-up/);
+  });
+
+  it("gallery photos start lazy and switch to eager only when near the viewport", async () => {
+    const { act } = await import("@testing-library/react");
+    let cb: ((e: { isIntersecting: boolean }[]) => void) | null = null;
+    let margin = "";
+    (globalThis as any).IntersectionObserver = class {
+      constructor(fn: any, opts: any) { cb = fn; margin = opts.rootMargin; }
+      observe() {} disconnect() {}
+    };
+    const { GalleryPreview } = await import("@/components/home/GalleryPreview");
+    const { container } = render(<MemoryRouter><GalleryPreview /></MemoryRouter>);
+    const imgs = [...container.querySelectorAll("img")];
+    expect(imgs.length).toBe(6);
+    imgs.forEach((i) => expect(i.getAttribute("loading")).toBe("lazy"));
+    expect(margin).toBe("2500px 0px");
+    act(() => cb!([{ isIntersecting: true }]));
+    expect(imgs.some((i) => i.getAttribute("loading") === "eager")).toBe(true);
+  });
+});
