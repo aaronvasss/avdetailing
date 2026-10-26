@@ -16,7 +16,7 @@ Baseline commit: `6adda90`. This pass adds the next preview commit on top of it.
 |---|---|
 | Removed the "Specialized aviation-safe products" quote bullet. The exterior/interior scope bullet now names the confirmed services. | `src/pages/BookingPage.tsx` |
 | Aircraft-cleaning intro is now inquiry guidance. It no longer mentions an "unconfirmed standalone wash package". | `src/data/serviceLandingPages.ts` |
-| Business schema: `hasMap` now uses the business's Google Maps listing (`GOOGLE_REVIEWS_URL`, cid). Removed the business `geo`, which was the Baton Rouge centroid. City and service-area geography are kept. Email corrected to aaronvasquez@avdetailing.com. | `src/components/seo/schema.ts` |
+| Business schema: `hasMap` now uses the business's Google Maps listing (`GOOGLE_REVIEWS_URL`, cid). Removed the business `geo`, which was the Baton Rouge centroid. City and service-area geography are kept. Email: aaronvasquez@avdetailingg.com (restored; see correction below). | `src/components/seo/schema.ts` |
 | REVERSED: an earlier pass wrongly changed the customer email to `@avdetailing.com`. The owner-confirmed address `aaronvasquez@avdetailingg.com` (double g, not a typo) is restored | schema.ts, Footer, Contact, Privacy, Terms, BookingDetailsDialog, tests |
 | Homepage RV sentence no longer promotes interior deep cleaning | `src/components/home/ServiceContentSection.tsx` |
 | Prerender now waits for the page's own head tags, so page Service/Breadcrumb schema is captured | `vite.config.ts` |
