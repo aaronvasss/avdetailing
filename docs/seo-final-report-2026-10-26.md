@@ -98,3 +98,22 @@ This final copy reconciliation: focused **6 files / 119 tests passed**; after ce
 - **Actual owner facts still needed only if stated publicly:** ceramic appointment/preparation timing resolving current 300-min vs catalog ~8-hour conflict; exact product lines/warranties/credentials if ever claimed; job-specific roof/hull/pontoon/aircraft surface/access/scope. Unknown coating price/access maxima need not become universal offers. No reopened questions about System X, roof availability, hull access, tier names, email, popular tier or preserving five add-ons.
 
 No production improvement or release readiness is claimed until these gates are resolved.
+
+## Performance delivery pass (2026-10-26, source/preview only)
+
+**Baseline (published site, one PageSpeed lab run, mobile, owner-observed):** Performance 75, FCP 2.6 s, LCP 4.1 s, TBT 20 ms, CLS 0, Speed Index 8.2 s; estimated image savings 4,902 KiB of 5,970 KiB payload. **Field (CrUX) data: none available.** This baseline measures the current published site only, not these unpublished edits. An after-release benchmark is pending; no score gain is claimed.
+
+**Gallery photos (same photos, resized only — no retouching or replacements; Cessna photo not used):** homepage and /gallery cards now use AVIF → WebP `<picture>` srcsets (400w/800w, plus 1200w for the largest original) with `sizes="(min-width: 1024px) 400px, (min-width: 768px) 50vw, 100vw"`, lazy loading and the existing 800×600 dimensions, 4:3 crop, labels and slider. Originals remain only as /gallery schema URLs (not downloaded by cards).
+
+| Photo | Original JPEG | 400w AVIF / WebP | 800w AVIF / WebP |
+|---|---|---|---|
+| car-detail-after | 2,543,086 B | 28,785 / 38,072 | 97,088 / 132,556 (1200w: 188,533 / 264,818) |
+| car-detail-before | 2,404,533 B | 36,868 / 49,144 | 121,662 / 165,762 |
+| boat-detail-after | 69,620 B | 8,981 / 12,178 | 18,795 / 28,510 |
+| boat-detail-before | 118,045 B | 15,015 / 19,664 | 44,889 / 60,930 |
+| paint-correction-after | 84,711 B | 10,764 / 14,550 | 25,205 / 37,600 |
+| paint-correction-before | 115,744 B | 14,174 / 19,988 | 43,377 / 62,168 |
+
+**Hero preload:** postbuild adds one `<link rel="preload" as="image" type="image/avif" imagesrcset imagesizes fetchpriority="high">` to the `/` initial HTML only, copying the hashed srcset/sizes from the captured hero `<picture>` (no guessed filenames; non-AVIF browsers skip it and use the WebP fallback). No other route, and not index.html globally.
+
+**Evidence:** src/test/image-delivery.test.ts (byte limits, srcset/sizes, homepage-only preload fixture); full suite 48 files / 445 tests passed (one earlier run had timeouts under load, rerun clean). Preview browser at 1280/375/390 with all non-localhost traffic blocked: zero original JPEG requests, cards loaded 400w AVIF, layout unchanged. **Not verified:** the production build/prerender output containing the real preload (manual builds remain prohibited; gate retained). GA4 gates remain false; no GHL/chat/analytics behavior changed.
