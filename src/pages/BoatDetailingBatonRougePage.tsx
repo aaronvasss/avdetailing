@@ -50,7 +50,7 @@ interface ServiceCardData {
 
 const SERVICES: ServiceCardData[] = [
   { title: "Boat Ceramic Coating", href: "/boat-ceramic-coating-baton-rouge", icon: Shield, tagline: "Quoted after a finish assessment", linkLabel: "Boat ceramic coating in Baton Rouge",
-    body: <>A protective layer for gelcoat or paint that can make routine cleaning easier. We review your finish first; oxidized gelcoat may need <Link to="/gelcoat-restoration-baton-rouge" className="text-primary underline">gelcoat restoration</Link> before coating. Boat Premium Detail includes a ceramic sealant.</> },
+    body: <>System X ceramic coating for gelcoat or paint — a separate quoted service from the Premium Detail's ceramic sealant. We review your finish first; oxidized gelcoat may need <Link to="/gelcoat-restoration-baton-rouge" className="text-primary underline">gelcoat restoration</Link> before coating. Boat Premium Detail includes a ceramic sealant.</> },
   { title: "Gelcoat Restoration", href: "/gelcoat-restoration-baton-rouge", icon: Sparkles, tagline: "For chalky, faded or oxidized finishes", linkLabel: "Gelcoat restoration assessment",
     body: <>We assess the finish and test an area before recommending Boat Full Detail (includes oxidation removal), Boat Premium Detail or a quoted restoration. Results depend on gelcoat condition.</> },
   { title: "Hull Cleaning", href: "/hull-cleaning-baton-rouge", icon: Droplets, tagline: "Waterline and hull staining, reviewed per request", linkLabel: "Boat hull cleaning assessment",

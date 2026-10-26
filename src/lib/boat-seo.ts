@@ -35,7 +35,7 @@ export const boatFallbackPrice = (name: BoatPackageName) =>
 export interface BoatLink { href: string; text: string; description: string }
 
 export const BOAT_LINKS: BoatLink[] = [
-  { href: "/boat-ceramic-coating-baton-rouge", text: "Boat ceramic coating in Baton Rouge", description: "Coating quotes start with a look at your gelcoat or paint condition." },
+  { href: "/boat-ceramic-coating-baton-rouge", text: "Boat ceramic coating in Baton Rouge", description: "System X ceramic coating, a separate quoted service from the Premium Detail's ceramic sealant." },
   { href: "/gelcoat-restoration-baton-rouge", text: "Gelcoat restoration assessment", description: "For chalky, faded or oxidized finishes; we review condition before quoting." },
   { href: "/hull-cleaning-baton-rouge", text: "Boat hull cleaning assessment", description: "Waterline and hull staining; tell us how the hull can be reached." },
   { href: "/pontoon-cleaning-baton-rouge", text: "Pontoon boat cleaning and care", description: "Decks, vinyl seating and aluminum logs, matched to a package or quote." },

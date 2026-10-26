@@ -18,10 +18,10 @@ export const RV_HUB_SEO = {
   path: RV_HUB_PATH,
   title: "Exterior RV Detailing in Baton Rouge, LA | AV Detailing",
   description:
-    "Exterior-only RV and motorhome detailing in Baton Rouge: RV exterior wash, oxidation removal and ceramic coating. Tell us your RV, condition and location for a plan.",
+    "Exterior-only RV and motorhome detailing in Baton Rouge: RV exterior wash, oxidation removal, ceramic coating and roof cleaning. Tell us your RV, condition and location for a plan.",
   h1: "Exterior RV & Motorhome Detailing in Baton Rouge, LA",
   intro:
-    "AV Detailing provides exterior-only detailing for motorhomes, fifth wheels and travel trailers in Baton Rouge and surrounding areas. Choose an RV exterior wash, oxidation removal or ceramic coating, and we confirm the right scope after reviewing your RV, its condition and where it is parked. We do not offer RV interior or upholstery cleaning.",
+    "AV Detailing provides exterior-only detailing for motorhomes, fifth wheels and travel trailers in Baton Rouge and surrounding areas. Choose an RV exterior wash, oxidation removal, ceramic coating or roof cleaning, and we confirm the right scope after reviewing your RV, its condition and where it is parked. We do not offer RV interior or upholstery cleaning.",
 };
 
 export interface RvLink { href: string; text: string; description: string }
@@ -31,13 +31,13 @@ export const RV_EXTERIOR_LINKS: RvLink[] = [
   { href: "/mobile-rv-detailing-baton-rouge", text: "Mobile RV detailing logistics", description: "How on-site service works at your home, storage lot or campground, and what we need to plan the visit." },
   { href: "/rv-oxidation-removal-baton-rouge", text: "RV oxidation removal", description: "Compounding and polishing for chalky or faded fiberglass, assessed on a test area first." },
   { href: "/rv-ceramic-coating-baton-rouge", text: "RV ceramic coating", description: "Exterior surface protection applied after washing and any needed polishing." },
-  { href: "/rv-roof-cleaning-baton-rouge", text: "RV roof cleaning", description: "Roof cleaning requests are reviewed case by case before scheduling." },
+  { href: "/rv-roof-cleaning-baton-rouge", text: "RV roof cleaning", description: "Roof cleaning, quoted after we review roof material, condition and access." },
 ];
 
 /** What customers should send so the exterior scope can be confirmed. */
 export const RV_BUYING_GUIDANCE: string[] = [
   "Your RV type, year, make and model (motorhome, fifth wheel or travel trailer).",
-  "The exterior work you want: wash, oxidation removal, ceramic coating or a combination.",
+  "The exterior work you want: wash, oxidation removal, ceramic coating, roof cleaning or a combination.",
   "Current condition — oxidation, black streaks, water spots or previous coatings — with photos if you have them.",
   "Where the RV is parked (home, storage lot or campground) and any site rules for washing.",
   "Your preferred dates and the best phone number or email to reach you.",
@@ -54,7 +54,7 @@ export const RV_INTERIOR_UNAVAILABLE = {
   path: RV_INTERIOR_PATH,
   title: "RV Interior Detailing Not Offered | AV Detailing",
   description:
-    "AV Detailing does not offer RV interior detailing. See our exterior RV services in Baton Rouge: exterior wash, oxidation removal and ceramic coating.",
+    "AV Detailing does not offer RV interior detailing. See our exterior RV services in Baton Rouge: exterior wash, oxidation removal, ceramic coating and roof cleaning.",
   h1: "RV Interior Detailing Is Not Offered",
   message:
     "AV Detailing does not provide RV or motorhome interior, upholstery or carpet cleaning. Our RV service is exterior-only. If your RV needs exterior care, these options are available in Baton Rouge and surrounding areas.",

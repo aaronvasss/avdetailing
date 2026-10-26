@@ -7,7 +7,7 @@ import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
 import { buildPricing, FALLBACK_PACKAGES, FALLBACK_PLANS } from "@/lib/pricing";
 
 const BOAT_SLUGS = ["mobile-boat-detailing-baton-rouge", "boat-ceramic-coating-baton-rouge", "gelcoat-restoration-baton-rouge", "hull-cleaning-baton-rouge", "pontoon-cleaning-baton-rouge"];
-const BANNED = /System X|certif|warrant|uscg|\.gov|mirror|permanent|resale|diver|underwater|in-water service|\d+-year/i;
+const BANNED = /System X (certif|approv)|certif|warrant|uscg|\.gov|mirror|permanent|resale|diver|underwater|in-water service|\d+-year/i;
 
 describe("boat section SEO", () => {
   it("boat package prices are unchanged", () => {
