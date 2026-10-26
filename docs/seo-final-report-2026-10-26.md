@@ -125,3 +125,7 @@ No production improvement or release readiness is claimed until these gates are 
 ## Evidence attribution (current)
 
 The 48 files / 445 tests result and the 1280/375/390 preview checks are **agency-reported** (Lovable sandbox runs), distinct from the owner's independent source review. No tests or builds were rerun for this documentation-only reconciliation. The full production sitemap→Vite→prerender→postbuild pipeline (including the homepage hero preload in real output) remains **unverified**; manual builds stay prohibited and that gate is retained. SEO work is not complete: live HTTP 302 www redirect, SPA soft-404 for unknown routes, legacy meta-refresh stubs, after-release PageSpeed benchmark and GA4 live validation remain open.
+
+
+## Owner-reported GA4 privacy settings (2026-10-26, later)
+Also completed by the owner (not independently viewed): Google Signals OFF; automatic user-data detection OFF; user-provided data OFF; ads personalization allowed in 0 of 307 regions; persisted after reload. Granular location/device unchanged. Remaining: duplicate-tag live check, privacy wording, third-party script decisions (see docs/tracking-release-audit-2026-10-26.md), authorized release + live validation, full production build. Both source gates remain false.
