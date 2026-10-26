@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ANALYTICS_PREFERENCE_KEY, publicAnalyticsPage, readAnalyticsPreference, type AnalyticsPreference } from "@/lib/analytics-policy";
+import { ANALYTICS_PREFERENCE_KEY, readAnalyticsPreference, type AnalyticsPreference } from "@/lib/analytics-policy";
 import { AnalyticsRuntime, browserAnalyticsPort, observeAnalyticsNavigation } from "@/lib/analytics-runtime";
 import { contactMethod, type MeasurementEvent } from "@/lib/analytics-events";
 
@@ -23,7 +23,7 @@ export function AnalyticsSettingsControl() {
 export function AnalyticsConsentProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   // Preference state is client-only; prerender remains collection-disabled.
-  const [hydrated, setHydrated] = useState(false);
+  // No automatic prompt: consent is only collected from the user-opened settings dialog.
   const [preference, setPreference] = useState<AnalyticsPreference>("unset");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const runtime = useRef<AnalyticsRuntime | null>(null);
@@ -35,7 +35,6 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     controller.navigate(window.location.pathname);
     controller.setPreference(saved);
     setPreference(saved);
-    setHydrated(true);
     const stopObserving = observeAnalyticsNavigation(controller);
     const contactClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
@@ -68,7 +67,6 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
     setSettingsOpen(false);
   };
 
-  const publicPage = Boolean(publicAnalyticsPage(location.pathname));
   const actions = <div className="flex flex-wrap gap-3">
     <Button variant="outline" onClick={() => choose("declined")}>Decline analytics</Button>
     <Button onClick={() => choose("accepted")}>Accept analytics</Button>
@@ -77,13 +75,6 @@ export function AnalyticsConsentProvider({ children }: { children: ReactNode }) 
   return <ConsentContext.Provider value={{ openSettings: () => setSettingsOpen(true),
     track: (event, occurrence) => runtime.current?.track(event, occurrence) }}>
     {children}
-    {hydrated && preference === "unset" && publicPage && <section aria-label="Optional analytics" className="fixed bottom-16 lg:bottom-4 left-3 right-3 z-40 mx-auto max-w-xl border border-border rounded-md bg-card p-4 shadow-lg">
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold">Optional analytics</h2>
-        <p className="text-sm text-muted-foreground">Allow Google Analytics to measure visits to public pages? Booking works either way.</p>
-        {actions}
-      </div>
-    </section>}
     <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-md">
         <DialogHeader>
