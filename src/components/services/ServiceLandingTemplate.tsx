@@ -6,7 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
-import { AVIATION_COVERAGE_TEXT, AVIATION_QUOTE_TEXT } from "@/lib/aviation-policy";
+import { aviationPolicy } from "@/lib/aviation-policy";
 
 const SITE_URL = "https://avdetailing.net";
 
@@ -62,7 +62,7 @@ export function ServiceLandingTemplate({ config }: Props) {
     serviceType: config.serviceType,
     name: config.title,
     provider: { "@id": `${SITE_URL}/#business` },
-    areaServed: [
+    areaServed: isAircraft ? ["Baton Rouge", "Lafayette", "New Orleans"].map(name => ({ "@type": "City", name })) : [
       { "@type": "City", name: "Baton Rouge", geo: { "@type": "GeoCoordinates", latitude: 30.4515, longitude: -91.1871 } },
       { "@type": "Place", name: "Highland Road", geo: { "@type": "GeoCoordinates", latitude: 30.3963, longitude: -91.1271 } },
       { "@type": "Place", name: "Shenandoah", geo: { "@type": "GeoCoordinates", latitude: 30.3542, longitude: -91.0351 } },
@@ -80,13 +80,13 @@ export function ServiceLandingTemplate({ config }: Props) {
 
   return (
     <Layout>
-      <SEOHead title={config.title} description={config.metaDescription} path={pagePath} />
+      <SEOHead title={config.seoTitle ?? config.title} description={config.metaDescription} path={pagePath} />
       <JsonLd data={[
         localBusinessSchema(),
         serviceSchema,
         breadcrumbSchema([
           { name: "Home", path: "/" },
-          { name: "Services", path: "/car-detailing-baton-rouge" },
+          { name: isAircraft ? "Aircraft Detailing" : "Services", path: isAircraft ? "/aircraft-detailing-baton-rouge" : "/car-detailing-baton-rouge" },
           { name: config.title, path: `/${config.slug}` },
         ]),
       ]} />
@@ -98,8 +98,8 @@ export function ServiceLandingTemplate({ config }: Props) {
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
           <li>
-            <Link to="/car-detailing-baton-rouge" className="hover:text-primary transition-colors">
-              Services
+            <Link to={isAircraft ? "/aircraft-detailing-baton-rouge" : "/car-detailing-baton-rouge"} className="hover:text-primary transition-colors">
+              {isAircraft ? "Aircraft Detailing" : "Services"}
             </Link>
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
@@ -126,7 +126,7 @@ export function ServiceLandingTemplate({ config }: Props) {
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            How Our {config.serviceType} Works
+            {config.processHeading ?? `How Our ${config.serviceType} Works`}
           </h2>
           <ol className="space-y-5">
             {config.steps.map((step, i) => (
@@ -147,7 +147,7 @@ export function ServiceLandingTemplate({ config }: Props) {
       <section className="section-padding bg-card">
         <div className="container-custom max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            Why Baton Rouge Customers Choose AV Detailing for {config.serviceType}
+            {config.scopeHeading ?? `Why Baton Rouge Customers Choose AV Detailing for ${config.serviceType}`}
           </h2>
           <ul className="space-y-4">
             {config.whyChoose.map((item, i) => (
@@ -167,17 +167,18 @@ export function ServiceLandingTemplate({ config }: Props) {
       {/* Service Areas */}
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Service Areas</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : "Service Areas"}</h2>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
-            {isAircraft ? AVIATION_COVERAGE_TEXT : SERVICE_AREAS_TEXT}
+            {isAircraft ? <>Tell us your airport and hangar or FBO location so access and workspace can be coordinated for your job. See the <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">main aviation overview</Link> for Baton Rouge, Lafayette, New Orleans and Lake Charles inquiry information.</> : SERVICE_AREAS_TEXT}
           </p>
+          {config.relatedLinks && <ul className="mt-6 space-y-3">{config.relatedLinks.map(link => <li key={link.href}><Link to={link.href} className="text-primary underline underline-offset-4">{link.text}</Link></li>)}</ul>}
         </div>
       </section>
 
       {/* CTA */}
       <section className="section-padding bg-card">
         <div className="container-custom max-w-4xl text-center">
-          {isAircraft && <p className="text-muted-foreground mb-6">{AVIATION_QUOTE_TEXT}</p>}
+          {isAircraft && <p className="text-muted-foreground mb-6">{aviationPolicy.depositRequired ? "Discuss aircraft booking requirements with us." : "Aircraft bookings do not require a deposit."} Include your aircraft make/model, location, requested work, condition, preferred dates and contact details. Photos are optional.</p>}
           <p className="text-xl md:text-2xl font-semibold mb-6">
             Call{" "}
             <a href="tel:2255216264" className="text-primary hover:underline">
@@ -187,7 +188,7 @@ export function ServiceLandingTemplate({ config }: Props) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="text-base">
-              <Link to="/book">{isAircraft ? "Request Aircraft Quote" : "Book Online"}</Link>
+              <Link to="/book">{isAircraft ? "Request an Aircraft Quote" : "Book Online"}</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
               <a href="tel:2255216264">

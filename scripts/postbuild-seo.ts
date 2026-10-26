@@ -60,14 +60,17 @@ function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
 }
 
 function bodyForService(p: (typeof SERVICE_LANDING_PAGES)[number]): string {
+  const aircraft = p.slug.startsWith("aircraft-");
   const steps = p.steps.map((s) => `<li>${esc(s)}</li>`).join("");
   const why = p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("");
   return [
     `<h1>${esc(p.title)}</h1>`,
     `<p>${esc(stripTokens(p.intro))}</p>`,
-    `<h2>Our Process</h2><ol>${steps}</ol>`,
-    `<h2>Why Choose AV Detailing</h2><ul>${why}</ul>`,
-    `<h2>Service Areas</h2><p>AV Detailing serves Greater Baton Rouge including Highland Road, Shenandoah, Gonzales, Prairieville, Central, Walker, Denham Springs, and Zachary, Louisiana. Call (225) 521-6264 to book.</p>`,
+    `<h2>${esc(p.processHeading ?? "Our Process")}</h2><ol>${steps}</ol>`,
+    `<h2>${esc(p.scopeHeading ?? "Why Choose AV Detailing")}</h2><ul>${why}</ul>`,
+    aircraft
+      ? `<h2>Related aircraft services &amp; location arrangements</h2><p>Tell us your airport and hangar or FBO location so access and workspace can be coordinated for your job.</p><ul>${(p.relatedLinks ?? []).map(link => `<li><a href="${link.href}">${esc(link.text)}</a></li>`).join("")}</ul><p>Aircraft bookings do not require a deposit. Include aircraft make/model, location, requested work, condition, preferred dates and contact details. Photos are optional.</p><a href="/book">Request an Aircraft Quote</a>`
+      : `<h2>Service Areas</h2><p>AV Detailing serves Greater Baton Rouge including Highland Road, Shenandoah, Gonzales, Prairieville, Central, Walker, Denham Springs, and Zachary, Louisiana. Call (225) 521-6264 to book.</p>`,
   ].join("");
 }
 
@@ -195,7 +198,7 @@ for (const r of STATIC_ROUTES) {
 
 const SERVICE_ROUTES: RouteMeta[] = SERVICE_LANDING_PAGES.map((p) => ({
   path: `/${p.slug}`,
-  title: `${p.title} | AV Detailing`,
+  title: p.seoTitle ?? `${p.title} | AV Detailing`,
   description: p.metaDescription,
   body: bodyForService(p),
 }));

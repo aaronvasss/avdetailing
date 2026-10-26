@@ -14,6 +14,10 @@ export interface ExtLink {
 export interface ServiceLandingConfig {
   slug: string;
   title: string;          // H1 + base page title (template appends " | AV Detailing")
+  seoTitle?: string;
+  processHeading?: string;
+  scopeHeading?: string;
+  relatedLinks?: { text: string; href: string }[];
   metaDescription: string;
   intro: string;          // 120–150 words, contains {{l1}} and {{l2}}
   link1: ExtLink;         // national authority
@@ -494,75 +498,90 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   // ===================== AIRCRAFT (3) =====================
   {
     slug: "aircraft-cleaning-baton-rouge",
-    title: "Aircraft Cleaning in Baton Rouge, LA",
-    metaDescription:
-      "Aircraft exterior cleaning in Baton Rouge — aviation-safe products only. Service at BTR, LFT, MSY, NEW, and South Louisiana general aviation airports.",
-    intro:
-      "Aircraft exterior cleaning is dramatically different from car detailing — wrong products or wrong technique can damage painted aluminum, composite panels, or aircraft plexiglass, and South Louisiana's coastal humidity and salt air make corrosion a real ongoing threat. AV Detailing uses only aviation-approved cleaning solutions and procedures, and our technicians are trained in safe aircraft handling around control surfaces, antennas, static wicks, and pitot probes. We remove exhaust residue, bug deposits, bird droppings, salt, and environmental fallout that over time accelerate corrosion and damage your aircraft's finish. We service aircraft at BTR, LFT, MSY, NEW, and surrounding general aviation fields. According to {{l1}}, regular aircraft cleaning and surface maintenance is a recognized element of overall airworthiness, and {{l2}} hosts most of our Baton Rouge based clients.",
-    link1: { text: "the FAA", url: "https://www.faa.gov/aircraft" },
-    link2: { text: "Baton Rouge Metropolitan Airport", url: "https://www.flybtr.com/" },
+    title: "Aircraft Exterior Cleaning Inquiries in Baton Rouge",
+    seoTitle: "Aircraft Exterior Cleaning Baton Rouge | AV Detailing",
+    metaDescription: "Discuss exterior aircraft cleaning in Baton Rouge. Share your aircraft condition and requested areas so we can assess the scope and coordinate access.",
+    intro: "An exterior aircraft cleaning inquiry starts with the condition of your aircraft and the areas you want addressed. AV Detailing reviews private-aircraft requests, including private jets, before agreeing the work scope. Describe what you are seeing on the exterior, where it is located and what you want us to assess. This is not a fixed wash package: methods, products and included areas must be confirmed for your aircraft before work is agreed.",
+    link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
+    link2: { text: "Aircraft polishing and ceramic coating", url: "/aircraft-paint-protection-baton-rouge" },
+    processHeading: "Requesting an exterior-cleaning assessment",
     steps: [
-      "Walkaround and aviation-approved product selection.",
-      "Pre-rinse with aviation-safe cleaning solution.",
-      "Hand wash of painted aluminum and composite panels.",
-      "Plexiglass cleaning with plex-safe polish only.",
-      "Final wipe, dry, and walkaround signoff.",
+      "Provide your aircraft make/model, airport and hangar or FBO location, and contact details.",
+      "Describe the exterior condition and the areas you want assessed. Optional photos can help explain your request; no aircraft registration number is required initially.",
+      "Share your preferred dates and availability. We coordinate airport access and workspace arrangements for the proposed job.",
+      "Agree the included and excluded work after the aircraft, condition and request have been reviewed. Sending an inquiry does not reserve an appointment.",
     ],
+    scopeHeading: "Exterior scope to confirm before work",
     whyChoose: [
-      "Aviation-approved cleaning products only — never automotive chemicals.",
-      "Technicians trained around control surfaces and probes.",
-      "Baton Rouge, Lafayette and airports throughout the New Orleans area — access and workspace coordinated per job.",
-      "Mobile to your hangar or ramp — minimal aircraft handling.",
+      "Which exterior areas are included, and which are outside the agreed work scope?",
+      "What methods and products are proposed for those areas? These details must be confirmed rather than assumed from a car-detailing package.",
+      "Does the request concern cleaning, polishing or ceramic coating? Polishing and coating are separate confirmed services to discuss, not automatic cleaning inclusions.",
+      "What access and workspace arrangements need to be made at your aircraft's location?",
     ],
-    serviceType: "Aircraft Exterior Cleaning",
+    relatedLinks: [
+      { text: "Private-aircraft detailing overview and coverage", href: "/aircraft-detailing-baton-rouge" },
+      { text: "Aircraft interior deep cleaning and shampooing", href: "/aircraft-interior-detailing-baton-rouge" },
+      { text: "Aircraft polishing and ceramic coating", href: "/aircraft-paint-protection-baton-rouge" },
+    ],
+    serviceType: "Aircraft Exterior Cleaning Inquiry",
   },
   {
     slug: "aircraft-interior-detailing-baton-rouge",
-    title: "Aircraft Interior Detail in Baton Rouge, LA",
-    metaDescription:
-      "Aircraft interior detailing in Baton Rouge — aviation-safe seat conditioning, carpet shampoo, panel care, and odor elimination at BTR, LFT, MSY, and NEW.",
-    intro:
-      "An aircraft cabin reflects your standards as a pilot, operator, or charter customer — and aviation interiors require very different products and techniques than car interiors. Aviation-grade leather and fabric, instrument shrouds, plexiglass, and door seals all need formulations that are safe for aircraft applications. AV Detailing's aircraft interior service covers seat cleaning and leather conditioning, carpet vacuuming and shampooing, instrument panel and shroud wipe-down, window and door-seal cleaning, headliner spot treatment, and full odor elimination — using only products formulated and approved for aircraft cabin use. South Louisiana's humidity makes interior odor and mildew control especially important. According to {{l1}}, regular cabin maintenance is a recognized element of aircraft care, and {{l2}} hosts most of our Baton Rouge based clients.",
-    link1: { text: "the FAA", url: "https://www.faa.gov/aircraft" },
-    link2: { text: "Baton Rouge Metropolitan Airport", url: "https://www.flybtr.com/" },
+    title: "Aircraft Interior Deep Cleaning & Shampooing in Baton Rouge",
+    seoTitle: "Aircraft Interior Cleaning Baton Rouge | AV Detailing",
+    metaDescription: "Private-aircraft interior deep cleaning and shampooing in Baton Rouge. Discuss cabin condition, requested areas and location to agree a tailored scope.",
+    intro: "AV Detailing provides deep interior cleaning and shampooing for private aircraft, including private jets. This page focuses on the cabin rather than exterior cleaning or polishing. Tell us which interior areas need attention, their current condition and the work you want. We review those details with your aircraft make/model before agreeing the inclusions and exclusions; there is no assumed all-cabin package or automatic list of treated surfaces.",
+    link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
+    link2: { text: "Aircraft polishing and ceramic coating", url: "/aircraft-paint-protection-baton-rouge" },
+    processHeading: "Planning your aircraft interior cleaning",
     steps: [
-      "Cabin walkthrough and aviation-approved product selection.",
-      "Seat and leather cleaning with aviation-grade conditioner.",
-      "Carpet vacuum, shampoo, and extraction.",
-      "Instrument panel and shroud wipe-down with safe wipes.",
-      "Plexiglass cleaning plus odor neutralization throughout the cabin.",
+      "Share your aircraft make/model and describe the cabin areas, materials and condition you want reviewed. Photos are optional.",
+      "Say whether you are requesting deep interior cleaning, shampooing or both, and identify any areas you do not want included.",
+      "Provide the airport and hangar or FBO location, preferred dates, availability and contact details.",
+      "Confirm the cabin work scope, access and workspace arrangements before agreeing the appointment. A quote request alone does not reserve a date.",
     ],
+    scopeHeading: "Cabin details to agree in your quote",
     whyChoose: [
-      "Aviation-safe interior products only — never automotive cleaners.",
-      "Aviation-grade leather conditioning for cabin seating.",
-      "Plexiglass-safe cleaning to protect window clarity.",
-      "Hangar service in Baton Rouge, Lafayette and throughout the New Orleans area, with job-specific access and workspace arrangements.",
+      "Which areas are included in deep cleaning, and which are proposed for shampooing? Exact inclusions are confirmed for your aircraft.",
+      "Which materials and products are involved? Product names and suitability need confirmation for the agreed areas, not a universal aircraft-surface claim.",
+      "What should you move or prepare before the visit? Ask about preparation for the cabin areas included in the scope.",
+      "How should aircraft availability be planned around the requested work? Any drying and return-to-use arrangements need confirmation; no fixed turnaround is promised.",
     ],
-    serviceType: "Aircraft Interior Detailing",
+    relatedLinks: [
+      { text: "Private-aircraft detailing overview and coverage", href: "/aircraft-detailing-baton-rouge" },
+      { text: "Exterior aircraft cleaning inquiries", href: "/aircraft-cleaning-baton-rouge" },
+      { text: "Aircraft polishing and ceramic coating", href: "/aircraft-paint-protection-baton-rouge" },
+    ],
+    serviceType: "Aircraft Interior Deep Cleaning and Shampooing",
   },
   {
     slug: "aircraft-paint-protection-baton-rouge",
-    title: "Aircraft Paint Protection Baton Rouge",
-    metaDescription:
-      "Aircraft paint protection in Baton Rouge — aviation sealants & coatings that slow corrosion and protect resale value. BTR, LFT, MSY & NEW.",
-    intro:
-      "South Louisiana's UV, humidity, and coastal salt air degrade aircraft paint and aluminum surfaces noticeably faster than inland states or drier climates — and aircraft repaints are extremely expensive, so prevention matters. AV Detailing's aircraft paint protection service applies professional-grade aviation sealants and protective coatings designed for painted aluminum and composite surfaces. The result is a slick, hydrophobic protective layer that slows corrosion, repels environmental contamination, dramatically reduces cleaning time between services, and helps preserve your aircraft's long-term value at resale. All products are aviation-approved. We perform paint protection at hangar locations across BTR, LFT, MSY, and NEW. According to {{l1}}, surface care is a recognized component of aircraft maintenance, and {{l2}} hosts most of our Baton Rouge based fleet clients.",
-    link1: { text: "the FAA", url: "https://www.faa.gov/aircraft" },
-    link2: { text: "Baton Rouge Metropolitan Airport", url: "https://www.flybtr.com/" },
+    title: "Aircraft Polishing & Ceramic Coating in Baton Rouge",
+    seoTitle: "Aircraft Polishing & Ceramic Coating Baton Rouge | AV Detailing",
+    metaDescription: "Discuss aircraft polishing and aviation ceramic coating in Baton Rouge. Share the condition and areas needing attention to agree the scope before quoting.",
+    intro: "AV Detailing offers polishing and aviation ceramic coating for private aircraft, including private jets. Polishing and coating are distinct services: tell us whether you want one or both and which areas you want assessed. This page concerns detailing work, not aircraft repainting. We review the aircraft condition and requested work before agreeing the scope; preparation, products and included surfaces are confirmed for the particular job.",
+    link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
+    link2: { text: "Aircraft exterior cleaning inquiries", url: "/aircraft-cleaning-baton-rouge" },
+    processHeading: "Discussing polishing and coating for your aircraft",
     steps: [
-      "Walkaround and full surface assessment.",
-      "Complete aviation-safe wash and rinse.",
-      "Surface decontamination to remove salt and environmental fallout.",
-      "Aviation sealant or protective coating application.",
-      "Cure period followed by a verification walkaround.",
+      "Provide the aircraft make/model, condition and the areas you want reviewed. Share any known existing finish or coating details; photos are optional.",
+      "Identify whether your request is for polishing, ceramic coating or both. Do not assume polishing or other preparation is automatically included with coating.",
+      "Share the airport and hangar or FBO location, preferred dates, availability and contact details so access and workspace can be coordinated.",
+      "Agree the proposed surfaces, preparation and exclusions before finalizing the quote and scheduling arrangements.",
     ],
+    scopeHeading: "Polishing and coating details to confirm",
     whyChoose: [
-      "Aviation-approved sealants and coatings only.",
-      "Corrosion prevention focus for coastal Louisiana exposure.",
-      "Helps protect long-term aircraft resale value.",
-      "Baton Rouge, Lafayette and airports throughout the New Orleans area, with access and workspace coordinated per job.",
+      "Which areas will be polished or coated, and what preparation is included? The answer depends on the assessed aircraft and agreed request.",
+      "What products are proposed, and are they suitable for the agreed surfaces? Product names and compatibility require confirmation before work.",
+      "What workspace, curing or aircraft-availability arrangements apply to the proposed work? No fixed curing time is stated before the scope is confirmed.",
+      "What aftercare is recommended for the selected work? Ask for the applicable instructions; no coating lifespan, warranty or guaranteed result is promised here.",
     ],
-    serviceType: "Aircraft Paint Protection",
+    relatedLinks: [
+      { text: "Private-aircraft detailing overview and coverage", href: "/aircraft-detailing-baton-rouge" },
+      { text: "Exterior aircraft cleaning inquiries", href: "/aircraft-cleaning-baton-rouge" },
+      { text: "Aircraft interior deep cleaning and shampooing", href: "/aircraft-interior-detailing-baton-rouge" },
+    ],
+    serviceType: "Aircraft Polishing and Aviation Ceramic Coating",
   },
 ];
 
