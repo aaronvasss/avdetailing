@@ -152,3 +152,4 @@
 - [x] Aviation quote/product wording, business Maps listing/no centroid geo, email typo, homepage RV interior line.
 - [x] Full production build + prerender ran (exit 0); captured and empty-shell HTML audited; duplicate descriptions and missing Service schema fixed. 279 tests and mocked signed-in repeat/membership checks passed. Report: docs/seo-final-report-2026-10-26.md. Publishing still waits on owner authorization and the existing release gate.
 - [x] Single metadata owner for all routes (SEOHead); navigation regression test + browser transition checks on build and preview; rebuilt. Live www 302 and soft-404 remain hosting issues.
+- [x] Car supporting pages (exterior/headlight/odor/pet hair/engine) rewritten as car pages; rebuilt and audited. Open: owner decision on active Odor Elimination/Pet Hair add-ons and ozone wording.

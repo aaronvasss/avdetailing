@@ -81,3 +81,13 @@ Publishing must be authorized by the owner. The backend, UI and email senders mu
 - `https://www.avdetailing.net/` returns **302** to the apex domain. That redirect is temporary; it should be a 301, which is a hosting/domain setting.
 - Unknown URLs such as `/this-page-does-not-exist` return **200** with the app shell (soft 404). Static single-page hosting cannot send a 404 status today.
 - Legacy `/services/*` and `/terms` remain noindex canonical and meta-refresh stubs, not real 301s.
+
+## Car supporting pages (later pass)
+- **Pages:** exterior, headlight restoration, odor removal, pet hair removal and engine bay cleaning (`src/data/serviceLandingPages.ts`). All five are now car pages, so they get the car-hub breadcrumb, related car links and matching initial HTML. Each has a distinct Baton Rouge title, description and H1.
+- **Removed:** EPA, DEQ, NHTSA, OMV, American Lung Association and city-site filler links; "permanent" odor elimination; ozone, enzyme and HEPA equipment claims; allergen and health claims; "up to 80%" and "full brightness" headlight claims, plus the fixed headlight process; "safe for modern electronics" and steam claims; "clay bar in every exterior detail".
+- **Exterior:** explains Exterior Only (hand wash and dry, wheels and tires, tire shine, exterior windows), clay bar as a separate add-on, the packages, and that Gold adds paint sealant.
+- **Headlight / engine bay:** add-on chosen at the booking add-ons step. We check the condition on arrival and the customer notes cracks, moisture, leaks or repairs.
+- **Odor / pet hair:** the customer describes the condition (photos welcome); we recommend an interior package and confirm scope before booking.
+- **Teasers:** odor, headlight and pet-hair/odor teasers updated in `CarDetailingBatonRougePage.tsx` and `locationPages.ts`. `src/lib/car-seo.ts` now links all five pages.
+- **Checks:** new `src/test/car-supporting-pages.test.ts`; 35 test files, all passing. Full build: exit 0, 44 routes prerendered. The audit shows no failures, with car breadcrumb schema and no banned claims in the built HTML. 11 of 11 navigation checks passed on the build.
+- **Conflict for the owner:** the add-on catalog is read-only and was not changed. It lists five active add-ons, including **Odor Elimination ("Professional ozone treatment…") and Pet Hair Removal**, plus Clay Bar Treatment. Booking shows all five. The pages follow the instruction to treat odor and pet hair as assessment-first. The owner must decide whether those two add-ons stay bookable and whether the ozone description is accurate. The interior page's add-on line (engine bay and headlight only) should be updated once that is decided.
