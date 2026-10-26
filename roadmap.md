@@ -1,3 +1,8 @@
+# Final source/report reconciliation
+- [ ] Replace awkward 10-Year wording and fixed ceramic duration with timing-confirmation guidance; preserve scheduling and prices.
+- [ ] Replace historical report with cohesive current facts, scope, measurement limits, latest tests and release gates.
+- [ ] Final production pipeline: manual builds prohibited by session tools; authorized full workflow unavailable. Report current preview evidence separately.
+
 # GA4 preparation part 2
 - [x] Prepare saved-booking, accepted-quote and separate call/text events through the same closed consent adapter; no payment claims or identifiers.
 - [x] Verify mocked outcomes/privacy, desktop/375/390 controls and booking flows; 400 tests passed; document dictionary, GA4 UI steps and full-build limitation.
