@@ -25,8 +25,8 @@ export function SEOHead({
   description = utility?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
   useEffect(() => {
-    if (!path.startsWith("/aircraft-")) return;
-    // Aviation owns its static fallback tags during client navigation too.
+    if (!path.startsWith("/aircraft-") && path !== "/services") return;
+    // Aviation and the services directory own its static fallback tags during client navigation too.
     const fallbacks = [...document.querySelectorAll('meta[name="description"]:not([data-rh]), meta[property="og:title"]:not([data-rh]), meta[property="og:description"]:not([data-rh]), meta[name="twitter:title"]:not([data-rh]), meta[name="twitter:description"]:not([data-rh])')];
     const existingCanonical = document.querySelector('link[rel="canonical"]');
     const existingOgUrl = document.querySelector('meta[property="og:url"]');

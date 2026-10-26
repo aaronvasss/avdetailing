@@ -14,6 +14,7 @@ import {
   Phone,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
+import { SERVICES_DIRECTORY_SEO } from "@/lib/services-directory-seo";
 import { JsonLd, localBusinessSchema, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 type Service = {
@@ -39,7 +40,7 @@ const services: Service[] = [
     icon: Droplets,
     title: "Ceramic Coating",
     description:
-      "Long-lasting paint protection with professional-grade System X ceramic coating. 3, 6, and 10-year packages.",
+      "Paint protection with System X ceramic coating in tiered packages. See the ceramic coating page for current options.",
     href: "/ceramic-coating-baton-rouge",
     service: "ceramic",
     tag: "Premium",
@@ -57,7 +58,7 @@ const services: Service[] = [
     icon: Ship,
     title: "Boat Detailing",
     description:
-      "Marine-grade detailing to protect your vessel from salt, sun, and water damage. Mobile to your marina.",
+      "Mobile boat detailing at your lift, slip, storage lot or driveway, including pontoon, hull, gelcoat and boat ceramic coating services.",
     href: "/boat-detailing-baton-rouge",
     service: "boat",
     tag: "Mobile",
@@ -87,10 +88,9 @@ const ServicesPage = () => {
   return (
     <Layout>
       <SEOHead
-        title="Auto Detailing Services"
-        description="Professional mobile detailing services in Baton Rouge, LA. Car, boat, RV & aircraft detailing, ceramic coating, and paint correction. Book online today."
+        title={SERVICES_DIRECTORY_SEO.title}
+        description={SERVICES_DIRECTORY_SEO.description}
         path="/services"
-        noIndex={true}
       />
       <JsonLd
         data={itemListSchema(
