@@ -17,3 +17,5 @@ export const AVIATION_QUOTE_TEXT = aviationPolicy.depositRequired
 
 export const AVIATION_COVERAGE_TEXT =
   "We serve Baton Rouge, Lafayette, and airports throughout the New Orleans area. We have established access arrangements at Baton Rouge Metropolitan Airport. Access and workspace arrangements are coordinated for each job with the airport, FBO or hangar; coverage does not imply standing permission at every airport. Lake Charles is inquiry-only — contact us to discuss your location.";
+// Opens the existing aircraft quote form; carries no price or deposit values.
+export const AIRCRAFT_QUOTE_HREF = "/book?service=aircraft";

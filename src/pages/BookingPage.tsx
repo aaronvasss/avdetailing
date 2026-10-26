@@ -127,7 +127,7 @@ const bookingFlowDescriptions: Record<string, string> = {
   "gold": "Full interior detailing + full exterior detail (includes shampoo + paint sealant)",
 };
 
-const CAR_PACKAGE_SLUGS = ["exterior-only", "basic", "silver", "gold"];
+import { parseBookingEntry } from "@/lib/booking-entry";
 /** Gold is the single recommended car package, matching the car detailing page. */
 const CAR_POPULAR_SLUG = "gold";
 
@@ -265,14 +265,14 @@ const BookingPage = () => {
     tailNumber: "",
   });
 
-  // Package deep links from service pages (e.g. /book?service=car&package=gold):
-  // preselect the service and package, then ask for vehicle type.
+  // Deep links from service pages: /book?service=car&package=gold preselects the
+  // package then asks for vehicle type; /book?service=aircraft opens the existing
+  // aircraft quote form (step 2 of the quote-only branch). Back still returns to step 1.
   useEffect(()=>{
-    const params=new URLSearchParams(window.location.search);
-    const pkg=params.get('package');
-    if(params.get('service')!=='car'||!pkg||!CAR_PACKAGE_SLUGS.includes(pkg))return;
-    setServiceType('car');
-    setSelectedPackage(pkg);
+    const entry=parseBookingEntry(window.location.search);
+    if(!entry)return;
+    setServiceType(entry.service);
+    if(entry.service==='car')setSelectedPackage(entry.package);
     setStep(2);
   },[]);
 
