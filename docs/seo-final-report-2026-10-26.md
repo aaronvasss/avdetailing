@@ -37,7 +37,7 @@ Previously reported read-only Search Console window **July 25–October 23, 2026
 
 Previously reported Lovable visits window **September 26–October 25, 2026**: **486 visits / 1,199 pageviews / 41% bounce**; mobile 347/desktop 138; search 120 visits; `/book` 98 sessions and `/booking/success` 6 search-channel sessions. Visits/success URLs are NOT paid bookings or leads. These different/partial windows cannot demonstrate SEO gains, and this reconciliation did not re-query traffic.
 
-No fresh Lighthouse/CrUX/Core Web Vitals baseline is available: no field score or invented performance improvement. Published-site PageSpeed/Search Console measurements remain pending.
+Performance baseline: one owner-observed public mobile PageSpeed lab run of the **published** homepage is recorded in the Performance delivery pass section (score 75, LCP 4.1 s, no CrUX field data). It is a single lab measurement of the live site, not a measurement of source/preview edits and not evidence of performance or lead growth. An after-release benchmark remains pending.
 
 ## 4. GA4: source-staged, collection OFF
 
@@ -60,12 +60,16 @@ Source files: `analytics-policy.ts`, `analytics-runtime.ts`, `analytics-events.t
 
 The first consented hit retains only sanitized in-memory arrival context across public aircraft→`/book` navigation, rather than sending the preceding unconsented page. Direct/omitted arrival stays empty. Only the current eligible page is sent, once; subsequent public hits describe safe public navigation. Decline and private/unknown transitions discard entry context, preventing private history/source replay. Lead/contact events use that page hit's sanitized referrer; contact clicks remain clicks, not bookings. Source settings/gates remain false, canonical-host-only/basic opt-in/ads-denied behavior unchanged. Actual GA4 source/channel reporting awaits authorized activation validation.
 
-### Required GA4 UI / activation steps (not performed)
+### GA4 property setup (owner-reported complete, 2026-10-26) and remaining gates
 
-1. **Admin → Data streams → web stream**: verify ID/canonical destination and no duplicate hosted tag. **Enhanced Measurement OFF entirely**; explicitly verify history-based page changes, form interactions, site search, outbound clicks (plus scroll/video/download) OFF. `send_page_view:false` alone does not stop history events. Verify property Signals/ad personalization/user-provided automatic collection settings, consent/privacy notice and other scripts before opening gates.
-2. **Admin → Data display → Events**: mark exact `booking_submitted` and `generate_lead` as key events using property controls; no default monetary value, purchase, Ads import or derived success-page event. Do not mark contact clicks/pageviews as bookings.
-3. **Admin → Data display → Custom definitions**: Event-scoped dimensions for exact parameters `service_type`, `payment_method`, `submission_state`, `quote_category`, `method`; never contact/ID dimensions. Allow 24–48h after actual collection for standard reporting.
-4. **After authorized publication AND activation/settings verification only**: web-stream tag instructions **Test installation** where available, with basic-mode opt-in required; then **Reports → Realtime**, plus separately authorized synthetic/network checks for one sanitized event, no private/withdrawn collection and no automatic sensitive payloads. Do not run live tests now. No GA account settings/reporting or real Google execution has been verified.
+**Completed by the owner in the Google Analytics UI under limited approval (owner-reported; not independently viewed by this agency):** property 443591828, web stream 8206634888, Measurement ID G-YM2RWYQVNS, stream URL corrected to https://avdetailing.net (previously avdetailingg.com); Enhanced Measurement OFF entirely; `booking_submitted` and `generate_lead` created and marked key events once each with **no default monetary value**; event-scoped custom dimensions `service_type`, `payment_method`, `submission_state`, `quote_category`, `method` saved; default `purchase` unchanged. No real events sent. Publication/activation **not authorized**; both source gates (`releaseAuthorized`, `streamSettingsVerified`) remain **false** in code.
+
+**Still pending / unverified (retain gates):**
+1. Google Signals, ads personalization, user-provided/automatic data collection and Google-tag event settings at property/stream level.
+2. Absence of a duplicate Google tag (including hosting/GHL injections) on the live site.
+3. Privacy notice/consent wording review for the intended jurisdiction (no legal-compliance claim made).
+4. Separately authorized release; then **Test installation** / **Reports → Realtime** / DebugView and network payload checks across public→private→public and withdraw/reaccept, confirming no duplicate pageviews, no history events and no sensitive payloads. Standard reports need 24–48 h after real collection.
+5. Only after all of the above may `streamSettingsVerified`/`releaseAuthorized` be changed, under separate authorization.
 
 Official references: [pageviews](https://developers.google.com/analytics/devguides/collection/ga4/views), [consent](https://developers.google.com/tag-platform/security/guides/consent), [Enhanced Measurement](https://support.google.com/analytics/answer/9216061), [key events](https://support.google.com/analytics/answer/13128484), [custom dimensions](https://support.google.com/analytics/answer/14239696), [Realtime](https://support.google.com/analytics/answer/9333790). Part-1 technical detail remains in `docs/ga4-preparation-2026-10-26.md`; its earlier evidence is historical, not the final pipeline check.
 
@@ -117,3 +121,7 @@ No production improvement or release readiness is claimed until these gates are 
 **Hero preload:** postbuild adds one `<link rel="preload" as="image" type="image/avif" imagesrcset imagesizes fetchpriority="high">` to the `/` initial HTML only, copying the hashed srcset/sizes from the captured hero `<picture>` (no guessed filenames; non-AVIF browsers skip it and use the WebP fallback). No other route, and not index.html globally.
 
 **Evidence:** src/test/image-delivery.test.ts (byte limits, srcset/sizes, homepage-only preload fixture); full suite 48 files / 445 tests passed (one earlier run had timeouts under load, rerun clean). Preview browser at 1280/375/390 with all non-localhost traffic blocked: zero original JPEG requests, cards loaded 400w AVIF, layout unchanged. **Not verified:** the production build/prerender output containing the real preload (manual builds remain prohibited; gate retained). GA4 gates remain false; no GHL/chat/analytics behavior changed.
+
+## Evidence attribution (current)
+
+The 48 files / 445 tests result and the 1280/375/390 preview checks are **agency-reported** (Lovable sandbox runs), distinct from the owner's independent source review. No tests or builds were rerun for this documentation-only reconciliation. The full production sitemap→Vite→prerender→postbuild pipeline (including the homepage hero preload in real output) remains **unverified**; manual builds stay prohibited and that gate is retained. SEO work is not complete: live HTTP 302 www redirect, SPA soft-404 for unknown routes, legacy meta-refresh stubs, after-release PageSpeed benchmark and GA4 live validation remain open.
