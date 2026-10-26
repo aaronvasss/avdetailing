@@ -66,17 +66,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing on Highland Road, Baton Rouge, LA",
     titleTag: "Car Detailing on Highland Road, Baton Rouge",
     metaDescription:
-      "Mobile car detailing along Highland Road, Baton Rouge — Bocage, Goodwood, Kenilworth, Perkins Road & LSU area. System X ceramic coating & correction.",
+      "Mobile car detailing along Highland Road, Baton Rouge \u2014 Bocage, Goodwood, Kenilworth, Perkins Road and the LSU area. Compare packages, add-ons and book online.",
     intro:
-      "Highland Road runs from the LSU campus through the Perkins Road overpass and out to the affluent neighborhoods east of Acadian Thruway — a corridor that sees some of the heaviest daily commuter traffic in Baton Rouge. Residents in Bocage, Goodwood, Kenilworth, and the Perkins Road area often own luxury European sedans, late-model SUVs, and weekend sports cars that deserve professional care without the hassle of dropping off at a shop. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere along the Highland Road corridor. The mix of LSU game-day traffic, construction grime, and Louisiana UV is hard on paint and interiors. According to {{l1}}, regular professional detailing preserves resale value, and {{l2}} encourages residents to keep vehicles maintained for safer roads through the parish.",
-    link1: CR,
-    link2: BRLA,
+      "AV Detailing brings mobile car detailing to homes and offices along the Highland Road corridor in Baton Rouge, from the LSU area and Perkins Road out to Bocage, Goodwood and Kenilworth. Choose a Basic, Silver or Gold package, add options such as clay bar treatment or headlight restoration, and we come to your driveway at the time you book. If your paint needs more than a wash, we assess it first and recommend paint correction or ceramic coating options.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile service to your driveway in Bocage, Goodwood, Kenilworth, and the Perkins Road area — no shop drop-off.",
-      "Experienced with luxury and high-end vehicles common along the Highland Road corridor.",
-      "System X ceramic coating tiers engineered for the intense UV and humidity east of LSU.",
-      "Flexible scheduling that works around LSU game days, school pickup, and commuter traffic.",
+      SERVICE_AREA_NOTE,
+      "Mobile service to your driveway in Bocage, Goodwood, Kenilworth and the Perkins Road area \u2014 no shop drop-off.",
+      "Book around LSU game days, school pickup and commute traffic by choosing your own appointment time.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service homes along Highland Road itself, plus surrounding subdivisions and corridors including Bocage, Goodwood, Kenilworth, Stanford Avenue, Perkins Road, the Acadian Thruway area, the Garden District edge, and the streets around LSU. Whether you're near the LSU lakes, the Perkins Road overpass, or out toward Pollard Estates, our mobile team comes to you.",
@@ -90,17 +88,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Shenandoah, Baton Rouge, LA",
     titleTag: "Car Detailing in Shenandoah Baton Rouge, LA",
     metaDescription:
-      "Mobile car detailing in Shenandoah, Baton Rouge — Shenandoah Estates, Siegen Lane, Nicholson Dr & Mall of Louisiana. System X ceramic coating.",
+      "Mobile car detailing in Shenandoah, Baton Rouge \u2014 Shenandoah Estates, Siegen Lane, Nicholson Dr and the Mall of Louisiana area. Compare packages and book online.",
     intro:
-      "The Shenandoah area off Nicholson Drive and Siegen Lane has grown into one of the busiest family-residential corridors in Baton Rouge, anchored by the Mall of Louisiana and a steady mix of subdivisions, schools, and retail. Most households in Shenandoah Estates and the surrounding streets juggle family SUVs, daily-driver trucks, and commuter sedans — vehicles that rack up miles fast and rarely get a free Saturday for shop detailing. AV Detailing brings a fully equipped mobile rig to your driveway anywhere in the Shenandoah / Siegen / Nicholson area, with System X products and professional paint correction. According to {{l1}}, consistent professional care extends a vehicle's life, and {{l2}} reminds residents that well-maintained vehicles are safer on the parish's busiest roads.",
-    link1: CR,
-    link2: BRLA,
+      "AV Detailing brings mobile car detailing to homes and offices in the Shenandoah area of Baton Rouge, including Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive and the streets around the Mall of Louisiana. Pick a Basic, Silver or Gold package for your car, SUV or truck, add extras at the booking add-ons step, and we come to your driveway. Paint correction and ceramic coating start with an assessment of your paint.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile service that fits around school pickup, work, and weekend errands.",
-      "Experienced with family SUVs, trucks, and daily-driver sedans common in Shenandoah.",
-      "Serves Shenandoah Estates, Siegen Lane corridor, Nicholson Drive, and the Mall of Louisiana area.",
-      "System X protection that holds up against Louisiana sun and Mall of Louisiana parking-lot heat.",
+      SERVICE_AREA_NOTE,
+      "Serves Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive and the Mall of Louisiana area.",
+      "Package prices are set by vehicle type \u2014 car, SUV or truck \u2014 and shown before you book.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "Our team regularly details vehicles throughout Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive, the Mall of Louisiana area, Burbank Drive, Bluebonnet Boulevard, and the neighborhoods between Siegen and Highland Road. If you're near the Mall, off Picardy, or out toward Burbank, we come to you.",
@@ -114,16 +110,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Gonzales, LA",
     titleTag: "Car Detailing in Gonzales, LA",
     metaDescription:
-      "Mobile car detailing in Gonzales, LA — serving Prairieville Road, Hwy 30, Tanger Outlets, and Burnside with System X ceramic coating and paint correction.",
+      "Mobile car detailing in Gonzales, LA \u2014 Prairieville Road, Hwy 30, Tanger Outlets and Burnside areas. Compare packages and add-ons, then book online.",
     intro:
-      "Gonzales sits right on the I-10 corridor in Ascension Parish — known as the Jambalaya Capital of the World, and one of the fastest-growing communities in the Greater Baton Rouge region. Residents here drive a mix of trucks, family SUVs, and commuter vehicles that take a beating from I-10 highway grime, lovebugs, and the relentless Louisiana sun. AV Detailing brings full mobile detailing service directly to driveways throughout Gonzales, from the Prairieville Road area and the Hwy 30 corridor to Tanger Outlets and out toward Burnside. We arrive with a self-contained rig, System X ceramic coating, and pro-grade paint correction tools. For general car-care background, {{l1}} publishes independent guidance on washing, waxing, and interior upkeep.",
-    link1: CR,
+      "AV Detailing brings mobile car detailing to Gonzales in Ascension Parish, including the Prairieville Road area, the Hwy 30 corridor, the streets around Tanger Outlets and out toward Burnside. Choose a Basic, Silver or Gold package, add clay bar treatment, headlight restoration or engine bay cleaning if you need them, and we come to your home or office \u2014 no drive into Baton Rouge required.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile detailing throughout Ascension Parish — no need to drive to Baton Rouge.",
-      "Experience with trucks, SUVs, and family vehicles that see heavy I-10 highway miles.",
-      "Bug, tar, and road-grime removal built into every exterior service.",
-      "System X ceramic coating tiers engineered for Louisiana UV and humidity.",
+      SERVICE_AREA_NOTE,
+      "Mobile detailing in Ascension Parish \u2014 no need to drive to Baton Rouge.",
+      "Add clay bar treatment, headlight restoration or engine bay cleaning when you book.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service the Prairieville Road area, the Hwy 30 corridor, neighborhoods around Tanger Outlets, the Burnside area, and the residential streets between I-10 and Hwy 44. Whether you're near the outlets, off Airline Highway, or out toward the river, our mobile team comes to you.",
@@ -137,17 +132,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Prairieville, LA",
     titleTag: "Car Detailing in Prairieville, LA",
     metaDescription:
-      "Mobile car detailing in Prairieville, LA — Airline Hwy & Hwy 73 corridors, Galvez & new Ascension Parish subdivisions. System X ceramic coating.",
+      "Mobile car detailing in Prairieville, LA \u2014 Airline Hwy and Hwy 73 corridors, Galvez and Ascension Parish subdivisions. Compare packages and book online.",
     intro:
-      "Prairieville is one of the fastest-growing communities in Louisiana, with new subdivisions springing up along Airline Highway and Hwy 73 every year. Most households here have late-model SUVs, trucks, and family sedans — vehicles that owners want to keep looking new for as long as possible. The combination of suburban driving, Hwy 73 construction grime, and Louisiana's UV makes professional detailing a smart long-term investment. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere in Prairieville, with System X ceramic coating, paint correction, and interior detailing. According to {{l1}}, consistent professional care preserves resale value, and {{l2}} encourages residents to keep vehicles well-maintained for safer roads throughout the parish.",
-    link1: CR,
-    link2: BRLA,
+      "AV Detailing brings mobile car detailing to Prairieville, covering the Airline Highway and Hwy 73 corridors, the Galvez community and subdivisions throughout this part of Ascension Parish. Choose a Basic, Silver or Gold package, pick any add-ons, and we come to your driveway. For swirls, haze or protection, we assess your paint first and recommend paint correction or ceramic coating options.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile service to your driveway in any Ascension Parish subdivision — no drop-off required.",
-      "Experience protecting newer vehicles in Prairieville's growing neighborhoods.",
-      "System X ceramic coating tiers designed for Louisiana sun and humidity.",
-      "Flexible scheduling around commutes into Baton Rouge and Gonzales.",
+      SERVICE_AREA_NOTE,
+      "Mobile service to your driveway in Prairieville and nearby Ascension Parish subdivisions.",
+      "Book around commutes into Baton Rouge and Gonzales by choosing your own appointment time.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service the Airline Highway corridor, the Hwy 73 area, the Galvez community, and the newer subdivisions throughout Prairieville and Ascension Parish. Whether you're near Hoo Shoo Too Road, off Hwy 73, or in one of the newer developments closer to Hwy 42, we come to you.",
@@ -161,16 +154,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Denham Springs, LA",
     titleTag: "Car Detailing in Denham Springs, LA",
     metaDescription:
-      "Mobile car detailing in Denham Springs, LA — I-12 corridor, Range Ave, Bass Pro, Juban Rd & Springfield Rd. System X ceramic coating.",
+      "Mobile car detailing in Denham Springs, LA \u2014 I-12 corridor, Range Ave, Bass Pro area, Juban Rd and Springfield Rd. Compare packages and book online.",
     intro:
-      "Denham Springs in Livingston Parish is heavy truck and SUV country — work vehicles, family haulers, and commuter trucks that see real use on the I-12 corridor every day. The combination of highway road grime, lovebugs, and brutal Louisiana sun means vehicles here need serious detailing to stay protected. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Denham Springs — from the I-12 corridor and Range Avenue to the Bass Pro area, Juban Road, and Springfield Road, plus jobsites and office lots for work trucks. Because our rig carries its own water and power, we can detail in a driveway, an apartment lot off Range Avenue, or a business parking lot without needing a spigot. For general car-care background, {{l1}} publishes independent guidance on washing, waxing, and interior upkeep.",
-    link1: CR,
+      "AV Detailing brings mobile car detailing to Denham Springs and nearby Livingston Parish, including the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road and Springfield Road. We work at homes, offices and business lots. Choose a Basic, Silver or Gold package for your car, SUV or truck, add extras such as clay bar treatment for bonded road film, and tell us where the vehicle will be parked.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile detailing built for trucks and SUVs — we come to your driveway or jobsite.",
-      "Heavy bug, tar, and I-12 road-grime removal included in every exterior service.",
-      "System X ceramic coating tiers engineered for Louisiana UV and humidity.",
-      "Flexible scheduling around work, hunting, and family weekends.",
+      SERVICE_AREA_NOTE,
+      "Mobile detailing for cars, SUVs and trucks at your driveway, office or business lot.",
+      "Clay bar treatment is available as an add-on for bonded road film and bug residue.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, Pete's Highway, Florida Boulevard (Hwy 190), the Antique Village / downtown Denham Springs area, and the residential streets stretching out toward Watson and Livingston. Whether you're near the Bass Pro, off Juban, or in a subdivision along Springfield Road, our mobile team comes to you.",
@@ -230,17 +222,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Walker, LA",
     titleTag: "Car Detailing in Walker, LA",
     metaDescription:
-      "Mobile car detailing in Walker, LA — serving the Hwy 16 corridor, Walker Road, and north Livingston Parish with System X ceramic coating and paint correction.",
+      "Mobile car detailing in Walker, LA \u2014 Hwy 16 corridor, Walker Road and north Livingston Parish. Compare packages and add-ons, then book online.",
     intro:
-      "Walker is one of Livingston Parish's growing communities, with quick access to Highway 16 and I-12 connecting residents to jobs across Baton Rouge and Denham Springs. Most households here own a mix of trucks, work vehicles, and family SUVs that see daily highway miles — and very few residents want to spend a Saturday driving to a detail shop. AV Detailing brings a fully equipped mobile rig directly to your driveway anywhere in Walker, with System X ceramic coating, paint correction, and complete interior detailing. According to {{l1}}, consistent professional care extends the life of a vehicle, and {{l2}} encourages residents to keep their vehicles well-maintained for safer travel across the parish and into Baton Rouge.",
-    link1: CR,
-    link2: BRLA,
+      "AV Detailing brings mobile car detailing to Walker in Livingston Parish, including the Hwy 16 corridor, Walker Road, the Hwy 447 area and nearby neighborhoods. Choose a Basic, Silver or Gold package for your car, SUV or truck, add any extras at the booking add-ons step, and we come to your driveway \u2014 no trip into Baton Rouge needed.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile service to your driveway in Walker — no Baton Rouge commute required.",
-      "Truck and SUV experience for the work vehicles common in Livingston Parish.",
-      "Heavy I-12 bug and road-grime removal included in every exterior service.",
-      "System X ceramic coating tiers engineered for Louisiana sun and humidity.",
+      SERVICE_AREA_NOTE,
+      "Mobile service to your driveway in Walker \u2014 no Baton Rouge drive required.",
+      "Clay bar treatment is available as an add-on for bonded road film and bug residue.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service the Hwy 16 corridor, Walker Road, the neighborhoods along Hwy 447, and the residential streets throughout north Livingston Parish. Whether you're near Hwy 16, off Walker South Road, or out toward Watson, our mobile team comes to you.",
@@ -254,17 +244,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Zachary, LA",
     titleTag: "Car Detailing in Zachary, LA",
     metaDescription:
-      "Mobile car detailing in Zachary, LA — serving the Pride Road corridor, Hwy 19, and north Baton Rouge with System X ceramic coating and paint correction.",
+      "Mobile car detailing in Zachary, LA \u2014 Pride Road corridor, Hwy 19 and north Baton Rouge. Compare packages and add-ons, then book online.",
     intro:
-      "Zachary sits in North Baton Rouge as a family-oriented suburban community connected by Pride Road and Highway 19, with residents who commute south into Baton Rouge for work but want a quieter neighborhood to come home to. The vehicle mix here leans heavily toward SUVs, trucks, and family sedans, and the combination of commuter mileage, north Baton Rouge road conditions, and Louisiana UV makes professional detailing well worth the investment. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Zachary, with System X ceramic coating, paint correction, and full interior detailing. According to {{l1}}, regular professional care preserves resale value, and {{l2}} encourages residents to keep vehicles maintained for safer roads across the parish.",
-    link1: CR,
-    link2: BRLA,
+      "AV Detailing brings mobile car detailing to Zachary, including the Pride Road corridor, Hwy 19, the community core and nearby north Baton Rouge neighborhoods. Choose a Basic, Silver or Gold package for your car, SUV or truck, add extras such as headlight restoration or engine bay cleaning, and we come to your home or office.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Mobile service to your Zachary driveway — no drive down to Baton Rouge.",
-      "Experience with the SUVs, trucks, and family vehicles common in Zachary.",
-      "System X ceramic coating tiers engineered for Louisiana UV and humidity.",
-      "Flexible scheduling that works around commutes and family routines.",
+      SERVICE_AREA_NOTE,
+      "Mobile service to your Zachary driveway \u2014 no drive down to Baton Rouge.",
+      "Book around commutes and family routines by choosing your own appointment time.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service the Pride Road corridor, Hwy 19, the Zachary community core, and the commuter neighborhoods throughout north Baton Rouge. Whether you're near Plank Road, off Hwy 19, or out toward Pride, our mobile team comes to you.",
@@ -278,17 +266,15 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Central, LA",
     titleTag: "Car Detailing in Central, LA",
     metaDescription:
-      "Mobile car detailing in Central, LA — Greenwell Springs Rd, Sullivan Rd, Hooper Rd & Livingston Parish border. System X ceramic coating.",
+      "Mobile car detailing in Central, LA \u2014 Greenwell Springs Rd, Sullivan Rd, Hooper Rd and the Livingston Parish border. Compare packages and book online.",
     intro:
-      "The City of Central is its own incorporated city northeast of Baton Rouge, with a strong community identity and residents who consistently prefer local, mobile service over driving into town. The Greenwell Springs Road corridor anchors the area, with family vehicles and trucks dominating the driveways throughout Central's neighborhoods. The combination of suburban-rural driving, Louisiana sun, and pollen-heavy seasons makes professional detailing a smart investment for vehicles here. AV Detailing brings a fully equipped mobile rig directly to driveways throughout Central, with System X ceramic coating, paint correction, and full interior detailing. According to {{l1}}, consistent professional care preserves vehicle value, and {{l2}} encourages residents across the parish to keep vehicles maintained for safer travel.",
-    link1: CR,
-    link2: BRLA,
+      "AV Detailing brings mobile car detailing to the City of Central, northeast of Baton Rouge, including Greenwell Springs Road, Sullivan Road, Hooper Road and the Wax Road area. Choose a Basic, Silver or Gold package, add any extras at the booking add-ons step, and we come to your driveway. Paint correction and ceramic coating start with an assessment of your paint.",
     services: COMMON_SERVICES,
     whyChoose: [
-      "Local, mobile service to your driveway anywhere in Central — no trip into Baton Rouge.",
-      "Experience with the family vehicles and trucks common in Central neighborhoods.",
-      "System X ceramic coating tiers engineered for Louisiana UV and humidity.",
-      "Flexible scheduling that works around school, work, and family routines.",
+      SERVICE_AREA_NOTE,
+      "Mobile service to your driveway anywhere in Central \u2014 no trip into Baton Rouge.",
+      "Package prices are set by vehicle type \u2014 car, SUV or truck \u2014 and shown before you book.",
+      "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
       "We regularly service Greenwell Springs Road, Sullivan Road, Hooper Road, the Wax Road area, and the residential streets out toward the Central / Livingston Parish border. Whether you're near Greenwell Springs, off Sullivan, or out toward Hooper, our mobile team comes to you.",
