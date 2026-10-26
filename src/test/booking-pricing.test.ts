@@ -48,6 +48,19 @@ describe("authoritative booking prices", () => {
     }
   }
   it("uses all-vehicle prices for flat-priced packages", () => expect(authoritativePackagePrice({ all: 400 }, "sedan", 0)).toBe(400));
+  for (const method of ["in_person", "online"] as const) {
+    it(`RV Exterior Wash ${method} selection, saved payable and checkout stay $350 without another fee`, () => {
+      const price = authoritativePackagePrice({ rv: 350 }, "rv", 350);
+      const amounts = bookingAmounts(price, []);
+      const savedBooking = { total_price: amounts.total, payment_method: method };
+      expect(price).toBe(350);
+      expect(amounts).toEqual({ subtotal: 350, addOnsTotal: 0, total: 350 });
+      expect(savedBooking.total_price).toBe(350);
+      expect(bookingCheckoutCents(savedBooking.total_price)).toBe(35000);
+      expect(bookingAmounts(price, [46.63]).total).toBe(396.63);
+      expect(bookingCheckoutCents(396.63)).toBe(39663);
+    });
+  }
   it("adds exact authoritative add-ons without another processing fee", () => {
     expect(bookingAmounts(145.18, [46.63, 62.18, 67.36, 72.59, 72.59])).toEqual({ subtotal: 145.18, addOnsTotal: 321.35, total: 466.53 });
     expect(bookingCheckoutCents(466.53)).toBe(46653);
