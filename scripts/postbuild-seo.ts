@@ -25,6 +25,7 @@ import { CERAMIC_SEO, ceramicPageHtml } from "../src/lib/ceramic-seo";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
 import { AVIATION_OVERVIEW, aviationOverviewHtml } from "../src/lib/aviation-overview";
 import { AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "../src/lib/aviation-policy";
+import { injectHeroPreload } from "../src/lib/hero-preload";
 import { SERVICES_DIRECTORY_SEO, servicesDirectoryHtml } from "../src/lib/services-directory-seo";
 
 const DIST = join(process.cwd(), "dist");
@@ -490,7 +491,8 @@ for (const route of ALL_ROUTES) {
       : join(DIST, route.path.replace(/^\//, ""), "index.html");
 
   const base = existsSync(target) ? readFileSync(target, "utf8") : SHELL;
-  const rewritten = rewrite(base, route);
+  // Homepage only: early hero discovery from the captured picture markup.
+  const rewritten = route.path === "/" ? injectHeroPreload(rewrite(base, route)) : rewrite(base, route);
 
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, rewritten);
