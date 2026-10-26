@@ -14,3 +14,10 @@ export const FALLBACK_PACKAGES: PackagePrice[] = [
   { service: "boat", name: "Boat Premium Detail", price: 649 },
   { service: "rv", name: "RV Exterior Wash", price: 350 },
 ];
+
+/**
+ * Displayed "from" prices on the car detailing page that intentionally differ
+ * from the charged package price (fees/taxes are included in the charged price).
+ * Matches the booking flow's displayed sedan price; charges are unchanged.
+ */
+export const CAR_PAGE_DISPLAY_FROM = { basic: 140 } as const;
