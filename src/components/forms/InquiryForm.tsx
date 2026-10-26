@@ -85,6 +85,7 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
     }
 
     setIsSubmitting(true);
+    const occurrence = measurement.current;
 
     try {
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
@@ -114,8 +115,8 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
       });
 
       clearRateLimit(`inquiry-form:${source}`);
-      measure(acceptedQuoteEvent(response, null, inquiryService(serviceContext)), measurement.current);
-      measurement.current = {};
+      measure(acceptedQuoteEvent(response, null, inquiryService(serviceContext)), occurrence);
+      if (measurement.current === occurrence) measurement.current = {};
       toast.success("Message sent! We'll contact you to discuss your request.");
       setFormData({ firstName: "", lastName: "", email: "", phone: "", message: "" });
     } catch (error) {

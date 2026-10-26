@@ -76,6 +76,7 @@ const ContactPage = () => {
     }
     
     setIsSubmitting(true);
+    const occurrence = measurement.current;
 
     try {
       const { error: contactError } = await supabase
@@ -101,8 +102,8 @@ const ContactPage = () => {
 
       // Clear rate limit on successful submission
       clearRateLimit('contact-form');
-      measure(acceptedQuoteEvent(response, null, inquiryService(formData.service)), measurement.current);
-      measurement.current = {};
+      measure(acceptedQuoteEvent(response, null, inquiryService(formData.service)), occurrence);
+      if (measurement.current === occurrence) measurement.current = {};
       
       toast.success("Message sent! We'll contact you to discuss your request.");
       setFormData({
