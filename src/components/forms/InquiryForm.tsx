@@ -110,7 +110,7 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
       });
 
       clearRateLimit(`inquiry-form:${source}`);
-      toast.success("Message sent! We'll get back to you within 24 hours.");
+      toast.success("Message sent! We'll contact you to discuss your request.");
       setFormData({ firstName: "", lastName: "", email: "", phone: "", message: "" });
     } catch (error) {
       console.error("Error sending inquiry:", error);
@@ -214,7 +214,7 @@ export function InquiryForm({ source = "inquiry_form", serviceContext, className
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
       <p className="text-xs text-muted-foreground text-center">
-        We'll get back to you within 24 hours.
+        We'll contact you to discuss your request.
       </p>
     </form>
   );

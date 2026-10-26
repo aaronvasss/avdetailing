@@ -986,7 +986,7 @@ const BookingPage = () => {
                 <QuoteIcon className="h-16 w-16 mx-auto mb-4 text-primary" />
                 <h2 className="text-2xl font-bold mb-2">Request a {quoteServiceLabel} Quote</h2>
                 <p className="text-muted-foreground">
-                  Aircraft detailing requires an on-site assessment. We'll contact you to schedule a consultation.
+                  Aircraft bookings do not require a deposit. We'll review your aircraft details and coordinate access and workspace before finalizing a quote.
                 </p>
               </div>
 
@@ -1000,7 +1000,7 @@ const BookingPage = () => {
                         <li>• Aircraft size and type assessment</li>
                         <li>• Exterior and interior cleaning scope</li>
                         <li>• Specialized aviation-safe products</li>
-                        <li>• On-site service at your hangar</li>
+                        <li>• Airport, FBO or hangar access and workspace coordination</li>
                       </ul>
                     </div>
                   </div>
@@ -1068,7 +1068,7 @@ const BookingPage = () => {
                     <Label htmlFor="quoteNotes">Additional Details (Optional)</Label>
                     <Textarea 
                       id="quoteNotes" 
-                      placeholder="Hangar location, scheduling preferences, specific cleaning requirements..."
+                      placeholder="Airport and hangar/FBO location, aircraft condition, requested services, preferred dates..."
                       value={customerInfo.notes} 
                       onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})} 
                     />
@@ -1103,7 +1103,7 @@ const BookingPage = () => {
                       
                       if (error) throw error;
                       
-                      toast.success("Quote request submitted! We'll contact you within 24 hours.");
+                      toast.success("Quote request submitted! We'll contact you to discuss your request.");
                       setBookingId("quote-" + Date.now());
                     } catch (error) {
                       console.error('Quote request error:', error);
@@ -1811,10 +1811,10 @@ const BookingPage = () => {
           
           <h2 className="text-3xl font-bold mb-2">Quote Request Received! 📋</h2>
           <p className="text-xl text-primary font-semibold mb-4">
-            We'll Be In Touch Soon
+            Thank You for Your Request
           </p>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Our team will review your {serviceTypes.find(s => s.id === serviceType)?.label} request and contact you within 24 hours with a personalized quote.
+            Our team will review your {serviceTypes.find(s => s.id === serviceType)?.label} request and contact you to discuss a personalized quote.
           </p>
           
           {/* What's Next Card */}

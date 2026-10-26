@@ -1262,7 +1262,7 @@ export function AdminBookingModal({ open, onOpenChange, onSuccess }: AdminBookin
                   {isSpecialty && (
                     <div className="rounded-lg border border-border bg-muted/50 p-3">
                       <p className="text-sm font-medium">Specialty Deposit: <span className="text-primary">$100</span></p>
-                      <p className="text-xs text-muted-foreground mt-1">Boat, Aircraft, Ceramic Coating & Paint Correction require a $100 deposit.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Boat, Ceramic Coating & Paint Correction retain their existing $100 deposit rules. Aircraft bookings do not require a deposit under the owner-confirmed policy; existing aircraft payment enforcement is pending review.</p>
                     </div>
                   )}
 

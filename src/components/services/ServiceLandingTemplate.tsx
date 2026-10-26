@@ -6,6 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
+import { AVIATION_COVERAGE_TEXT, AVIATION_QUOTE_TEXT } from "@/lib/aviation-policy";
 
 const SITE_URL = "https://avdetailing.net";
 
@@ -53,6 +54,7 @@ function renderIntro(config: ServiceLandingConfig) {
 }
 
 export function ServiceLandingTemplate({ config }: Props) {
+  const isAircraft = config.slug.startsWith("aircraft-");
   const pagePath = `/${config.slug}`;
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -167,7 +169,7 @@ export function ServiceLandingTemplate({ config }: Props) {
         <div className="container-custom max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Service Areas</h2>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
-            {SERVICE_AREAS_TEXT}
+            {isAircraft ? AVIATION_COVERAGE_TEXT : SERVICE_AREAS_TEXT}
           </p>
         </div>
       </section>
@@ -175,16 +177,17 @@ export function ServiceLandingTemplate({ config }: Props) {
       {/* CTA */}
       <section className="section-padding bg-card">
         <div className="container-custom max-w-4xl text-center">
+          {isAircraft && <p className="text-muted-foreground mb-6">{AVIATION_QUOTE_TEXT}</p>}
           <p className="text-xl md:text-2xl font-semibold mb-6">
             Call{" "}
             <a href="tel:2255216264" className="text-primary hover:underline">
               (225) 521-6264
             </a>{" "}
-            or book online today.
+            {isAircraft ? "or request an aircraft quote." : "or book online today."}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="text-base">
-              <Link to="/book">Book Online</Link>
+              <Link to="/book">{isAircraft ? "Request Aircraft Quote" : "Book Online"}</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
               <a href="tel:2255216264">

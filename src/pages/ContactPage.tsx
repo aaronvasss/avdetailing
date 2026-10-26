@@ -98,7 +98,7 @@ const ContactPage = () => {
       // Clear rate limit on successful submission
       clearRateLimit('contact-form');
       
-      toast.success("Message sent! We'll get back to you within 24 hours.");
+      toast.success("Message sent! We'll contact you to discuss your request.");
       setFormData({
         firstName: "",
         lastName: "",
@@ -177,7 +177,7 @@ const ContactPage = () => {
                       aaronvasquez@avdetailingg.com
                     </a>
                     <p className="text-sm text-muted-foreground mt-1">
-                      We respond within 24 hours
+                      Contact us to discuss your request
                     </p>
                   </div>
                 </div>

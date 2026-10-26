@@ -50,11 +50,11 @@ const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "Can you detail my boat, RV, or aircraft?",
-    answer: `Absolutely. We provide mobile detailing for boats, RVs (exterior only, starting at ${pricing.label(pricing.startingAt("rv"))}), and aircraft across the Baton Rouge area. These specialty services require a $100 deposit at booking which is applied to your final total. After we see photos of the unit, we send a custom quote.`,
+    answer: `Absolutely. We provide mobile detailing for boats, RVs (exterior only, starting at ${pricing.label(pricing.startingAt("rv"))}), and aircraft. Aircraft bookings do not require a deposit. Other services' existing deposit requirements remain unchanged and any required deposit is applied to the final total. Aircraft coverage includes Baton Rouge, Lafayette, and airports throughout the New Orleans area, with access and workspace coordinated for each job. We have established access arrangements at Baton Rouge Metropolitan Airport; Lake Charles is inquiry-only. Contact us with your aircraft and location details for a custom quote; photos are optional.`,
   },
   {
     question: "How far in advance should I book?",
-    answer: "We typically have same-week availability for cars and SUVs, and 1–2 weeks for ceramic coatings, paint correction, and specialty services like boats and aircraft. Booking online takes about 60 seconds — or you can fill out our contact form and we'll reach out within 24 hours.",
+    answer: "We typically have same-week availability for cars and SUVs, and 1–2 weeks for ceramic coatings, paint correction, and specialty services like boats and aircraft. Booking online takes about 60 seconds — or you can fill out our contact form to discuss availability.",
   },
   {
     question: "Do you offer monthly maintenance plans?",

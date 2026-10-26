@@ -1,3 +1,7 @@
+# Aviation quote wording
+- [x] Update aircraft no-deposit wording, job-specific New Orleans access/coverage and remove unconfirmed quote deadlines without changing design or payment logic.
+- [x] Inspect and report legacy $500 admin metadata and separate $100 specialty checkout; 107 tests and desktop/390px aviation/FAQ/quote checks passed, no writes or release. See aviation-deposit-inspection.md; legacy payment logic and hosted email sender remain unchanged pending separate authorization.
+
 # Durable owner alerts
 - [x] Stage transactional outbox and lease/retry safeguards outside managed migrations; production untouched.
 - [x] Wire shared customer writers to atomic change/enqueue and a private recoverable email/SMS dispatcher with wake-on-enqueue and drain disarming.

@@ -10,7 +10,7 @@ const GetStartedPage = () => {
     <Layout>
       <SEOHead
         title="Get Started | Free Detailing Quote in Baton Rouge"
-        description="Get a free mobile detailing quote in Baton Rouge. Tell us about your car, boat, RV, or aircraft and we'll respond within 24 hours. Call (225) 521-6264."
+        description="Get a free mobile detailing quote in Baton Rouge. Tell us about your car, boat, RV, or aircraft. Call (225) 521-6264."
         path="/get-started"
       />
       <JsonLd data={localBusinessSchema()} />
@@ -32,8 +32,8 @@ const GetStartedPage = () => {
               Request Your Free Detailing Quote
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Tell us a little about your vehicle and what you need. We'll reply within 24
-              hours with a quote and the next available appointment in Baton Rouge.
+              Tell us a little about your vehicle or aircraft and what you need. We'll contact
+              you to discuss your quote and appointment availability.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Button asChild size="lg" className="glow-red">
@@ -79,7 +79,7 @@ const GetStartedPage = () => {
             <div className="p-6 sm:p-8 bg-card rounded-xl border border-border">
               <h2 className="text-2xl font-bold mb-2">Tell us about your vehicle</h2>
               <p className="text-muted-foreground mb-6">
-                Fill out the form and we'll get back to you within 24 hours.
+                Fill out the form and we'll contact you to discuss your request.
               </p>
               <InquiryForm source="get-started" />
             </div>
