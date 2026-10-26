@@ -1,6 +1,7 @@
 # GA4 preparation part 2
-- [ ] Prepare saved-booking, accepted-quote and separate call/text events through the same closed consent adapter; no payment claims or identifiers.
-- [ ] Verify mocked outcomes/privacy, desktop/375/390 controls and booking flows; document dictionary, GA4 UI steps and full-build limitation.
+- [x] Prepare saved-booking, accepted-quote and separate call/text events through the same closed consent adapter; no payment claims or identifiers.
+- [x] Verify mocked outcomes/privacy, desktop/375/390 controls and booking flows; 400 tests passed; document dictionary, GA4 UI steps and full-build limitation.
+- [ ] Final production pipeline/activation: manual full builds forbidden in this session; authorized full workflow unavailable. Release and GA4 stream/UI verification require separate authorization; real collection remains OFF.
 
 # GA4 preparation part 1
 - [x] Audit existing tags/consent and official Google guidance; prepare one gated production-only integration and optional analytics controls.
