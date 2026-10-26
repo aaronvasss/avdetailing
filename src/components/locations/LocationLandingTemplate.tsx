@@ -17,6 +17,7 @@ function renderIntro(config: LocationPageConfig) {
   const parts = config.intro.split(/(\{\{l1\}\}|\{\{l2\}\})/g);
   return parts.map((part, i) => {
     if (part === "{{l1}}") {
+      if (!config.link1) return null;
       return (
         <a key={i} href={config.link1.url} target="_blank" rel="nofollow noopener noreferrer" className="text-primary underline hover:text-primary/80">
           {config.link1.text}
@@ -119,7 +120,9 @@ export function LocationLandingTemplate({ config }: Props) {
           <ul className="space-y-5">
             {config.services.map((s, i) => (
               <li key={i}>
-                <h3 className="text-xl font-semibold mb-1">{s.name}</h3>
+                <h3 className="text-xl font-semibold mb-1">
+                  <Link to={s.href} className="hover:text-primary transition-colors">{s.name}</Link>
+                </h3>
                 <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
                   {s.description}
                 </p>
