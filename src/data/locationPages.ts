@@ -50,7 +50,7 @@ const COMMON_SERVICES: LocationServiceItem[] = [
   { name: "Interior Detailing", description: "Deep vacuum and trim cleaning in Silver; seat and upholstery shampoo, leather conditioning and carpet deep cleaning in Gold." },
   { name: "Exterior Detailing", description: "Hand wash, decontamination, clay bar, and protective sealant or wax application." },
   { name: "Headlight Restoration", description: "Sand, polish, and seal cloudy or yellowed headlights for safer night driving." },
-  { name: "Pet Hair & Odor Removal", description: "Specialized extraction and ozone treatment for embedded hair and lingering odors." },
+  { name: "Pet Hair & Odor Removal", description: "Tell us about embedded hair or lingering odors and we will recommend the right interior package." },
 ];
 
 export const LOCATION_PAGES: LocationPageConfig[] = [

@@ -60,6 +60,11 @@ export const CAR_RELATED_LINKS = [
   { href: "/interior-detailing-baton-rouge", text: "Interior car detailing and seat shampoo" },
   { href: "/paint-correction-baton-rouge", text: "Paint correction assessment and options" },
   { href: "/ceramic-coating-baton-rouge", text: "Ceramic coating options" },
+  { href: "/exterior-detailing-baton-rouge", text: "Exterior car detailing choices" },
+  { href: "/headlight-restoration-baton-rouge", text: "Headlight restoration add-on" },
+  { href: "/engine-bay-cleaning-baton-rouge", text: "Engine bay cleaning add-on" },
+  { href: "/odor-removal-baton-rouge", text: "Car odor assessment" },
+  { href: "/pet-hair-removal-baton-rouge", text: "Pet hair removal for cars" },
 ];
 
 export const relatedCarLinks = (selfPath: string) => CAR_RELATED_LINKS.filter((l) => l.href !== selfPath);
