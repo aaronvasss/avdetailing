@@ -1,6 +1,8 @@
 # GA4 property setup reconciliation (docs only)
 - [x] Owner-reported GA4 UI setup recorded: property 443591828, stream 8206634888, URL https://avdetailing.net, Enhanced Measurement OFF, two key events (no value), five event dimensions.
-- [ ] Remaining before gates open: Signals/ads personalization/data-collection settings, duplicate-tag check, privacy wording, authorized release + live Test installation/Realtime validation, full production build. Both gates false.
+- [x] Owner-reported: Signals OFF, automatic/user-provided data OFF, ads personalization 0/307 regions.
+- [ ] Third-party script decisions (docs/tracking-release-audit-2026-10-26.md findings 1–4).
+- [ ] Remaining before gates open: duplicate-tag check, privacy wording, authorized release + live Test installation/Realtime validation, full production build. Both gates false.
 
 # GA4 search attribution correction
 - [x] Preserve exact allowlisted search origins and first-consented entry context; never raw referrers or private-history replay. Decline/private transitions clear entry; subsequent hits use safe navigation.

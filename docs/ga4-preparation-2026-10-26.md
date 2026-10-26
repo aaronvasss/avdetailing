@@ -39,3 +39,6 @@ Owner completed under limited approval (not independently viewed by the agency):
 - [GA4 configuration reference](https://developers.google.com/analytics/devguides/collection/ga4/reference/config)
 - [Enhanced Measurement events/settings](https://support.google.com/analytics/answer/9216061)
 - [Privacy controls and ga-disable](https://support.google.com/analytics/answer/9019185)
+
+## Owner-reported GA4 privacy settings (2026-10-26, later)
+Also completed by the owner (not independently viewed): Google Signals OFF; automatic user-data detection OFF; user-provided data OFF; ads personalization allowed in 0 of 307 regions; persisted after reload. Granular location/device unchanged. Remaining: duplicate-tag live check, privacy wording, third-party script decisions (see docs/tracking-release-audit-2026-10-26.md), authorized release + live validation, full production build. Both source gates remain false.
