@@ -364,7 +364,13 @@ function rewrite(html: string, m: RouteMeta): string {
   keepFirst(/<title>[\s\S]*?<\/title>\s*/gi);
   keepFirst(/<meta\s+name=["']description["'][^>]*>\s*/gi);
   keepFirst(/<link\s+rel=["']canonical["'][^>]*>\s*/gi);
-  keepFirst(/<meta\s+name=["']robots["'][^>]*>\s*/gi);
+  // Robots: the rendered page's (last) directive wins over the shell default.
+  const robots = out.match(/<meta\s+name=["']robots["'][^>]*>/gi) ?? [];
+  if (robots.length > 1) {
+    const last = robots[robots.length - 1];
+    out = out.replace(/<meta\s+name=["']robots["'][^>]*>\s*/gi, "");
+    out = out.replace(/<\/head>/i, `${last}</head>`);
+  }
   for (const p of ["og:title", "og:description", "og:url", "og:type"]) keepFirst(new RegExp(`<meta\\s+property=["']${p}["'][^>]*>\\s*`, "gi"));
   for (const n of ["twitter:title", "twitter:description", "twitter:card"]) keepFirst(new RegExp(`<meta\\s+name=["']${n}["'][^>]*>\\s*`, "gi"));
 
