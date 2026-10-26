@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useEffect } from "react";
 import { UTILITY_ROUTE_SEO } from "@/lib/utility-route-seo";
 
+export const INDEX_ROBOTS = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
 
 interface SEOHeadProps {
@@ -27,43 +28,33 @@ export function SEOHead({
   title = utility?.title ?? title;
   description = utility?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
+  const pageUrl = `https://avdetailing.net${path === "/" ? "/" : path}`;
   useEffect(() => {
-    // Every page owns its self-canonical, og:url and static fallback tags during client navigation.
-    const fallbacks = [...document.querySelectorAll('meta[name="description"]:not([data-rh]), meta[property="og:title"]:not([data-rh]), meta[property="og:description"]:not([data-rh]), meta[name="twitter:title"]:not([data-rh]), meta[name="twitter:description"]:not([data-rh])')];
-    const existingCanonical = document.querySelector('link[rel="canonical"]');
-    const existingOgUrl = document.querySelector('meta[property="og:url"]');
-    const canonical = existingCanonical ?? document.createElement("link");
-    const ogUrl = existingOgUrl ?? document.createElement("meta");
-    if (!existingCanonical) {
-      canonical.setAttribute("rel", "canonical");
-      document.head.appendChild(canonical);
-    }
-    if (!existingOgUrl) {
-      ogUrl.setAttribute("property", "og:url");
-      document.head.appendChild(ogUrl);
-    }
-    const oldCanonical = canonical?.getAttribute("href");
-    const oldOgUrl = ogUrl?.getAttribute("content");
-    fallbacks.forEach(tag => tag.remove());
-    canonical?.setAttribute("href", `https://avdetailing.net${path === "/" ? "/" : path}`);
-    ogUrl?.setAttribute("content", `https://avdetailing.net${path}`);
-    return () => {
-      fallbacks.forEach(tag => document.head.appendChild(tag));
-      if (!existingCanonical) canonical.remove();
-      if (!existingOgUrl) ogUrl.remove();
-      if (oldCanonical) canonical?.setAttribute("href", oldCanonical);
-      if (oldOgUrl) ogUrl?.setAttribute("content", oldOgUrl);
+    // SEOHead is the single metadata owner on every route. Static/prerendered
+    // fallback tags (no data-rh) only serve the first response: drop them for
+    // good once Helmet owns the head, so a previous route's description or
+    // robots directive can never come back during client navigation.
+    document
+      .querySelectorAll('meta[name="description"]:not([data-rh]), meta[name="robots"]:not([data-rh]), meta[property="og:title"]:not([data-rh]), meta[property="og:description"]:not([data-rh]), meta[name="twitter:title"]:not([data-rh]), meta[name="twitter:description"]:not([data-rh])')
+      .forEach((tag) => tag.remove());
+    // Canonical/og:url stay outside Helmet (single prerendered tag, see note
+    // below); keep exactly one and point it at this route (no query/hash).
+    const ensureOne = (selector: string, create: () => Element) => {
+      const all = [...document.querySelectorAll(selector)];
+      all.slice(1).forEach((tag) => tag.remove());
+      if (all[0]) return all[0];
+      const tag = create();
+      document.head.appendChild(tag);
+      return tag;
     };
-  }, [path]);
-  useEffect(() => {
-    if (!noIndex) return;
-    // The generic development shell (or a client-side service→utility visit)
-    // has an unmanaged index directive. Let Helmet own the utility policy.
-    const fallback = document.querySelector<HTMLMetaElement>('meta[name="robots"]:not([data-rh])');
-    if (!fallback) return;
-    fallback.remove();
-    return () => { document.head.appendChild(fallback); };
-  }, [noIndex]);
+    ensureOne('link[rel="canonical"]', () => Object.assign(document.createElement("link"), { rel: "canonical" }))
+      .setAttribute("href", pageUrl);
+    ensureOne('meta[property="og:url"]', () => {
+      const m = document.createElement("meta");
+      m.setAttribute("property", "og:url");
+      return m;
+    }).setAttribute("content", pageUrl);
+  }, [pageUrl]);
   const fullTitle = path === "/"
     ? title
     : title.includes("AV Detailing")
@@ -73,7 +64,7 @@ export function SEOHead({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      {noIndex && <meta name="robots" content={follow && !utility ? "noindex, follow" : "noindex, nofollow"} />}
+      <meta name="robots" content={noIndex ? (follow && !utility ? "noindex, follow" : "noindex, nofollow") : INDEX_ROBOTS} />
 
       {/*
         NOTE: <link rel="canonical">, <meta property="og:url"> and

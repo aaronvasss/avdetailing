@@ -69,3 +69,15 @@ Publishing must be authorized by the owner. The backend, UI and email senders mu
 - **Boat hull cleaning is trailer or lift only, never in-water.** The hull page title area, description, intro, steps and checklist; the boat hub inquiry card; and the shared boat inquiry guidance (`src/lib/boat-seo.ts`, `BoatDetailingBatonRougePage.tsx`) all ask for trailer/lift status, location and hull access. No water/power requirements were added.
 - **Tests:** 281 passed, including the new `ceramic-tier-labels.test.ts` and the updated hull assertions in `boat-seo.test.ts`.
 - **Full build after these changes:** `npm run build` exit 0, all 44 routes prerendered, 54 HTML files written. Re-audit: no failures. No "5-year", "afloat" or "in a slip" text appears in any generated page. The hull page states "do not offer in-water cleaning", and the ceramic page shows the 6-Year tier.
+
+## Shared metadata owner fix (follow-up)
+- **Defect:** before this fix, SEOHead removed static fallback tags and later restored them when leaving a page. Helmet omitted robots on indexable pages, so after a direct load of a prerendered noindex page (the RV interior page), the static `noindex, follow` came back on the next pages: the RV hub, /services and ceramic. The first post-fix test against the production build caught this.
+- **Fix (`src/components/seo/SEOHead.tsx`):** SEOHead now owns the head tags on every route. On mount it permanently removes static (non-Helmet) description, robots, og:title/description and twitter title/description tags. It keeps exactly one canonical and one og:url, set to the route path without query or hash. Helmet now always emits robots: the full index directive for public pages, `noindex, nofollow` for utility pages and `noindex, follow` for unavailable pages. Prerendered body content is untouched.
+- **Tests:** new `src/test/seo-head-navigation.test.tsx` walks RV interior → RV hub → car → /book → boat. All 34 test files passed.
+- **Browser navigation checks**, on both the full production build and the preview, with saves blocked: 11 of 11 steps passed in each. The sequences were direct / → car → boat → aircraft → /book?service=aircraft → hull page with `?utm_source=x#faq`, and direct RV interior → RV hub → /auth → /services → ceramic. Each step had one title, description, canonical, og:url, og:title and twitter:description, plus the correct robots value.
+- **Full build after all follow-ups** (3/6/10 tiers, trailer/lift hull cleaning, metadata owner): exit 0, 44 routes prerendered, 54 files written. The static audit shows no failures, and no "5-year", "afloat" or "in a slip" text appears in any page.
+
+## Unresolved production HTTP issues (not fixable in page code; checked on the live site 2026-10-26)
+- `https://www.avdetailing.net/` returns **302** to the apex domain. That redirect is temporary; it should be a 301, which is a hosting/domain setting.
+- Unknown URLs such as `/this-page-does-not-exist` return **200** with the app shell (soft 404). Static single-page hosting cannot send a 404 status today.
+- Legacy `/services/*` and `/terms` remain noindex canonical and meta-refresh stubs, not real 301s.

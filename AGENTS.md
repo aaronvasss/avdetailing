@@ -12,7 +12,7 @@
 - Public /book and /auth responses use utility-route-seo in postbuild-seo and SEOHead for matching initial/rendered noindex metadata; never prerender authenticated portals, and allow utility crawling so noindex is readable.
 - Outside-hours creation requires explicit internal-form opt-in and a server-verified admin role; public/client scheduling never opts in, so owner exceptions cannot widen customer hours.
 - Store the featured Google review selection as one atomic, admin-only editable collection in public.featured_google_reviews; public readers receive only complete selections, preventing partial updates across pages.
-- Keep review validation and access in one repository, and render public reviews through GoogleReviews on every page so content and behavior cannot diverge.
+- One repository validates reviews; GoogleReviews renders them on every page so content cannot diverge.
 - Keep homepage FAQ answers force-mounted but hidden when collapsed, and wait for data-crawl-pending to clear before prerender capture so initial HTML contains real content without changing accordion behavior or adding review schema.
 - Keep account email dispatch in the scaffolded managed SDK handler; preserve independent Resend feature senders so the email update does not change their provider or content.
 - Record booking changes via the bookings_audit database trigger into public.booking_audit_log, never from app code, so every change path (app, functions, admin) is captured.
@@ -33,4 +33,4 @@
 - Owner alert outbox wakes on enqueue and arms retries only while work remains using the existing private scheduler credential; stage SQL/configuration until release is authorized so preview work never modifies production scheduling.
 - The /services directory content and head metadata come from services-directory-seo, shared by ServicesPage and the postbuild initial HTML, so the indexable hub's crawler and rendered versions cannot diverge.
 - RV (rv-seo), car (car-seo) and boat (boat-seo) hub/supporting pages share content between rendered pages and postbuild initial HTML; inclusions mirror active packages/add-ons, teasers omit ceramic durations, and unavailable configs are noindex,follow without Service schema or sitemap entry.
-- Prerender capture waits for Helmet's data-rh head tags, and postbuild-seo keeps one of each owned head tag (the page's robots wins) and adds a minimal Service node to service pages only when missing, so captured and empty-shell HTML agree.
+- SEOHead owns every route's head (drops static fallbacks, one query-free canonical/og:url, always emits robots); prerender waits for data-rh tags and postbuild-seo dedupes head tags and adds a minimal Service node only when missing, so captured, empty-shell and navigated heads agree.
