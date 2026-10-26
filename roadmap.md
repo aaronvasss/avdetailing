@@ -1,6 +1,6 @@
 # Aviation discovery verification
-- [ ] Strengthen homepage/directory and aviation contextual links; verify metadata, initial HTML, sitemap and truthful structured data.
-- [ ] Verify desktop/phone and quote flow with writes blocked; report live versus preview evidence and remaining external checks. No publication, deployment or production settings.
+- [x] Strengthened homepage/directory and main-to-supporting contextual links, removed unsupported aviation approval/helicopter wording and repaired conflicting aviation descriptions/self-canonicals; initial aviation schemas now reference one existing business and the scoped service.
+- [x] All four live URLs returned 200 on direct recheck (research fetch initially received three 403s); live metadata remains older publication. 18 desktop/375/390 checks and four quote flows per viewport passed with writes blocked, 112 tests passed, captured/fallback initial HTML verified and automatic preview build OK. Sitemap contains all four aviation routes, omits noindex /services and inferred lastmod. No publication, deployment, messages or settings changes; current Google indexing, external keyword opportunities and full production-build capture remain unverified.
 
 # Aviation supporting-page targeting
 - [x] Differentiated exterior inquiries, interior deep cleaning/shampooing, and polishing/coating with unique metadata, scope questions and related links; removed unsupported claims, retained URLs and existing quote flow.
