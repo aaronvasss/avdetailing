@@ -941,10 +941,10 @@ export function AdminQuotesTab() {
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-amber-600 font-medium">
                   <Plane className="h-4 w-4" />
-                  Aircraft Deposit Required
+                  Aircraft Booking Policy
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  A $500 deposit is required for all aircraft detailing bookings.
+                  Aircraft bookings do not require a deposit. The existing quote payment workflow still enforces a deposit and must be reviewed before converting aircraft quotes.
                 </p>
               </div>
             ) : (

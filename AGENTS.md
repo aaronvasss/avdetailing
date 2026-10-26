@@ -1,4 +1,5 @@
 # Architecture rules
+- Aviation public-policy data and shared wording live in aviation-policy and remain separate from payment enforcement so copy updates cannot silently change charges.
 - Preserve protected admin destinations in an encoded auth return URL validated by auth-return; destination pages retain role checks and appointment reads stay behind authentication so navigation intent never grants access.
 - Calendar exports and feeds share appointment-calendar Chicago wall-time conversion and emit UTC RFC 5545 instants; classification uses the Chicago calendar day without altering each view's status rules, so device zones cannot shift appointments.
 - Customer appointment overview renders the next booking once ahead of preparation guidance, reuses current booking dialog actions, and links history/receipts to the existing records view; admin appointment presentation remains separate.

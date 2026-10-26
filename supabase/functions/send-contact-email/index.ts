@@ -209,7 +209,7 @@ const handler = async (req: Request): Promise<Response> => {
               We received your message
             </p>
             <p style="color: #a3a3a3; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-              Hi ${safeName.split(' ')[0]}, thanks for reaching out! We've received your message and will get back to you within 24 hours. If you need immediate assistance, feel free to call us.
+              Hi ${safeName.split(' ')[0]}, thanks for reaching out! We've received your message and will contact you to discuss your request. You can also call us with questions.
             </p>
             
             <div style="text-align: center; padding: 20px 0; border-top: 1px solid #262626;">

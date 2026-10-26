@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
+import { AVIATION_COVERAGE_TEXT, AVIATION_QUOTE_TEXT } from "@/lib/aviation-policy";
 
 const SITE_URL = "https://avdetailing.net";
 const PAGE_PATH = "/aircraft-detailing-baton-rouge";
@@ -70,7 +71,7 @@ const SERVICES = [
         <Link to="/aircraft-cleaning-baton-rouge" className="text-primary underline hover:text-primary/80">
           aircraft exterior cleaning service
         </Link>{" "}
-        at BTR, LFT, MSY, NEW, or any South Louisiana general aviation airport.
+        in Baton Rouge, Lafayette, or the New Orleans area, with access and workspace coordinated for each job.
       </>
     ),
     linkLabel: "Aircraft exterior cleaning service",
@@ -195,7 +196,7 @@ export default function AircraftDetailingBatonRougePage() {
             singles and twins, turboprops, light and mid-size jets, and helicopters at
             Baton Rouge Metropolitan Airport (BTR), Lafayette Regional Airport (LFT), Louis
             Armstrong New Orleans International Airport (MSY), New Orleans Lakefront Airport
-            (NEW), and surrounding general aviation fields. All work is performed using only
+            (NEW), and airports throughout the New Orleans area, with access and workspace arrangements coordinated for each job. We have established access arrangements at Baton Rouge Metropolitan Airport; Lake Charles is inquiry-only. All work is performed using only
             aviation-safe products and procedures by trained detailing professionals who
             understand the care required for painted aluminum, composite surfaces, and
             aircraft plexiglass. According to the{" "}
@@ -353,8 +354,7 @@ export default function AircraftDetailingBatonRougePage() {
               South Louisiana airports we service
             </h2>
             <p className="text-muted-foreground">
-              Plus surrounding general aviation fields by request. We coordinate access with
-              your FBO or hangar in advance.
+              {AVIATION_COVERAGE_TEXT}
             </p>
           </div>
 
@@ -386,8 +386,7 @@ export default function AircraftDetailingBatonRougePage() {
             Schedule your aircraft detail
           </h2>
           <p className="text-muted-foreground mb-8">
-            Call or message for a quote. We coordinate hangar or ramp access with your FBO and
-            arrive with aviation-approved equipment ready to go.
+            {AVIATION_QUOTE_TEXT}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button asChild className="font-semibold tracking-wide">
