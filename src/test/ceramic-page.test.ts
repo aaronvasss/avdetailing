@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { CERAMIC_SEO, CERAMIC_TIERS, ceramicPageHtml, tierPrices } from "@/lib/ceramic-seo";
 import { SERVICE_LANDING_BY_SLUG } from "@/data/serviceLandingPages";
 
-const BANNED = /lifetime|most popular|most-installed|stops oxidation|color fade|hardness|scratch resist|resale|correction included|correction prep|deq\.|consumerreports|UV index|10\+|certif|warrant|mirror/i;
+const BANNED = /lifetime|most popular|most-installed|stops oxidation|color fade|hardness|scratch resist|resale|correction included|correction prep|deq\.|consumerreports|UV index|10\+|certif|warrant|mirror|longest-named|(?:about |full-day \()?8-hour/i;
 const page = readFileSync("src/pages/CeramicCoatingBatonRougePage.tsx", "utf8");
 
 describe("car ceramic coating page", () => {

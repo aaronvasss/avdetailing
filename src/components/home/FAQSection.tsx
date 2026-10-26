@@ -14,7 +14,7 @@ const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "How long does a typical detail take?",
-    answer: "Service times vary based on the package and vehicle size. A basic exterior wash takes about 1-2 hours, while a full detail can take 4-6 hours. Ceramic coating applications may require 1-2 days. We'll provide an accurate time estimate when you book.",
+    answer: "Service times vary based on the package and vehicle size. A basic exterior wash takes about 1-2 hours, while a full detail can take 4-6 hours. For ceramic coating, confirm appointment timing and preparation scope with us before making plans.",
   },
   {
     question: "What areas do you service?",
@@ -46,7 +46,7 @@ const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "Do you offer ceramic coating in Baton Rouge?",
-    answer: `Yes. Ceramic coating starts at ${formatPrice(ceramicFrom("3-year"))}; see our ceramic coating page for the available options. Coatings are applied at your location and typically take a full day. Each coating includes paint decontamination and a light polish for proper bonding.`,
+    answer: `Yes. System X ceramic coating starts at ${formatPrice(ceramicFrom("3-year"))}; see our ceramic coating page for the 3-Year, 6-Year and 10-Year options. Confirm appointment timing and preparation scope with us before work. Paint correction is quoted separately.`,
   },
   {
     question: "Can you detail my boat, RV, or aircraft?",

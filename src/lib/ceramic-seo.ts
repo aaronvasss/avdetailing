@@ -33,7 +33,7 @@ export const CERAMIC_TIERS: CeramicTierContent[] = [
     summary: "The entry System X tier and the lowest starting price.",
     points: ["System X ceramic coating, 3-Year tier", "Paint assessment before coating", "Care instructions after install"] },
   { key: "10-year", name: `System X ${CERAMIC_TIER_LABELS["10-year"].replace(" Protection", "")}`, label: "Longest tier",
-    summary: "The longest-named System X tier we offer.",
+    summary: "The System X 10-Year option.",
     points: ["System X ceramic coating, 10-Year tier", "Paint assessment before coating", "Care instructions after install"] },
   { key: "5-year", name: `System X ${CERAMIC_TIER_LABELS["5-year"].replace(" Protection", "")}`, label: "Middle tier",
     summary: "The middle System X tier between the 3-Year and 10-Year options.",
@@ -57,7 +57,7 @@ export const CERAMIC_BUYING_GUIDANCE = [
   "Starting prices depend on vehicle type: sedans and coupes, or SUVs and trucks.",
   "Paint correction is a separate service; see paint correction options and prices before you book.",
   "Tell us about previous coatings, recent paintwork or problem areas in your booking notes.",
-  "Plan for a full-day (about 8-hour) appointment at your home or office.",
+  "Confirm appointment timing with us before making plans; vehicle condition and the agreed preparation work affect the time needed.",
   "Ask us how to wash and maintain the coating; we go over care at the end of the visit.",
 ];
 
