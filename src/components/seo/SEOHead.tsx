@@ -25,6 +25,24 @@ export function SEOHead({
   description = utility?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
   useEffect(() => {
+    if (!path.startsWith("/aircraft-")) return;
+    // The static dev/published shell is not managed by Helmet. Remove its
+    // conflicting description while this aviation route owns the head.
+    const descriptionFallback = document.querySelector('meta[name="description"]:not([data-rh])');
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    const oldCanonical = canonical?.getAttribute("href");
+    const oldOgUrl = ogUrl?.getAttribute("content");
+    descriptionFallback?.remove();
+    canonical?.setAttribute("href", `https://avdetailing.net${path}`);
+    ogUrl?.setAttribute("content", `https://avdetailing.net${path}`);
+    return () => {
+      if (descriptionFallback) document.head.appendChild(descriptionFallback);
+      if (oldCanonical) canonical?.setAttribute("href", oldCanonical);
+      if (oldOgUrl) ogUrl?.setAttribute("content", oldOgUrl);
+    };
+  }, [path]);
+  useEffect(() => {
     if (!noIndex) return;
     // The generic development shell (or a client-side service→utility visit)
     // has an unmanaged index directive. Let Helmet own the utility policy.

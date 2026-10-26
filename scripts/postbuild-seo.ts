@@ -263,6 +263,8 @@ function rewrite(html: string, m: RouteMeta): string {
   // from the fallback shell. Emit the same truthful business/service relation
   // as the page, with no new airport businesses or review claims.
   if (m.path.startsWith("/aircraft-")) {
+    out = out.replace(/<meta\s+name=["']description["'][^>]*>/gi, "");
+    out = out.replace(/<link\s+rel=["']canonical["'][^>]*>/gi, "");
     const config = SERVICE_LANDING_PAGES.find(p => `/${p.slug}` === m.path);
     const schemas = [localBusinessSchema(), {
       "@context": "https://schema.org",
