@@ -34,3 +34,4 @@
 - The /services directory content and head metadata come from services-directory-seo, shared by ServicesPage and the postbuild initial HTML, so the indexable hub's crawler and rendered versions cannot diverge.
 - RV (rv-seo), car (car-seo) and boat (boat-seo) hub/supporting pages share content between rendered pages and postbuild initial HTML; inclusions mirror active packages/add-ons, teasers omit ceramic durations, and unavailable configs are noindex,follow without Service schema or sitemap entry.
 - Prerender capture waits for Helmet's data-rh head tags, and postbuild-seo keeps one of each owned head tag (the page's robots wins) and adds a minimal Service node to service pages only when missing, so captured and empty-shell HTML agree.
+- Every route's head is owned by SEOHead: it permanently removes static fallback tags, keeps one canonical/og:url without query/hash, and Helmet always emits robots, so client navigation can't inherit a previous page's directives.
