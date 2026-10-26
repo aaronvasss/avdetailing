@@ -1,5 +1,7 @@
 // Plain-TS SEO schema constants and the public LocalBusiness schema.
 // Kept free of React imports so build scripts (postbuild-seo) can use them.
+import { GOOGLE_REVIEWS_URL } from "../../lib/google-business";
+
 export const SITE_URL = "https://avdetailing.net";
 
 // Cities served (Baton Rouge metro + surrounding parishes)
@@ -49,24 +51,21 @@ export function localBusinessSchema() {
       "Premium mobile detailing for cars, boats, RVs, and aircraft in Baton Rouge, Louisiana.",
     url: SITE_URL,
     telephone: "+12255216264",
-    email: "aaronvasquez@avdetailingg.com",
+    email: "aaronvasquez@avdetailing.com",
     areaServed: [
       { "@type": "State", name: "Louisiana" },
       ...SERVICE_AREA_SCHEMA,
     ],
     serviceArea: SERVICE_AREA_GEO,
+    // Service-area business: locality only, no street address and no
+    // business coordinates (the old values were the Baton Rouge centroid).
     address: {
       "@type": "PostalAddress",
       addressLocality: "Baton Rouge",
       addressRegion: "LA",
       addressCountry: "US",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 30.4515,
-      longitude: -91.1871,
-    },
-    hasMap: "https://www.google.com/maps/place/Baton+Rouge,+LA",
+    hasMap: GOOGLE_REVIEWS_URL,
     priceRange: "$75 - $1,800 (aircraft by quote)",
     currenciesAccepted: "USD",
     paymentAccepted: "Cash, Credit Card, Zelle, Venmo",

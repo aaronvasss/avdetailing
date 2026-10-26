@@ -270,6 +270,12 @@ const ALL_ROUTES: RouteMeta[] = [
   ...LOCATION_ROUTES,
 ];
 
+const SERVICE_SCHEMA_PATHS = new Set<string>([
+  CAR_HUB_PATH, RV_HUB_PATH, BOAT_HUB_PATH, PAINT_CORRECTION_SEO.path, "/ceramic-coating-baton-rouge",
+  ...SERVICE_LANDING_PAGES.filter((p) => !p.unavailable).map((p) => `/${p.slug}`),
+  ...LOCATION_PAGES.map((p) => `/${p.slug}`),
+]);
+
 const SHELL = readFileSync(SHELL_PATH, "utf8");
 
 function escapeAttr(s: string): string {
@@ -355,6 +361,25 @@ function rewrite(html: string, m: RouteMeta): string {
     out = out.replace(/<\/head>/i, `<meta name="robots" content="noindex, follow" /></head>`);
   }
 
+  // Captured pages carry both the static shell tags and Helmet's copies.
+  // Keep exactly one of each head tag we own.
+  const keepFirst = (re: RegExp) => {
+    let seen = false;
+    out = out.replace(re, (tag) => (seen ? "" : ((seen = true), tag)));
+  };
+  keepFirst(/<title>[\s\S]*?<\/title>\s*/gi);
+  keepFirst(/<meta\s+name=["']description["'][^>]*>\s*/gi);
+  keepFirst(/<link\s+rel=["']canonical["'][^>]*>\s*/gi);
+  // Robots: the rendered page's (last) directive wins over the shell default.
+  const robots = out.match(/<meta\s+name=["']robots["'][^>]*>/gi) ?? [];
+  if (robots.length > 1) {
+    const last = robots[robots.length - 1];
+    out = out.replace(/<meta\s+name=["']robots["'][^>]*>\s*/gi, "");
+    out = out.replace(/<\/head>/i, `${last}</head>`);
+  }
+  for (const p of ["og:title", "og:description", "og:url", "og:type"]) keepFirst(new RegExp(`<meta\\s+property=["']${p}["'][^>]*>\\s*`, "gi"));
+  for (const n of ["twitter:title", "twitter:description", "twitter:card"]) keepFirst(new RegExp(`<meta\\s+name=["']${n}["'][^>]*>\\s*`, "gi"));
+
   // <title>
   out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${t}</title>`);
 
@@ -412,6 +437,20 @@ function rewrite(html: string, m: RouteMeta): string {
   // JS. Helmet-rendered JSON-LD isn't reliably captured by the prerenderer, so
   // inject the public LocalBusiness schema here when it's missing.
   out = dedupeLocalBusiness(out);
+  // Service pages: an empty-shell fallback has no page schema. Add the same
+  // minimal Service relation the rendered page declares (no offers/ratings).
+  if (SERVICE_SCHEMA_PATHS.has(m.path) && !/"@type":\s*"Service"/.test(out)) {
+    const service = {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: m.title.replace(/\s*[|—-]\s*AV Detailing$/, ""),
+      description: m.description,
+      provider: { "@id": `${SITE}/#business` },
+      areaServed: { "@type": "City", name: "Baton Rouge" },
+      url,
+    };
+    out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(service).replace(/</g, "\\u003c")}</script></head>`);
+  }
   if (!LEGAL_PATHS.has(m.path) && !/"@type":"LocalBusiness"/.test(out)) {
     out = out.replace(
       /<\/head>/i,

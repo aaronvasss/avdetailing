@@ -541,7 +541,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     title: "Aircraft Cleaning Assessment & Quotes in Baton Rouge",
     seoTitle: "Aircraft Cleaning Assessment Baton Rouge | AV Detailing",
     metaDescription: "Request an aircraft cleaning assessment in Baton Rouge. Discuss condition, interior cleaning, shampooing, polishing or ceramic coating before agreeing scope.",
-    intro: "An aircraft cleaning inquiry starts with your aircraft's condition and the work you want assessed. AV Detailing reviews private-aircraft requests, including private jets, to help agree a specific scope rather than assume a package. Our confirmed services are deep interior cleaning, shampooing, polishing and ceramic coating. Describe your concerns and requested areas so we can discuss which of these services may fit. A standalone exterior washing package is not confirmed; this page is an assessment and quote starting point, not a separate exterior cleaning offer.",
+    intro: "An aircraft cleaning inquiry starts with your aircraft's condition and the work you want assessed. AV Detailing reviews private-aircraft requests, including private jets, to agree a specific scope rather than assume a package. Our aircraft services are deep interior cleaning, shampooing, polishing and ceramic coating. Tell us your aircraft type, its current condition, the areas that concern you and where it is parked, and we will recommend which of these services fits and prepare a quote.",
     link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
     link2: { text: "Aircraft polishing and ceramic coating", url: "/aircraft-paint-protection-baton-rouge" },
     processHeading: "From aircraft condition to an agreed work scope",

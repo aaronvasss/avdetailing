@@ -80,7 +80,9 @@ export default defineConfig(({ mode }) => ({
             // Wait for the public page and any asynchronous crawlable content.
             // Reviews settle to real cards or the existing honest Google link;
             // never snapshot their loading skeleton as the initial page content.
-            renderAfterElementExists: "body:has(h1):not(:has([data-crawl-pending]))",
+            // Also wait for Helmet's head flush (its description carries data-rh),
+            // so page-specific JSON-LD is captured with the content.
+            renderAfterElementExists: 'html:has(meta[name="description"][data-rh]) body:has(h1):not(:has([data-crawl-pending]))',
             maxConcurrentRoutes: 4,
           }),
         });
