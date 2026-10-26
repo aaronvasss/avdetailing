@@ -1,4 +1,4 @@
-import { AVIATION_COVERAGE_TEXT, AVIATION_QUOTE_TEXT } from "./aviation-policy";
+import { AIRCRAFT_QUOTE_HREF, AVIATION_COVERAGE_TEXT, AVIATION_QUOTE_TEXT } from "./aviation-policy";
 
 // Shared by the visible overview and its initial-HTML fallback.
 export const AVIATION_OVERVIEW = {
@@ -7,7 +7,7 @@ export const AVIATION_OVERVIEW = {
   description: "Detailing for private aircraft and jets in Baton Rouge, Lafayette and New Orleans. Interior cleaning, polishing and ceramic coating. Request a quote.",
   h1: "Aircraft & Private Jet Detailing in Baton Rouge",
   intro: "AV Detailing provides mobile detailing for private aircraft, including private jets. Our services include shampooing, deep interior cleaning, polishing and aviation ceramic coating. We review your aircraft, its condition and the work you want before agreeing the service scope.",
-  quoteHref: "/book",
+  quoteHref: AIRCRAFT_QUOTE_HREF,
   coverageText: AVIATION_COVERAGE_TEXT,
   quoteText: AVIATION_QUOTE_TEXT,
   services: [

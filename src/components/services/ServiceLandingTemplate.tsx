@@ -6,7 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
-import { aviationPolicy, AVIATION_COVERAGE_TEXT } from "@/lib/aviation-policy";
+import { aviationPolicy, AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "@/lib/aviation-policy";
 
 const SITE_URL = "https://avdetailing.net";
 
@@ -188,7 +188,7 @@ export function ServiceLandingTemplate({ config }: Props) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="text-base">
-              <Link to="/book">{isAircraft ? "Request an Aircraft Quote" : "Book Online"}</Link>
+              <Link to={isAircraft ? AIRCRAFT_QUOTE_HREF : "/book"}>{isAircraft ? "Request an Aircraft Quote" : "Book Online"}</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base">
               <a href="tel:2255216264">
