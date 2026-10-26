@@ -197,7 +197,7 @@ function bodyForLegal(m: { title: string; description: string }): string {
 
 for (const r of STATIC_ROUTES) {
   if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
-  if (r.path === "/" || r.path === "/services") {
+  if (r.path === "/") {
     r.body += `<p>For private aircraft, explore <a href="/aircraft-detailing-baton-rouge">aircraft and private jet detailing in Baton Rouge</a>: interior deep cleaning, shampooing, polishing and ceramic coating, with scope and access coordinated per job.</p>`;
   }
 }

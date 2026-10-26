@@ -14,7 +14,7 @@ import {
   Phone,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { SERVICES_DIRECTORY_SEO } from "@/lib/services-directory-seo";
+import { SERVICES_DIRECTORY_SEO, SERVICES_DIRECTORY_ITEMS } from "@/lib/services-directory-seo";
 import { JsonLd, localBusinessSchema, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 type Service = {
@@ -26,62 +26,10 @@ type Service = {
   tag: string;
 };
 
-const services: Service[] = [
-  {
-    icon: Car,
-    title: "Car Detailing",
-    description:
-      "Complete interior and exterior detailing for sedans, SUVs, and trucks. From quick washes to full restorations.",
-    href: "/car-detailing-baton-rouge",
-    service: "car",
-    tag: "Most Booked",
-  },
-  {
-    icon: Droplets,
-    title: "Ceramic Coating",
-    description:
-      "Paint protection with System X ceramic coating in tiered packages. See the ceramic coating page for current options.",
-    href: "/ceramic-coating-baton-rouge",
-    service: "ceramic",
-    tag: "Premium",
-  },
-  {
-    icon: Sparkles,
-    title: "Paint Correction",
-    description:
-      "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth — 1, 2, and 3-step systems.",
-    href: "/paint-correction-baton-rouge",
-    service: "paint",
-    tag: "Restoration",
-  },
-  {
-    icon: Ship,
-    title: "Boat Detailing",
-    description:
-      "Mobile boat detailing at your lift, slip, storage lot or driveway, including pontoon, hull, gelcoat and boat ceramic coating services.",
-    href: "/boat-detailing-baton-rouge",
-    service: "boat",
-    tag: "Mobile",
-  },
-  {
-    icon: Caravan,
-    title: "RV Detailing",
-    description:
-      "Comprehensive exterior detailing for Class A/B/C motorhomes, fifth wheels, and travel trailers of all sizes.",
-    href: "/rv-detailing-baton-rouge",
-    service: "rv",
-    tag: "Mobile",
-  },
-  {
-    icon: Plane,
-    title: "Aircraft Detailing",
-    description:
-      "Private-aircraft and private-jet interior deep cleaning, shampooing, polishing and ceramic coating. Scope and access coordinated per job.",
-    href: "/aircraft-detailing-baton-rouge",
-    service: "aircraft",
-    tag: "Aviation",
-  },
-];
+const ICONS: Record<ServiceKey, Service["icon"]> = { car: Car, ceramic: Droplets, paint: Sparkles, boat: Ship, rv: Caravan, aircraft: Plane };
+
+// Shared with the initial-HTML fallback so crawler and rendered content match.
+const services: Service[] = SERVICES_DIRECTORY_ITEMS.map((item) => ({ ...item, icon: ICONS[item.service] }));
 
 const ServicesPage = () => {
   const pricing = usePricing();
