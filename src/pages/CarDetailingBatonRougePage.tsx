@@ -292,7 +292,7 @@ export default function CarDetailingBatonRougePage() {
               href="/odor-removal-baton-rouge"
               linkText="View odor removal"
             >
-              Tell us what the smell is and where it comes from, and we will recommend an interior package; results depend on the source. Learn about{" "}
+              Add Odor Elimination at the booking add-ons step and note the smell and its source; results depend on the source. Learn about{" "}
               <Link to="/odor-removal-baton-rouge" className="text-primary underline hover:text-primary/80">car odor removal in Baton Rouge</Link>.
             </ServiceCard>
 
@@ -302,7 +302,7 @@ export default function CarDetailingBatonRougePage() {
               href="/pet-hair-removal-baton-rouge"
               linkText="View pet hair removal"
             >
-              Embedded pet hair takes extra time to remove from carpet and upholstery. Read about{" "}
+              Add Pet Hair Removal at the booking add-ons step for embedded hair in carpet and upholstery. Read about{" "}
               <Link to="/pet-hair-removal-baton-rouge" className="text-primary underline hover:text-primary/80">pet hair removal in Baton Rouge</Link>.
             </ServiceCard>
 
