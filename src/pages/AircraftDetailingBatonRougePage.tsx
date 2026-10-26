@@ -15,123 +15,32 @@ import {
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
-import { AVIATION_COVERAGE_TEXT, AVIATION_QUOTE_TEXT } from "@/lib/aviation-policy";
+import { AVIATION_OVERVIEW } from "@/lib/aviation-overview";
 
 const SITE_URL = "https://avdetailing.net";
-const PAGE_PATH = "/aircraft-detailing-baton-rouge";
+const PAGE_PATH = AVIATION_OVERVIEW.path;
 
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  serviceType: "Aircraft Detailing",
-  name: "Aircraft Detailing Serving Baton Rouge, Lafayette & New Orleans Airports",
+  serviceType: "Aircraft and Private Jet Detailing",
+  name: AVIATION_OVERVIEW.h1,
   provider: { "@id": `${SITE_URL}/#business` },
-  areaServed: [
-    { "@type": "City", name: "Baton Rouge", geo: { "@type": "GeoCoordinates", latitude: 30.4515, longitude: -91.1871 } },
-    { "@type": "Place", name: "Highland Road", geo: { "@type": "GeoCoordinates", latitude: 30.3963, longitude: -91.1271 } },
-    { "@type": "Place", name: "Shenandoah", geo: { "@type": "GeoCoordinates", latitude: 30.3542, longitude: -91.0351 } },
-    { "@type": "City", name: "Gonzales", geo: { "@type": "GeoCoordinates", latitude: 30.2382, longitude: -90.9201 } },
-    { "@type": "City", name: "Prairieville", geo: { "@type": "GeoCoordinates", latitude: 30.3057, longitude: -90.9784 } },
-    { "@type": "City", name: "Walker", geo: { "@type": "GeoCoordinates", latitude: 30.4866, longitude: -90.8631 } },
-    { "@type": "City", name: "Denham Springs", geo: { "@type": "GeoCoordinates", latitude: 30.4855, longitude: -90.9559 } },
-    { "@type": "City", name: "Central", geo: { "@type": "GeoCoordinates", latitude: 30.5527, longitude: -91.0357 } },
-  ],
+  areaServed: ["Baton Rouge", "Lafayette", "New Orleans"].map(name => ({ "@type": "City", name })),
   url: `${SITE_URL}${PAGE_PATH}`,
 };
-
-const AIRPORTS = [
-  { code: "BTR", name: "Baton Rouge Metropolitan Airport", city: "Baton Rouge, LA" },
-  { code: "LFT", name: "Lafayette Regional Airport", city: "Lafayette, LA" },
-  { code: "MSY", name: "Louis Armstrong New Orleans Intl.", city: "Kenner, LA" },
-  { code: "NEW", name: "New Orleans Lakefront Airport", city: "New Orleans, LA" },
-];
-
-const FLEET_TYPES = [
-  "Single-Engine Piston",
-  "Twin-Engine Piston",
-  "Turboprops",
-  "Light & Mid-Size Jets",
-  "Helicopters & Rotorcraft",
-  "Charter & Corporate",
-];
-
-const SERVICES = [
-  {
-    code: "SVC-01",
-    title: "Aircraft Exterior Cleaning",
-    href: "/aircraft-cleaning-baton-rouge",
-    icon: SprayCan,
-    summary: "Aviation-approved cleaning for painted aluminum, composites & plexiglass.",
-    body: (
-      <>
-        Regular exterior cleaning removes exhaust residue, bug deposits, bird droppings, salt
-        deposits, and environmental contamination that damage your aircraft's finish and can
-        accelerate corrosion. We use only aviation-approved cleaning solutions safe for
-        painted aluminum, composite panels, and plexiglass. Book our{" "}
-        <Link to="/aircraft-cleaning-baton-rouge" className="text-primary underline hover:text-primary/80">
-          aircraft exterior cleaning service
-        </Link>{" "}
-        in Baton Rouge, Lafayette, or the New Orleans area, with access and workspace coordinated for each job.
-      </>
-    ),
-    linkLabel: "Aircraft exterior cleaning service",
-  },
-  {
-    code: "SVC-02",
-    title: "Aircraft Interior Detailing",
-    href: "/aircraft-interior-detailing-baton-rouge",
-    icon: Armchair,
-    summary: "Cabin-grade interior care formulated for aviation surfaces.",
-    body: (
-      <>
-        Your aircraft cabin reflects your standards as a pilot or operator. AV Detailing's
-        interior service covers seat cleaning and conditioning, carpet vacuuming and
-        shampooing, instrument shroud and panel wipe-down, window and door seal cleaning, and
-        odor elimination — all performed with products specifically formulated and safe for
-        aviation interiors. Schedule our{" "}
-        <Link to="/aircraft-interior-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">
-          aircraft interior detailing service
-        </Link>{" "}
-        at your home airport.
-      </>
-    ),
-    linkLabel: "Aircraft interior detailing service",
-  },
-  {
-    code: "SVC-03",
-    title: "Aircraft Paint Protection",
-    href: "/aircraft-paint-protection-baton-rouge",
-    icon: ShieldCheck,
-    summary: "Aviation sealants & coatings against UV, salt air, and humidity.",
-    body: (
-      <>
-        South Louisiana's UV, humidity, and coastal salt air degrade aircraft paint and
-        aluminum surfaces faster than most regions in the country. Our{" "}
-        <Link to="/aircraft-paint-protection-baton-rouge" className="text-primary underline hover:text-primary/80">
-          aircraft paint protection service
-        </Link>{" "}
-        applies professional-grade aviation sealant and protective coatings that shield your
-        exterior, slow corrosion, reduce cleaning time between services, and preserve your
-        aircraft's resale value.
-      </>
-    ),
-    linkLabel: "Aircraft paint protection service",
-  },
-];
-
-const STANDARDS = [
-  "Aviation-approved chemicals only",
-  "Trained on aluminum, composite & plexiglass",
-  "Corrosion-conscious procedures",
-  "Hangar or ramp service by appointment",
-];
+const AIRPORTS = AVIATION_OVERVIEW.coverage;
+const SERVICES = AVIATION_OVERVIEW.services;
+const FLEET_TYPES = ["Private aircraft", "Private jets"];
+const STANDARDS = ["Scope assessed for your aircraft", "Access and workspace coordinated per job", "Preferred dates discussed with your quote", "No aircraft booking deposit"];
+const icons = { interior: Armchair, polishing: SprayCan, coating: ShieldCheck };
 
 export default function AircraftDetailingBatonRougePage() {
   return (
     <Layout>
       <SEOHead
-        title="Aircraft Detailing in Baton Rouge"
-        description="Aviation-safe aircraft detailing at BTR, LFT, MSY & NEW — painted aluminum, composites & plexiglass. Mobile to your hangar."
+        title={AVIATION_OVERVIEW.title}
+        description={AVIATION_OVERVIEW.description}
         path={PAGE_PATH}
       />
       <JsonLd data={[
@@ -149,7 +58,7 @@ export default function AircraftDetailingBatonRougePage() {
           <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
           <li className="text-foreground font-medium" aria-current="page">
-            Aircraft Detailing · BTR · LFT · MSY · NEW
+            Aircraft & Private Jet Detailing
           </li>
         </ol>
       </nav>
@@ -172,9 +81,8 @@ export default function AircraftDetailingBatonRougePage() {
             AVIATION DETAILING · SOUTH LOUISIANA
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] max-w-5xl">
-            Aircraft Detailing Serving{" "}
-            <span className="text-primary">Baton Rouge, Lafayette & New Orleans</span>{" "}
-            Airports
+            Aircraft & Private Jet Detailing in{" "}
+            <span className="text-primary">Baton Rouge</span>
           </h1>
 
           {/* Airport code rail */}
@@ -185,46 +93,19 @@ export default function AircraftDetailingBatonRougePage() {
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5"
               >
                 <span className="font-mono text-sm font-bold text-primary">{a.code}</span>
-                <span className="text-xs text-muted-foreground">{a.city}</span>
+                <span className="text-xs text-muted-foreground">{a.title}</span>
               </div>
             ))}
           </div>
 
           <p className="mt-8 max-w-3xl text-base md:text-lg text-muted-foreground leading-relaxed">
-            AV Detailing provides professional aircraft cleaning and detailing for private,
-            charter, and corporate aircraft throughout South Louisiana. We service piston
-            singles and twins, turboprops, light and mid-size jets, and helicopters at
-            Baton Rouge Metropolitan Airport (BTR), Lafayette Regional Airport (LFT), Louis
-            Armstrong New Orleans International Airport (MSY), New Orleans Lakefront Airport
-            (NEW), and airports throughout the New Orleans area, with access and workspace arrangements coordinated for each job. We have established access arrangements at Baton Rouge Metropolitan Airport; Lake Charles is inquiry-only. All work is performed using only
-            aviation-safe products and procedures by trained detailing professionals who
-            understand the care required for painted aluminum, composite surfaces, and
-            aircraft plexiglass. According to the{" "}
-            <a
-              href="https://www.faa.gov/"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="text-primary underline underline-offset-4 hover:text-primary/80"
-            >
-              Federal Aviation Administration
-            </a>
-            , regular cleaning and surface maintenance is an essential component of overall
-            aircraft care. For airport-specific information, visit{" "}
-            <a
-              href="https://www.flybtr.com/"
-              target="_blank"
-              rel="nofollow noopener noreferrer"
-              className="text-primary underline underline-offset-4 hover:text-primary/80"
-            >
-              Baton Rouge Metropolitan Airport
-            </a>
-            .
+            {AVIATION_OVERVIEW.intro}
           </p>
 
           {/* CTAs + contact */}
           <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
             <Button asChild className="font-semibold tracking-wide">
-              <Link to="/book">Request Aircraft Service</Link>
+              <Link to={AVIATION_OVERVIEW.quoteHref}>Request Aircraft Quote</Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
               <a href="tel:2255216264">
@@ -244,7 +125,7 @@ export default function AircraftDetailingBatonRougePage() {
             </a>
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary" />
-              Hangar & ramp · BTR · LFT · MSY · NEW
+              Airport & hangar access coordinated per job
             </span>
           </div>
         </div>
@@ -255,10 +136,10 @@ export default function AircraftDetailingBatonRougePage() {
         <div className="container-custom max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div>
             <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-3">
-              Operating Standards
+              Your Aircraft Appointment
             </div>
             <h2 className="text-2xl md:text-3xl font-bold mb-6">
-              Aviation-grade care, not a car wash
+              Aircraft-specific scope and arrangements
             </h2>
             <ul className="space-y-3">
               {STANDARDS.map((s) => (
@@ -271,10 +152,10 @@ export default function AircraftDetailingBatonRougePage() {
           </div>
           <div>
             <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-3">
-              Fleet Types We Service
+              Aircraft We Detail
             </div>
             <h2 className="text-2xl md:text-3xl font-bold mb-6">
-              From single-engine pistons to rotorcraft
+              Private aircraft, including private jets
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {FLEET_TYPES.map((t) => (
@@ -299,22 +180,22 @@ export default function AircraftDetailingBatonRougePage() {
               Service Catalog
             </div>
             <h2 className="text-3xl md:text-4xl font-bold">
-              Three core services, fully aviation-compliant
+              Aircraft detailing services
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {SERVICES.map((s) => {
-              const Icon = s.icon;
+              const Icon = icons[s.icon];
               return (
                 <article
-                  key={s.code}
+                  key={s.title}
                   className="group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden hover:border-primary/50 transition-colors"
                 >
                   {/* spec header bar */}
                   <div className="flex items-center justify-between border-b border-border px-5 py-3 bg-background/40">
                     <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
-                      {s.code}
+                      {`SVC-0${SERVICES.indexOf(s) + 1}`}
                     </span>
                     <Icon className="h-4 w-4 text-muted-foreground" />
                   </div>
@@ -324,15 +205,15 @@ export default function AircraftDetailingBatonRougePage() {
                         {s.title}
                       </Link>
                     </h3>
-                    <p className="text-sm text-primary/90 font-medium mb-4">{s.summary}</p>
+                    
                     <p className="text-muted-foreground leading-relaxed text-sm md:text-base flex-1">
-                      {s.body}
+                      {s.description}
                     </p>
                     <Link
                       to={s.href}
                       className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all"
                     >
-                      {s.linkLabel}
+                      {s.link}
                       <ArrowUpRight className="h-4 w-4" />
                     </Link>
                   </div>
@@ -351,10 +232,10 @@ export default function AircraftDetailingBatonRougePage() {
               Coverage Map
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-3">
-              South Louisiana airports we service
+              Baton Rouge, Lafayette & New Orleans coverage
             </h2>
             <p className="text-muted-foreground">
-              {AVIATION_COVERAGE_TEXT}
+              {AVIATION_OVERVIEW.coverageText}
             </p>
           </div>
 
@@ -369,12 +250,30 @@ export default function AircraftDetailingBatonRougePage() {
                   <Plane className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="text-sm font-semibold text-foreground leading-snug">
-                  {a.name}
+                  {a.title}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">{a.city}</div>
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{a.detail}</p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="section-padding border-b border-border">
+        <div className="container-custom max-w-6xl">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">Aircraft quote & scheduling questions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+            {AVIATION_OVERVIEW.questions.map(item => (
+              <div key={item.question}>
+                <h3 className="text-xl font-bold mb-3">{item.question}</h3>
+                <p className="text-muted-foreground leading-relaxed">{item.answer}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 text-muted-foreground">
+            Explore our <Link to="/aircraft-cleaning-baton-rouge" className="text-primary underline">aircraft cleaning information</Link>,
+            or return to <Link to="/services" className="text-primary underline">all detailing services</Link>.
+          </p>
         </div>
       </section>
 
@@ -383,14 +282,14 @@ export default function AircraftDetailingBatonRougePage() {
         <div className="container-custom max-w-3xl text-center">
           <div className="mx-auto mb-6 h-px w-16 bg-primary/60" aria-hidden />
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Schedule your aircraft detail
+            Request an aircraft quote
           </h2>
           <p className="text-muted-foreground mb-8">
-            {AVIATION_QUOTE_TEXT}
+            {AVIATION_OVERVIEW.quoteText}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button asChild className="font-semibold tracking-wide">
-              <Link to="/book">Request Service</Link>
+              <Link to={AVIATION_OVERVIEW.quoteHref}>Request Aircraft Quote</Link>
             </Button>
             <Button asChild variant="outline" className="font-semibold tracking-wide">
               <a href="tel:2255216264">
