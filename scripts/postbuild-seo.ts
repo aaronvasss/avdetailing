@@ -20,6 +20,7 @@ import { LOCATION_PAGES } from "../src/data/locationPages";
 import { UTILITY_ROUTE_SEO, rewriteUtilityHtml } from "../src/lib/utility-route-seo";
 import { AVIATION_OVERVIEW, aviationOverviewHtml } from "../src/lib/aviation-overview";
 import { AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "../src/lib/aviation-policy";
+import { SERVICES_DIRECTORY_SEO, servicesDirectoryHtml } from "../src/lib/services-directory-seo";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -100,9 +101,9 @@ const STATIC_ROUTES: RouteMeta[] = [
   },
   {
     path: "/services",
-    title: "Mobile Detailing Services in Baton Rouge | AV Detailing",
-    description:
-      "Browse every AV Detailing service — car, RV, boat & aircraft detailing, ceramic coating, paint correction and interior shampoo.",
+    title: SERVICES_DIRECTORY_SEO.title,
+    description: SERVICES_DIRECTORY_SEO.description,
+    body: servicesDirectoryHtml(),
   },
   {
     path: "/memberships",
@@ -196,7 +197,7 @@ function bodyForLegal(m: { title: string; description: string }): string {
 
 for (const r of STATIC_ROUTES) {
   if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
-  if (r.path === "/" || r.path === "/services") {
+  if (r.path === "/") {
     r.body += `<p>For private aircraft, explore <a href="/aircraft-detailing-baton-rouge">aircraft and private jet detailing in Baton Rouge</a>: interior deep cleaning, shampooing, polishing and ceramic coating, with scope and access coordinated per job.</p>`;
   }
 }

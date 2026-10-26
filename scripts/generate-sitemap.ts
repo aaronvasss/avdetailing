@@ -53,7 +53,7 @@ const staticEntries: SitemapEntry[] = [
   { path: "/aircraft-detailing-baton-rouge", sources: [pageFile("AircraftDetailingBatonRougePage")], changefreq: "monthly", priority: "0.85" },
 
   // Supporting pages
-  // /services is an intentional noindex navigation directory, not a sitemap target.
+  { path: "/services", sources: [pageFile("ServicesPage")], changefreq: "monthly", priority: "0.80" },
   { path: "/about", sources: [pageFile("AboutPage")], changefreq: "monthly", priority: "0.65" },
   { path: "/memberships", sources: [pageFile("MembershipsPage")], changefreq: "monthly", priority: "0.75" },
   { path: "/gallery", sources: [pageFile("GalleryPage")], changefreq: "weekly", priority: "0.70" },
