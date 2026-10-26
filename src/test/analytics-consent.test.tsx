@@ -18,14 +18,24 @@ describe("optional analytics controls", () => {
     expect(screen.queryByRole("region", { name: "Optional analytics" })).toBeNull();
     expect(append.mock.calls.some(([node]) => node instanceof HTMLScriptElement && node.src.includes("googletagmanager"))).toBe(false);
   });
+  it.each(["/", "/services", "/rv-detailing-baton-rouge"])("shows no automatic prompt to a fresh visitor on public page %s", async path => {
+    const append = vi.spyOn(document.head, "appendChild");
+    view(path);
+    await new Promise(r => setTimeout(r, 50));
+    expect(screen.queryByRole("region", { name: "Optional analytics" })).toBeNull();
+    expect(screen.queryByText(/Booking works either way/)).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(localStorage.getItem(ANALYTICS_PREFERENCE_KEY)).toBeNull();
+    expect(append.mock.calls.some(([node]) => node instanceof HTMLScriptElement && node.src.includes("googletagmanager"))).toBe(false);
+  });
   it("lets customers decline, revisit settings, accept and revoke without Google requests or blocking booking", async () => {
     const append = vi.spyOn(document.head, "appendChild");
     view();
-    await screen.findByRole("region", { name: "Optional analytics" });
     expect(screen.getByRole("link", { name: "Book now" })).toHaveAttribute("href", "/book");
+    fireEvent.click(screen.getByRole("button", { name: "Analytics settings" }));
+    expect(await screen.findByText("Current preference: Not chosen")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Decline analytics" }));
     expect(localStorage.getItem(ANALYTICS_PREFERENCE_KEY)).toBe("declined");
-    expect(screen.queryByRole("region", { name: "Optional analytics" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Analytics settings" }));
     expect(await screen.findByText("Current preference: Declined")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Accept analytics" }));
