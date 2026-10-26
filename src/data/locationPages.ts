@@ -77,7 +77,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service homes along Highland Road itself, plus surrounding subdivisions and corridors including Bocage, Goodwood, Kenilworth, Stanford Avenue, Perkins Road, the Acadian Thruway area, the Garden District edge, and the streets around LSU. Whether you're near the LSU lakes, the Perkins Road overpass, or out toward Pollard Estates, our mobile team comes to you.",
+      "We serve homes along Highland Road itself, plus surrounding subdivisions and corridors including Bocage, Goodwood, Kenilworth, Stanford Avenue, Perkins Road, the Acadian Thruway area, the Garden District edge, and the streets around LSU. Whether you're near the LSU lakes, the Perkins Road overpass, or out toward Pollard Estates, our mobile team comes to you.",
     surroundingParagraph: "highland-link",
     lat: 30.3963,
     lng: -91.1271,
@@ -99,7 +99,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "Our team regularly details vehicles throughout Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive, the Mall of Louisiana area, Burbank Drive, Bluebonnet Boulevard, and the neighborhoods between Siegen and Highland Road. If you're near the Mall, off Picardy, or out toward Burbank, we come to you.",
+      "We serve Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive, the Mall of Louisiana area, Burbank Drive, Bluebonnet Boulevard, and the neighborhoods between Siegen and Highland Road. If you're near the Mall, off Picardy, or out toward Burbank, we come to you.",
     surroundingParagraph: "shenandoah-link",
     lat: 30.3542,
     lng: -91.0351,
@@ -121,7 +121,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service the Prairieville Road area, the Hwy 30 corridor, neighborhoods around Tanger Outlets, the Burnside area, and the residential streets between I-10 and Hwy 44. Whether you're near the outlets, off Airline Highway, or out toward the river, our mobile team comes to you.",
+      "We serve the Prairieville Road area, the Hwy 30 corridor, neighborhoods around Tanger Outlets, the Burnside area, and the residential streets between I-10 and Hwy 44. Whether you're near the outlets, off Airline Highway, or out toward the river, our mobile team comes to you.",
     surroundingParagraph: "gonzales-link",
     lat: 30.2382,
     lng: -90.9201,
@@ -143,7 +143,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service the Airline Highway corridor, the Hwy 73 area, the Galvez community, and the newer subdivisions throughout Prairieville and Ascension Parish. Whether you're near Hoo Shoo Too Road, off Hwy 73, or in one of the newer developments closer to Hwy 42, we come to you.",
+      "We serve the Airline Highway corridor, the Hwy 73 area, the Galvez community, and the newer subdivisions throughout Prairieville and Ascension Parish. Whether you're near Hoo Shoo Too Road, off Hwy 73, or in one of the newer developments closer to Hwy 42, we come to you.",
     surroundingParagraph: "prairieville-link",
     lat: 30.3057,
     lng: -90.9784,
@@ -165,7 +165,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, Pete's Highway, Florida Boulevard (Hwy 190), the Antique Village / downtown Denham Springs area, and the residential streets stretching out toward Watson and Livingston. Whether you're near the Bass Pro, off Juban, or in a subdivision along Springfield Road, our mobile team comes to you.",
+      "We serve the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, Pete's Highway, Florida Boulevard (Hwy 190), the Antique Village / downtown Denham Springs area, and the residential streets stretching out toward Watson and Livingston. Whether you're near the Bass Pro, off Juban, or in a subdivision along Springfield Road, our mobile team comes to you.",
     localNotes: [
       "We work at driveways, offices and business lots around Range Avenue and Juban Road — note in your booking where the vehicle will be parked and any access instructions.",
       "Package prices are set by vehicle type (car, SUV or truck) and shown before you book.",
@@ -228,7 +228,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service the Hwy 16 corridor, Walker Road, the neighborhoods along Hwy 447, and the residential streets throughout north Livingston Parish. Whether you're near Hwy 16, off Walker South Road, or out toward Watson, our mobile team comes to you.",
+      "We serve the Hwy 16 corridor, Walker Road, the neighborhoods along Hwy 447, and the residential streets throughout north Livingston Parish. Whether you're near Hwy 16, off Walker South Road, or out toward Watson, our mobile team comes to you.",
     surroundingParagraph: "walker-link",
     lat: 30.4866,
     lng: -90.8631,
@@ -250,7 +250,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service the Pride Road corridor, Hwy 19, the Zachary community core, and the commuter neighborhoods throughout north Baton Rouge. Whether you're near Plank Road, off Hwy 19, or out toward Pride, our mobile team comes to you.",
+      "We serve the Pride Road corridor, Hwy 19, the Zachary community core, and the commuter neighborhoods throughout north Baton Rouge. Whether you're near Plank Road, off Hwy 19, or out toward Pride, our mobile team comes to you.",
     surroundingParagraph: "zachary-link",
     lat: 30.6491,
     lng: -91.1565,
@@ -272,7 +272,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Every service links to its own page with current package details and prices.",
     ],
     neighborhoods:
-      "We regularly service Greenwell Springs Road, Sullivan Road, Hooper Road, the Wax Road area, and the residential streets out toward the Central / Livingston Parish border. Whether you're near Greenwell Springs, off Sullivan, or out toward Hooper, our mobile team comes to you.",
+      "We serve Greenwell Springs Road, Sullivan Road, Hooper Road, the Wax Road area, and the residential streets out toward the Central / Livingston Parish border. Whether you're near Greenwell Springs, off Sullivan, or out toward Hooper, our mobile team comes to you.",
     surroundingParagraph: "central-link",
     lat: 30.5527,
     lng: -91.0357,

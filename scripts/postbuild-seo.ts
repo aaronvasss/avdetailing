@@ -52,7 +52,7 @@ function esc(s: string): string {
 
 function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
   const services = p.services
-    .map((s) => `<li><strong>${esc(s.name)}</strong> — ${esc(s.description)}</li>`)
+    .map((s) => `<li><a href="${s.href}"><strong>${esc(s.name)}</strong></a> — ${esc(s.description)}</li>`)
     .join("");
   const why = p.whyChoose.map((w) => `<li>${esc(w)}</li>`).join("");
   return [
