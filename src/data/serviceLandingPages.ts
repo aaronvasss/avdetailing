@@ -1,4 +1,4 @@
-import { CERAMIC_SEO, CERAMIC_STEPS, CERAMIC_BUYING_GUIDANCE } from "@/lib/ceramic-seo";
+import { CERAMIC_SEO, CERAMIC_STEPS, CERAMIC_BUYING_GUIDANCE } from "../lib/ceramic-seo";
 import { MOBILE_CAR_SEO, INTERIOR_CAR_SEO, PAINT_CORRECTION_SEO } from "../lib/car-seo";
 /**
  * Service landing pages for Baton Rouge SEO.
