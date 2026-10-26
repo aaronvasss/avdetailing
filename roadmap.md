@@ -1,6 +1,6 @@
 # Aviation SEO part 2
-- [ ] Refine supporting intents (cleaning assessment only, cabin cleaning/shampooing, polishing/coating not repainting), aviation /services breadcrumbs and policy-based access guidance in rendered and initial HTML.
-- [ ] Verify scoped changes, desktop/375/390, metadata/links and initial HTML without inquiries or release. Exterior scope confirmation or later consolidation remains open pending owner decision.
+- [x] Refined supporting intents: cleaning assessment only (no exterior package), private-aircraft cabin deep cleaning/shampooing, polishing/coating explicitly not repainting. Updated distinct metadata, quote scope and contextual links; aviation visible/schema breadcrumbs use /services and access guidance uses aviation-policy. Main overview, booking/payment enforcement and other service content unchanged.
+- [x] 24 desktop/375/390 page checks (three supporting pages, overview, car/RV/boat and boat polishing), nine intercepted quote-entry checks, six captured/empty-root initial-HTML checks and 106 regression tests passed. Single business/provider, accurate coverage, unique metadata/self-canonicals, initial content/links and sitemap verified. Screenshots inspected; automatic preview build OK. No inquiries, release or data changes. Full production build/plugin capture and current external search evidence remain unverified; standalone cleaning scope confirmation or later consolidation awaits owner decision.
 
 # Aviation discovery verification
 - [x] Strengthened homepage/directory and main-to-supporting contextual links, removed unsupported aviation approval/helicopter wording and repaired conflicting aviation descriptions/self-canonicals; initial aviation schemas now reference one existing business and the scoped service.
