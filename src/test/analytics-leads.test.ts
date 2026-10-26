@@ -68,6 +68,16 @@ describe("privacy-safe lead measurement", () => {
     h.runtime.setPreference("declined"); h.runtime.track(event, occurrence); h.runtime.setPreference("accepted"); h.runtime.track(event, occurrence);
     expect(h.events()).toHaveLength(0);
   });
+  it("does not replay a success that occurred before the loader was ready", () => {
+    let ready = () => {};
+    const command = vi.fn();
+    const runtime = new AnalyticsRuntime({ origin: () => ANALYTICS_ORIGIN, pathname: () => "/book", referrer: () => "",
+      disable: () => {}, command, load: cb => { ready = cb; return () => {}; } }, { releaseAuthorized: true, streamSettingsVerified: true });
+    const occurrence = {}; const event = acceptedQuoteEvent({ success: true }, null, "aircraft");
+    runtime.navigate("/book"); runtime.setPreference("accepted"); runtime.track(event, occurrence);
+    ready(); runtime.track(event, occurrence);
+    expect(command.mock.calls.filter(c => c[0] === "event" && c[1] === "generate_lead")).toHaveLength(0);
+  });
   it("rebuilds the event payload from enums and excludes injected fields", () => {
     const h = setup(); h.runtime.track({ name: "contact_click", params: { method: "call", email: "secret" } } as MeasurementEvent, {});
     expect(h.events()[0]?.[2]).toEqual({ method: "call", page_path: "/book", page_location: "https://avdetailing.net/book",

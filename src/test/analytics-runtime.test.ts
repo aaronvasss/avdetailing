@@ -98,7 +98,7 @@ describe("fail-closed GA4 collection", () => {
     expect(readAnalyticsPreference({ getItem: key => key === ANALYTICS_PREFERENCE_KEY ? "accepted" : null })).toBe("accepted");
   });
   it("only allows exact static public paths; referrers drop every query/hash or private/external URL", () => {
-    expect(Object.keys(ANALYTICS_PUBLIC_PAGES)).toHaveLength(44);
+    expect(Object.keys(ANALYTICS_PUBLIC_PAGES)).toHaveLength(45);
     expect(publicAnalyticsPage("/contact?email=name@example.com")).toBeNull();
     expect(publicAnalyticsPage("/contact#secret")).toBeNull();
     expect(safeAnalyticsReferrer("https://avdetailing.net/contact?token=secret#name")).toBe("https://avdetailing.net/contact");
