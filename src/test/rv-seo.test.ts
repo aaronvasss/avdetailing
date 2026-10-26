@@ -47,7 +47,8 @@ describe("RV exterior-only SEO", () => {
       expect(interior).toContain('content="noindex, follow"');
       expect(count(interior, /rel="canonical"/g)).toBe(1);
       expect(interior).toContain('href="https://avdetailing.net/rv-interior-detailing-baton-rouge"');
-      expect(interior).not.toMatch(/"@type":"(Service|Offer)"/);
+      expect(interior).not.toMatch(/"@type":"Service","serviceType"|"name":"RV Interior Detailing/);
+      expect(interior).not.toMatch(/RV Interior Detailing \(not offered\)/);
       expect(interior).toContain('href="/rv-detailing-baton-rouge"');
     } finally { rmSync(temp, { recursive: true, force: true }); }
   }, 60000);

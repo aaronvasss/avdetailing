@@ -14,7 +14,7 @@ export const SERVICES_DIRECTORY_ITEMS: { title: string; description: string; hre
   { title: "Ceramic Coating", description: "Paint protection with System X ceramic coating in tiered packages. See the ceramic coating page for current options.", href: "/ceramic-coating-baton-rouge", service: "ceramic", tag: "Premium" },
   { title: "Paint Correction", description: "Remove swirls, scratches, and oxidation to restore your paint's clarity and depth — 1, 2, and 3-step systems.", href: "/paint-correction-baton-rouge", service: "paint", tag: "Restoration" },
   { title: "Boat Detailing", description: "Mobile boat detailing at your lift, slip, storage lot or driveway, including pontoon, hull, gelcoat and boat ceramic coating services.", href: "/boat-detailing-baton-rouge", service: "boat", tag: "Mobile" },
-  { title: "RV Detailing", description: "Comprehensive exterior detailing for Class A/B/C motorhomes, fifth wheels, and travel trailers of all sizes.", href: "/rv-detailing-baton-rouge", service: "rv", tag: "Mobile" },
+  { title: "RV Detailing", description: "Exterior-only detailing for motorhomes, fifth wheels and travel trailers: wash, oxidation removal and ceramic coating.", href: "/rv-detailing-baton-rouge", service: "rv", tag: "Mobile" },
   { title: "Aircraft Detailing", description: "Private-aircraft and private-jet interior deep cleaning, shampooing, polishing and ceramic coating. Scope and access coordinated per job.", href: "/aircraft-detailing-baton-rouge", service: "aircraft", tag: "Aviation" },
 ];
 
