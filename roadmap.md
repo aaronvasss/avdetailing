@@ -1,6 +1,6 @@
 # Final source/report reconciliation
-- [ ] Replace awkward 10-Year wording and fixed ceramic duration with timing-confirmation guidance; preserve scheduling and prices.
-- [ ] Replace historical report with cohesive current facts, scope, measurement limits, latest tests and release gates.
+- [x] Replace awkward 10-Year wording and fixed ceramic duration with timing-confirmation guidance; preserve scheduling and prices. Read-only catalog ~8 hours conflicts with booking 300 minutes; no new duration rule.
+- [x] Replace historical report with cohesive current facts, scope, measurement limits, latest tests and release gates. Final 400 tests and desktop/375/390 copy checks passed; preview build OK.
 - [ ] Final production pipeline: manual builds prohibited by session tools; authorized full workflow unavailable. Report current preview evidence separately.
 
 # GA4 preparation part 2
