@@ -106,3 +106,12 @@ Files: src/data/locationPages.ts, src/components/locations/LocationLandingTempla
 - Missing: a consent-respecting "booking submitted"/"quote submitted" event with service type, source landing page stored on the booking, and call/text click tracking. Not added (out of scope; no trackers installed).
 - Performance: no stored Lighthouse/CrUX/Core Web Vitals data in the project or tools; field data was not available here, so no score is reported. Measuring needs PageSpeed Insights/Search Console Core Web Vitals on the published site after release.
 - Final full build after these copy fixes: exit 0, all routes prerendered, postbuild wrote 54 HTML files, sitemap 43 URLs, no lastmod. Tests: 36 files / 286 passed.
+
+## Pass: owner confirmations (System X car + boat coatings; RV roof cleaning offered)
+Files: src/pages/CeramicCoatingBatonRougePage.tsx, src/data/serviceLandingPages.ts (car ceramic, boat ceramic, RV roof configs), src/lib/{boat-seo,rv-seo,services-directory-seo}.ts, src/pages/BoatDetailingBatonRougePage.tsx, src/components/home/ServiceContentSection.tsx, tests src/test/owner-confirmed-coatings-roof.test.ts and boat-seo.test.ts (rule now bans System X certification/approval instead of the name).
+- Car ceramic: "uses System X ceramic coatings" in 3/6/10-year tiers; removed "System X Certified" badge text, "exclusively/industry-leading/most respected", "semi-permanent", controlled-environment and 24-hour-cure steps, "prep included" claim, Consumer Reports/DEQ links. Prices, tier keys (internal 5-year → 6-Year label) unchanged. "Most popular" (10-year) still open.
+- Boat ceramic: System X coating stated as a separate quote-based service from the Premium Detail's ceramic sealant; no price; links to gelcoat restoration/hub kept. Hull cleaning still trailer/lift only.
+- RV roof: now offered; page asks for RV, roof material/condition and access, scope and price confirmed first; hub, directory and homepage list roof cleaning. No seal repair, method or inclusion claims.
+- Not added anywhere: System X on aviation pages, product line, warranty, lifespan beyond tier names.
+- Evidence: 38 test files / 302 tests passed; full build exit 0, 54 HTML files, 43 sitemap URLs; System X appears only on home, contact, /services, car ceramic, boat hub and boat ceramic built pages; zero matches for "System X Certified", "industry-leading", "case by case" or the removed authority links.
+- Resolved owner questions: System X for car coatings; boat coating product; RV roof cleaning offered.
