@@ -1,6 +1,6 @@
 # Main aviation SEO overview
-- [ ] Update only the main aviation overview with confirmed services, coverage, quote questions and shared initial HTML; preserve supporting URLs and quote/payment functionality.
-- [ ] Verify desktop/375/390 layout, existing aircraft quote entry and initial HTML with writes blocked; no publishing or deployment.
+- [x] Updated only the main aviation overview with confirmed services, coverage, quote questions and shared initial HTML; supporting URLs and quote/payment functionality preserved.
+- [x] Desktop/375/390 screenshots and existing aircraft quote entry passed with writes blocked; captured initial HTML and empty-shell fallback checked, 13 regression tests passed and preview build OK. No publishing, deployment, bookings or messages; live HTML remains unchanged until an authorized publish.
 
 # RV Exterior Wash price
 - [x] Updated only the owner-authorized shared RV Exterior Wash catalog row from $180 to $350 and aligned the public fallback; other packages and fee rules unchanged. Shared live/preview data change explicitly authorized; no historical bookings changed.
