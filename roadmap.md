@@ -2,7 +2,8 @@
 - [x] Owner-reported GA4 UI setup recorded: property 443591828, stream 8206634888, URL https://avdetailing.net, Enhanced Measurement OFF, two key events (no value), five event dimensions.
 - [x] Owner-reported: Signals OFF, automatic/user-provided data OFF, ads personalization 0/307 regions.
 - [x] Finding 1: unused global review-widget script removed (source/preview only).
-- [ ] Third-party script decisions, findings 2–4 (docs/tracking-release-audit-2026-10-26.md).
+- [x] Finding 3 (route part): chat limited to reviewed public allowlist; homepage/get-started overlap awaits owner.
+- [ ] Third-party script decisions, findings 2, 3 (homepage/get-started) and 4 (docs/tracking-release-audit-2026-10-26.md).
 - [ ] Remaining before gates open: duplicate-tag check, privacy wording, authorized release + live Test installation/Realtime validation, full production build. Both gates false.
 
 # GA4 search attribution correction

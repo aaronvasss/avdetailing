@@ -60,3 +60,26 @@ Both GA source gates stay false. This audit closes the inventory gap for measure
   - Preview /reviews ran with the featured-reviews data mocked and all outside traffic blocked. With 3 mock cards, the cards and Google links rendered at 1280, 375 and 390, and no reputationhub request was made.
   - The empty and error states still show the "Open Google Reviews" link.
 - **Limitations:** this does not prove the remote script collected any data. The full production build is still unverified, and a live check is pending after an authorized release.
+
+## Update: finding 3 partly resolved, chat route boundary (2026-10-26, source/preview only)
+- **Allowlist:** `src/lib/chat-routes.ts` lists the routes where the chat may load:
+  - `/`, `/get-started`, `/services`
+  - the four section hubs, plus ceramic and paint correction
+  - every `SERVICE_LANDING_PAGES` and `LOCATION_PAGES` slug, except the unavailable `/rv-interior-detailing-baton-rouge`
+  - `/about`, `/gallery`, `/reviews`, `/service-areas`, `/privacy-policy`, `/terms-and-conditions`
+
+  A trailing slash is normalized. `GhlChatWidget.tsx` now loads the chat only on these routes. Every other route runs the existing hide/remove cleanup.
+- **Newly excluded:** these previously showed chat and now don't:
+  - `/unauthorized` and `/.lovable/oauth/consent`
+  - `/booking/success` and `/booking/canceled`
+  - the legacy `/services/*` and `/terms` stubs, and `/quote` before its redirect
+  - the unavailable RV interior page
+  - any unknown path, such as `/manage-booking`
+- **Still excluded as before:** book/booking, cancel, rate, contact, memberships, auth, reset-password, account, admin, worker and reschedule.
+- **Credential-like links:** if the query string or hash contains a parameter named token, access_token, refresh_token, code, type, booking/bookingId, id, email, key, sig/signature, otp or state, the chat does not load, even on an allowed page. Values are never read or sent. Ordinary campaign tags such as `?utm_source=` still allow it.
+- **Unchanged pending owner decision:** the homepage and `/get-started` still show both the chat and the inquiry form with its phone field. Whether to keep that overlap is your call. The inquiry-form tracker, the CRM, the privacy policy, prices and both GA gates are unchanged.
+- **Limitation:** once the remote chat bundle has executed on an allowed page, client-side navigation to a private page removes the loader tag and widget elements, but it cannot unload the running code. This change does not establish that no data is collected after such a navigation. A direct load of a private page never injects the chat.
+- **Evidence (agency-reported):**
+  - `src/test/chat-routes.test.tsx`: 6 of 6 passed, using a fake loader with no network. It covers public, private and unknown routes, credential-like queries and hashes, direct loads, a single delayed injection, and cancellation when navigating public→private.
+  - Full suite: 454 tests across 50 files. Three page-content tests first failed because two copies of a helper tool were installing at the same time. Rerun one at a time, all 11 tests in those files passed.
+  - No browser layout check was needed, since nothing visible changed. The full production build is still unverified.
