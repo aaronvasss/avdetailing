@@ -355,6 +355,19 @@ function rewrite(html: string, m: RouteMeta): string {
     out = out.replace(/<\/head>/i, `<meta name="robots" content="noindex, follow" /></head>`);
   }
 
+  // Captured pages carry both the static shell tags and Helmet's copies.
+  // Keep exactly one of each head tag we own.
+  const keepFirst = (re: RegExp) => {
+    let seen = false;
+    out = out.replace(re, (tag) => (seen ? "" : ((seen = true), tag)));
+  };
+  keepFirst(/<title>[\s\S]*?<\/title>\s*/gi);
+  keepFirst(/<meta\s+name=["']description["'][^>]*>\s*/gi);
+  keepFirst(/<link\s+rel=["']canonical["'][^>]*>\s*/gi);
+  keepFirst(/<meta\s+name=["']robots["'][^>]*>\s*/gi);
+  for (const p of ["og:title", "og:description", "og:url", "og:type"]) keepFirst(new RegExp(`<meta\\s+property=["']${p}["'][^>]*>\\s*`, "gi"));
+  for (const n of ["twitter:title", "twitter:description", "twitter:card"]) keepFirst(new RegExp(`<meta\\s+name=["']${n}["'][^>]*>\\s*`, "gi"));
+
   // <title>
   out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${t}</title>`);
 
