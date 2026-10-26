@@ -6,6 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { ServiceLandingConfig, SERVICE_AREAS_TEXT } from "@/data/serviceLandingPages";
+import { RV_HUB_PATH, RV_EXTERIOR_LINKS, RV_BUYING_GUIDANCE } from "@/lib/rv-seo";
 import { aviationPolicy, AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "@/lib/aviation-policy";
 
 const SITE_URL = "https://avdetailing.net";
@@ -54,7 +55,11 @@ function renderIntro(config: ServiceLandingConfig) {
 }
 
 export function ServiceLandingTemplate({ config }: Props) {
+  if (config.unavailable) return <UnavailableServicePage config={config} />;
   const isAircraft = config.slug.startsWith("aircraft-");
+  const isRv = Boolean(config.rvPage);
+  const crumbParent = isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
+  const relatedLinks = isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
   const pagePath = `/${config.slug}`;
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -86,7 +91,7 @@ export function ServiceLandingTemplate({ config }: Props) {
         serviceSchema,
         breadcrumbSchema([
           { name: "Home", path: "/" },
-          { name: "Services", path: isAircraft ? "/services" : "/car-detailing-baton-rouge" },
+          crumbParent,
           { name: config.title, path: `/${config.slug}` },
         ]),
       ]} />
@@ -98,8 +103,8 @@ export function ServiceLandingTemplate({ config }: Props) {
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
           <li>
-            <Link to={isAircraft ? "/services" : "/car-detailing-baton-rouge"} className="hover:text-primary transition-colors">
-              Services
+            <Link to={crumbParent.path} className="hover:text-primary transition-colors">
+              {crumbParent.name}
             </Link>
           </li>
           <li aria-hidden="true" className="text-muted-foreground/50">/</li>
@@ -167,11 +172,12 @@ export function ServiceLandingTemplate({ config }: Props) {
       {/* Service Areas */}
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : "Service Areas"}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{isAircraft ? "Related aircraft services & location arrangements" : isRv ? "Related exterior RV services & service areas" : "Service Areas"}</h2>
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
             {isAircraft ? <>{AVIATION_COVERAGE_TEXT} See the <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">private-aircraft detailing overview</Link> for the complete service overview and quote guidance.</> : SERVICE_AREAS_TEXT}
           </p>
-          {config.relatedLinks && <ul className="mt-6 space-y-3">{config.relatedLinks.map(link => <li key={link.href}><Link to={link.href} className="text-primary underline underline-offset-4">{link.text}</Link></li>)}</ul>}
+          {isRv && <p className="text-muted-foreground leading-relaxed text-base md:text-lg mt-4">Our RV service is exterior-only; we do not offer RV interior or upholstery cleaning.</p>}
+          {relatedLinks && <ul className="mt-6 space-y-3">{relatedLinks.map(link => <li key={link.href}><Link to={link.href} className="text-primary underline underline-offset-4">{link.text}</Link></li>)}</ul>}
         </div>
       </section>
 
