@@ -45,6 +45,18 @@ const ceramicCoatingSources = {
   avif: srcSet([[ceramicAvif400, 400], [ceramicAvif800, 800]]),
   webp: srcSet([[ceramicWebp400, 400], [ceramicWebp800, 800]]),
 };
+import boatAvif400 from "@/assets/optimized/boat-detailing-service-400.avif";
+import boatAvif800 from "@/assets/optimized/boat-detailing-service-800.avif";
+import boatAvif1200 from "@/assets/optimized/boat-detailing-service-1200.avif";
+import boatWebp400 from "@/assets/optimized/boat-detailing-service-400.webp";
+import boatWebp800 from "@/assets/optimized/boat-detailing-service-800.webp";
+import boatWebp1200 from "@/assets/optimized/boat-detailing-service-1200.webp";
+import airAvif400 from "@/assets/optimized/aircraft-detailing-service-400.avif";
+import airAvif800 from "@/assets/optimized/aircraft-detailing-service-800.avif";
+import airAvif1200 from "@/assets/optimized/aircraft-detailing-service-1200.avif";
+import airWebp400 from "@/assets/optimized/aircraft-detailing-service-400.webp";
+import airWebp800 from "@/assets/optimized/aircraft-detailing-service-800.webp";
+import airWebp1200 from "@/assets/optimized/aircraft-detailing-service-1200.webp";
 import polisherIcon from "@/assets/icons/orbital-polisher-icon.png";
 
 const services = [
@@ -85,7 +97,11 @@ const services = [
     heading: "Boat & Marine Detailing",
     description: "Mobile boat detailing packages plus ceramic coating, gelcoat, hull and pontoon care quotes.",
     href: "/boat-detailing-baton-rouge",
-    image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=800&auto=format&fit=crop",
+    image: boatWebp800,
+    sources: {
+      avif: srcSet([[boatAvif400, 400], [boatAvif800, 800], [boatAvif1200, 1200]]),
+      webp: srcSet([[boatWebp400, 400], [boatWebp800, 800], [boatWebp1200, 1200]]),
+    },
     alt: "Boat detailing service in Louisiana",
   },
   {
@@ -104,7 +120,11 @@ const services = [
     heading: "Aircraft Detailing",
     description: "Private-aircraft interior cleaning, shampooing, polishing and ceramic coating by quote.",
     href: "/aircraft-detailing-baton-rouge",
-    image: "https://images.unsplash.com/photo-1474302770737-173ee21bab63?q=80&w=800&auto=format&fit=crop",
+    image: airWebp800,
+    sources: {
+      avif: srcSet([[airAvif400, 400], [airAvif800, 800], [airAvif1200, 1200]]),
+      webp: srcSet([[airWebp400, 400], [airWebp800, 800], [airWebp1200, 1200]]),
+    },
     alt: "Aircraft detailing service for private planes in Baton Rouge",
   },
 ];
@@ -142,7 +162,7 @@ export function ServicesSection() {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Image */}
-              <div className="aspect-[4/3] overflow-hidden">
+              <div className="aspect-[4/3] overflow-hidden bg-muted">
                 <picture>
                   {service.sources?.avif && (
                     <source type="image/avif" srcSet={service.sources.avif} sizes={IMAGE_SIZES} />

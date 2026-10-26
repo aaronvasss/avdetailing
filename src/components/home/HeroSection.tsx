@@ -65,10 +65,6 @@ export function HeroSection() {
             <span className="text-primary">Car</span> Detailing Baton Rouge
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground mb-8 animate-fade-in-up">
-            Mobile Detailing That Comes to You
-          </p>
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed mb-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
