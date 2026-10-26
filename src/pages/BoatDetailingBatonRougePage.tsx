@@ -54,7 +54,7 @@ const SERVICES: ServiceCardData[] = [
   { title: "Gelcoat Restoration", href: "/gelcoat-restoration-baton-rouge", icon: Sparkles, tagline: "For chalky, faded or oxidized finishes", linkLabel: "Gelcoat restoration assessment",
     body: <>We assess the finish and test an area before recommending Boat Full Detail (includes oxidation removal), Boat Premium Detail or a quoted restoration. Results depend on gelcoat condition.</> },
   { title: "Hull Cleaning", href: "/hull-cleaning-baton-rouge", icon: Droplets, tagline: "Waterline and hull staining, reviewed per request", linkLabel: "Boat hull cleaning assessment",
-    body: <>Tell us the hull material, the staining you see and how the hull can be reached — on a trailer, on a lift, in a slip or afloat — and we will confirm what we can do.</> },
+    body: <>Tell us the hull material, the staining you see and whether the boat is on a trailer or lift (hull cleaning is done out of the water only) and where it is located, and we will confirm what we can do.</> },
   { title: "Pontoon Cleaning", href: "/pontoon-cleaning-baton-rouge", icon: Waves, tagline: "Decks, vinyl seating and aluminum logs", linkLabel: "Pontoon boat cleaning and care",
     body: <>Match deck and vinyl cleaning to a boat package; aluminum log cleaning and heavier staining are quoted after we see the condition.</> },
   { title: "Mobile Boat Detailing", href: "/mobile-boat-detailing-baton-rouge", icon: Ship, tagline: "We come to where your boat is kept", linkLabel: "How mobile boat visits work",
