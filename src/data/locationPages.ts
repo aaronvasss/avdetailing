@@ -167,47 +167,42 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     neighborhoods:
       "We regularly service the I-12 corridor, Range Avenue, the Bass Pro area, Juban Road, Springfield Road, Pete's Highway, Florida Boulevard (Hwy 190), the Antique Village / downtown Denham Springs area, and the residential streets stretching out toward Watson and Livingston. Whether you're near the Bass Pro, off Juban, or in a subdivision along Springfield Road, our mobile team comes to you.",
     localNotes: [
-      "Self-contained rig: we bring our own water and power, so we can work in driveways, apartment lots, and business parking lots around Range Avenue and Juban Road without a hose hookup.",
-      "Truck- and SUV-friendly pricing tiers, including lifted trucks and 3-row family haulers that are common on the I-12 commute into Baton Rouge.",
-      "Heavy lovebug, tar, and I-12 road-film decontamination is built into every exterior service — spring and late-summer lovebug seasons hit Livingston Parish especially hard.",
-      "Boat and RV detailing available for Tickfaw and Amite River trailer setups stored at home, including gelcoat oxidation removal.",
-      "Flexible 7 day scheduling with a 30-minute arrival window text, so you don't lose a work day waiting on us.",
+      "We work at driveways, offices and business lots around Range Avenue and Juban Road — note in your booking where the vehicle will be parked and any access instructions.",
+      "Package prices are set by vehicle type (car, SUV or truck) and shown before you book.",
+      "Clay bar treatment is available as an add-on for bonded road film and bug residue on exterior paint.",
+      "Boat and RV owners can request exterior work at home; see the boat and RV pages for current options and what to tell us.",
+      "Appointments run between 6 AM and 8 PM Central, with a 30-minute arrival window.",
     ],
     faqs: [
       {
         question: "Do you actually come to Denham Springs, or do I have to drive to Baton Rouge?",
         answer:
-          "We come to you. AV Detailing is fully mobile and covers Denham Springs and Livingston Parish, including the I-12 corridor, Range Avenue, Juban Road, Springfield Road, and out toward Watson. You can book online and we arrive at your home, office, or jobsite.",
+          "We come to you. AV Detailing is mobile and serves Denham Springs and nearby Livingston Parish, including the I-12 corridor, Range Avenue, Juban Road, Springfield Road and out toward Watson. Book online and we arrive at your home or office.",
       },
       {
-        question: "Do you need to use my water or electricity?",
+        question: "Can you detail a truck or a large SUV?",
         answer:
-          "No. Our rig carries its own water and power, so we can detail at a Denham Springs apartment complex, an office lot, or a driveway with no outdoor spigot.",
+          "Yes. Pricing is set by vehicle type — car, SUV or truck — and you see the price for your vehicle type before you book.",
       },
       {
-        question: "Can you detail a lifted truck or a 3-row SUV?",
+        question: "How long does a detail take in my driveway?",
         answer:
-          "Yes. Trucks and large SUVs are a big share of the vehicles we detail in Livingston Parish, and pricing is tiered by vehicle size so a lifted truck or large SUV is quoted accurately before we arrive.",
+          "Standard package appointments are scheduled for about 2 hours 15 minutes. Paint correction and ceramic coating take longer, and we confirm the time when you book.",
       },
       {
-        question: "How long does a full detail take in my driveway?",
+        question: "Can you remove lovebugs and road film?",
         answer:
-          "Most car and SUV details run about 2 to 2.5 hours. Paint correction and ceramic coating take considerably longer — ceramic coating is a full-day appointment — and we confirm the time window when you book.",
-      },
-      {
-        question: "Can you get lovebugs and I-12 road film off without damaging paint?",
-        answer:
-          "Yes. Exterior services include a dedicated bug and tar decontamination step with proper chemical dwell time and lubrication instead of aggressive scrubbing, which is what causes marring on front bumpers and mirrors.",
+          "Our exterior wash removes surface dirt and bug residue. For bonded contamination, add clay bar treatment at the booking add-ons step; heavy etching may need a paint correction assessment.",
       },
       {
         question: "Do you detail boats and RVs parked at a Denham Springs home?",
         answer:
-          "We do, as long as there's room to work around the unit. Boat gelcoat restoration and RV exterior detailing are both available at your residence in Livingston Parish.",
+          "You can request it. RV service is exterior-only, and boat work starts with details about the boat and where it's parked — see the RV and boat pages for current options.",
       },
       {
         question: "How do I book a detail in Denham Springs?",
         answer:
-          "Book online through our booking page or call (225) 521-6264. You'll get a confirmation with your appointment time plus a 30-minute arrival window text on the day of service.",
+          "Book online through our booking page or call (225) 521-6264. You'll get a confirmation with your appointment time and a 30-minute arrival window.",
       },
     ],
     proofPlaceholder:
