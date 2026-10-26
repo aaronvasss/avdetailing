@@ -208,3 +208,53 @@ export function ServiceLandingTemplate({ config }: Props) {
     </Layout>
   );
 }
+
+/** Legacy page for a service that is not offered: explains and links to available options. */
+function UnavailableServicePage({ config }: Props) {
+  const pagePath = `/${config.slug}`;
+  const options = [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH, description: "All exterior RV services and what to send us." }, ...RV_EXTERIOR_LINKS];
+  return (
+    <Layout>
+      <SEOHead title={config.seoTitle ?? config.title} description={config.metaDescription} path={pagePath} noIndex follow />
+      <JsonLd data={[
+        localBusinessSchema(),
+        breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "RV Detailing", path: RV_HUB_PATH },
+          { name: "RV Interior", path: pagePath },
+        ]),
+      ]} />
+      <nav aria-label="Breadcrumb" className="container-custom pt-6 pb-2">
+        <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+          <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li><Link to={RV_HUB_PATH} className="hover:text-primary transition-colors">RV Detailing</Link></li>
+          <li aria-hidden="true" className="text-muted-foreground/50">/</li>
+          <li className="text-foreground font-medium" aria-current="page">RV Interior</li>
+        </ol>
+      </nav>
+      <section className="section-padding bg-card">
+        <div className="container-custom max-w-4xl">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">{config.title}</h1>
+          <p className="text-muted-foreground leading-relaxed text-base md:text-lg">{config.intro}</p>
+        </div>
+      </section>
+      <section className="section-padding">
+        <div className="container-custom max-w-4xl">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Exterior RV options</h2>
+          <ul className="space-y-4">
+            {options.map((o) => (
+              <li key={o.href}>
+                <Link to={o.href} className="text-primary underline underline-offset-4 font-semibold">{o.text}</Link>
+                <p className="text-muted-foreground mt-1">{o.description}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 text-lg">
+            Questions? Call <a href="tel:2255216264" className="text-primary hover:underline">(225) 521-6264</a>.
+          </p>
+        </div>
+      </section>
+    </Layout>
+  );
+}
