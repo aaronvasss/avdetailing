@@ -1,34 +1,19 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-// A2P 10DLC compliance: the chat widget must NOT appear on any page that
-// collects phone numbers or SMS opt-in consent (booking, contact, membership
-// signup, auth, account, admin, worker portals, etc.).
-const EXCLUDED_PREFIXES = [
-  "/book",
-  "/booking",
-  "/cancel",
-  "/rate",
-  "/contact",
-  "/memberships", // membership signup modal collects phone + SMS consent
-  "/auth",
-  "/reset-password",
-  "/account",
-  "/admin",
-  "/worker",
-  "/reschedule",
-];
+import { isChatAllowed } from "@/lib/chat-routes";
+
+// A2P 10DLC compliance: the chat widget must NOT appear on pages that collect
+// phone numbers/SMS consent or on private/utility routes. Loading is limited to
+// a reviewed allowlist (src/lib/chat-routes.ts); unknown routes are excluded.
+// Limitation: DOM cleanup hides/removes widget elements, but cannot unload a
+// remote bundle that already executed on an earlier allowed page.
 
 const WIDGET_SCRIPT_ID = "ghl-chat-widget-loader";
 const WIDGET_SRC = "https://beta.leadconnectorhq.com/loader.js";
 const WIDGET_ID = "6a22e4bc60f718013c4292e3";
 const RESOURCES_URL = "https://beta.leadconnectorhq.com/chat-widget/loader.js";
 
-function isExcludedPath(pathname: string): boolean {
-  return EXCLUDED_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
-  );
-}
 
 const WIDGET_DOM_SELECTOR = [
   "chat-widget",
@@ -152,16 +137,17 @@ function whenIdleOrInteraction(cb: () => void): () => void {
 }
 
 export function GhlChatWidget() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
+  const allowed = isChatAllowed(pathname, search, hash);
 
   useEffect(() => {
-    if (isExcludedPath(pathname)) {
+    if (!allowed) {
       return watchAndRemoveWidget();
     }
 
     if (document.getElementById(WIDGET_SCRIPT_ID)) return;
     return whenIdleOrInteraction(injectWidget);
-  }, [pathname]);
+  }, [allowed, pathname]);
 
   return null;
 }
