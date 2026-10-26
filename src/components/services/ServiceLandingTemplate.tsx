@@ -61,7 +61,7 @@ export function ServiceLandingTemplate({ config }: Props) {
   const isRv = Boolean(config.rvPage);
   const isCar = Boolean(config.carPage);
   const crumbParent = isCar ? { name: "Car Detailing", path: CAR_HUB_PATH } : isAircraft ? { name: "Services", path: "/services" } : isRv ? { name: "RV Detailing", path: RV_HUB_PATH } : { name: "Services", path: "/car-detailing-baton-rouge" };
-  const relatedLinks = isCar ? relatedCarLinks(pagePath) : isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
+  const relatedLinks = isCar ? relatedCarLinks(`/${config.slug}`) : isRv ? [{ text: "Exterior RV detailing overview", href: RV_HUB_PATH }, ...RV_EXTERIOR_LINKS.filter(l => l.href !== `/${config.slug}`)] : config.relatedLinks;
   const pagePath = `/${config.slug}`;
   const serviceSchema = {
     "@context": "https://schema.org",
