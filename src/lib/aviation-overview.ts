@@ -42,7 +42,7 @@ export function aviationOverviewHtml(): string {
     ...page.coverage.map(area => `<h3>${area.title}</h3><p>${escapeHtml(area.detail)}</p>`),
     `<h2>Aircraft quote &amp; scheduling questions</h2>`,
     ...page.questions.map(item => `<h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.answer)}</p>`),
-    `<h2>Request an aircraft quote</h2><p>${escapeHtml(page.quoteText)}</p><a href="${page.quoteHref}">Request Aircraft Quote</a>`,
-    `<a href="/aircraft-cleaning-baton-rouge">Aircraft cleaning information</a>`,
+    `<h2>Request an aircraft quote</h2><p>${escapeHtml(page.quoteText)}</p><a href="${page.quoteHref}">Request an Aircraft Quote</a>`,
+    `<a href="/aircraft-cleaning-baton-rouge">Exterior aircraft cleaning and condition assessment</a>`,
   ].join("");
 }

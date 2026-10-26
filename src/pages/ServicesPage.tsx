@@ -75,7 +75,7 @@ const services: Service[] = [
     icon: Plane,
     title: "Aircraft Detailing",
     description:
-      "Precision detailing for private aircraft and helicopters with aviation-approved products at BTR, LFT, MSY, NEW.",
+      "Private-aircraft and private-jet interior deep cleaning, shampooing, polishing and ceramic coating. Scope and access coordinated per job.",
     href: "/aircraft-detailing-baton-rouge",
     service: "aircraft",
     tag: "Aviation",
@@ -125,7 +125,10 @@ const ServicesPage = () => {
             marina, or hangar throughout Greater Baton Rouge — Highland Road, Shenandoah,
             Gonzales, Prairieville, Denham Springs, Walker, Zachary, Central, and surrounding
             parishes within 30 miles. From quick maintenance washes to System X ceramic coating
-            and aviation-grade aircraft care, we cover everything you drive, ride, or fly.
+            and aircraft detailing by quote, we cover everything you drive, ride, or fly.
+          </p>
+          <p className="mt-4 max-w-3xl text-base text-muted-foreground leading-relaxed">
+            For private aircraft, explore our <Link to="/aircraft-detailing-baton-rouge" className="text-primary underline">aircraft and private jet detailing overview</Link> to discuss cabin cleaning, polishing or ceramic coating and coordinate your airport or hangar location.
           </p>
         </div>
       </section>

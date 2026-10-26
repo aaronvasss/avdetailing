@@ -1,45 +1,12 @@
-import { writeFileSync, existsSync, statSync } from "fs";
+import { writeFileSync } from "fs";
 import { resolve } from "path";
-import { execFileSync } from "child_process";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages.ts";
 import { LOCATION_PAGES } from "../src/data/locationPages.ts";
 
 const BASE_URL = "https://avdetailing.net";
 
-/**
- * Real last-modification date (YYYY-MM-DD) for the source files that render a
- * page. Uses the git commit date when available and falls back to the file
- * mtime, so every URL gets its own page-specific <lastmod>.
- */
-const lastmodCache = new Map<string, string>();
-
-function fileLastmod(file: string): string | undefined {
-  if (lastmodCache.has(file)) return lastmodCache.get(file);
-  const abs = resolve(file);
-  if (!existsSync(abs)) return undefined;
-
-  let date: string | undefined;
-  try {
-    const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", file], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(out)) date = out;
-  } catch {
-    // git unavailable (e.g. fresh checkout) — fall back to mtime below
-  }
-  if (!date) date = statSync(abs).mtime.toISOString().slice(0, 10);
-
-  lastmodCache.set(file, date);
-  return date;
-}
-
-/** Most recent lastmod across the given source files. */
-function sourcesLastmod(sources: string[] | undefined): string | undefined {
-  const dates = (sources ?? []).map(fileLastmod).filter((d): d is string => Boolean(d));
-  if (!dates.length) return undefined;
-  return dates.sort().at(-1);
-}
+// Source-file commits and filesystem times do not establish a significant
+// page-specific content change. Omit lastmod unless explicitly recorded.
 
 function pageFile(name: string) {
   return `src/pages/${name}.tsx`;
@@ -141,7 +108,7 @@ function validateAndNormalize(entries: SitemapEntry[]) {
     }
 
     seen.add(path);
-    const lastmod = entry.lastmod ?? sourcesLastmod(entry.sources);
+    const lastmod = entry.lastmod;
     return { ...entry, path, ...(lastmod ? { lastmod } : {}) };
   });
 }

@@ -1,3 +1,7 @@
+# Aviation discovery verification
+- [ ] Strengthen homepage/directory and aviation contextual links; verify metadata, initial HTML, sitemap and truthful structured data.
+- [ ] Verify desktop/phone and quote flow with writes blocked; report live versus preview evidence and remaining external checks. No publication, deployment or production settings.
+
 # Aviation supporting-page targeting
 - [x] Differentiated exterior inquiries, interior deep cleaning/shampooing, and polishing/coating with unique metadata, scope questions and related links; removed unsupported claims, retained URLs and existing quote flow.
 - [x] Nine desktop/375/390 page-to-quote checks passed with blocked writes, no overflow or runtime errors; screenshots inspected, captured initial HTML and empty-shell fallback verified, 13 regression tests passed and preview build OK. No messages, bookings, publishing or deployment; live changes await authorized publication.
