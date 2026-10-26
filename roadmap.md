@@ -147,3 +147,7 @@
 
 - [x] Aircraft quote buttons open the aircraft quote form directly (/book?service=aircraft)
 - [x] /services indexable directory with shared initial/rendered head and sitemap entry
+
+# Final shared SEO cleanup + full build
+- [x] Aviation quote/product wording, business Maps listing/no centroid geo, email typo, homepage RV interior line.
+- [x] Full production build + prerender ran (exit 0); captured and empty-shell HTML audited; duplicate descriptions and missing Service schema fixed. 279 tests and mocked signed-in repeat/membership checks passed. Report: docs/seo-final-report-2026-10-26.md. Publishing still waits on owner authorization and the existing release gate.
