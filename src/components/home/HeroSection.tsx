@@ -26,7 +26,7 @@ const heroWebpSrcSet = [
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+    <section className="relative min-h-0 py-12 lg:min-h-[90vh] lg:py-0 flex items-start lg:items-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <picture>
@@ -50,7 +50,7 @@ export function HeroSection() {
 
 
       {/* Content */}
-      <div className="container-custom relative z-10">
+      <div className="container-custom max-lg:px-6 relative z-10">
         <div className="max-w-3xl">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6 animate-fade-in">
@@ -61,19 +61,19 @@ export function HeroSection() {
           </div>
 
           {/* Headline - Single H1 */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5 lg:mb-6">
             <span className="text-primary">Car</span> Detailing Baton Rouge
           </h1>
 
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed mb-8">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed mb-7 lg:mb-8">
             Premium detailing, ceramic coating, paint correction and interior services throughout Baton Rouge and nearby areas.
           </p>
 
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-12">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 mb-7 lg:mb-12">
             <Button asChild size="lg" className="glow-red text-lg h-14 px-8">
               <Link to="/book">
                 Book Your Detail
@@ -95,7 +95,7 @@ export function HeroSection() {
           </div>
 
           {/* Trust Badges */}
-          <div className="flex flex-wrap gap-6 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-3 lg:gap-6 lg:animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Shield className="h-5 w-5 text-primary" />
               <span>Fully Insured</span>
@@ -104,7 +104,7 @@ export function HeroSection() {
               <Clock className="h-5 w-5 text-primary" />
               <span>Same-Week Availability</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground sm:col-span-2">
               <Award className="h-5 w-5 text-primary" />
               <span>Detail-Obsessed Work</span>
             </div>
@@ -113,7 +113,7 @@ export function HeroSection() {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden md:block">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden lg:block">
         <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center">
           <div className="w-1.5 h-3 bg-primary rounded-full mt-2 animate-bounce" />
         </div>
