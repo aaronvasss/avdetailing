@@ -21,6 +21,9 @@ body {
 
 @layer base {
   :root {
+    /* Closed mobile header: navigation row plus its existing bottom border. */
+    --site-header-row-height: 4rem;
+    --site-header-height: calc(var(--site-header-row-height) + 1px);
     /* AV Detailing uses dark theme by default for premium feel */
     --background: 0 0% 5%;
     --foreground: 0 0% 98%;
@@ -156,6 +159,13 @@ body {
 }
 
 @layer utilities {
+  @media (max-width: 1023px) {
+    .mobile-home-hero {
+      min-height: calc(100vh - var(--site-header-height));
+      min-height: calc(100svh - var(--site-header-height));
+    }
+  }
+
   /* Text gradients */
   .text-gradient-red {
     background: linear-gradient(135deg, hsl(var(--av-red)) 0%, hsl(var(--av-red-light)) 100%);

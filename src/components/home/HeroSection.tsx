@@ -26,7 +26,7 @@ const heroWebpSrcSet = [
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-0 py-12 lg:min-h-[90vh] lg:py-0 flex items-start lg:items-center overflow-hidden">
+    <section className="mobile-home-hero relative py-12 lg:min-h-[90vh] lg:py-0 flex items-center lg:overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <picture>

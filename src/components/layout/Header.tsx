@@ -41,7 +41,7 @@ export function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
       <nav className="container-custom">
-        <div className="flex items-center justify-between h-16 lg:h-20 gap-4">
+        <div className="flex items-center justify-between h-[var(--site-header-row-height)] lg:h-20 gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0" aria-label="AV Detailing home">
             <span className="text-2xl lg:text-3xl font-bold tracking-tight leading-none">
