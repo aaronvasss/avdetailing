@@ -1,5 +1,5 @@
 # Compact chat launcher (source/preview only)
-- [ ] Observe vendor controls, apply narrowly scoped teaser/launcher styling, verify mobile/desktop open-close and route cleanup without messages.
+- [x] Observed vendor open shadow root; hide only prompt, size closed launcher 52px with safe-area clearance. Real read-only 375/390/desktop keyboard open-close checks and eight mocked lifecycle/route tests passed; automatic preview build OK. No messages or publication; owner must publish to apply live.
 
 # GA4 property setup reconciliation (docs only)
 - [x] Owner-reported GA4 UI setup recorded: property 443591828, stream 8206634888, URL https://avdetailing.net, Enhanced Measurement OFF, two key events (no value), five event dimensions.
