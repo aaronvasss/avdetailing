@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import { isChatAllowed } from "@/lib/chat-routes";
+import { watchChatPresentation } from "@/lib/chat-presentation";
 
 // A2P 10DLC compliance: the chat widget must NOT appear on pages that collect
 // phone numbers/SMS consent or on private/utility routes. Loading is limited to
@@ -145,8 +146,14 @@ export function GhlChatWidget() {
       return watchAndRemoveWidget();
     }
 
-    if (document.getElementById(WIDGET_SCRIPT_ID)) return;
-    return whenIdleOrInteraction(injectWidget);
+    const stopPresentation = watchChatPresentation();
+    const stopLoading = document.getElementById(WIDGET_SCRIPT_ID)
+      ? () => {}
+      : whenIdleOrInteraction(injectWidget);
+    return () => {
+      stopLoading();
+      stopPresentation();
+    };
   }, [allowed, pathname]);
 
   return null;
