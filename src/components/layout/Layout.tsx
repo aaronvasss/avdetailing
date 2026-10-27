@@ -16,7 +16,7 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden max-w-full">
       <Header />
-      <main className="flex-1 pt-16 lg:pt-20 pb-16 lg:pb-0">
+      <main className={`flex-1 pt-16 lg:pt-20 pb-16 lg:pb-0 ${location.pathname === "/" ? "max-lg:pt-[var(--site-header-height)]" : ""}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

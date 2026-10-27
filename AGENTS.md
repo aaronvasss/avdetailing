@@ -1,4 +1,7 @@
 # Architecture rules
+<!-- LOVABLE:BEGIN -->
+- Share the closed mobile header row-height token between Header, the homepage spacer and viewport-minus-header hero minimum so its border is counted once; other routes and desktop retain existing spacing.
+<!-- LOVABLE:END -->
 - Aviation-policy owns public wording separately from payment enforcement so copy cannot change charges.
 - The main aviation overview and its initial-HTML fallback share aviation-overview content so crawler-visible service, coverage and quote information cannot diverge from the page.
 - Aviation supporting pages share serviceLandingPages metadata, scope and links between template/fallback; breadcrumbs use /services, access uses aviation-policy, and optional fields preserve other services.
