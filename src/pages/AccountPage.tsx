@@ -108,14 +108,15 @@ export default function AccountPage() {
 
   if (authLoading || profileLoading) {
     return (
-      <Layout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-muted-foreground">Loading your account...</p>
-          </div>
+      <div className="min-h-screen bg-background" role="status" aria-label="Loading your account">
+        <div className="h-14 border-b border-border/60" />
+        <div className="mx-auto max-w-2xl space-y-4 px-4 pt-6">
+          {["h-8 w-2/3", "h-48", "h-20", "h-20", "h-32"].map((c, i) => (
+            <div key={i} className={`${c} rounded-2xl bg-muted/40 animate-pulse motion-reduce:animate-none`} />
+          ))}
+          <span className="sr-only">Loading your account…</span>
         </div>
-      </Layout>
+      </div>
     );
   }
 
