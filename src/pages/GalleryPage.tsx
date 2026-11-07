@@ -14,13 +14,14 @@ import paintCorrectionBefore from "@/assets/gallery/paint-correction-before.jpg"
 import paintCorrectionAfter from "@/assets/gallery/paint-correction-after.jpg";
 import { GALLERY_PHOTOS } from "@/lib/gallery-images";
 import { ResponsivePhoto } from "@/components/ui/responsive-photo";
+import { GALLERY_INTRO, JOB_GALLERY, jobCaption } from "@/lib/job-gallery";
 
 const categories = ["All", "Cars", "Boats", "RVs", "Aircraft"];
 
 const galleryItems = [
-  { id: 1, category: "Cars", before: carDetailBefore, after: carDetailAfter, beforePhoto: GALLERY_PHOTOS.carBefore, afterPhoto: GALLERY_PHOTOS.carAfter, title: "BMW 5 Series Full Detail", service: "Signature Detail" },
-  { id: 2, category: "Cars", before: paintCorrectionBefore, after: paintCorrectionAfter, beforePhoto: GALLERY_PHOTOS.paintBefore, afterPhoto: GALLERY_PHOTOS.paintAfter, title: "Porsche 911 Paint Correction", service: "2-Step Correction" },
-  { id: 3, category: "Boats", before: boatDetailBefore, after: boatDetailAfter, beforePhoto: GALLERY_PHOTOS.boatBefore, afterPhoto: GALLERY_PHOTOS.boatAfter, title: "Yacht Marine Restoration", service: "Full Marine Detail" },
+  { id: 1, category: "Cars", before: carDetailBefore, after: carDetailAfter, beforePhoto: GALLERY_PHOTOS.carBefore, afterPhoto: GALLERY_PHOTOS.carAfter, title: JOB_GALLERY[0].vehicle, service: JOB_GALLERY[0].service },
+  { id: 2, category: "Cars", before: paintCorrectionBefore, after: paintCorrectionAfter, beforePhoto: GALLERY_PHOTOS.paintBefore, afterPhoto: GALLERY_PHOTOS.paintAfter, title: JOB_GALLERY[1].vehicle, service: JOB_GALLERY[1].service },
+  { id: 3, category: "Boats", before: boatDetailBefore, after: boatDetailAfter, beforePhoto: GALLERY_PHOTOS.boatBefore, afterPhoto: GALLERY_PHOTOS.boatAfter, title: JOB_GALLERY[2].vehicle, service: JOB_GALLERY[2].service },
 ];
 
 const GalleryPage = () => {
@@ -59,7 +60,7 @@ const GalleryPage = () => {
               Before & After Gallery
             </h1>
             <p className="text-lg text-muted-foreground">
-              See the dramatic transformations we achieve. Hover over any image to see the before/after.
+              {GALLERY_INTRO}
             </p>
           </div>
         </div>
@@ -88,8 +89,8 @@ const GalleryPage = () => {
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
+              <figure key={item.id}>
               <div
-                key={item.id}
                 className="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer"
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
@@ -124,6 +125,8 @@ const GalleryPage = () => {
                   <p className="text-sm text-muted-foreground">{item.service}</p>
                 </div>
               </div>
+              <figcaption className="mt-3 text-sm text-muted-foreground">{jobCaption(JOB_GALLERY[item.id - 1])}</figcaption>
+              </figure>
             ))}
           </div>
         </div>

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { AnalyticsSettingsControl } from "@/components/analytics/AnalyticsConsent";
+import { NEW_LOCATION_AREAS } from "@/data/locationPages";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -29,6 +30,7 @@ const company = [
 ];
 
 const locationLinks = [
+  ...NEW_LOCATION_AREAS.map(area => ({ name: area.city, href: `/${area.slug}` })),
   { name: "Highland Road", href: "/car-detailing-highland-road-baton-rouge" },
   { name: "Shenandoah", href: "/car-detailing-shenandoah-baton-rouge" },
   { name: "Gonzales", href: "/car-detailing-gonzales-la" },

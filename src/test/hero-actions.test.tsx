@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { HeroSection } from "@/components/home/HeroSection";
+vi.mock("@/components/reviews/GoogleRatingBadge", () => ({ GoogleRatingBadge: () => null }));
 
 afterEach(() => {
   cleanup();
