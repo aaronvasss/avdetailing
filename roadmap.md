@@ -1,6 +1,12 @@
+# SEO batch 4A (November 7)
+- [x] Aaron’s Business Profile linked; exact AV listing CID verified; google-reviews deployed and live cache reads back 5.0/142/five newest by createTime. Atomic daily refresh attempt, public unexpired reads/service-only writes, daily expired snapshot deletion. No private replies/media/account fields stored; original text/ratings unchanged, no review schema.
+- [x] Shared ceramic cost guide added with exact sedan/coupe 850/1300/1700 and SUV/truck 950/1400/1800, legacy 5-year key retained as 6-Year; FAQ/schema/navigation/sitemap/initial HTML match.
+- [x] Shared guidance expands boat ceramic/mobile RV/aircraft; all 15 requested subservices have grounded what-to-expect and four FAQs. Approved photos retained, no inferred treatments, fixed durations or new product/warranty claims.
+- [x] Initial HTML removes captured live review content; desktop/375 DPR2/390 DPR3 checks cover 19 FAQ pages, real cache section/badges/Read More and cost-guide→booking navigation, empty-feed mocks and no runtime errors. Full suite 648 tests/60 files passed; preview build OK. No manual production build, booking/payment/GA changes or publication.
+
 # SEO batch 3 (November 7)
 - [x] Public hours 6AM–8PM daily shared across footer/contact/schema/initial HTML, booking unchanged; focused tests and preview checks completed.
-- [ ] Automatic reviews blocked pending owner approval of Business Profile alternative: Places forbids persistent rating/count/review cache and only returns up to five relevance-selected reviews. Both requested secrets already set; no function/migration deployed or Google API requests made.
+- [x] Superseded by batch 4A: Business Profile approved and implemented; Places credentials remain untouched and unused.
 - [x] Separate five approved job photos already processed and verified.
 
 # Approved job photos (November 7, source/preview only)
@@ -15,8 +21,8 @@
 
 # SEO batch 1 (November 7, source/preview only)
 - [x] FAQ Basic starting price now shares car display $140; payment copy/schema includes online or service-time choice and confirmed methods, retaining existing public Zelle.
-- [ ] Hours blocked: live settings 06:00–20:00, latest start 18:00; owner requested stop on mismatch, so footer/contact/schema and scheduling remain untouched.
-- [ ] Google badge prepared with validated atomic business_settings pair and existing admin inputs; no live Places source. Public whitelist excludes new key and migrations are forbidden, so public activation waits for separately authorized permission change and verified owner values.
+- [x] Superseded by batch 3: public hours match 06:00–20:00 daily; scheduling unchanged.
+- [x] Superseded by batch 4A: public badges now read genuine Business Profile cache; manual business_settings summary remains unused by public badges.
 - [x] Shorten and synchronize metadata; noindex missing-route client page has no canonical and recovery links. Hosting documents SPA fallback, not custom HTTP404 handling; status remains hosting-limited. Existing optimized boat/aircraft photos are localized stock, not confirmed AV jobs; left unchanged. Wrong backend-host preconnect removed.
 - [x] 159 focused tests plus 3 mocked admin tests; desktop/375 DPR2/390 DPR3 checks verify FAQ, hidden/mock badges, seven service/home placements, no overflow and NotFound navigation. Automatic preview build OK; no manual production build, publish, backend writes or real customer actions.
 

@@ -62,6 +62,7 @@ export const CERAMIC_BUYING_GUIDANCE = [
 ];
 
 export const CERAMIC_LINKS = [
+  { href: "/ceramic-coating-cost-baton-rouge", text: "Ceramic coating cost guide" },
   { href: "/paint-correction-baton-rouge", text: "Paint correction in Baton Rouge" },
   { href: "/car-detailing-baton-rouge", text: "Car detailing packages" },
   { href: "/book", text: "Book ceramic coating online" },

@@ -9,6 +9,9 @@ export function FeaturedReviewCard({ review }: { review: FeaturedGoogleReview })
   const date = new Date(`${review.review_date}T12:00:00Z`).toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric", timeZone: "UTC",
   });
+  const days = Math.max(0, Math.floor((Date.now() - Date.parse(`${review.review_date}T12:00:00Z`)) / 86400000));
+  const months = Math.floor(days / 30), years = Math.floor(days / 365);
+  const relativeDate = days === 0 ? "Today" : days === 1 ? "1 day ago" : days < 30 ? `${days} days ago` : days < 365 ? `${months} ${months === 1 ? "month" : "months"} ago` : `${years} ${years === 1 ? "year" : "years"} ago`;
   return (
     <article className="flex h-full min-h-[340px] flex-col rounded-lg border border-border bg-background p-6" aria-label={`Google review by ${review.reviewer_name}`}>
       <div className="flex items-start gap-3">
@@ -17,7 +20,7 @@ export function FeaturedReviewCard({ review }: { review: FeaturedGoogleReview })
         </span>
         <div className="min-w-0 flex-1">
           <h3 className="break-words text-base font-semibold leading-snug">{review.reviewer_name}</h3>
-          <time dateTime={review.review_date} className="mt-1 block text-xs text-muted-foreground">{date}</time>
+          <time dateTime={review.review_date} title={date} className="mt-1 block text-xs text-muted-foreground">{relativeDate}</time>
         </div>
         <svg role="img" aria-label="Google" viewBox="0 0 24 24" className="h-5 w-5 shrink-0 fill-current text-foreground">
           <path d="M22.56 12.25c0-.73-.06-1.42-.19-2.09H12v3.96h5.92c-.26 1.28-1.02 2.36-2.15 3.08v2.56h3.48c2.03-1.87 3.31-4.63 3.31-7.51ZM12 23c2.97 0 5.46-.98 7.28-2.67l-3.48-2.7c-.98.66-2.24 1.06-3.8 1.06-2.86 0-5.3-1.93-6.17-4.53H2.24v2.79C4.05 20.54 7.74 23 12 23ZM5.83 14.16A6.6 6.6 0 0 1 5.48 12c0-.75.13-1.48.35-2.16V7.05H2.24A10.97 10.97 0 0 0 1 12c0 1.78.43 3.47 1.24 4.95l3.59-2.79ZM12 5.31c1.62 0 3.07.56 4.21 1.66l3.16-3.16A10.56 10.56 0 0 0 12 1C7.74 1 4.05 3.46 2.24 7.05l3.59 2.79C6.7 7.24 9.14 5.31 12 5.31Z" />

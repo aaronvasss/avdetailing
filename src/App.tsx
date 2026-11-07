@@ -22,6 +22,7 @@ const RVDetailingBatonRougePage = lazy(() => import("./pages/RVDetailingBatonRou
 const BoatDetailingBatonRougePage = lazy(() => import("./pages/BoatDetailingBatonRougePage"));
 const AircraftDetailingBatonRougePage = lazy(() => import("./pages/AircraftDetailingBatonRougePage"));
 const CeramicCoatingBatonRougePage = lazy(() => import("./pages/CeramicCoatingBatonRougePage"));
+const CeramicCoatingCostPage = lazy(() => import("./pages/CeramicCoatingCostPage"));
 const PaintCorrectionBatonRougePage = lazy(() => import("./pages/PaintCorrectionBatonRougePage"));
 const ServiceLandingPage = lazy(() => import("./pages/ServiceLandingPage"));
 const LocationLandingPage = lazy(() => import("./pages/LocationLandingPage"));
@@ -94,6 +95,7 @@ const App = () => (
                 <Route path="/boat-detailing-baton-rouge" element={<BoatDetailingBatonRougePage />} />
                 <Route path="/aircraft-detailing-baton-rouge" element={<AircraftDetailingBatonRougePage />} />
                 <Route path="/ceramic-coating-baton-rouge" element={<CeramicCoatingBatonRougePage />} />
+                <Route path="/ceramic-coating-cost-baton-rouge" element={<CeramicCoatingCostPage />} />
                 <Route path="/paint-correction-baton-rouge" element={<PaintCorrectionBatonRougePage />} />
                 {SERVICE_LANDING_PAGES.filter((p) => p.slug !== "ceramic-coating-baton-rouge" && p.slug !== "paint-correction-baton-rouge").map((p) => (
                   <Route

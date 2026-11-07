@@ -2,6 +2,7 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages.ts";
 import { LOCATION_PAGES } from "../src/data/locationPages.ts";
+import { CERAMIC_COST } from "../src/lib/ceramic-cost.ts";
 
 const BASE_URL = "https://avdetailing.net";
 
@@ -43,6 +44,7 @@ interface SitemapEntry {
 }
 
 const staticEntries: SitemapEntry[] = [
+  { path: CERAMIC_COST.path, changefreq: "monthly", priority: "0.80" },
   // Homepage
   { path: "/", sources: [pageFile("Index"), "src/components/home"], changefreq: "weekly", priority: "1.0" },
 

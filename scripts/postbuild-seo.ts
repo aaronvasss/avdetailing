@@ -33,6 +33,10 @@ import { pageExtrasHtml, galleryInitialHtml, replacePageFaqSchema } from "../src
 import { NEW_LOCATION_AREAS } from "../src/data/locationPages";
 import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "../src/lib/approved-job-photos";
 import { PUBLIC_BUSINESS_HOURS, PUBLIC_OPENING_HOURS_SPECIFICATION } from "../src/lib/public-business-facts";
+import { CERAMIC_COST, CERAMIC_COST_FAQS, ceramicCostHtml } from "../src/lib/ceramic-cost";
+import { SERVICE_EXPECTATIONS } from "../src/lib/service-expectations";
+import { JSDOM } from "jsdom";
+const routeFaqs = (path: string) => path === CERAMIC_COST.path ? CERAMIC_COST_FAQS : corePageFaqs(path).length ? corePageFaqs(path) : SERVICE_EXPECTATIONS[path]?.faqs ?? [];
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -142,6 +146,7 @@ function bodyForStatic(m: { title: string; description: string }): string {
 }
 
 const STATIC_ROUTES: RouteMeta[] = [
+  { ...CERAMIC_COST, body: ceramicCostHtml() },
   ...STATIC_ROUTE_SEO,
   {
     path: "/services",
@@ -231,7 +236,7 @@ const ALL_ROUTES: RouteMeta[] = [
 ];
 
 for (const route of ALL_ROUTES) {
-  route.body = (route.body ?? "") + pageExtrasHtml(route.path, corePageFaqs(route.path), EMITTED_ASSETS);
+  route.body = (route.body ?? "") + pageExtrasHtml(route.path, route.path === CERAMIC_COST.path ? [] : routeFaqs(route.path), EMITTED_ASSETS);
 }
 
 const SERVICE_SCHEMA_PATHS = new Set<string>([
@@ -280,6 +285,14 @@ function rewrite(html: string, m: RouteMeta): string {
   const d = escapeAttr(m.description);
 
   let out = html;
+  // Google snapshots are short-lived client content, not permanent build output.
+  // Strip successful captures too; no public reviews are needed to finish capture.
+  if (out.includes("data-live-google-content")) {
+    const dom = new JSDOM(out);
+    dom.window.document.querySelectorAll("[data-live-google-content]").forEach(node => node.remove());
+    out = dom.serialize();
+    dom.window.close();
+  }
   // Aviation routes must not inherit homepage FAQ or unrelated Service nodes
   // from the fallback shell. Emit the same truthful business/service relation
   // as the page, with no new airport businesses or review claims.
@@ -432,12 +445,12 @@ function rewrite(html: string, m: RouteMeta): string {
     );
   }
   const location = LOCATION_PAGES.find(p => `/${p.slug}` === m.path);
-  if (CORE_FAQ_PATHS.some(path => path === m.path) && !/"@type"\s*:\s*"BreadcrumbList"/.test(out)) {
-    const carChild = m.path === CERAMIC_SEO.path || m.path === PAINT_CORRECTION_SEO.path;
-    const name = m.path === CAR_HUB_PATH ? "Car Detailing" : m.path === BOAT_HUB_PATH ? "Boat Detailing" : m.path === RV_HUB_PATH ? "RV Detailing" : m.title.replace(/\s*[|—]\s*AV Detailing$/, "");
+  if ((CORE_FAQ_PATHS.some(path => path === m.path) || m.path === CERAMIC_COST.path) && !/"@type"\s*:\s*"BreadcrumbList"/.test(out)) {
+    const carChild = m.path === CERAMIC_SEO.path || m.path === PAINT_CORRECTION_SEO.path || m.path === CERAMIC_COST.path;
+    const name = m.path === CERAMIC_COST.path ? "Ceramic Coating Cost" : m.path === CAR_HUB_PATH ? "Car Detailing" : m.path === BOAT_HUB_PATH ? "Boat Detailing" : m.path === RV_HUB_PATH ? "RV Detailing" : m.title.replace(/\s*[|—]\s*AV Detailing$/, "");
     const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-      { "@type": "ListItem", position: 2, name: carChild ? "Car Detailing" : "Services", item: `${SITE}${carChild ? CAR_HUB_PATH : "/services"}` },
+      { "@type": "ListItem", position: 2, name: m.path === CERAMIC_COST.path ? "Ceramic Coating" : carChild ? "Car Detailing" : "Services", item: `${SITE}${m.path === CERAMIC_COST.path ? CERAMIC_SEO.path : carChild ? CAR_HUB_PATH : "/services"}` },
       { "@type": "ListItem", position: 3, name, item: url },
     ] };
     out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(breadcrumb)}</script></head>`);
@@ -469,8 +482,8 @@ function rewrite(html: string, m: RouteMeta): string {
     out = out.replace(/<\/footer>/i, `<p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p></footer>`);
   }
 
-  if (location || CORE_FAQ_PATHS.some(path => path === m.path)) {
-    let faqs = location?.faqs ?? corePageFaqs(m.path);
+  if (location || routeFaqs(m.path).length > 0) {
+    let faqs = location?.faqs ?? routeFaqs(m.path);
     // A successful capture already has authoritative rendered prices. Keep its
     // shared-source FAQ answers, rather than replacing them with fallback prices.
     if (hasRealContent && /data-page-faqs/.test(out) && !m.path.startsWith("/aircraft-")) {

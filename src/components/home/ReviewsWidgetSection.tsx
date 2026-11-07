@@ -1,8 +1,11 @@
 import { GoogleReviews } from "@/components/reviews/GoogleReviews";
+import { useLiveGoogleReviews, parseLiveGoogleReviews } from "@/lib/live-google-reviews";
 
 export function ReviewsWidgetSection() {
+  const query = useLiveGoogleReviews();
+  if (!parseLiveGoogleReviews(query.data)) return null;
   return (
-    <section className="section-padding bg-card">
+    <section className="section-padding bg-card" data-live-google-content>
       <div className="container-custom">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">

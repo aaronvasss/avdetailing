@@ -87,7 +87,7 @@ const ReviewsPage = () => {
                   Read our verified reviews on Google
                 </div>
                 <div className="text-sm text-muted-foreground mb-4">
-                  Read our live review feed below, straight from our Google Business Profile.
+                  Read our most recent Google reviews below. The review snapshot refreshes daily.
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
                   <CheckCircle2 className="h-3.5 w-3.5" />

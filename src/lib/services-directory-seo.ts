@@ -1,4 +1,6 @@
 import type { ServiceKey } from "./pricing";
+import { CERAMIC_COST } from "./ceramic-cost";
+export const SERVICES_DIRECTORY_GUIDES = [{ href: CERAMIC_COST.path, text: "Ceramic coating cost in Baton Rouge" }];
 
 // One source for the /services directory: rendered page, initial HTML and head.
 export const SERVICES_DIRECTORY_SEO = {
@@ -24,5 +26,5 @@ export function servicesDirectoryHtml(): string {
   const items = SERVICES_DIRECTORY_ITEMS.map(
     (s) => `<li><h2><a href="${s.href}">${esc(s.title)} in Baton Rouge</a></h2><p>${esc(s.description)}</p></li>`,
   ).join("");
-  return `<h1>${esc(SERVICES_DIRECTORY_SEO.h1)}</h1><p>${esc(SERVICES_DIRECTORY_SEO.description)}</p><ul>${items}</ul><p>Call (225) 521-6264 or <a href="/book">book online</a>.</p>`;
+  return `<h1>${esc(SERVICES_DIRECTORY_SEO.h1)}</h1><p>${esc(SERVICES_DIRECTORY_SEO.description)}</p><ul>${items}</ul><h2>Pricing guides</h2><ul>${SERVICES_DIRECTORY_GUIDES.map(l => `<li><a href="${l.href}">${esc(l.text)}</a></li>`).join("")}</ul><p>Call (225) 521-6264 or <a href="/book">book online</a>.</p>`;
 }

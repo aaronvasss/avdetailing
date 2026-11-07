@@ -14,6 +14,7 @@ function TikTokIcon({ className }: { className?: string }) {
 }
 
 const services = [
+  { name: "Ceramic Coating Cost", href: "/ceramic-coating-cost-baton-rouge" },
   { name: "Car Detailing", href: "/car-detailing-baton-rouge" },
   { name: "Ceramic Coating", href: "/ceramic-coating-baton-rouge" },
   { name: "Paint Correction", href: "/paint-correction-baton-rouge" },
