@@ -34,7 +34,7 @@ import { BookingSelectionSummary } from "@/components/booking/BookingSelectionSu
 import { useAuth } from "@/hooks/useAuth";
 import { SavedVehiclePicker } from "@/components/booking/SavedVehiclePicker";
 import { getStripePriceIdFromDb, createBookingCheckout } from "@/lib/stripe";
-import { PaymentMethodStep } from "@/components/booking/PaymentMethodStep";
+import { customerBookingPaymentMethod, PAY_LATER_LABEL, CHECKOUT_UNAVAILABLE_MESSAGE } from "@/lib/card-only-booking";
 import { TipSection } from "@/components/booking/TipSection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
@@ -241,7 +241,7 @@ const BookingPage = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [ceramicVehicleClass, setCeramicVehicleClass] = useState<"car" | "suv-truck" | "rv-boat-aircraft" | "">("");
   const [ceramicTier, setCeramicTier] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'in_person' | 'online' | null>('online');
   const [stripeAvailable, setStripeAvailable] = useState<boolean>(true);
   const [smsConsent, setSmsConsent] = useState(false);
   const [savedVehicleId,setSavedVehicleId]=useState<string|null>(null);
@@ -310,7 +310,7 @@ const BookingPage = () => {
       setCustomerInfo(previous=>({...previous,firstName:name[0]||previous.firstName,lastName:name.slice(1).join(' ')||previous.lastName,email:source.guest_email||user.email||'',phone:source.guest_phone||previous.phone,address:source.service_address||previous.address,city:source.service_city||previous.city,zip:source.service_zip||previous.zip,vehicleYear:String(source.vehicle_year||''),vehicleMake:source.vehicle_make||'',vehicleModel:source.vehicle_model||'',notes:source.address_notes||'',boatType:source.boat_type||'',boatLength:source.boat_length||'',boatBrand:source.boat_brand||'',aircraftType:source.aircraft_type||'',tailNumber:source.tail_number||''}));
       setSelectedAddOns((source.booking_add_ons||[]).map((a:any)=>a.add_on_id).filter(Boolean));
       // No date, time, old card approval, or historical price is reused.
-      setSelectedDate(undefined);setSelectedTime('');setPaymentMethod(null);
+      setSelectedDate(undefined);setSelectedTime('');setPaymentMethod('online');
       setRepeatSource({price:source.total_price??null,name:source.services?.name||'Detailing service'});
     };
     prefill().catch(()=>toast.error('Could not load your previous appointment. You can still book a new service.'));
@@ -652,9 +652,10 @@ const BookingPage = () => {
         add_ons_total: addOnsTotal,
         total_price: payableTotal,
         // Ceramic coating and boat detailing are in-person payment only (no Stripe)
-        status: isInPersonOnly ? "confirmed" : (paymentMethod === 'online' ? "pending_payment" : "confirmed"),
-        payment_status: isInPersonOnly ? "unpaid" : (paymentMethod === 'online' ? "pending" : "unpaid"),
-        payment_method: isInPersonOnly ? "in_person" : (paymentMethod || "in_person"),
+        // Card only: ceramic/boat pay later by card in the account; everything else pays in full at booking.
+        status: isInPersonOnly ? "confirmed" : "pending_payment",
+        payment_status: isInPersonOnly ? "unpaid" : "pending",
+        payment_method: customerBookingPaymentMethod(serviceType),
         // Pass add-on IDs so backend creates booking_add_ons records
         add_on_ids: selectedAddOns.length > 0 ? selectedAddOns : undefined,
       };
@@ -704,7 +705,8 @@ const BookingPage = () => {
         }
       }
 
-      if (paymentMethod === 'online' && !isInPersonOnly) {
+      let checkoutUnavailable = false;
+      if (!isInPersonOnly) {
         toast.loading("Redirecting to payment...");
         
         try {
@@ -753,26 +755,10 @@ const BookingPage = () => {
             return;
           }
 
-          toast.error("Online payment unavailable", {
-            description:
-              "Please choose \"Pay in Person\" to lock in your appointment, or try again in a moment.",
-            duration: 8000,
-          });
+          // Keep the saved (unpaid) booking; the customer can pay later by card in their account.
+          toast.error("Card payment unavailable", { description: CHECKOUT_UNAVAILABLE_MESSAGE, duration: 10000 });
           setStripeAvailable(false);
-
-          // Revert the booking status in the background since payment failed.
-          // Do not block the customer on cleanup if the backend is slow.
-          supabase.functions.invoke("manage-booking", {
-            body: {
-              booking_id: createdId,
-              action: "update",
-              updates: { status: "cancelled", payment_status: "failed" }
-            }
-          }).catch((cleanupError) => {
-            console.error("Failed to mark payment booking as cancelled:", cleanupError);
-          });
-          setBookingId("");
-          return;
+          checkoutUnavailable = true;
         }
       }
 
@@ -796,7 +782,7 @@ const BookingPage = () => {
       });
 
       clearRateLimit('booking-form');
-      toast.success("Booking confirmed! You'll receive a confirmation email shortly.");
+      if (!checkoutUnavailable) toast.success("Booking confirmed! You'll receive a confirmation email shortly.");
       setStep(7);
 
     } catch (error: any) {
@@ -1477,7 +1463,7 @@ const BookingPage = () => {
               </Button>
               <Button 
                 className="flex-1 glow-red" 
-                onClick={() => setStep(inPersonOnlyServices.includes(serviceType) ? 7 : 6)}
+                onClick={() => setStep(7)}
                 disabled={!selectedDate || !selectedTime}
               >
                 Continue
@@ -1485,19 +1471,6 @@ const BookingPage = () => {
               </Button>
             </div>
           </div>
-        );
-
-      // Step 6: Payment Method Selection
-      case 6:
-        return (
-          <PaymentMethodStep
-            selectedMethod={paymentMethod}
-            onSelectMethod={setPaymentMethod}
-            onBack={() => setStep(5)}
-            onContinue={() => setStep(7)}
-            totalPrice={calculateTotal()}
-            stripeAvailable={stripeAvailable}
-          />
         );
 
       // Step 7: Customer Details & Checkout
@@ -1727,7 +1700,7 @@ const BookingPage = () => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
                   <span className="font-medium">
-                    {inPersonOnlyServices.includes(serviceType) ? 'Pay in Person' : (paymentMethod === 'online' ? 'Pay Online (Stripe)' : 'Pay in Person')}
+                    {inPersonOnlyServices.includes(serviceType) ? PAY_LATER_LABEL : 'Pay in full by card now'}
                   </span>
                 </div>
                 {referralCredit > 0 && (
@@ -1766,7 +1739,7 @@ const BookingPage = () => {
             </div>
 
             <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={() => setStep(inPersonOnlyServices.includes(serviceType) ? 5 : 6)}>
+              <Button type="button" variant="outline" onClick={() => setStep(5)}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -1774,11 +1747,11 @@ const BookingPage = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {paymentMethod === 'online' && !inPersonOnlyServices.includes(serviceType) ? "Redirecting to Payment..." : "Confirming..."}
+                    {!inPersonOnlyServices.includes(serviceType) ? "Redirecting to Payment..." : "Confirming..."}
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'online' && !inPersonOnlyServices.includes(serviceType) ? "Proceed to Payment" : "Confirm Booking"}
+                    {!inPersonOnlyServices.includes(serviceType) ? "Proceed to Payment" : "Confirm Booking"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}

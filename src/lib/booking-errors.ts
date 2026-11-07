@@ -83,7 +83,7 @@ export function getFriendlyBookingError(err: unknown): FriendlyError {
     return {
       title: "Payment couldn't start",
       description:
-        "Online payment is temporarily unavailable. Choose \"Pay in Person\" to lock in your time, or try again in a moment.",
+        "Card payment is temporarily unavailable. Please try again in a moment, or call/text us and we'll help you book.",
     };
   }
 

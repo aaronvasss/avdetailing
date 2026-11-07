@@ -7,8 +7,8 @@ export function bookingProgress(service: string, step: number) {
       : service === "boat"
         ? [[1, "Service"], [3, "Package"], [5, "Schedule"], [7, "Details"]] as const
         : service === "rv"
-          ? [[1, "Service"], [3, "Package"], [4, "Extras"], [5, "Schedule"], [6, "Payment"], [7, "Details"]] as const
-          : [[1, "Service"], [2, "Vehicle"], [3, "Package"], [4, "Extras"], [5, "Schedule"], [6, "Payment"], [7, "Details"]] as const;
+          ? [[1, "Service"], [3, "Package"], [4, "Extras"], [5, "Schedule"], [7, "Details"]] as const
+          : [[1, "Service"], [2, "Vehicle"], [3, "Package"], [4, "Extras"], [5, "Schedule"], [7, "Details"]] as const;
   const index = Math.max(0, screens.findIndex(([id]) => id === step));
   return { current: index + 1, total: screens.length, remaining: screens.length - index - 1, label: screens[index][1] };
 }
