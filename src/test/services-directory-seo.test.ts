@@ -13,7 +13,7 @@ describe("/services directory SEO", () => {
     try {
       mkdirSync(join(temp, "dist"));
       copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
-      execFileSync("npx", ["tsx", resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
+      execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
       const html = readFileSync(join(temp, "dist/services/index.html"), "utf8");
       expect(count(html, /<title>/g)).toBe(1);
       expect(count(html, /<meta\s+name="description"/g)).toBe(1);

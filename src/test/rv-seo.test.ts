@@ -13,7 +13,7 @@ function build() {
   const temp = mkdtempSync(join(tmpdir(), "rv-seo-"));
   mkdirSync(join(temp, "dist"));
   copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
-  execFileSync("npx", ["tsx", resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
+  execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
   return temp;
 }
 
