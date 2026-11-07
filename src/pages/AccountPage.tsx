@@ -147,7 +147,7 @@ export default function AccountPage() {
 
   // Regular customer view (portal shell; same data components as before)
   const firstName = displayFirstName(profileName, user?.email);
-  const fullName = profileName?.trim() || firstName;
+  const fullName = (profileName?.trim() || firstName).replace(/(^|\s)(\p{Ll})/gu, (_, sp, ch) => sp + ch.toUpperCase());
   const initials = initialsOf(profileName, user?.email);
   const go = (next: PortalSection, opts?: { receipts?: boolean }) => {
     setReceipts(!!opts?.receipts);
