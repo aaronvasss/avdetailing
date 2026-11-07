@@ -1,6 +1,5 @@
-// @vitest-environment node
 import { readFileSync } from "node:fs";
-import { transformSync } from "esbuild";
+import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 import * as model from "../../supabase/functions/google-reviews/model";
 
@@ -12,7 +11,7 @@ function fixture(admin = true, authenticated = true, claimed: string | null = "l
   const db = { from: () => chain, rpc, auth: { getUser: vi.fn(async () => ({ data: { user: authenticated ? { id: "mock-user" } : null }, error: null })) } };
   let handler: (req: Request) => Promise<Response> = async () => new Response();
   const source = readFileSync("supabase/functions/google-reviews/index.ts", "utf8").replace(/^import .*;\n/gm, "");
-  const js = transformSync(source, { loader: "ts", format: "cjs" }).code;
+  const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
   const keys = Object.keys(model);
   new Function("createClient", "corsHeaders", "Deno", ...keys, js)(() => db, {}, { env: { get: () => "fixture-only" }, serve: (h: typeof handler) => { handler = h; } }, ...Object.values(model));
   return { handler, rpc, cache };
