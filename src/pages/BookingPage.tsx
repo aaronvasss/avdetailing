@@ -1866,6 +1866,11 @@ const BookingPage = () => {
           A confirmation email has been sent to your inbox with all the details. 
           We'll text you when we're on our way!
         </p>
+        {(inPersonOnlyServices.includes(serviceType) || !stripeAvailable) && (
+          <p data-testid="pay-later-note" className="mb-6 max-w-md mx-auto rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+            {!stripeAvailable && !inPersonOnlyServices.includes(serviceType) ? CHECKOUT_UNAVAILABLE_MESSAGE : `Payment: ${PAY_LATER_LABEL}.`}
+          </p>
+        )}
         
         {/* Appointment Summary Card */}
         <div className="space-y-4 max-w-md mx-auto">

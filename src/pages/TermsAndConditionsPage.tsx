@@ -14,7 +14,7 @@ const TermsAndConditionsPage = () => {
         <div className="container-custom">
           <div className="max-w-3xl mx-auto prose prose-invert">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">Terms & Conditions</h1>
-            <p className="text-muted-foreground mb-8">Last updated: February 18, 2025</p>
+            <p className="text-muted-foreground mb-8">Last updated: November 7, 2026</p>
 
             <h2 className="text-xl font-semibold mt-8 mb-4">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
@@ -60,8 +60,9 @@ const TermsAndConditionsPage = () => {
 
             <h2 className="text-xl font-semibold mt-8 mb-4">7. Payment Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Payment is due at the time of service unless paid online during booking. Online payments include a 3.5% processing fee.
-              We accept cash, credit/debit cards, and online payment via Stripe.
+              We accept credit and debit cards only. We do not accept cash, Venmo, Cash App or Zelle. Most services are paid in
+              full by card when booking. Ceramic coating, boat and quote-based services are paid by card through your customer
+              account after the price is confirmed. The total shown at booking is the amount charged.
             </p>
 
             <h2 className="text-xl font-semibold mt-8 mb-4">8. Limitation of Liability</h2>

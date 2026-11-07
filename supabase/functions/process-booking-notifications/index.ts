@@ -325,9 +325,6 @@ ${paymentBanner}
       <p style="color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 12px;">We Accept</p>
       <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
         <span style="color:#fff;font-size:13px;padding:8px 12px;background-color:#171717;border-radius:6px;">💳 Card</span>
-        <span style="color:#fff;font-size:13px;padding:8px 12px;background-color:#171717;border-radius:6px;">💵 Cash</span>
-        <span style="color:#008cff;font-size:13px;padding:8px 12px;background-color:#171717;border-radius:6px;font-weight:600;">Venmo</span>
-        <span style="color:#00d64f;font-size:13px;padding:8px 12px;background-color:#171717;border-radius:6px;font-weight:600;">Cash App</span>
       </div>
     </div>
   </div>
@@ -411,7 +408,8 @@ function buildAdminHtml(booking: any, serviceName: string) {
   const time = formatTime12(booking.scheduled_time);
   const addr = [booking.service_address, booking.service_city, booking.service_state || "LA", booking.service_zip].filter(Boolean).join(", ");
   const total = Number(booking.total_price) || 0;
-  const payment = (booking.payment_method || "in_person").replace("_", " ");
+  const payment = booking.payment_method === "online" ? "card" : "pay later by card in your AV Detailing account";
+
   const deposit = Number(booking.deposit_amount) || 0;
   const isPaid = (booking.payment_status || "unpaid").toLowerCase() === "paid";
   const payBadge = isPaid
