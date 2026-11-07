@@ -3,7 +3,7 @@ import { CERAMIC_COST, CERAMIC_COST_ROWS, CERAMIC_COST_FAQS } from "@/lib/cerami
 import { SERVICE_EXPECTATIONS, serviceExpectationsHtml } from "@/lib/service-expectations";
 import { newestReviews, publicReview, validTotals } from "../../supabase/functions/google-reviews/model";
 import { parseLiveGoogleReviews } from "@/lib/live-google-reviews";
-import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
@@ -50,7 +50,7 @@ describe("provider-only review data",()=>{
     try {
       mkdirSync(join(temp,"dist"));seedSeoAssets(temp);
       const shell=readFileSync("index.html","utf8").replace('<div id="root"></div>', '<div id="root"><h1>Captured home</h1><section data-live-google-content>temporary-provider-text</section><a data-live-google-content>temporary-provider-rating</a></div>');
-      requireWrite(join(temp,"dist/index.html"),shell);
+      writeFileSync(join(temp,"dist/index.html"),shell);
       execFileSync(resolve("node_modules/.bin/tsx"),[resolve("scripts/postbuild-seo.ts")],{cwd:temp,stdio:"pipe"});
       const out=readFileSync(join(temp,"dist/index.html"),"utf8");
       expect(out).not.toContain("temporary-provider-text");expect(out).not.toContain("temporary-provider-rating");
