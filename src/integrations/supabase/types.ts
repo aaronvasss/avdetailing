@@ -1622,6 +1622,104 @@ export type Database = {
           },
         ]
       }
+      owner_alert_deliveries: {
+        Row: {
+          attempts: number
+          channel: string
+          event_id: string
+          id: string
+          last_error: string | null
+          lease_id: string | null
+          lease_until: string | null
+          next_attempt_at: string
+          provider_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          channel: string
+          event_id: string
+          id?: string
+          last_error?: string | null
+          lease_id?: string | null
+          lease_until?: string | null
+          next_attempt_at?: string
+          provider_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          event_id?: string
+          id?: string
+          last_error?: string | null
+          lease_id?: string | null
+          lease_until?: string | null
+          next_attempt_at?: string
+          provider_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_alert_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "owner_alert_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_alert_dispatch_config: {
+        Row: {
+          enabled: boolean
+          function_url: string
+          id: boolean
+        }
+        Insert: {
+          enabled?: boolean
+          function_url: string
+          id?: boolean
+        }
+        Update: {
+          enabled?: boolean
+          function_url?: string
+          id?: boolean
+        }
+        Relationships: []
+      }
+      owner_alert_events: {
+        Row: {
+          booking_id: string
+          content: Json
+          created_at: string
+          event_key: string
+          id: string
+          kind: string
+        }
+        Insert: {
+          booking_id: string
+          content: Json
+          created_at?: string
+          event_key: string
+          id?: string
+          kind: string
+        }
+        Update: {
+          booking_id?: string
+          content?: Json
+          created_at?: string
+          event_key?: string
+          id?: string
+          kind?: string
+        }
+        Relationships: []
+      }
       payment_records: {
         Row: {
           amount_cents: number
@@ -2674,13 +2772,60 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      begin_owner_alert_send: {
+        Args: { _id: string; _lease_id: string }
+        Returns: boolean
+      }
       claim_google_reviews_refresh: { Args: never; Returns: boolean }
       claim_google_reviews_refresh_lease: {
         Args: { force_refresh?: boolean }
         Returns: string
       }
+      claim_owner_alert_deliveries: {
+        Args: { _limit?: number }
+        Returns: {
+          attempts: number
+          booking_id: string
+          channel: string
+          content: Json
+          event_id: string
+          id: string
+          kind: string
+          lease_id: string
+          recipient: string
+        }[]
+      }
+      commit_owner_appointment_change: {
+        Args: {
+          _booking_id: string
+          _content: Json
+          _email_recipients: string[]
+          _expected_date: string
+          _expected_status: string
+          _expected_time: string
+          _expected_updated_at: string
+          _kind: string
+          _manage_token: string
+          _new_date: string
+          _new_time: string
+          _notes: string
+          _sms_recipients: string[]
+          _user_id: string
+        }
+        Returns: Json
+      }
       finish_google_reviews_refresh: {
         Args: { claim_token: string; snapshot: Json }
+        Returns: boolean
+      }
+      finish_owner_alert_send: {
+        Args: {
+          _error: string
+          _id: string
+          _lease_id: string
+          _outcome: string
+          _provider_id: string
+        }
         Returns: boolean
       }
       generate_booking_token: { Args: never; Returns: string }
@@ -2706,6 +2851,7 @@ export type Database = {
       is_ops_employee: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       next_ops_job_number: { Args: never; Returns: string }
+      portal_booking_balance: { Args: { _booking_id: string }; Returns: Json }
       release_google_reviews_refresh: {
         Args: { claim_token: string }
         Returns: undefined
@@ -2722,6 +2868,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      tick_owner_alert_dispatch: { Args: never; Returns: undefined }
       valid_featured_google_reviews: { Args: { items: Json }; Returns: boolean }
       validate_referral_code: {
         Args: { code_input: string }
@@ -2730,6 +2877,7 @@ export type Database = {
           referrer_user_id: string
         }[]
       }
+      wake_owner_alert_dispatch: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "customer" | "staff" | "manager" | "marketing"
