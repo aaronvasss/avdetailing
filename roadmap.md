@@ -1,3 +1,8 @@
+# SEO batch 2 (November 7, source/preview only)
+- [ ] Shared service/city FAQs and single matching FAQPage in rendered and initial HTML.
+- [ ] Genuine optimized photo pairs on requested money pages; gallery captions and introduction.
+- [ ] Three location pages and sitemap/footer/service-area/home links; metadata limits and mocked browser checks.
+
 # SEO batch 1 (November 7, source/preview only)
 - [x] FAQ Basic starting price now shares car display $140; payment copy/schema includes online or service-time choice and confirmed methods, retaining existing public Zelle.
 - [ ] Hours blocked: live settings 06:00–20:00, latest start 18:00; owner requested stop on mismatch, so footer/contact/schema and scheduling remain untouched.
