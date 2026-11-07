@@ -1,7 +1,7 @@
 // Loads the minimum data GHL needs for one queued event. Never selects notes, card data, pay or staff fields.
 import type { SyncBooking, SyncContext, Links } from "./ghl-sync.ts";
 
-const BOOKING_COLS = "id,user_id,status,payment_status,scheduled_date,scheduled_time,total_price,manage_token,membership_id,guest_name,guest_email,guest_phone,vehicle_type,vehicle_year,vehicle_make,vehicle_model,boat_brand,boat_length,aircraft_type,service_city,package_slug:vehicle_size,services(slug,name)";
+const BOOKING_COLS = "id,user_id,status,payment_status,scheduled_date,scheduled_time,total_price,manage_token,membership_id,guest_name,guest_email,guest_phone,vehicle_type,vehicle_year,vehicle_make,vehicle_model,boat_brand,boat_length,aircraft_type,service_city,services(slug,name)";
 
 export const chicagoToday = (now = new Date()) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
