@@ -45,9 +45,11 @@ export const SERVICE_AREA_GEO = {
 export function localBusinessSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    "@type": ["AutoWash", "LocalBusiness"],
     "@id": `${SITE_URL}/#business`,
     name: "AV Detailing",
+    legalName: "AV Detailing LLC",
+    founder: { "@type": "Person", name: "Aaron Vasquez" },
     description:
       "Premium mobile detailing for cars, boats, RVs, and aircraft in Baton Rouge, Louisiana.",
     url: SITE_URL,
@@ -56,6 +58,7 @@ export function localBusinessSchema() {
     areaServed: [
       { "@type": "State", name: "Louisiana" },
       ...SERVICE_AREA_SCHEMA,
+      ...["Southdowns", "Perkins Road", "LSU Lakes"].map(name => ({ "@type": "Place", name })),
     ],
     serviceArea: SERVICE_AREA_GEO,
     // Service-area business: locality only, no street address and no

@@ -49,6 +49,7 @@ const prerenderRoutes = [
   "/car-detailing-central-la",
   "/car-detailing-baker-la",
   "/car-detailing-port-allen-la",
+  "/car-detailing-brusly-la",
   "/car-detailing-perkins-road-baton-rouge",
   "/services",
   "/about",

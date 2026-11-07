@@ -1,5 +1,6 @@
 import { usePricing, formatPrice, ceramicFrom, CAR_PAGE_DISPLAY_FROM, type Pricing } from "@/lib/pricing";
 import { PUBLIC_PAYMENT_ANSWER } from "@/lib/public-business-facts";
+import { OWNER_AREA_ANSWER, NOT_OFFERED_ANSWER } from "@/lib/local-expansion";
 import {
   Accordion,
   AccordionContent,
@@ -19,7 +20,7 @@ export const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "What areas do you service?",
-    answer: "We service Baton Rouge and surrounding areas including Prairieville, Gonzales, Denham Springs, Central, Zachary, and more. If you're within 30 miles of downtown Baton Rouge, we can come to you. Contact us for locations outside this range.",
+    answer: OWNER_AREA_ANSWER,
   },
   {
     question: "Are you insured?",
@@ -37,6 +38,7 @@ export const buildFaqs = (pricing: Pricing) => [
     question: "What payment methods do you accept?",
     answer: PUBLIC_PAYMENT_ANSWER,
   },
+  { question: "What services do you not offer?", answer: NOT_OFFERED_ANSWER },
   {
     question: "What if it rains on my appointment day?",
     answer: "We monitor weather closely and will contact you to reschedule if conditions aren't suitable. For exterior-only services, we need dry conditions. Interior services and covered locations can proceed rain or shine. There's no fee for weather-related rescheduling.",
