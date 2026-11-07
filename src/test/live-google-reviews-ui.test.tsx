@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { GoogleReviews } from "@/components/reviews/GoogleReviews";
 const state = vi.hoisted(() => ({ data: null as unknown }));
+vi.mock("embla-carousel-react", () => ({ default: () => [vi.fn(), undefined] }));
 vi.mock("@/lib/live-google-reviews", async importOriginal => ({ ...await importOriginal<typeof import("@/lib/live-google-reviews")>(), useLiveGoogleReviews: () => state }));
 describe("one shared live review source", () => {
   it("hides badges and reviews when the feed is empty", () => {
