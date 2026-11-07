@@ -15,7 +15,7 @@ export function GoogleReviews() {
   const reviews = data.reviews.map(r => ({ reviewer_name: r.reviewer.displayName, rating: ratings[r.starRating], review_date: r.createTime.slice(0, 10), text: r.comment ?? "", source_url: data.google_maps_uri }));
   return (
     <div className="max-w-6xl mx-auto" data-testid="google-reviews">
-      <div className="text-center mb-8"><h2 className="text-3xl font-bold mb-3">Google Reviews</h2><p className="text-lg"><span aria-hidden="true" className="text-primary">★★★★★</span> {data.rating.toFixed(1)} out of 5 · {data.total_review_count.toLocaleString("en-US")} reviews</p><p className="mt-2 text-sm text-muted-foreground">Most recent reviews · Google Business Profile</p></div>
+      <div className="text-center mb-8"><h2 className="text-3xl font-bold mb-3">Google Reviews</h2><p className="text-lg"><span aria-hidden="true" className="text-primary">{"★".repeat(Math.round(data.rating))}{"☆".repeat(5 - Math.round(data.rating))}</span> {data.rating.toFixed(1)} out of 5 · {data.total_review_count.toLocaleString("en-US")} reviews</p><p className="mt-2 text-sm text-muted-foreground">Most recent reviews · Google Business Profile</p></div>
       <FeaturedReviewCards reviews={reviews} />
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
         <Button asChild variant="outline" className="font-semibold">
