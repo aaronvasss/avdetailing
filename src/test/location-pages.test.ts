@@ -8,7 +8,7 @@ const text = (p: (typeof LOCATION_PAGES)[number]) =>
 
 describe("city car pages", () => {
   it("keeps eight existing city URLs and adds the three owner-approved areas", () => {
-    expect(LOCATION_PAGES.map((p) => p.slug)).toHaveLength(11);
+    expect(LOCATION_PAGES.map((p) => p.slug)).toHaveLength(12);
     expect(LOCATION_PAGES.map(p => p.slug)).toEqual(expect.arrayContaining(["car-detailing-baker-la", "car-detailing-port-allen-la", "car-detailing-perkins-road-baton-rouge"]));
   });
   it.each(LOCATION_PAGES.map((p) => [p.slug, p] as const))("%s has no unsupported claims or filler links", (_s, p) => {

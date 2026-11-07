@@ -153,6 +153,12 @@
   </url>
 
   <url>
+    <loc>https://avdetailing.net/car-detailing-brusly-la</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <url>
     <loc>https://avdetailing.net/car-detailing-central-la</loc>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
