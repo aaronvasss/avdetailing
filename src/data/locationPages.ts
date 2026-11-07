@@ -4,6 +4,8 @@
  * Intro paragraphs use {{l1}} and {{l2}} tokens for external links.
  */
 
+import { cityPageFaqs } from "../lib/page-faqs";
+
 export interface ExtLink {
   text: string;
   url: string;
@@ -29,8 +31,8 @@ export interface LocationPageConfig {
   whyChoose: string[];     // 4 bullets
   neighborhoods: string;   // streets, subdivisions, landmarks paragraph
   surroundingParagraph: React.ReactNode | string; // brief w/ internal link
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
   /** Optional city-specific service notes (logistics, conditions, scheduling). */
   localNotes?: string[];
   /** Optional city-specific FAQs rendered with FAQPage structured data. */
@@ -59,7 +61,7 @@ const COMMON_SERVICES: LocationServiceItem[] = [
 
 const SERVICE_AREA_NOTE = "Mobile service at your home or office, with appointments between 6 AM and 8 PM Central and a 30-minute arrival window.";
 
-export const LOCATION_PAGES: LocationPageConfig[] = [
+const LOCATION_PAGE_DATA: LocationPageConfig[] = [
   {
     slug: "car-detailing-highland-road-baton-rouge",
     city: "Highland Road",
@@ -173,38 +175,6 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
       "Boat and RV owners can request exterior work at home; see the boat and RV pages for current options and what to tell us.",
       "Appointments run between 6 AM and 8 PM Central, with a 30-minute arrival window.",
     ],
-    faqs: [
-      {
-        question: "Do you actually come to Denham Springs, or do I have to drive to Baton Rouge?",
-        answer:
-          "We come to you. AV Detailing is mobile and serves Denham Springs and nearby Livingston Parish, including the I-12 corridor, Range Avenue, Juban Road, Springfield Road and out toward Watson. Book online and we arrive at your home or office.",
-      },
-      {
-        question: "Can you detail a truck or a large SUV?",
-        answer:
-          "Yes. Pricing is set by vehicle type — car, SUV or truck — and you see the price for your vehicle type before you book.",
-      },
-      {
-        question: "How long does a detail take in my driveway?",
-        answer:
-          "Standard package appointments are scheduled for about 2 hours 15 minutes. Paint correction and ceramic coating take longer, and we confirm the time when you book.",
-      },
-      {
-        question: "Can you remove lovebugs and road film?",
-        answer:
-          "Our exterior wash removes surface dirt and bug residue. For bonded contamination, add clay bar treatment at the booking add-ons step; heavy etching may need a paint correction assessment.",
-      },
-      {
-        question: "Do you detail boats and RVs parked at a Denham Springs home?",
-        answer:
-          "You can request it. RV service is exterior-only, and boat work starts with details about the boat and where it's parked — see the RV and boat pages for current options.",
-      },
-      {
-        question: "How do I book a detail in Denham Springs?",
-        answer:
-          "Book online through our booking page or call (225) 521-6264. You'll get a confirmation with your appointment time and a 30-minute arrival window.",
-      },
-    ],
     proofPlaceholder:
       "PLACEHOLDER — add real local proof for Denham Springs here: before/after photos from actual Denham Springs jobs, named neighborhoods serviced, and verified customer reviews. Do not publish invented examples.",
     surroundingParagraph: "denham-link",
@@ -278,6 +248,25 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     lng: -91.0357,
   },
 ];
+
+export const NEW_LOCATION_AREAS = [
+  { slug: "car-detailing-baker-la", city: "Baker", titleTag: "Car Detailing in Baker, LA", titleH1: "Car Detailing in Baker, LA", description: "Mobile car detailing in Baker, north of Baton Rouge, around Plank Road and Hwy 19. Compare Basic, Silver and Gold packages, then book online.", geography: "Baker is north of Baton Rouge, around the Plank Road and Hwy 19 area.", neighborhoods: "We serve Baker and the Plank Road / Hwy 19 area north of Baton Rouge. Share your home or office address and parking access when booking." },
+  { slug: "car-detailing-port-allen-la", city: "Port Allen", titleTag: "Car Detailing in Port Allen, LA", titleH1: "Car Detailing in Port Allen, LA", description: "Mobile car detailing in Port Allen, Brusly and Addis in West Baton Rouge Parish. Compare packages and add-ons, then book at your home or office.", geography: "Port Allen, Brusly and Addis are in West Baton Rouge Parish, across the Mississippi River from Baton Rouge.", neighborhoods: "We serve Port Allen, Brusly and Addis in West Baton Rouge Parish, across the Mississippi River. Share the service address and access instructions when booking." },
+  { slug: "car-detailing-perkins-road-baton-rouge", city: "Perkins Road", titleTag: "Car Detailing Perkins Road, Baton Rouge", titleH1: "Car Detailing on Perkins Road, Baton Rouge", description: "Mobile car detailing along Perkins Road, Baton Rouge: Southdowns, LSU / University Lakes and Perkins Rowe. Compare packages and book online.", geography: "The Perkins Road corridor includes Southdowns, the LSU Lakes / University Lakes area and Perkins Rowe in Baton Rouge.", neighborhoods: "We serve the Perkins Road corridor, Southdowns, the LSU Lakes / University Lakes area and Perkins Rowe. Include your home or office address and where the vehicle will be parked." },
+] as const;
+
+export const LOCATION_PAGES: LocationPageConfig[] = [
+  ...LOCATION_PAGE_DATA,
+  ...NEW_LOCATION_AREAS.map(area => ({
+    slug: area.slug, city: area.city, titleTag: area.titleTag, titleH1: area.titleH1, metaDescription: area.description,
+    intro: `AV Detailing brings mobile car detailing to homes and offices in ${area.city}. ${area.geography} Choose a Basic, Silver or Gold package for your car, SUV or truck, then select any separate add-ons and an available appointment. Tell us where the vehicle will be parked and include access instructions. For paint correction or ceramic coating, describe the paint condition so preparation and scope can be assessed before the work is confirmed. Compare the current package details and prices on the car detailing page, or call (225) 521-6264 to discuss what your vehicle needs.`,
+    services: COMMON_SERVICES,
+    whyChoose: [SERVICE_AREA_NOTE, `Mobile service at your home or office in ${area.city}.`, "Choose separate add-ons during booking rather than assuming package inclusion.", "Compare current service details and prices before choosing your package."],
+    neighborhoods: area.neighborhoods,
+    surroundingParagraph: area.geography,
+    localNotes: [area.geography, "Include the parking location and access instructions with your booking.", "Confirm the appointment timing and requested work before the visit."],
+  })),
+].map(page => ({ ...page, faqs: cityPageFaqs(page.city, page.neighborhoods) }));
 
 export const LOCATION_PAGES_BY_SLUG: Record<string, LocationPageConfig> = Object.fromEntries(
   LOCATION_PAGES.map((p) => [p.slug, p])

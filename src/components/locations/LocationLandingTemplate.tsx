@@ -6,6 +6,7 @@ import { Phone } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { LocationPageConfig } from "@/data/locationPages";
+import { PageFaqSection } from "@/components/seo/PageFaqSection";
 
 const SITE_URL = "https://avdetailing.net";
 
@@ -47,11 +48,11 @@ export function LocationLandingTemplate({ config }: Props) {
     areaServed: {
       "@type": "Place",
       name: config.city,
-      geo: {
+      ...(config.lat != null && config.lng != null ? { geo: {
         "@type": "GeoCoordinates",
         latitude: config.lat,
         longitude: config.lng,
-      },
+      } } : {}),
     },
     url: `${SITE_URL}${pagePath}`,
   };
@@ -62,17 +63,6 @@ export function LocationLandingTemplate({ config }: Props) {
       <JsonLd data={[
         localBusinessSchema(),
         serviceSchema,
-        ...(config.faqs?.length
-          ? [{
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: config.faqs.map((f) => ({
-                "@type": "Question",
-                name: f.question,
-                acceptedAnswer: { "@type": "Answer", text: f.answer },
-              })),
-            }]
-          : []),
         breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Service Areas", path: "/service-areas" },
@@ -220,34 +210,7 @@ export function LocationLandingTemplate({ config }: Props) {
       </section>
 
       {/* City FAQs */}
-      {config.faqs?.length ? (
-        <section className="section-padding">
-          <div className="container-custom max-w-4xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">
-              {config.city} Mobile Detailing FAQs
-            </h2>
-            <div className="space-y-6">
-              {config.faqs.map((faq, i) => (
-                <div key={i}>
-                  <h3 className="text-xl font-semibold mb-2">{faq.question}</h3>
-                  <p className="text-muted-foreground leading-relaxed text-base md:text-lg">{faq.answer}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-8 text-muted-foreground text-base md:text-lg">
-              Still have a question?{" "}
-              <Link to="/contact" className="text-primary underline hover:text-primary/80">
-                Send us a message
-              </Link>{" "}
-              or{" "}
-              <Link to="/book" className="text-primary underline hover:text-primary/80">
-                book your detail online
-              </Link>
-              .
-            </p>
-          </div>
-        </section>
-      ) : null}
+      <PageFaqSection faqs={config.faqs ?? []} />
 
       {/* CTA */}
       <section className="section-padding">

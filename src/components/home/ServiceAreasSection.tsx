@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
+import { NEW_LOCATION_AREAS } from "@/data/locationPages";
 
 const serviceAreas = [
+  ...NEW_LOCATION_AREAS.map(area => ({ city: area.city, anchor: `Mobile Detailing in ${area.city}`, description: area.geography, href: `/${area.slug}` })),
   {
     city: "Highland Road",
     anchor: "Mobile Detailing in Highland Road",

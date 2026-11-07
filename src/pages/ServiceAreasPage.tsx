@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
+import { NEW_LOCATION_AREAS } from "@/data/locationPages";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MapPin, ArrowRight, Check } from "lucide-react";
@@ -121,6 +122,17 @@ const ServiceAreasPage = () => {
         </div>
       </section>
 
+      <section className="section-padding">
+        <div className="container-custom">
+          <h2 className="text-3xl font-bold mb-8">Detailing by City</h2>
+          <ul className="grid gap-6 md:grid-cols-3">
+            {NEW_LOCATION_AREAS.map(area => <li key={area.slug}>
+              <Link to={`/${area.slug}`} className="text-primary underline font-semibold">Car Detailing in {area.city}</Link>
+              <p className="text-muted-foreground mt-2">{area.geography}</p>
+            </li>)}
+          </ul>
+        </div>
+      </section>
       {/* Primary Service Areas */}
       <section className="section-padding bg-background">
         <div className="container-custom">
