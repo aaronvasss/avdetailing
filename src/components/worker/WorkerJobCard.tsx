@@ -295,6 +295,7 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
         await supabase.functions.invoke("send-sms", {
           body: {
             to: booking.guest_phone,
+            type: "customer_job_update",
             message: `Hi ${firstName}! 🚗✨ Great news — we are currently working on your vehicle! Sit back and relax, we'll let you know as soon as we're done. — AV Detailing Team`,
           },
         });
@@ -341,6 +342,7 @@ export function WorkerJobCard({ booking, onStatusChange }: WorkerJobCardProps) {
         await supabase.functions.invoke("send-sms", {
           body: {
             to: booking.guest_phone,
+            type: "customer_job_update",
             message: `Hi ${firstName}! Your detail is done! 🚗✨ Thank you for choosing AV Detailing. We hope you love the results! Rate your experience: ${window.location.origin}/rate/${booking.id}?token=${booking.manage_token}`,
           },
         });

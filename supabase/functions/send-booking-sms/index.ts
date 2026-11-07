@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { ghlOwnsCustomerMessaging } from "../_shared/customer-messaging.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { smsNotSuppressed } from '../_shared/reminder-permissions.ts';
 
@@ -210,7 +211,7 @@ Reply HELP or call ${publicPhone}.
 
 -AV Detailing Team`;
 
-    const customerResult = await smsNotSuppressed(supabase,body.customerPhone)?await sendTwilioSms(body.customerPhone, customerMessage, smsSenderPhone):{success:false,skipped:true,error:'Customer opted out'};
+    const customerResult = await ghlOwnsCustomerMessaging(supabase) ? {success:true,skipped:true,error:'Customer texts are sent by GoHighLevel'} : await smsNotSuppressed(supabase,body.customerPhone)?await sendTwilioSms(body.customerPhone, customerMessage, smsSenderPhone):{success:false,skipped:true,error:'Customer opted out'};
     results.customer = customerResult;
 
     // Business notification SMS (optional)

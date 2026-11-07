@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { ghlOwnsCustomerMessaging } from "../_shared/customer-messaging.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { smsNotSuppressed } from '../_shared/reminder-permissions.ts';
 
@@ -19,7 +20,7 @@ const corsHeaders = {
 interface SendSmsRequest {
   to: string;
   message: string;
-  type?: "booking_confirmation" | "reminder" | "custom";
+  type?: "booking_confirmation" | "reminder" | "custom" | "customer_job_update";
 }
 
 // Fetch SMS sender phone from database
@@ -203,6 +204,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Get SMS sender phone from database
     const serviceSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const smsSenderPhone = await getSmsSenderPhone(serviceSupabase);
+    if (body.type === "customer_job_update" && await ghlOwnsCustomerMessaging(serviceSupabase)) {
+      return new Response(JSON.stringify({ success: true, skipped: "Customer job updates are sent by GoHighLevel" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     if(!await smsNotSuppressed(serviceSupabase,body.to))return new Response(JSON.stringify({error:'Customer has opted out of text messages'}),{status:409,headers:{...corsHeaders,'Content-Type':'application/json'}});
 
     // 8. Send the SMS
