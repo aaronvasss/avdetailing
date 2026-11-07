@@ -10,10 +10,13 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GhlChatWidget } from "@/components/GhlChatWidget";
 import { SERVICE_LANDING_PAGES } from "@/data/serviceLandingPages";
 import { LOCATION_PAGES } from "@/data/locationPages";
+import { CARE_GUIDES, GUIDES_INDEX } from "@/lib/guides";
+import { SPANISH_PAGES } from "@/lib/language-pages";
 import "@/lib/password-recovery";
 import { AnalyticsConsentProvider } from "@/components/analytics/AnalyticsConsent";
 
 const Index = lazy(() => import("./pages/Index"));
+const EditorialPage = lazy(() => import("./pages/EditorialPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const UnauthorizedPage = lazy(() => import("./pages/UnauthorizedPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
@@ -83,6 +86,7 @@ const App = () => (
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Index />} />
+                {[GUIDES_INDEX, ...CARE_GUIDES, ...SPANISH_PAGES].map(page => <Route key={page.path} path={page.path} element={<EditorialPage />} />)}
                 <Route path="/services" element={<ServicesPage />} />
                 <Route path="/services/car-detailing" element={<Navigate to="/car-detailing-baton-rouge" replace />} />
                 <Route path="/services/ceramic-coating" element={<Navigate to="/ceramic-coating-baton-rouge" replace />} />

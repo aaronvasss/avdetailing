@@ -3,6 +3,8 @@ import { resolve } from "path";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages.ts";
 import { LOCATION_PAGES } from "../src/data/locationPages.ts";
 import { CERAMIC_COST } from "../src/lib/ceramic-cost.ts";
+import { CARE_GUIDES, GUIDES_INDEX, GUIDE_PUBLISH_DATE } from "../src/lib/guides.ts";
+import { SPANISH_PAGES } from "../src/lib/language-pages.ts";
 
 const BASE_URL = "https://avdetailing.net";
 
@@ -44,6 +46,9 @@ interface SitemapEntry {
 }
 
 const staticEntries: SitemapEntry[] = [
+  { path: GUIDES_INDEX.path, changefreq: "monthly", priority: "0.70" },
+  ...CARE_GUIDES.map(page => ({ path: page.path, lastmod: GUIDE_PUBLISH_DATE, changefreq: "monthly" as const, priority: "0.65" })),
+  ...SPANISH_PAGES.map(page => ({ path: page.path, changefreq: "monthly" as const, priority: "0.70" })),
   { path: CERAMIC_COST.path, changefreq: "monthly", priority: "0.80" },
   // Homepage
   { path: "/", sources: [pageFile("Index"), "src/components/home"], changefreq: "weekly", priority: "1.0" },

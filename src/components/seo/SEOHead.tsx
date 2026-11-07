@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useEffect } from "react";
 import { UTILITY_ROUTE_SEO } from "@/lib/utility-route-seo";
 import { STATIC_ROUTE_SEO } from "@/lib/static-route-seo";
+import { languageAlternates } from "@/lib/language-pages";
 
 export const INDEX_ROBOTS = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
@@ -22,6 +23,7 @@ export function SEOHead({
   title,
   description,
   path,
+  type = "website",
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
   follow = false,
@@ -34,6 +36,8 @@ export function SEOHead({
   noIndex = Boolean(utility) || noIndex;
   const pageUrl = `https://avdetailing.net${path === "/" ? "/" : path}`;
   useEffect(() => {
+    document.documentElement.lang = path === "/es" || path.startsWith("/es/") ? "es" : "en";
+    document.querySelectorAll('link[rel="alternate"][hreflang]:not([data-rh])').forEach(tag => tag.remove());
     // SEOHead is the single metadata owner on every route. Static/prerendered
     // fallback tags (no data-rh) only serve the first response: drop them for
     // good once Helmet owns the head, so a previous route's description or
@@ -62,7 +66,12 @@ export function SEOHead({
       m.setAttribute("property", "og:url");
       return m;
     }).setAttribute("content", pageUrl);
-  }, [pageUrl, omitCanonical]);
+    ensureOne('meta[property="og:type"]', () => {
+      const m = document.createElement("meta");
+      m.setAttribute("property", "og:type");
+      return m;
+    }).setAttribute("content", type);
+  }, [pageUrl, omitCanonical, path, type]);
   const fullTitle = path === "/"
     ? title
     : title.includes("AV Detailing")
@@ -70,6 +79,7 @@ export function SEOHead({
       : `${title} — AV Detailing`;
   return (
     <Helmet>
+      {languageAlternates(path).map(alternate => <link key={alternate.lang} rel="alternate" hrefLang={alternate.lang} href={`https://avdetailing.net${alternate.path}`} />)}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <meta name="robots" content={noIndex ? (follow && !utility ? "noindex, follow" : "noindex, nofollow") : INDEX_ROBOTS} />

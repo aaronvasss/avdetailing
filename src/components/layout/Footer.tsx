@@ -24,6 +24,7 @@ const services = [
 ];
 
 const company = [
+  { name: "Guides", href: "/guides" },
   { name: "About Us", href: "/about" },
   { name: "Gallery", href: "/gallery" },
   { name: "Reviews", href: "/reviews" },
@@ -268,6 +269,7 @@ export function Footer() {
                 Terms & Conditions
               </Link>
               <AnalyticsSettingsControl />
+              <Link to="/es" lang="es" className="hover:text-primary transition-colors">Español</Link>
             </div>
           </div>
           <p className="mt-4 text-xs text-center text-muted-foreground">
