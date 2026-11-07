@@ -13,6 +13,7 @@ import { DangerZoneSection } from "./DangerZoneSection";
 import { BusinessHoursSettings } from "./BusinessHoursSettings";
 import { BlockedDatesManager } from "./BlockedDatesManager";
 import { AdminGoogleReviews } from "./AdminGoogleReviews";
+import { AdminGhlSync } from "./AdminGhlSync";
 import { AdminGoogleRatingSettings } from "./AdminGoogleRatingSettings";
 
 interface BusinessSetting {
@@ -178,6 +179,7 @@ export function AdminSettingsTab() {
       <BlockedDatesManager />
 
       <AdminGoogleReviews />
+      <AdminGhlSync />
       <AdminGoogleRatingSettings />
 
       {/* Phone Numbers */}

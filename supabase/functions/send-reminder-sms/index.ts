@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { ghlOwnsCustomerMessaging } from "../_shared/customer-messaging.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
@@ -32,6 +33,7 @@ serve(async req=>{
     }
     const parsed=schema.safeParse(await req.json());if(!parsed.success)return json({error:'Invalid reminder request'},400);
     const body=parsed.data;if(!body.sendAll&&!body.bookingId)return json({error:'Select an appointment'},400);
+    if(!body.dryRun&&await ghlOwnsCustomerMessaging(db))return json({success:true,remindersSent:0,skipped:'Customer reminders are sent by GoHighLevel'});
     const now=new Date();const p=chicagoParts(now);const today=`${p.year}-${p.month}-${p.day}`;
     const tomorrow=new Date(`${today}T12:00:00Z`);tomorrow.setUTCDate(tomorrow.getUTCDate()+1);
     let query=db.from('bookings').select('*').eq('status','confirmed');

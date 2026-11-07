@@ -1,3 +1,11 @@
+# GoHighLevel sync — Phase 1 (November 7)
+- [x] Sync queue, links, settings and admin controls added; triggers on bookings, inquiries, ratings, memberships and refunds tested on an isolated test database, then applied. Sending OFF and GHL-messaging switch OFF.
+- [x] ghl-sync worker (scheduler-only) and ghl-backfill (admin-only, dry run first; upcoming + completed only) deployed; both refuse signed-out requests. Messaging switch added to reminder, review-request, booking-text and worker job-update senders (no change while OFF).
+- [x] Admin Settings "GoHighLevel sync" card; 22 mocked-GHL tests, full suite 751 passed.
+- [ ] Waiting on Aaron: create the GHL pipeline, custom fields and Private Integration token, then add GHL_PRIVATE_TOKEN and GHL_LOCATION_ID through the secure secrets form.
+- [ ] After secrets: turn on sending, test one own booking end to end, backfill dry run then run, watch 48h. Worker job-update switch needs the next website publish (job card now labels those texts).
+- [ ] Later phases: inbound GHL webhook (Phase 2), consented UTM capture, remove inquiry-form tracking script (Phase 4), then turn on GHL messaging once workflows are live.
+
 # Hourly Google reviews
 - [x] Hourly refresh, single leased/token-checked refresh and stale snapshot retention; daily cleanup unchanged.
 - [x] Server-verified admin refresh and last-success time; shared frontend freshness refetch. Review-only migration/function deployed.

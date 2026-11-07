@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { ghlOwnsCustomerMessaging } from "../_shared/customer-messaging.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { smsNotSuppressed } from '../_shared/reminder-permissions.ts';
 
@@ -85,6 +86,9 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    if (await ghlOwnsCustomerMessaging(supabase)) {
+      return new Response(JSON.stringify({ success: true, skipped: "Review requests are sent by GoHighLevel" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Look up customer contact info from the booking — do NOT trust caller-supplied values
     const { data: booking, error: bookingError } = await supabase

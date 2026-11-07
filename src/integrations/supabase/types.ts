@@ -1080,6 +1080,114 @@ export type Database = {
         }
         Relationships: []
       }
+      ghl_links: {
+        Row: {
+          ghl_id: string
+          link_key: string
+          stage_rank: number | null
+          updated_at: string
+        }
+        Insert: {
+          ghl_id: string
+          link_key: string
+          stage_rank?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ghl_id?: string
+          link_key?: string
+          stage_rank?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ghl_sync_config: {
+        Row: {
+          customer_messaging_via_ghl: boolean
+          enabled: boolean
+          function_url: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          customer_messaging_via_ghl?: boolean
+          enabled?: boolean
+          function_url: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          customer_messaging_via_ghl?: boolean
+          enabled?: boolean
+          function_url?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ghl_sync_queue: {
+        Row: {
+          attempts: number
+          booking_id: string | null
+          contact_id: string | null
+          created_at: string
+          event_key: string
+          ghl_contact_id: string | null
+          ghl_opportunity_id: string | null
+          id: string
+          kind: string
+          last_error: string | null
+          lease_id: string | null
+          lease_until: string | null
+          membership_id: string | null
+          next_attempt_at: string
+          payload: Json
+          payment_record_id: string | null
+          status: string
+          synced_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          booking_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          event_key: string
+          ghl_contact_id?: string | null
+          ghl_opportunity_id?: string | null
+          id?: string
+          kind: string
+          last_error?: string | null
+          lease_id?: string | null
+          lease_until?: string | null
+          membership_id?: string | null
+          next_attempt_at?: string
+          payload?: Json
+          payment_record_id?: string | null
+          status?: string
+          synced_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          booking_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          event_key?: string
+          ghl_contact_id?: string | null
+          ghl_opportunity_id?: string | null
+          id?: string
+          kind?: string
+          last_error?: string | null
+          lease_id?: string | null
+          lease_until?: string | null
+          membership_id?: string | null
+          next_attempt_at?: string
+          payload?: Json
+          payment_record_id?: string | null
+          status?: string
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
       google_reviews_cache: {
         Row: {
           expires_at: string
@@ -2776,6 +2884,35 @@ export type Database = {
         Args: { _id: string; _lease_id: string }
         Returns: boolean
       }
+      claim_ghl_sync: {
+        Args: { _limit?: number }
+        Returns: {
+          attempts: number
+          booking_id: string | null
+          contact_id: string | null
+          created_at: string
+          event_key: string
+          ghl_contact_id: string | null
+          ghl_opportunity_id: string | null
+          id: string
+          kind: string
+          last_error: string | null
+          lease_id: string | null
+          lease_until: string | null
+          membership_id: string | null
+          next_attempt_at: string
+          payload: Json
+          payment_record_id: string | null
+          status: string
+          synced_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ghl_sync_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       claim_google_reviews_refresh: { Args: never; Returns: boolean }
       claim_google_reviews_refresh_lease: {
         Args: { force_refresh?: boolean }
@@ -2814,6 +2951,18 @@ export type Database = {
         }
         Returns: Json
       }
+      finish_ghl_sync: {
+        Args: {
+          _contact: string
+          _error: string
+          _id: string
+          _lease_id: string
+          _opportunity: string
+          _outcome: string
+          _retry_after_seconds?: number
+        }
+        Returns: boolean
+      }
       finish_google_reviews_refresh: {
         Args: { claim_token: string; snapshot: Json }
         Returns: boolean
@@ -2838,6 +2987,24 @@ export type Database = {
           scheduled_time: string
         }[]
       }
+      ghl_enqueue: {
+        Args: {
+          _booking: string
+          _contact: string
+          _key: string
+          _kind: string
+          _membership: string
+          _payload: Json
+          _payment: string
+        }
+        Returns: undefined
+      }
+      ghl_retry_failed: { Args: never; Returns: number }
+      ghl_set_config: {
+        Args: { _customer_messaging_via_ghl: boolean; _enabled: boolean }
+        Returns: undefined
+      }
+      ghl_sync_status: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2868,6 +3035,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      tick_ghl_sync: { Args: never; Returns: undefined }
       tick_owner_alert_dispatch: { Args: never; Returns: undefined }
       valid_featured_google_reviews: { Args: { items: Json }; Returns: boolean }
       validate_referral_code: {
@@ -2877,6 +3045,7 @@ export type Database = {
           referrer_user_id: string
         }[]
       }
+      wake_ghl_sync: { Args: never; Returns: undefined }
       wake_owner_alert_dispatch: { Args: never; Returns: undefined }
     }
     Enums: {
