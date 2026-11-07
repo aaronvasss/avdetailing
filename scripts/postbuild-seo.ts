@@ -397,7 +397,7 @@ function rewrite(html: string, m: RouteMeta): string {
     `<meta name="twitter:description" content="${d}" />`,
   );
 
-  // Structured data must exist in the initial HTML for crawlers that don't run
+  // Refresh public hours even when a prior capture supplied the business node.
   out = out.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi, (full, json: string) => {
     try {
       const parsed = JSON.parse(json);
@@ -464,6 +464,9 @@ function rewrite(html: string, m: RouteMeta): string {
       /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
       `<div id="root"><div data-seo-content>${m.body}<footer><p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p></footer></div></div>`,
     );
+  }
+  if (hasRealContent && !out.includes(esc(PUBLIC_BUSINESS_HOURS))) {
+    out = out.replace(/<\/footer>/i, `<p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p></footer>`);
   }
 
   if (location || CORE_FAQ_PATHS.some(path => path === m.path)) {
