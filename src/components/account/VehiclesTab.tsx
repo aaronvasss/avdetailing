@@ -1,3 +1,4 @@
+import { bookHref, serviceForVehicleType } from "@/lib/booking-entry";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -244,7 +245,7 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
                   {(v.color || v.license_plate) && <p>{[v.color, v.license_plate].filter(Boolean).join(" · ")}</p>}
                   {v.service_address && <p>📍 {v.service_address}</p>}
                 </div>
-                <Button asChild className="mb-2 h-11 w-full"><Link to="/book">Book for this vehicle</Link></Button>
+                <Button asChild className="mb-2 h-11 w-full"><Link to={bookHref(serviceForVehicleType(v.vehicle_type), v.id)}>Book for this vehicle</Link></Button>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={() => openHistory(v)}><History className="h-4 w-4 mr-1" />History</Button>
                   <Button variant="outline" size="sm" onClick={() => openEdit(v)}><Pencil className="h-4 w-4 mr-1" />Edit</Button>

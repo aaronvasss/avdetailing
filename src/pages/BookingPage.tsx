@@ -129,7 +129,7 @@ const bookingFlowDescriptions: Record<string, string> = {
   "gold": "Full interior detailing + full exterior detail (includes shampoo + paint sealant)",
 };
 
-import { parseBookingEntry } from "@/lib/booking-entry";
+import { parseBookingEntry, parseBookingVehicle, serviceForVehicleType } from "@/lib/booking-entry";
 /** Gold is the single recommended car package, matching the car detailing page. */
 const CAR_POPULAR_SLUG = "gold";
 
@@ -273,13 +273,32 @@ const BookingPage = () => {
   // Deep links from service pages: /book?service=car&package=gold preselects the
   // package then asks for vehicle type; /book?service=aircraft opens the existing
   // aircraft quote form (step 2 of the quote-only branch). Back still returns to step 1.
+  const enterServiceFromLink=(service:string,pkg?:string)=>{
+    setServiceType(service);
+    if(pkg){setSelectedPackage(pkg);setStep(2);return;}
+    // Same screen a tap on the service card opens; Back returns to step 1.
+    if(quoteOnlyServices.includes(service)||servicesWithVehicleSelection.includes(service))setStep(2);
+    else{setVehicleSubType("");setStep(3);}
+  };
   useEffect(()=>{
     const entry=parseBookingEntry(window.location.search);
     if(!entry)return;
-    setServiceType(entry.service);
-    if(entry.service==='car')setSelectedPackage(entry.package);
-    setStep(2);
+    enterServiceFromLink(entry.service,'package' in entry?entry.package:undefined);
   },[]);
+
+  // ?vehicle=<id>: only a saved vehicle owned by the signed-in customer is used; anything else is ignored.
+  useEffect(()=>{
+    const vehicleId=parseBookingVehicle(window.location.search);
+    if(!user||!vehicleId)return;
+    let canceled=false;
+    supabase.from('customer_vehicles').select('id,user_id,vehicle_type,year,make,model').eq('id',vehicleId).eq('user_id',user.id).maybeSingle().then(({data})=>{
+      if(canceled||!data||data.user_id!==user.id)return;
+      setSavedVehicleId(data.id);
+      setCustomerInfo(previous=>({...previous,vehicleYear:data.year?String(data.year):previous.vehicleYear,vehicleMake:data.make||previous.vehicleMake,vehicleModel:data.model||previous.vehicleModel}));
+      if(!parseBookingEntry(window.location.search)){const service=serviceForVehicleType(data.vehicle_type);if(service)enterServiceFromLink(service);}
+    });
+    return()=>{canceled=true;};
+  },[user?.id]);
 
   // Fetch packages from database
   useEffect(()=>{
