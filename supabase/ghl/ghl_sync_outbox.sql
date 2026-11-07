@@ -1,3 +1,4 @@
+-- lovable-cron-fallback-reviewed: wake-on-enqueue queue; 1-minute retry timer exists only while GHL work is waiting and is removed when the queue drains, and never while sync is disabled
 -- GoHighLevel one-way sync outbox (Phase 1). Sending stays disabled until ghl_sync_config.enabled is turned on.
 CREATE TABLE public.ghl_sync_queue (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
