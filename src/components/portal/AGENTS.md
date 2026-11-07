@@ -1,0 +1,1 @@
+- Customer /account renders through PortalShell and reuses existing account tab components and AppointmentsTab modes, so redesigns never fork data, auth or booking logic; admin/worker keep their own layouts.
