@@ -153,13 +153,13 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm({ ...form, [k]: e.target.value });
 
-  if (loading) return <div className="animate-pulse">Loading vehicles...</div>;
+  if (loading) return <div className="space-y-3" role="status" aria-label="Loading vehicles">{[0, 1].map(i => <div key={i} className="h-32 rounded-2xl bg-muted/40 animate-pulse motion-reduce:animate-none" />)}</div>;
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">My Vehicles</h2>
-        <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Vehicle</Button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl font-bold">Vehicles</h1>
+        <Button onClick={openAdd} className="h-11 w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" />Add vehicle</Button>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -216,17 +216,15 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
       </Dialog>
 
       {vehicles.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Car className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No vehicles added yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Add your cars, trucks, boats, RVs or aircraft for faster booking</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-border/60 bg-card p-5 text-center">
+          <Car className="mx-auto mb-2 h-8 w-8 text-muted-foreground" aria-hidden="true" />
+          <p className="font-semibold">No vehicles yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add your cars, trucks, boats, RVs or aircraft for faster booking.</p>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((v) => (
-            <Card key={v.id} className={`overflow-hidden ${v.is_default ? "border-primary" : ""}`}>
+            <Card key={v.id} className={`overflow-hidden rounded-2xl ${v.is_default ? "border-primary" : "border-border/60"}`}>
               {v.photo_path && photoUrls[v.photo_path] ? (
                 <img src={photoUrls[v.photo_path]} alt={v.nickname || `${v.make} ${v.model}`} className="h-36 w-full object-cover" loading="lazy" />
               ) : (
@@ -246,6 +244,7 @@ export function VehiclesTab({ userId }: VehiclesTabProps) {
                   {(v.color || v.license_plate) && <p>{[v.color, v.license_plate].filter(Boolean).join(" · ")}</p>}
                   {v.service_address && <p>📍 {v.service_address}</p>}
                 </div>
+                <Button asChild className="mb-2 h-11 w-full"><Link to="/book">Book for this vehicle</Link></Button>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={() => openHistory(v)}><History className="h-4 w-4 mr-1" />History</Button>
                   <Button variant="outline" size="sm" onClick={() => openEdit(v)}><Pencil className="h-4 w-4 mr-1" />Edit</Button>
