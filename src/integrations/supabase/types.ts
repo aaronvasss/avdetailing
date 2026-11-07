@@ -2851,6 +2851,7 @@ export type Database = {
       is_ops_employee: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       next_ops_job_number: { Args: never; Returns: string }
+      portal_booking_balance: { Args: { _booking_id: string }; Returns: Json }
       release_google_reviews_refresh: {
         Args: { claim_token: string }
         Returns: undefined
