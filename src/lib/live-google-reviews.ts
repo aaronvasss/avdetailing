@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GOOGLE_REVIEWS_URL } from "./google-business";
-import { publicReview, validTotals, type GoogleReview } from "../../supabase/functions/google-reviews/model";
+import { publicReview, validTotals, REVIEW_REFRESH_MS, type GoogleReview } from "../../supabase/functions/google-reviews/model";
 export interface LiveGoogleReviews { rating: number; total_review_count: number; reviews: GoogleReview[]; google_maps_uri: string; fetched_at: string; expires_at: string }
 export function parseLiveGoogleReviews(value: unknown, now = Date.now()): LiveGoogleReviews | null {
   if (!value || typeof value !== "object") return null;
@@ -14,16 +14,16 @@ export function parseLiveGoogleReviews(value: unknown, now = Date.now()): LiveGo
 }
 export const LIVE_GOOGLE_REVIEWS_KEY = ["live-google-reviews"];
 export function useLiveGoogleReviews() {
-  const query = useQuery({ queryKey: LIVE_GOOGLE_REVIEWS_KEY, staleTime: 5 * 60000, retry: false, queryFn: async () => {
+  const query = useQuery({ queryKey: LIVE_GOOGLE_REVIEWS_KEY, staleTime: REVIEW_REFRESH_MS, retry: false, refetchInterval: q => q.state.data ? Math.max(30000, Math.min(REVIEW_REFRESH_MS, Date.parse(q.state.data.fetched_at) + REVIEW_REFRESH_MS - Date.now())) : 60000, queryFn: async () => {
     const { data, error } = await supabase.functions.invoke("google-reviews", { body: {} });
-    if (error) return null;
+    if (error) throw error;
     return parseLiveGoogleReviews(data?.cache);
   } });
-  const expiresAt = query.data?.expires_at;
+  const expiresAt = query.data?.fetched_at;
   const refetch = query.refetch;
   useEffect(() => {
     if (!expiresAt) return;
-    const timer = window.setTimeout(() => { void refetch(); }, Math.max(0, Date.parse(expiresAt) - Date.now()));
+    const timer = window.setTimeout(() => { void refetch(); }, Math.max(30000, Date.parse(expiresAt) + REVIEW_REFRESH_MS - Date.now()));
     return () => window.clearTimeout(timer);
   }, [expiresAt, refetch]);
   return query;

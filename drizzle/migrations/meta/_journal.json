@@ -85,6 +85,13 @@
       "when": 1794019328220,
       "tag": "0011_restrict_google_review_cache_writes",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794021160335,
+      "tag": "0012_hourly_google_reviews_refresh",
+      "breakpoints": true
     }
   ]
 }

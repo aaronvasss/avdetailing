@@ -1114,14 +1114,20 @@ export type Database = {
         Row: {
           attempted_at: string
           id: boolean
+          lease_token: string | null
+          lease_until: string | null
         }
         Insert: {
           attempted_at?: string
           id?: boolean
+          lease_token?: string | null
+          lease_until?: string | null
         }
         Update: {
           attempted_at?: string
           id?: boolean
+          lease_token?: string | null
+          lease_until?: string | null
         }
         Relationships: []
       }
@@ -2669,6 +2675,14 @@ export type Database = {
     }
     Functions: {
       claim_google_reviews_refresh: { Args: never; Returns: boolean }
+      claim_google_reviews_refresh_lease: {
+        Args: { force_refresh?: boolean }
+        Returns: string
+      }
+      finish_google_reviews_refresh: {
+        Args: { claim_token: string; snapshot: Json }
+        Returns: boolean
+      }
       generate_booking_token: { Args: never; Returns: string }
       generate_calendar_token: { Args: never; Returns: string }
       get_booking_capacity: { Args: never; Returns: number }
@@ -2692,6 +2706,10 @@ export type Database = {
       is_ops_employee: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       next_ops_job_number: { Args: never; Returns: string }
+      release_google_reviews_refresh: {
+        Args: { claim_token: string }
+        Returns: undefined
+      }
       settle_portal_charge: {
         Args: {
           _amount: number
