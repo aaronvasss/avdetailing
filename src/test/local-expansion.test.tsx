@@ -41,7 +41,7 @@ describe("owner local SEO expansion", () => {
     const s = localBusinessSchema();
     expect(s["@type"]).toEqual(["AutoWash", "LocalBusiness"]); expect(s["@id"]).toBe("https://avdetailing.net/#business");
     expect(s.legalName).toBe("AV Detailing LLC"); expect(s.founder).toEqual({ "@type": "Person", name: "Aaron Vasquez" });
-    expect(s.paymentAccepted).toBe("Cash, Credit Card, Debit Card, Cash App, Venmo"); expect(s).not.toHaveProperty("aggregateRating");
+    expect(s.paymentAccepted).toBe("Credit Card, Debit Card"); expect(s).not.toHaveProperty("aggregateRating");
   });
   it("shares homepage payment, area and excluded-service answers with FAQ schema", () => {
     const faqs = buildFaqs(buildPricing(FALLBACK_PACKAGES, FALLBACK_PLANS));
