@@ -11,6 +11,7 @@ import { CARE_GUIDES, GUIDE_PUBLISH_DATE } from "@/lib/guides";
 import { SPANISH_PAGES, LANGUAGE_PAIRS, languageAlternates } from "@/lib/language-pages";
 import { EDITORIAL_ROUTES, spanishPackagePrices } from "@/lib/editorial-html";
 import { seedSeoAssets } from "./helpers/seo-assets";
+import { schemaHasType } from "@/lib/schema-node";
 
 describe("batch 4B indexing and published content", () => {
   it("keeps four approved article URLs and both Spanish URLs", () => {
@@ -35,7 +36,7 @@ describe("batch 4B indexing and published content", () => {
         expect(d.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(`https://avdetailing.net${page.path}`);
         expect(d.querySelector('meta[name="robots"]')?.getAttribute("content")).toMatch(/^index/);
         const nodes = [...d.querySelectorAll('script[type="application/ld+json"]')].flatMap(n => { const s = JSON.parse(n.textContent ?? "{}"); return Array.isArray(s) ? s : [s]; });
-        expect(nodes.filter(n => n["@type"] === "LocalBusiness")).toHaveLength(1);
+        expect(nodes.filter(n => schemaHasType(n, "LocalBusiness"))).toHaveLength(1);
         expect(nodes.filter(n => ["FAQPage", "Review"].includes(n["@type"]) || n.aggregateRating)).toHaveLength(0);
         const guide = CARE_GUIDES.find(g => g.path === page.path);
         if (guide) {

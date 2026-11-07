@@ -4,6 +4,7 @@ import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { AnalyticsSettingsControl } from "@/components/analytics/AnalyticsConsent";
 import { NEW_LOCATION_AREAS } from "@/data/locationPages";
 import { PUBLIC_BUSINESS_HOURS } from "@/lib/public-business-facts";
+import { OWNER_SERVICE_AREAS } from "@/lib/local-expansion";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -69,10 +70,7 @@ const boatRvLinks = [
   { name: "RV Oxidation Removal", href: "/rv-oxidation-removal-baton-rouge" },
 ];
 
-const serviceAreas = [
-  "Baton Rouge", "Denham Springs", "Highland Road", "Perkins Road", "Old Jefferson",
-  "Shenandoah", "Highland Lakes", "Prairieville", "Gonzales", "Walker",
-];
+const serviceAreas = OWNER_SERVICE_AREAS;
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -209,7 +207,7 @@ export function Footer() {
               <li className="flex items-start text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mr-3 mt-0.5 text-primary shrink-0" />
                 <span>
-                  Serving {serviceAreas.join(", ")} & surrounding areas within 30 miles
+                  Serving {serviceAreas.join(", ")}
                 </span>
               </li>
             </ul>

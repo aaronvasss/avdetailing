@@ -7,6 +7,7 @@ import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 import { LocationPageConfig } from "@/data/locationPages";
 import { PageFaqSection } from "@/components/seo/PageFaqSection";
+import { nearbyAreaLinks } from "@/lib/local-expansion";
 
 const SITE_URL = "https://avdetailing.net";
 
@@ -210,6 +211,10 @@ export function LocationLandingTemplate({ config }: Props) {
       </section>
 
       {/* City FAQs */}
+      <section className="section-padding"><div className="container-custom max-w-4xl">
+        <h2 className="text-3xl font-bold mb-6">Nearby areas we also serve</h2>
+        <ul className="space-y-4">{nearbyAreaLinks(config.slug).map(l => <li key={l.href}><Link to={l.href} className="text-primary underline">{l.text}</Link></li>)}</ul>
+      </div></section>
       <PageFaqSection faqs={config.faqs ?? []} />
 
       {/* CTA */}
@@ -220,7 +225,7 @@ export function LocationLandingTemplate({ config }: Props) {
             <a href="tel:2255216264" className="text-primary hover:underline">
               (225) 521-6264
             </a>{" "}
-            or book online today.
+            or <a href="sms:2255216264" className="text-primary underline">text us</a>, or book online today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="text-base">

@@ -1,3 +1,9 @@
+# Local SEO expansion (November 7)
+- [x] Refreshed existing Baker/Port Allen/Perkins pages and added Brusly (12 locations total); all city pages have three shared nearby links, owner areas in footer/home FAQ, sitemap/prerender/llms entries match.
+- [x] Legal identity/multi-type schema, requested five payment methods, homepage FAQs/trust/title/alt and optional 404 fallback implemented; Bocage already present on Highland page, retained.
+- [x] 678 tests/62 files passed; source/preview desktop/375 DPR2/390 DPR3 pages and nearby/home/FAQ/notfound/areas journeys passed with external requests blocked; automatic preview build OK. Full production build/live HTTP404 not verified. Report: docs/local-seo-expansion-2026-11-07.md. No publication or business-logic changes.
+- [ ] “No extra processing fees” wording waits on reconciliation: Terms still state online 3.5%, existing totals may include fees, and owner forbids changing payment logic. No universal no-fee claim added.
+
 # SEO batch 4B (November 7)
 - [x] Four educational guides and /guides index with AV Detailing author/November 7 date, Article/BreadcrumbList and related service/booking links; neutral educational references, no new service methods or guarantees.
 - [x] Spanish homepage/car summaries with shared authoritative display prices, reciprocal en/es/x-default pairs, document language and self-canonicals; booking and shared navigation remain English.

@@ -168,6 +168,7 @@ export function ServicesSection() {
                       <img 
                         src={service.customIcon} 
                         alt="" 
+                        aria-hidden="true"
                         className="h-6 w-6 object-contain" 
                       />
                     ) : (

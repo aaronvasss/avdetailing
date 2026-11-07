@@ -39,6 +39,11 @@ import { CARE_GUIDES, guideSchemas } from "../src/lib/guides";
 import { languageAlternates } from "../src/lib/language-pages";
 import { EDITORIAL_ROUTES, editorialHtml } from "../src/lib/editorial-html";
 import { JSDOM } from "jsdom";
+import { schemaHasType } from "../src/lib/schema-node";
+import { nearbyAreaLinks, HOME_LOCAL_FAQS, OWNER_REVIEW_TRUST, OWNER_SERVICE_AREAS } from "../src/lib/local-expansion";
+import { PUBLIC_PAYMENT_ANSWER } from "../src/lib/public-business-facts";
+import { GOOGLE_REVIEWS_URL } from "../src/lib/google-business";
+import { notFoundHtml } from "../src/lib/not-found-seo";
 const routeFaqs = (path: string) => path === CERAMIC_COST.path ? CERAMIC_COST_FAQS : corePageFaqs(path).length ? corePageFaqs(path) : SERVICE_EXPECTATIONS[path]?.faqs ?? [];
 
 const DIST = join(process.cwd(), "dist");
@@ -78,8 +83,9 @@ function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
     `<h2>Detailing Services in ${esc(p.city)}</h2><ul>${services}</ul>`,
     `<h2>Why Choose AV Detailing</h2><ul>${why}</ul>`,
     `<h2>Neighborhoods We Serve</h2><p>${esc(p.neighborhoods)}</p>`,
+    `<h2>Nearby areas we also serve</h2><ul>${nearbyAreaLinks(p.slug).map(l => `<li><a href="${l.href}">${esc(l.text)}</a></li>`).join("")}</ul>`,
     pageFaqHtml(p.faqs ?? []),
-    `<p>Call (225) 521-6264 to book mobile detailing in ${esc(p.city)}, Baton Rouge, LA.</p>`,
+    `<p><a href="/book">Book online</a>, <a href="tel:2255216264">call</a> or <a href="sms:2255216264">text (225) 521-6264</a> for mobile detailing in ${esc(p.city)}, LA.</p>`,
   ].join("");
 }
 
@@ -214,6 +220,7 @@ for (const r of STATIC_ROUTES) {
   if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
   if (r.path === "/" || r.path === "/service-areas") r.body += `<h2>Detailing by City</h2><ul>${NEW_LOCATION_AREAS.map(area => `<li><a href="/${area.slug}">Car Detailing in ${esc(area.city)}</a> — ${esc(area.geography)}</li>`).join("")}</ul>`;
   if (r.path === "/") {
+    r.body += `<p><a href="${GOOGLE_REVIEWS_URL}">${esc(OWNER_REVIEW_TRUST)}</a></p><h2>Frequently Asked Questions</h2>${pageFaqHtml([...HOME_LOCAL_FAQS, { question: "What payment methods do you accept?", answer: PUBLIC_PAYMENT_ANSWER }])}`;
     r.body += `<p>For private aircraft, explore <a href="/aircraft-detailing-baton-rouge">aircraft and private jet detailing in Baton Rouge</a>: interior deep cleaning, shampooing, polishing and ceramic coating, with scope and access coordinated per job.</p>`;
   }
 }
@@ -265,20 +272,21 @@ function dedupeLocalBusiness(html: string): string {
   return html.replace(
     /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>\s*/gi,
     (full, json: string) => {
-      if (!/"@type"\s*:\s*"LocalBusiness"/.test(json)) return full;
-      if (seenBusiness) {
-        // Strip the duplicate business node but keep other schemas in the block.
-        try {
-          const data = JSON.parse(json);
-          if (Array.isArray(data)) {
-            const rest = data.filter((d) => d?.["@type"] !== "LocalBusiness");
-            return rest.length ? full.replace(json, JSON.stringify(rest)) : "";
+      try {
+        const data = JSON.parse(json);
+        const walk = (value: unknown): unknown => {
+          if (Array.isArray(value)) return value.map(walk).filter(v => v != null);
+          if (schemaHasType(value, "LocalBusiness")) {
+            if (seenBusiness) return null;
+            seenBusiness = true;
+            return localBusinessSchema();
           }
-        } catch { /* fall through */ }
-        return "";
-      }
-      seenBusiness = true;
-      return full;
+          if (value && typeof value === "object" && "@graph" in value) return { ...value, "@graph": walk((value as Record<string, unknown>)["@graph"]) };
+          return value;
+        };
+        const clean = walk(data);
+        return clean == null || (Array.isArray(clean) && !clean.length) ? "" : full.replace(json, JSON.stringify(clean).replace(/</g, "\\u003c"));
+      } catch { return full; }
     },
   );
 }
@@ -432,7 +440,7 @@ function rewrite(html: string, m: RouteMeta): string {
     try {
       const parsed = JSON.parse(json);
       const nodes = Array.isArray(parsed) ? parsed : [parsed];
-      for (const node of nodes) if (node?.["@type"] === "LocalBusiness") node.openingHoursSpecification = PUBLIC_OPENING_HOURS_SPECIFICATION;
+      for (const node of nodes) if (schemaHasType(node, "LocalBusiness")) node.openingHoursSpecification = PUBLIC_OPENING_HOURS_SPECIFICATION;
       return full.replace(json, JSON.stringify(parsed).replace(/</g, "\\u003c"));
     } catch { return full; }
   });
@@ -442,7 +450,12 @@ function rewrite(html: string, m: RouteMeta): string {
   out = dedupeLocalBusiness(out);
   // Service pages: an empty-shell fallback has no page schema. Add the same
   // minimal Service relation the rendered page declares (no offers/ratings).
-  if (SERVICE_SCHEMA_PATHS.has(m.path) && !/"@type":\s*"Service"/.test(out)) {
+  // OfferCatalog contains nested Service names, not the route's Service node.
+  const hasRouteService = [...out.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)].some(match => {
+    try { const parsed = JSON.parse(match[1]); return (Array.isArray(parsed) ? parsed : [parsed]).some(node => schemaHasType(node, "Service")); }
+    catch { return false; }
+  });
+  if (SERVICE_SCHEMA_PATHS.has(m.path) && !hasRouteService) {
     const location = LOCATION_PAGES.find(p => `/${p.slug}` === m.path);
     const service = {
       "@context": "https://schema.org",
@@ -455,7 +468,7 @@ function rewrite(html: string, m: RouteMeta): string {
     };
     out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(service).replace(/</g, "\\u003c")}</script></head>`);
   }
-  if (!LEGAL_PATHS.has(m.path) && !/"@type":"LocalBusiness"/.test(out)) {
+  if (!LEGAL_PATHS.has(m.path) && !/"@type":\s*\["AutoWash","LocalBusiness"\]/.test(out)) {
     out = out.replace(
       /<\/head>/i,
       `  <script type="application/ld+json">${JSON.stringify(localBusinessSchema()).replace(/</g, "\\u003c")}</script>\n  </head>`,
@@ -492,7 +505,7 @@ function rewrite(html: string, m: RouteMeta): string {
   if (m.body && !hasRealContent) {
     out = out.replace(
       /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
-      `<div id="root"><div data-seo-content>${m.body}<footer><p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p><a href="/guides">Guides</a> <a href="/es" lang="es">Español</a></footer></div></div>`,
+      `<div id="root"><div data-seo-content>${m.body}<footer><p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p><p>Serving ${esc(OWNER_SERVICE_AREAS.join(", "))}</p><a href="/guides">Guides</a> <a href="/es" lang="es">Español</a></footer></div></div>`,
     );
   }
   if (hasRealContent && !out.includes(esc(PUBLIC_BUSINESS_HOURS))) {
@@ -518,6 +531,7 @@ function rewrite(html: string, m: RouteMeta): string {
     }
     out = replacePageFaqSchema(out, faqs);
   }
+  if (m.path === "/" && !hasRealContent) out = replacePageFaqSchema(out, [...HOME_LOCAL_FAQS, { question: "What payment methods do you accept?", answer: PUBLIC_PAYMENT_ANSWER }]);
 
   if (m.path === "/gallery") {
     const newImages = APPROVED_JOB_PHOTOS.map(p => ({ "@type": "ImageObject", contentUrl: p.photo.src, caption: approvedPhotoCaption(p) }));
@@ -593,4 +607,5 @@ for (const [from, to] of Object.entries(LEGACY_REDIRECTS)) {
   written++;
 }
 
-console.log(`[postbuild-seo] wrote ${written} route HTML files`);
+writeFileSync(join(DIST, "404.html"), notFoundHtml());
+console.log(`[postbuild-seo] wrote ${written} route HTML files and optional 404.html fallback`);

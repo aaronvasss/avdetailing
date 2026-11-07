@@ -12,6 +12,7 @@ import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, rmSync } from "node
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
+import { schemaHasType } from "@/lib/schema-node";
 
 describe("shared public FAQ data", () => {
   for (const path of CORE_FAQ_PATHS) {
@@ -71,7 +72,7 @@ describe("genuine photo routing and emitted assets", () => {
         expect(schemas).toHaveLength(1);
         expect(schemas[0]).toEqual(pageFaqSchema(faqs));
         expect(html).toContain(pageFaqHtml(faqs));
-        expect(scripts.filter(node => node["@type"] === "LocalBusiness")).toHaveLength(1);
+        expect(scripts.filter(node => schemaHasType(node, "LocalBusiness"))).toHaveLength(1);
         expect(scripts.some(node => node["@type"] === "Service")).toBe(true);
         expect(scripts.some(node => node["@type"] === "BreadcrumbList")).toBe(true);
       }

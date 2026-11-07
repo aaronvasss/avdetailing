@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 import { seedSeoAssets } from "./helpers/seo-assets";
+import { schemaHasType } from "@/lib/schema-node";
 
 describe("owner-confirmed daily public hours", () => {
   for (const day of ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]) {
@@ -27,7 +28,7 @@ describe("owner-confirmed daily public hours", () => {
         const nodes = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].flatMap(m => {
           const s = JSON.parse(m[1]); return Array.isArray(s) ? s : [s];
         });
-        expect(nodes.find(n => n["@type"] === "LocalBusiness")?.openingHoursSpecification).toEqual(PUBLIC_OPENING_HOURS_SPECIFICATION);
+        expect(nodes.find(n => schemaHasType(n, "LocalBusiness"))?.openingHoursSpecification).toEqual(PUBLIC_OPENING_HOURS_SPECIFICATION);
       }
     } finally { rmSync(temp, { recursive: true, force: true }); }
   }, 60000);
