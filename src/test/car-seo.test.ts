@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { seedSeoAssets } from "./helpers/seo-assets";
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -38,6 +39,7 @@ describe("car section SEO", () => {
     const temp = mkdtempSync(join(tmpdir(), "car-seo-"));
     try {
       mkdirSync(join(temp, "dist"));
+      seedSeoAssets(temp);
       copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
       execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
       const read = (p: string) => readFileSync(join(temp, `dist/${p}/index.html`), "utf8");

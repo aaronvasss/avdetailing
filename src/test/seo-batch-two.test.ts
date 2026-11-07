@@ -7,6 +7,11 @@ import { LOCATION_PAGES } from "@/data/locationPages";
 import { JOB_GALLERY, jobForPage } from "@/lib/job-gallery";
 import { jobPairHtml, replacePageFaqSchema } from "@/lib/page-extras-html";
 import { PageFaqSection } from "@/components/seo/PageFaqSection";
+import { seedSeoAssets } from "./helpers/seo-assets";
+import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, rmSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { execFileSync } from "node:child_process";
 
 describe("shared public FAQ data", () => {
   for (const path of CORE_FAQ_PATHS) {
@@ -52,6 +57,33 @@ describe("shared public FAQ data", () => {
   });
 });
 describe("genuine photo routing and emitted assets", () => {
+  it("postbuild emits one matching FAQPage, city breadcrumbs and real optimized pictures from an empty shell", () => {
+    const temp = mkdtempSync(join(tmpdir(), "batch-two-seo-"));
+    try {
+      mkdirSync(join(temp, "dist")); seedSeoAssets(temp);
+      copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
+      execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
+      for (const path of [...CORE_FAQ_PATHS, ...LOCATION_PAGES.map(p => `/${p.slug}`)]) {
+        const html = readFileSync(join(temp, `dist${path}/index.html`), "utf8");
+        const faqs = LOCATION_PAGES.find(p => `/${p.slug}` === path)?.faqs ?? corePageFaqs(path);
+        const scripts = Array.from(html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)).flatMap(m => { const node = JSON.parse(m[1]); return Array.isArray(node) ? node : [node]; });
+        const schemas = scripts.filter(node => node["@type"] === "FAQPage");
+        expect(schemas).toHaveLength(1);
+        expect(schemas[0]).toEqual(pageFaqSchema(faqs));
+        expect(html).toContain(pageFaqHtml(faqs));
+        expect(scripts.filter(node => node["@type"] === "LocalBusiness")).toHaveLength(1);
+        expect(scripts.some(node => node["@type"] === "Service")).toBe(true);
+        expect(scripts.some(node => node["@type"] === "BreadcrumbList")).toBe(true);
+      }
+      for (const path of ["car-detailing-baton-rouge", "mobile-car-detailing-baton-rouge", "interior-detailing-baton-rouge", "exterior-detailing-baton-rouge", "ceramic-coating-baton-rouge", "paint-correction-baton-rouge", "boat-detailing-baton-rouge", "mobile-boat-detailing-baton-rouge", "gelcoat-restoration-baton-rouge"]) {
+        const html = readFileSync(join(temp, `dist/${path}/index.html`), "utf8");
+        expect(html).toContain('data-job-pair=');
+        const images = Array.from(html.matchAll(/<img[^>]+src="(\/assets\/gallery-[^"]+)"/g));
+        expect(images).toHaveLength(2);
+        for (const image of images) expect(readFileSync(join(temp, "dist", image[1])).length).toBeGreaterThan(0);
+      }
+    } finally { rmSync(temp, { recursive: true, force: true }); }
+  }, 60000);
   it("uses confirmed Range Rover/Porsche/yacht jobs without attributing coating to the Porsche", () => {
     expect(jobForPage("/interior-detailing-baton-rouge")?.vehicle).toBe("Range Rover Biography");
     expect(jobForPage("/ceramic-coating-baton-rouge")?.service).toBe("Paint correction");

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { seedSeoAssets } from "./helpers/seo-assets";
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -12,6 +13,7 @@ const count = (s: string, re: RegExp) => (s.match(re) ?? []).length;
 function build() {
   const temp = mkdtempSync(join(tmpdir(), "rv-seo-"));
   mkdirSync(join(temp, "dist"));
+  seedSeoAssets(temp);
   copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
   execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
   return temp;
