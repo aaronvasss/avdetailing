@@ -45,4 +45,15 @@ describe("provider-only review data",()=>{
   it("accepts unexpired complete provider cache",()=>expect(parseLiveGoogleReviews(cached,now)?.total_review_count).toBe(20));
   it("hides expired content",()=>expect(parseLiveGoogleReviews(cached,Date.parse(cached.expires_at))).toBeNull());
   it("hides empty, forged or overretained data",()=>{expect(parseLiveGoogleReviews({...cached,reviews:[]},now)).toBeNull();expect(parseLiveGoogleReviews({...cached,google_maps_uri:"https://example.com"},now)).toBeNull();expect(parseLiveGoogleReviews({...cached,expires_at:"2026-12-01T00:00:00Z"},now)).toBeNull();});
+  it("removes live provider content from captured initial HTML",()=>{
+    const temp=mkdtempSync(join(tmpdir(),"reviews-capture-"));
+    try {
+      mkdirSync(join(temp,"dist"));seedSeoAssets(temp);
+      const shell=readFileSync("index.html","utf8").replace('<div id="root"></div>', '<div id="root"><h1>Captured home</h1><section data-live-google-content>temporary-provider-text</section><a data-live-google-content>temporary-provider-rating</a></div>');
+      requireWrite(join(temp,"dist/index.html"),shell);
+      execFileSync(resolve("node_modules/.bin/tsx"),[resolve("scripts/postbuild-seo.ts")],{cwd:temp,stdio:"pipe"});
+      const out=readFileSync(join(temp,"dist/index.html"),"utf8");
+      expect(out).not.toContain("temporary-provider-text");expect(out).not.toContain("temporary-provider-rating");
+    }finally{rmSync(temp,{recursive:true,force:true});}
+  },60000);
 });

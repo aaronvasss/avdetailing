@@ -445,12 +445,12 @@ function rewrite(html: string, m: RouteMeta): string {
     );
   }
   const location = LOCATION_PAGES.find(p => `/${p.slug}` === m.path);
-  if (CORE_FAQ_PATHS.some(path => path === m.path) && !/"@type"\s*:\s*"BreadcrumbList"/.test(out)) {
-    const carChild = m.path === CERAMIC_SEO.path || m.path === PAINT_CORRECTION_SEO.path;
+  if ((CORE_FAQ_PATHS.some(path => path === m.path) || m.path === CERAMIC_COST.path) && !/"@type"\s*:\s*"BreadcrumbList"/.test(out)) {
+    const carChild = m.path === CERAMIC_SEO.path || m.path === PAINT_CORRECTION_SEO.path || m.path === CERAMIC_COST.path;
     const name = m.path === CAR_HUB_PATH ? "Car Detailing" : m.path === BOAT_HUB_PATH ? "Boat Detailing" : m.path === RV_HUB_PATH ? "RV Detailing" : m.title.replace(/\s*[|—]\s*AV Detailing$/, "");
     const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-      { "@type": "ListItem", position: 2, name: carChild ? "Car Detailing" : "Services", item: `${SITE}${carChild ? CAR_HUB_PATH : "/services"}` },
+      { "@type": "ListItem", position: 2, name: m.path === CERAMIC_COST.path ? "Ceramic Coating" : carChild ? "Car Detailing" : "Services", item: `${SITE}${m.path === CERAMIC_COST.path ? CERAMIC_SEO.path : carChild ? CAR_HUB_PATH : "/services"}` },
       { "@type": "ListItem", position: 3, name, item: url },
     ] };
     out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(breadcrumb)}</script></head>`);
