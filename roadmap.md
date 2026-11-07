@@ -1,3 +1,8 @@
+# Approved job photos (November 7, source/preview only)
+- [x] Preserve blurring in five uploads; create 30 resized-only 400/800/1200 AVIF/WebP CDN assets under src/assets/approved-jobs pointers. All 30 CDN URLs independently return HTTP200 with exact bytes/content types.
+- [x] Replace Boat/Aircraft/RV homepage card photos and add shared photo sections to 15 requested pages plus five individual gallery entries and ImageGallery schema/initial HTML. Do not label these as before/after pairs or infer specific treatments.
+- [x] No public Unsplash host references remain (stock references had already been localized); 626 tests/57 files pass, mocked desktop/375 DPR2/390 DPR3 photo/schema/filter checks pass, blurring visually preserved, automatic preview build OK. No manual production build, publication, booking/payment/tracking changes or customer actions.
+
 # SEO batch 2 (November 7, source/preview only)
 - [x] Six core pages have six shared FAQs each; all eleven location pages have four, with one matching FAQPage in rendered and empty-shell initial HTML.
 - [x] Genuine optimized Range Rover/Porsche/yacht pairs on nine requested money pages; gallery captions/introduction corrected to owner-confirmed jobs without inferred treatments or cities.

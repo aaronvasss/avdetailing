@@ -4,7 +4,7 @@ export const JOB_GALLERY = [
   { key: "paint", vehicle: "Porsche 911", service: "Paint correction", beforeKey: "paintBefore", afterKey: "paintAfter", assetStem: "paint-correction" },
   { key: "boat", vehicle: "Yacht", service: "Marine detail", beforeKey: "boatBefore", afterKey: "boatAfter", assetStem: "boat-detail" },
 ] as const;
-export const GALLERY_INTRO = "These before-and-after photos show real AV Detailing jobs: a Range Rover Biography full detail, Porsche 911 paint correction and yacht marine detail. Each pair shows the same vehicle before and after the photographed service.";
+export const GALLERY_INTRO = "These photos show real AV Detailing jobs, including Range Rover Biography full detail, Porsche 911 paint correction and yacht marine detail before-and-after pairs. Additional job photos show Cessna Citation private jet detail in a hangar, a motorhome exterior foam wash and Renaissance Prowler 31 boat detail on a trailer.";
 export function jobForPage(path: string) {
   const key = ["/car-detailing-baton-rouge", "/mobile-car-detailing-baton-rouge", "/interior-detailing-baton-rouge", "/exterior-detailing-baton-rouge"].includes(path) ? "car"
     : ["/paint-correction-baton-rouge", "/ceramic-coating-baton-rouge"].includes(path) ? "paint"

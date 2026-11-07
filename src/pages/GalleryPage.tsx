@@ -15,6 +15,7 @@ import paintCorrectionAfter from "@/assets/gallery/paint-correction-after.jpg";
 import { GALLERY_PHOTOS } from "@/lib/gallery-images";
 import { ResponsivePhoto } from "@/components/ui/responsive-photo";
 import { GALLERY_INTRO, JOB_GALLERY, jobCaption } from "@/lib/job-gallery";
+import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "@/lib/approved-job-photos";
 
 const categories = ["All", "Cars", "Boats", "RVs", "Aircraft"];
 
@@ -41,10 +42,10 @@ const GalleryPage = () => {
       />
       <JsonLd
         data={imageGallerySchema(
-          galleryItems.flatMap((g) => [
+          [...galleryItems.flatMap((g) => [
             { url: g.after, caption: `${g.title} — ${g.service} (after)` },
             { url: g.before, caption: `${g.title} — ${g.service} (before)` },
-          ])
+          ]), ...APPROVED_JOB_PHOTOS.map(p => ({ url: p.photo.src, caption: approvedPhotoCaption(p) }))]
         )}
       />
       <JsonLd data={localBusinessSchema()} />
@@ -128,6 +129,12 @@ const GalleryPage = () => {
               <figcaption className="mt-3 text-sm text-muted-foreground">{jobCaption(JOB_GALLERY[item.id - 1])}</figcaption>
               </figure>
             ))}
+            {APPROVED_JOB_PHOTOS.filter(p => activeCategory === "All" || p.category === activeCategory).map(p => <figure key={p.key} data-approved-photo={p.key}>
+              <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+                <ResponsivePhoto photo={p.photo} alt={p.alt} className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+              <figcaption className="mt-3 text-sm text-muted-foreground">{approvedPhotoCaption(p)}</figcaption>
+            </figure>)}
           </div>
         </div>
       </section>

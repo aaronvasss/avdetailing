@@ -1,5 +1,10 @@
 import { escapeFaqHtml, pageFaqHtml, pageFaqSchema, type PageFaq } from "./page-faqs";
 import { JOB_GALLERY, GALLERY_INTRO, jobForPage, jobCaption, jobAlt } from "./job-gallery";
+import { APPROVED_JOB_PHOTOS, approvedPhotosForPage, approvedPhotoCaption } from "./approved-job-photos";
+
+export function approvedPhotoHtml(p: typeof APPROVED_JOB_PHOTOS[number]): string {
+  return `<figure data-approved-photo="${p.key}"><picture><source type="image/avif" srcset="${p.photo.avifSrcSet}" sizes="(min-width: 768px) 420px, 100vw"><source type="image/webp" srcset="${p.photo.webpSrcSet}" sizes="(min-width: 768px) 420px, 100vw"><img src="${p.photo.src}" alt="${escapeFaqHtml(p.alt)}" loading="lazy" decoding="async" width="800" height="600"></picture><figcaption>${escapeFaqHtml(approvedPhotoCaption(p))}</figcaption></figure>`;
+}
 
 /** Actual emitted filenames are supplied by postbuild; missing assets fail, never guessed URLs. */
 export function jobPairHtml(job: typeof JOB_GALLERY[number], assetFiles: string[]): string {
@@ -18,10 +23,12 @@ export function jobPairHtml(job: typeof JOB_GALLERY[number], assetFiles: string[
 }
 export function pageExtrasHtml(path: string, faqs: PageFaq[], assets: string[]): string {
   const job = jobForPage(path);
-  return (job ? jobPairHtml(job, assets) : "") + pageFaqHtml(faqs);
+  const photos = approvedPhotosForPage(path);
+  const approved = photos.length ? `<section data-approved-job-photos><h2>${escapeFaqHtml(approvedPhotoCaption(photos[0]))}</h2>${photos.map(approvedPhotoHtml).join("")}</section>` : "";
+  return (job ? jobPairHtml(job, assets) : "") + approved + pageFaqHtml(faqs);
 }
 export function galleryInitialHtml(assets: string[]): string {
-  return `<h1>Before &amp; After Gallery</h1><p>${escapeFaqHtml(GALLERY_INTRO)}</p>${JOB_GALLERY.map(job => jobPairHtml(job, assets)).join("")}`;
+  return `<h1>Before &amp; After Gallery</h1><p>${escapeFaqHtml(GALLERY_INTRO)}</p>${JOB_GALLERY.map(job => jobPairHtml(job, assets)).join("")}${APPROVED_JOB_PHOTOS.map(approvedPhotoHtml).join("")}`;
 }
 
 /** Remove inherited/duplicate FAQPage nodes while preserving every other schema node. */
