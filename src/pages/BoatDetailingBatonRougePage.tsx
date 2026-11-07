@@ -1,3 +1,4 @@
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -242,7 +243,8 @@ export default function BoatDetailingBatonRougePage() {
           <p className="text-muted-foreground mb-8">
             Include: {BOAT_INQUIRY_GUIDANCE.join(" ")}
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <GoogleRatingBadge />
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button asChild className="font-semibold tracking-wide">
               <Link to="/book">Book Online</Link>
             </Button>

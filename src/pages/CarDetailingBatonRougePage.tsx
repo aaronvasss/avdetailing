@@ -1,3 +1,4 @@
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { usePricing, formatPrice, CAR_PAGE_DISPLAY_FROM } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -136,6 +137,7 @@ export default function CarDetailingBatonRougePage() {
             <article className="order-2 lg:order-1 flex flex-col h-full rounded-2xl p-6 sm:p-7 bg-[hsl(0_0%_6%)] text-white border border-white/10 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55 mb-2">Essentials</span>
               <h3 className="text-2xl font-bold mb-1.5">Basic Package</h3>
+              <GoogleRatingBadge />
               <p className="text-sm text-white/65 mb-4 leading-relaxed">
                 Perfect for regular maintenance. Keeps your vehicle clean and fresh between full details.
               </p>

@@ -1,3 +1,4 @@
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { usePricing } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -162,6 +163,7 @@ export default function PaintCorrectionBatonRougePage() {
                 {PAINT_CORRECTION_SEO.intro}
               </p>
 
+              <GoogleRatingBadge />
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Button asChild size="lg" className="text-base">
                   <Link to="/book">

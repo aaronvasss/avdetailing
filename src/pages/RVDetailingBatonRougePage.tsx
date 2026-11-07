@@ -1,3 +1,4 @@
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function RVDetailingBatonRougePage() {
                   <span className="text-primary">{priceLabel}</span>
                 </p>
               )}
+              <GoogleRatingBadge />
               <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
                 <Button asChild className="font-semibold tracking-wide">
                   <Link to="/book">Book Online</Link>
