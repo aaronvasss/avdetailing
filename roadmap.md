@@ -1,7 +1,7 @@
 # SEO batch 5 (November 7)
-- [ ] Reuse verified existing four location entries, links/schema/NotFound; no duplicates or changes to 4A/4B content.
-- [ ] Remove superseded static review-count lines, extend llms with cost/guides/Spanish; reconcile additional-fee wording to existing displayed-total behavior.
-- [ ] Run tests and preview checks; report actual changed files and hosting limits, no publication.
+- [x] Reused verified existing four location entries, links/schema/NotFound; no duplicates or changes to 4A/4B content.
+- [x] Removed superseded static review-count lines, extended llms with cost/guides/Spanish; qualified additional-fee wording to existing displayed-total behavior.
+- [x] 678 tests/62 files and desktop/375/390 preview checks passed; details and file list in docs/seo-batch-5-2026-11-07.md. No publication; live HTTP404 remains unverified.
 
 # Local SEO expansion (November 7)
 - [x] Refreshed existing Baker/Port Allen/Perkins pages and added Brusly (12 locations total); all city pages have three shared nearby links, owner areas in footer/home FAQ, sitemap/prerender/llms entries match.
