@@ -14,7 +14,7 @@ import {
   Phone,
 } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { SERVICES_DIRECTORY_SEO, SERVICES_DIRECTORY_ITEMS } from "@/lib/services-directory-seo";
+import { SERVICES_DIRECTORY_SEO, SERVICES_DIRECTORY_ITEMS, SERVICES_DIRECTORY_GUIDES } from "@/lib/services-directory-seo";
 import { JsonLd, localBusinessSchema, itemListSchema, breadcrumbSchema } from "@/components/seo/JsonLd";
 
 type Service = {
@@ -138,6 +138,7 @@ const ServicesPage = () => {
       </section>
 
       {/* CTA */}
+      <section className="section-padding border-t border-border"><div className="container-custom"><h2 className="text-2xl font-bold mb-4">Pricing guides</h2>{SERVICES_DIRECTORY_GUIDES.map(l => <Link key={l.href} to={l.href} className="text-primary underline">{l.text}</Link>)}</div></section>
       <section className="section-padding bg-card border-t border-border">
         <div className="container-custom max-w-3xl text-center">
           <div className="mx-auto mb-6 h-px w-16 bg-primary/60" aria-hidden />

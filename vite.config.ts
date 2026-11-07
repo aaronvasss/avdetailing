@@ -15,6 +15,7 @@ const prerenderRoutes = [
   "/aircraft-detailing-baton-rouge",
   "/mobile-car-detailing-baton-rouge",
   "/ceramic-coating-baton-rouge",
+  "/ceramic-coating-cost-baton-rouge",
   "/paint-correction-baton-rouge",
   "/interior-detailing-baton-rouge",
   "/exterior-detailing-baton-rouge",
