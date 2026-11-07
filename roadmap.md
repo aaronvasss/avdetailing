@@ -1,6 +1,6 @@
 # SEO batch 3 (November 7)
-- [ ] Public hours 6AM–8PM daily in footer/contact/schema/initial HTML, booking unchanged.
-- [ ] Determine Google policy and supported connector approach for automatic rating/count/reviews; feature-only migration/function approved, existing secrets set.
+- [x] Public hours 6AM–8PM daily shared across footer/contact/schema/initial HTML, booking unchanged; focused tests and preview checks completed.
+- [ ] Automatic reviews blocked pending owner approval of Business Profile alternative: Places forbids persistent rating/count/review cache and only returns up to five relevance-selected reviews. Both requested secrets already set; no function/migration deployed or Google API requests made.
 - [x] Separate five approved job photos already processed and verified.
 
 # Approved job photos (November 7, source/preview only)
