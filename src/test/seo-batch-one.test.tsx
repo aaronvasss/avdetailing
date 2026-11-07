@@ -14,8 +14,10 @@ import { parseGoogleReviewSummary } from "@/lib/google-review-summary";
 import { localBusinessSchema } from "@/components/seo/schema";
 import { buildFaqs } from "@/components/home/FAQSection";
 import { buildPricing, FALLBACK_PACKAGES, FALLBACK_PLANS, CAR_PAGE_DISPLAY_FROM } from "@/lib/pricing";
+import { EDITORIAL_ROUTES } from "@/lib/editorial-html";
 
 const metadata = [
+  ...EDITORIAL_ROUTES,
   ...STATIC_ROUTE_SEO, ...UTILITY_ROUTE_SEO, CAR_HUB_SEO, PAINT_CORRECTION_SEO, BOAT_HUB_SEO,
   RV_HUB_SEO, RV_INTERIOR_UNAVAILABLE, CERAMIC_SEO, AVIATION_OVERVIEW, SERVICES_DIRECTORY_SEO,
   ...SERVICE_LANDING_PAGES.map(p => ({ path: `/${p.slug}`, title: p.seoTitle ?? `${p.title} | AV Detailing`, description: p.metaDescription })),

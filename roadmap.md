@@ -1,3 +1,8 @@
+# SEO batch 4B (November 7)
+- [x] Four educational guides and /guides index with AV Detailing author/November 7 date, Article/BreadcrumbList and related service/booking links; neutral educational references, no new service methods or guarantees.
+- [x] Spanish homepage/car summaries with shared authoritative display prices, reciprocal en/es/x-default pairs, document language and self-canonicals; booking and shared navigation remain English.
+- [x] Prerender routes/fallback, footer and sitemap configured; article lastmod uses recorded content publication date only. 666 tests/61 files passed; desktop/375 DPR2/390 DPR3 direct pages and service/cost/book/footer navigation passed with all external requests blocked. Automatic preview build OK; full production prerender/live deployment remain unverified. No release or tracking changes.
+
 # SEO batch 4A (November 7)
 - [x] Aaron’s Business Profile linked; exact AV listing CID verified; google-reviews deployed and live cache reads back 5.0/142/five newest by createTime. Atomic daily refresh attempt, public unexpired reads/service-only writes, daily expired snapshot deletion. No private replies/media/account fields stored; original text/ratings unchanged, no review schema.
 - [x] Shared ceramic cost guide added with exact sedan/coupe 850/1300/1700 and SUV/truck 950/1400/1800, legacy 5-year key retained as 6-Year; FAQ/schema/navigation/sitemap/initial HTML match.

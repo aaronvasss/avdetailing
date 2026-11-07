@@ -4,10 +4,13 @@ import path from "path";
 import { createRequire } from "module";
 import { componentTagger } from "lovable-tagger";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
+import { CARE_GUIDES, GUIDES_INDEX } from "./src/lib/guides";
+import { SPANISH_PAGES } from "./src/lib/language-pages";
 
 const require = createRequire(import.meta.url);
 
 const prerenderRoutes = [
+  ...[GUIDES_INDEX, ...CARE_GUIDES, ...SPANISH_PAGES].map(page => page.path),
   "/",
   "/car-detailing-baton-rouge",
   "/rv-detailing-baton-rouge",

@@ -35,6 +35,9 @@ import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "../src/lib/approved-j
 import { PUBLIC_BUSINESS_HOURS, PUBLIC_OPENING_HOURS_SPECIFICATION } from "../src/lib/public-business-facts";
 import { CERAMIC_COST, CERAMIC_COST_FAQS, ceramicCostHtml } from "../src/lib/ceramic-cost";
 import { SERVICE_EXPECTATIONS } from "../src/lib/service-expectations";
+import { CARE_GUIDES, guideSchemas } from "../src/lib/guides";
+import { languageAlternates } from "../src/lib/language-pages";
+import { EDITORIAL_ROUTES, editorialHtml } from "../src/lib/editorial-html";
 import { JSDOM } from "jsdom";
 const routeFaqs = (path: string) => path === CERAMIC_COST.path ? CERAMIC_COST_FAQS : corePageFaqs(path).length ? corePageFaqs(path) : SERVICE_EXPECTATIONS[path]?.faqs ?? [];
 
@@ -230,6 +233,7 @@ const LOCATION_ROUTES: RouteMeta[] = LOCATION_PAGES.map((p) => ({
 }));
 
 const ALL_ROUTES: RouteMeta[] = [
+  ...EDITORIAL_ROUTES.map(page => ({ path: page.path, title: page.title, description: page.description, body: editorialHtml(page.path, EMITTED_ASSETS) })),
   ...STATIC_ROUTES,
   ...SERVICE_ROUTES,
   ...LOCATION_ROUTES,
@@ -339,6 +343,19 @@ function rewrite(html: string, m: RouteMeta): string {
   }
 
   // Captured pages carry both the static shell tags and Helmet's copies.
+  const editorial = EDITORIAL_ROUTES.some(page => page.path === m.path);
+  const guide = CARE_GUIDES.find(page => page.path === m.path);
+  out = out.replace(/<html\b[^>]*>/i, tag => tag.replace(/\s+lang=["'][^"']*["']/i, "").replace(/>$/, ` lang="${m.path === "/es" || m.path.startsWith("/es/") ? "es" : "en"}">`));
+  out = out.replace(/<link\b(?=[^>]*\brel=["']alternate["'])(?=[^>]*\bhreflang=)[^>]*>\s*/gi, "");
+  out = out.replace(/<\/head>/i, `${languageAlternates(m.path).map(a => `<link rel="alternate" hreflang="${a.lang}" href="${SITE}${a.path}" />`).join("")}</head>`);
+  if (editorial) {
+    // A shell may contain homepage FAQs: editorial pages never inherit them.
+    out = out.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, "");
+    const schemas = [localBusinessSchema(), ...(guide ? guideSchemas(guide) : [])];
+    out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(schemas).replace(/</g, "\\u003c")}</script></head>`);
+  }
+  out = out.replace(/<meta\s+property=["']og:type["'][^>]*>/gi, "");
+  out = out.replace(/<\/head>/i, `<meta property="og:type" content="${guide ? "article" : "website"}" /></head>`);
   // Keep exactly one of each head tag we own.
   const keepFirst = (re: RegExp) => {
     let seen = false;
@@ -475,7 +492,7 @@ function rewrite(html: string, m: RouteMeta): string {
   if (m.body && !hasRealContent) {
     out = out.replace(
       /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
-      `<div id="root"><div data-seo-content>${m.body}<footer><p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p></footer></div></div>`,
+      `<div id="root"><div data-seo-content>${m.body}<footer><p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p><a href="/guides">Guides</a> <a href="/es" lang="es">Español</a></footer></div></div>`,
     );
   }
   if (hasRealContent && !out.includes(esc(PUBLIC_BUSINESS_HOURS))) {
