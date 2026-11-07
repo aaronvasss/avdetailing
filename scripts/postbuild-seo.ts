@@ -35,6 +35,7 @@ import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "../src/lib/approved-j
 import { PUBLIC_BUSINESS_HOURS, PUBLIC_OPENING_HOURS_SPECIFICATION } from "../src/lib/public-business-facts";
 import { CERAMIC_COST, CERAMIC_COST_FAQS, ceramicCostHtml } from "../src/lib/ceramic-cost";
 import { SERVICE_EXPECTATIONS } from "../src/lib/service-expectations";
+import { JSDOM } from "jsdom";
 const routeFaqs = (path: string) => path === CERAMIC_COST.path ? CERAMIC_COST_FAQS : corePageFaqs(path).length ? corePageFaqs(path) : SERVICE_EXPECTATIONS[path]?.faqs ?? [];
 
 const DIST = join(process.cwd(), "dist");
@@ -284,6 +285,14 @@ function rewrite(html: string, m: RouteMeta): string {
   const d = escapeAttr(m.description);
 
   let out = html;
+  // Google snapshots are short-lived client content, not permanent build output.
+  // Strip successful captures too; no public reviews are needed to finish capture.
+  if (out.includes("data-live-google-content")) {
+    const dom = new JSDOM(out);
+    dom.window.document.querySelectorAll("[data-live-google-content]").forEach(node => node.remove());
+    out = dom.serialize();
+    dom.window.close();
+  }
   // Aviation routes must not inherit homepage FAQ or unrelated Service nodes
   // from the fallback shell. Emit the same truthful business/service relation
   // as the page, with no new airport businesses or review claims.

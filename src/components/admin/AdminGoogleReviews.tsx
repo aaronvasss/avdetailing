@@ -52,7 +52,7 @@ export function AdminGoogleReviews() {
         <h2 className="text-xl font-bold">Featured Google Reviews</h2>
         <Button onClick={save} disabled={saving || loading || failed || !dirty || reviews.length !== 3}><Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : "Save Reviews"}</Button>
       </div>
-      <p className="text-sm text-muted-foreground">Use exactly three genuine Google reviews. Keep the original reviewer, rating, date and text. Changes appear on both pages after saving.</p>
+      <p className="text-sm text-muted-foreground">This is the saved featured selection. The public website now uses the automatic Google Business Profile feed; changing this selection does not change that feed.</p>
       {loading ? <Loader2 className="h-5 w-5 animate-spin" aria-label="Loading reviews" /> : failed ? <div role="alert">Could not load reviews. <Button variant="outline" onClick={load}>Try Again</Button></div> : <>
         {reviews.map((review, index) => <div key={index} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
           <span className="text-primary font-bold">{index + 1}</span>

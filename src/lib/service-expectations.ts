@@ -43,7 +43,7 @@ add("interior-detailing", "Match cabin work to the package: Basic has a light va
   q("Will every stain come out?", "No universal result is promised. Results vary with material, stain type and condition; some stains may remain."),
 ], [carLink]);
 add("hull-cleaning", "Hull cleaning starts with an assessment of material, staining and access. The boat must be out of the water on a trailer or lift; scope and price are confirmed before scheduling.", "Provide boat type, length, hull material, staining details and location. Confirm trailer or lift arrangements and how the hull can be reached; photos are optional.", [
-  q("Do you clean hulls in the water?", "No. Hull cleaning is trailer or lift only, with the boat out of the water. In-water or afloat cleaning is not offered."),
+  q("Do you clean hulls in the water?", "No. Hull cleaning is trailer or lift only, with the boat out of the water. We do not offer in-water cleaning."),
   q("Is hull cleaning a fixed-price package?", "The request is reviewed before the scope and price are confirmed; no standalone hull price is stated here."),
   q("What details should I send?", "Boat type, length, hull material, staining, location and trailer or lift access; include photos if available."),
 ], [boatLink]);
