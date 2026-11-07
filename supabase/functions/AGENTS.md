@@ -1,0 +1,2 @@
+- GoHighLevel sync is one-way (app → GHL): database triggers enqueue into ghl_sync_queue inside the original write (never blocking it) and the scheduler-only ghl-sync worker leases, retries and records stable GHL ids in ghl_links, so outages delay sync without breaking bookings or duplicating records.
+- Non-confirmation customer messages check ghlOwnsCustomerMessaging (fails open to the app sending) so switching messaging to GHL can never create a gap; confirmation emails and owner alerts are never gated.
