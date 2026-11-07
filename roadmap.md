@@ -1,3 +1,8 @@
+# Approved job photos (November 7, source/preview only)
+- [ ] Preserve blurring in five uploads; create 400/800/1200 AVIF/WebP CDN assets.
+- [ ] Replace specialty homepage card photos and add shared photo sections to 15 requested pages plus gallery/schema/initial HTML.
+- [ ] Verify no public Unsplash references, dimensions/lazy delivery, captions and desktop/mobile rendering; no publication or backend changes.
+
 # SEO batch 2 (November 7, source/preview only)
 - [x] Six core pages have six shared FAQs each; all eleven location pages have four, with one matching FAQPage in rendered and empty-shell initial HTML.
 - [x] Genuine optimized Range Rover/Porsche/yacht pairs on nine requested money pages; gallery captions/introduction corrected to owner-confirmed jobs without inferred treatments or cities.
