@@ -1,7 +1,8 @@
 # Hourly Google reviews
-- [ ] Hourly refresh, single leased/token-checked refresh and stale snapshot retention; preserve daily cleanup.
-- [ ] Server-verified admin refresh and last-success time; shared frontend expiration refetch.
-- [ ] Review tests, admin/public preview validation, deployment of review feature only; explain Pub/Sub without implementing.
+- [x] Hourly refresh, single leased/token-checked refresh and stale snapshot retention; daily cleanup unchanged.
+- [x] Server-verified admin refresh and last-success time; shared frontend freshness refetch. Review-only migration/function deployed.
+- [x] 23 review tests passed, preview build OK, deployed public read and unsigned force denial verified; Pub/Sub documented, not implemented.
+- [ ] Authenticated admin end-to-end check waits for Aaron to sign in in preview; session mint unavailable. No website publication.
 
 # SEO batch 5 (November 7)
 - [x] Reused verified existing four location entries, links/schema/NotFound; no duplicates or changes to 4A/4B content.
