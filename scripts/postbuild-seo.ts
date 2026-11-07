@@ -450,7 +450,12 @@ function rewrite(html: string, m: RouteMeta): string {
   out = dedupeLocalBusiness(out);
   // Service pages: an empty-shell fallback has no page schema. Add the same
   // minimal Service relation the rendered page declares (no offers/ratings).
-  if (SERVICE_SCHEMA_PATHS.has(m.path) && !/"@type":\s*"Service"/.test(out)) {
+  // OfferCatalog contains nested Service names, not the route's Service node.
+  const hasRouteService = [...out.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)].some(match => {
+    try { const parsed = JSON.parse(match[1]); return (Array.isArray(parsed) ? parsed : [parsed]).some(node => schemaHasType(node, "Service")); }
+    catch { return false; }
+  });
+  if (SERVICE_SCHEMA_PATHS.has(m.path) && !hasRouteService) {
     const location = LOCATION_PAGES.find(p => `/${p.slug}` === m.path);
     const service = {
       "@context": "https://schema.org",
