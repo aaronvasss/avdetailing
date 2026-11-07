@@ -74,7 +74,7 @@ serve(async (req) => {
       .eq("id", body.membership_plan_id)
       .eq("is_active", true)
       .maybeSingle();
-    const priceId = plan && Object.hasOwn(MEMBERSHIP_PRICE_IDS, plan.slug) ? MEMBERSHIP_PRICE_IDS[plan.slug] : undefined;
+    const priceId = plan && Object.prototype.hasOwnProperty.call(MEMBERSHIP_PRICE_IDS, plan.slug) ? MEMBERSHIP_PRICE_IDS[plan.slug] : undefined;
     if (planError || !plan || plan.slug !== body.plan_slug || !priceId) {
       logStep("Invalid plan slug", { slug: body.plan_slug });
       return new Response(JSON.stringify({ error: "Invalid membership plan" }), {

@@ -6,5 +6,5 @@ export const MEMBERSHIP_PRICE_IDS: Record<string, string> = {
 };
 
 export function membershipPriceMatches(slug: string, priceIds: string[]): boolean {
-  return Object.hasOwn(MEMBERSHIP_PRICE_IDS, slug) && priceIds.length === 1 && priceIds[0] === MEMBERSHIP_PRICE_IDS[slug];
+  return Object.prototype.hasOwnProperty.call(MEMBERSHIP_PRICE_IDS, slug) && priceIds.length === 1 && priceIds[0] === MEMBERSHIP_PRICE_IDS[slug];
 }
