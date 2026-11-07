@@ -1080,6 +1080,51 @@ export type Database = {
         }
         Relationships: []
       }
+      google_reviews_cache: {
+        Row: {
+          expires_at: string
+          fetched_at: string
+          google_maps_uri: string
+          id: boolean
+          rating: number
+          reviews: Json
+          total_review_count: number
+        }
+        Insert: {
+          expires_at: string
+          fetched_at: string
+          google_maps_uri: string
+          id?: boolean
+          rating: number
+          reviews: Json
+          total_review_count: number
+        }
+        Update: {
+          expires_at?: string
+          fetched_at?: string
+          google_maps_uri?: string
+          id?: boolean
+          rating?: number
+          reviews?: Json
+          total_review_count?: number
+        }
+        Relationships: []
+      }
+      google_reviews_refresh_state: {
+        Row: {
+          attempted_at: string
+          id: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          id?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          id?: boolean
+        }
+        Relationships: []
+      }
       import_history: {
         Row: {
           created_at: string
@@ -2623,6 +2668,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_google_reviews_refresh: { Args: never; Returns: boolean }
       generate_booking_token: { Args: never; Returns: string }
       generate_calendar_token: { Args: never; Returns: string }
       get_booking_capacity: { Args: never; Returns: number }
