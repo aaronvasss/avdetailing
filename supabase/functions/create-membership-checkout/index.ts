@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { MEMBERSHIP_PRICE_IDS } from "../_shared/membership-identity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,11 +14,6 @@ const logStep = (step: string, details?: any) => {
 };
 
 // Stripe price IDs for membership products
-const MEMBERSHIP_PRICE_IDS: Record<string, string> = {
-  'monthly': 'price_1T9JXHDr7pQ6grsf5c9r4ToG',
-  'bi-weekly': 'price_1StucDDr7pQ6grsfg53qnHOr',
-  'weekly-premium': 'price_1StucEDr7pQ6grsfrIHZe5Zo',
-};
 
 interface MembershipCheckoutRequest {
   first_name: string;
@@ -72,8 +68,14 @@ serve(async (req) => {
     }
 
     // Get the correct Stripe price ID
-    const priceId = MEMBERSHIP_PRICE_IDS[body.plan_slug];
-    if (!priceId) {
+    const { data: plan, error: planError } = await serviceClient
+      .from("membership_plans")
+      .select("id, slug")
+      .eq("id", body.membership_plan_id)
+      .eq("is_active", true)
+      .maybeSingle();
+    const priceId = plan && Object.hasOwn(MEMBERSHIP_PRICE_IDS, plan.slug) ? MEMBERSHIP_PRICE_IDS[plan.slug] : undefined;
+    if (planError || !plan || plan.slug !== body.plan_slug || !priceId) {
       logStep("Invalid plan slug", { slug: body.plan_slug });
       return new Response(JSON.stringify({ error: "Invalid membership plan" }), {
         status: 400,
