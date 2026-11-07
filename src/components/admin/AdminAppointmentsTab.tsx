@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { csvCell } from "@/lib/csv-cell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -377,7 +378,7 @@ export function AdminAppointmentsTab({ isAdmin }: AdminAppointmentsTabProps) {
       b.payment_status || "",
       b.total_price ? `$${b.total_price}` : "",
     ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = [headers, ...rows].map(r => r.map(csvCell).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

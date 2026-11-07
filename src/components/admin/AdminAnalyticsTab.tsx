@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { csvCell } from "@/lib/csv-cell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -563,13 +564,7 @@ export function AdminAnalyticsTab({ isAdmin }: AdminAnalyticsTabProps) {
 
   // ===== CSV Export =====
   const downloadCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
-    const escape = (v: any) => {
-      const s = String(v ?? "");
-      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-        return `"${s.replace(/"/g, '""')}"`;
-      }
-      return s;
-    };
+    const escape = csvCell;
     const csvContent = [headers.map(escape).join(","), ...rows.map(r => r.map(escape).join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -1469,10 +1464,7 @@ function TimeAuditPanel({
   const fmt12 = (t: string | null) => t ? format(parseISO(`2000-01-01T${t}`), "h:mm a") : "—";
 
   const downloadCsv = () => {
-    const escape = (v: any) => {
-      const s = String(v ?? "");
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
+    const escape = csvCell;
     const headers = ["Worker","Date","Customer","Scheduled","Clock In","Clock Out","Duration","Variance","On-Time"];
     const rows = filtered.map(b => {
       const diff = getOnTimeDiff(b);

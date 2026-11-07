@@ -147,7 +147,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const userId = claimsData.claims.sub;
-    const userEmail = claimsData.claims.email;
 
     // 4. Check admin/staff role in user_roles table
     const { data: roleData, error: roleError } = await supabase
@@ -199,7 +198,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // 7. Audit log
-    console.log(`SMS sent by user ${userId} (${userEmail}) to ${formatPhoneNumber(body.to)}`);
+    console.log("SMS request authorized");
 
     // Get SMS sender phone from database
     const serviceSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);

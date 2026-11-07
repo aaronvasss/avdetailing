@@ -107,7 +107,7 @@ serve(async (req) => {
       const { data: userData } = await supabaseClient.auth.getUser(token);
       user = userData.user;
       userEmail = user?.email;
-      logStep("User authenticated", { userId: user?.id, email: userEmail });
+      logStep("User authenticated", { authenticated: !!user });
     }
 
     const body: CheckoutRequest = await req.json();

@@ -52,7 +52,7 @@ serve(async (req) => {
     );
 
     const body: MembershipCheckoutRequest = await req.json();
-    logStep("Request parsed", { email: body.email, plan_slug: body.plan_slug });
+    logStep("Request parsed", { plan_slug: body.plan_slug });
 
     // Validate required fields
     if (!body.first_name || !body.last_name || !body.email || !body.membership_plan_id || !body.plan_slug) {

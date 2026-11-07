@@ -462,7 +462,8 @@ const handler = async (req: Request): Promise<Response> => {
         if (insertPayload.service_address) updatePayload.address_line1 = insertPayload.service_address;
         if (insertPayload.service_city) updatePayload.city = insertPayload.service_city;
         if (insertPayload.service_zip) updatePayload.zip = insertPayload.service_zip;
-        if (Object.keys(updatePayload).length > 0) {
+        // Public contact matching links bookings, but is not proof of CRM ownership.
+        if (isCallerStaff && Object.keys(updatePayload).length > 0) {
           await serviceClient.from("clients").update(updatePayload).eq("id", clientId);
         }
       } else {
