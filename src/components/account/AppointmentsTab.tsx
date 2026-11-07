@@ -1,3 +1,4 @@
+import { bookHref } from "@/lib/booking-entry";
 import { parseDateString, businessToday } from "@/lib/time-format";
 import { classifyAppointment } from '@/lib/appointment-classification';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -65,10 +66,10 @@ interface AppointmentsTabProps {
 }
 
 const QUICK_BOOK = [
-  { label: "Car detail", to: "/car-detailing-baton-rouge" },
-  { label: "Ceramic coating", to: "/ceramic-coating-baton-rouge" },
-  { label: "Boat", to: "/boat-detailing-baton-rouge" },
-  { label: "RV", to: "/rv-detailing-baton-rouge" },
+  { label: "Car detail", to: bookHref("car") },
+  { label: "Ceramic coating", to: bookHref("ceramic") },
+  { label: "Boat", to: bookHref("boat") },
+  { label: "RV", to: bookHref("rv") },
 ];
 
 export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list", afterNext, mode = "list", initialListTab, onSeeAll, homeExtras }: AppointmentsTabProps) {
