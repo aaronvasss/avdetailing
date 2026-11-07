@@ -465,7 +465,7 @@ function rewrite(html: string, m: RouteMeta): string {
           const parsed = JSON.parse(match[1]);
           const nodes = Array.isArray(parsed) ? parsed : [parsed];
           const faq = nodes.find(node => node?.["@type"] === "FAQPage");
-          if (faq?.mainEntity?.length === faqs.length) {
+          if (faq?.mainEntity?.length === faqs.length && faq.mainEntity.every((q: { name: string }, i: number) => q.name === faqs[i].question)) {
             faqs = faq.mainEntity.map((q: { name: string; acceptedAnswer: { text: string } }) => ({ question: q.name, answer: q.acceptedAnswer.text }));
             break;
           }

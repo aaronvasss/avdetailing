@@ -1,7 +1,7 @@
 # SEO batch 2 (November 7, source/preview only)
-- [ ] Shared service/city FAQs and single matching FAQPage in rendered and initial HTML.
-- [ ] Genuine optimized photo pairs on requested money pages; gallery captions and introduction.
-- [ ] Three location pages and sitemap/footer/service-area/home links; metadata limits and mocked browser checks.
+- [x] Six core pages have six shared FAQs each; all eleven location pages have four, with one matching FAQPage in rendered and empty-shell initial HTML.
+- [x] Genuine optimized Range Rover/Porsche/yacht pairs on nine requested money pages; gallery captions/introduction corrected to owner-confirmed jobs without inferred treatments or cities.
+- [x] Baker, Port Allen and Perkins Road pages added to sitemap, prerender list, footer, service-area page and homepage grid. 184 focused tests pass including new metadata limits and static asset fixtures; mocked desktop/375 DPR2/390 DPR3 checks pass for 17 FAQ pages and nine photo pages with no Google requests/runtime errors. Automatic preview build OK; full production output not manually built, no publication or backend actions.
 
 # SEO batch 1 (November 7, source/preview only)
 - [x] FAQ Basic starting price now shares car display $140; payment copy/schema includes online or service-time choice and confirmed methods, retaining existing public Zelle.
