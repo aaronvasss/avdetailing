@@ -1,3 +1,8 @@
+# Local SEO expansion (November 7)
+- [ ] Refresh Baker/Port Allen/Perkins, add Brusly, shared nearby links and owner areas; sitemap/prerender/llms.
+- [ ] Legal identity/multi-type schema, payment-method list (hold conflicting no-fee claim), homepage FAQs/trust/title/alt and 404 fallback.
+- [ ] Regression suite, source/preview desktop/mobile checks and changed-file report; no publication or business-logic changes.
+
 # SEO batch 4B (November 7)
 - [x] Four educational guides and /guides index with AV Detailing author/November 7 date, Article/BreadcrumbList and related service/booking links; neutral educational references, no new service methods or guarantees.
 - [x] Spanish homepage/car summaries with shared authoritative display prices, reciprocal en/es/x-default pairs, document language and self-canonicals; booking and shared navigation remain English.

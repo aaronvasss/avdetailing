@@ -1,0 +1,14 @@
+/** Owner-confirmed wording only; never used for booking eligibility or charges. */
+export const OWNER_SERVICE_AREAS = ["Baton Rouge", "Prairieville", "Gonzales", "Denham Springs", "Walker", "Central", "Zachary", "Baker", "Brusly", "Port Allen", "Perkins Road area", "Highland Road area", "Southdowns", "LSU Lakes area", "Bocage", "Country Club of Louisiana", "Mira Vista"] as const;
+export const OWNER_AREA_ANSWER = `We come to your home or office in ${OWNER_SERVICE_AREAS.join(", ")}. Book online, call or text (225) 521-6264 to arrange service at your address.`;
+export const OWNER_REVIEW_TRUST = "110+ five-star Google reviews";
+export const NOT_OFFERED = ["mechanical repair", "windshield repair/replacement", "body work", "paint repair", "dent repair", "oil changes", "tire services"] as const;
+export const NOT_OFFERED_ANSWER = `We do not offer ${NOT_OFFERED.join(", ")}. We are a professional detailing company only.`;
+export const HOME_LOCAL_FAQS = [{ question: "What areas do you service?", answer: OWNER_AREA_ANSWER }, { question: "What services do you not offer?", answer: NOT_OFFERED_ANSWER }];
+const paths: Record<string, string> = { baton: "/car-detailing-baton-rouge", baker: "/car-detailing-baker-la", zachary: "/car-detailing-zachary-la", central: "/car-detailing-central-la", port: "/car-detailing-port-allen-la", brusly: "/car-detailing-brusly-la", perkins: "/car-detailing-perkins-road-baton-rouge", highland: "/car-detailing-highland-road-baton-rouge", shenandoah: "/car-detailing-shenandoah-baton-rouge", prairieville: "/car-detailing-prairieville-la", gonzales: "/car-detailing-gonzales-la", denham: "/car-detailing-denham-springs-la", walker: "/car-detailing-walker-la" };
+const names: Record<string, string> = { baton: "Baton Rouge", baker: "Baker", zachary: "Zachary", central: "Central", port: "Port Allen", brusly: "Brusly", perkins: "Perkins Road", highland: "Highland Road", shenandoah: "Shenandoah", prairieville: "Prairieville", gonzales: "Gonzales", denham: "Denham Springs", walker: "Walker" };
+const neighbors: Record<string, string[]> = { baker: ["zachary", "central", "baton"], zachary: ["baker", "central", "baton"], central: ["baker", "zachary", "denham"], port: ["brusly", "baton", "baker"], brusly: ["port", "baton", "highland"], perkins: ["highland", "prairieville", "gonzales"], highland: ["perkins", "shenandoah", "prairieville"], shenandoah: ["highland", "perkins", "prairieville"], prairieville: ["gonzales", "perkins", "highland"], gonzales: ["prairieville", "perkins", "highland"], denham: ["walker", "central", "baton"], walker: ["denham", "central", "baton"] };
+export function nearbyAreaLinks(slug: string) {
+  const key = Object.keys(paths).find(k => paths[k] === `/${slug}`);
+  return (key ? neighbors[key] ?? [] : []).map(k => ({ href: paths[k], text: `Car detailing in ${names[k]}` }));
+}
