@@ -20,7 +20,7 @@ export function FeaturedReviewCards({ reviews }: { reviews: FeaturedGoogleReview
       <div ref={ref} className="overflow-hidden">
         <div className="flex items-stretch gap-4 md:grid md:grid-cols-3">
           {reviews.map((review, i) => (
-            <div key={`${review.reviewer_name}-${review.review_date}-${i}`} className="min-w-0 flex-[0_0_90%]" role="group" aria-label={`Review ${i + 1} of 3`}>
+            <div key={`${review.reviewer_name}-${review.review_date}-${i}`} className="min-w-0 flex-[0_0_90%]" role="group" aria-label={`Review ${i + 1} of ${reviews.length}`}>
               <FeaturedReviewCard review={review} />
             </div>
           ))}

@@ -1,6 +1,9 @@
 import { GoogleReviews } from "@/components/reviews/GoogleReviews";
+import { useLiveGoogleReviews, parseLiveGoogleReviews } from "@/lib/live-google-reviews";
 
 export function ReviewsWidgetSection() {
+  const query = useLiveGoogleReviews();
+  if (!parseLiveGoogleReviews(query.data)) return null;
   return (
     <section className="section-padding bg-card">
       <div className="container-custom">

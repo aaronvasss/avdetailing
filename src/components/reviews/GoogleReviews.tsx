@@ -1,43 +1,22 @@
-import { useEffect, useState } from "react";
-import { ExternalLink, Star } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { loadFeaturedReviews, type FeaturedGoogleReview } from "@/lib/featured-google-reviews";
+import { useLiveGoogleReviews, parseLiveGoogleReviews } from "@/lib/live-google-reviews";
 import { FeaturedReviewCards } from "./FeaturedReviewCards";
 import {
   GOOGLE_REVIEWS_URL,
   GOOGLE_WRITE_REVIEW_URL,
 } from "@/lib/google-business";
 
-/**
- * The one shared Google review block used everywhere on the site.
- * Shows three original, admin-managed reviews without an overall rating/count.
- * If the selection can't load, it falls back to a plain link to Google.
- */
-function ReviewsFallback() {
-  return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-        <Star className="h-8 w-8 fill-primary text-primary" />
-        <p className="text-lg font-semibold">Read our verified reviews on Google</p>
-        <Button asChild>
-          <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-            Open Google Reviews <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-      </div>
-  );
-}
-
 export function GoogleReviews() {
-  const [reviews, setReviews] = useState<FeaturedGoogleReview[] | null>(null);
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 10000);
-    loadFeaturedReviews(controller.signal).then(setReviews).catch(() => setReviews([])).finally(() => window.clearTimeout(timeout));
-    return () => { controller.abort(); window.clearTimeout(timeout); };
-  }, []);
+  const query = useLiveGoogleReviews();
+  const data = parseLiveGoogleReviews(query.data);
+  if (!data) return null;
+  const ratings: Record<string, number> = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
+  const reviews = data.reviews.map(r => ({ reviewer_name: r.reviewer.displayName, rating: ratings[r.starRating], review_date: r.createTime.slice(0, 10), text: r.comment ?? "", source_url: data.google_maps_uri }));
   return (
-    <div className="max-w-6xl mx-auto" data-testid="google-reviews" data-crawl-pending={reviews === null ? "reviews" : undefined}>
-      {reviews === null ? <div className="min-h-[340px] grid grid-cols-1 gap-4 md:grid-cols-3" aria-label="Loading Google reviews">{[0,1,2].map(i => <div key={i} className="min-h-[340px] rounded-lg border border-border bg-background motion-safe:animate-pulse" />)}</div> : reviews.length === 3 ? <FeaturedReviewCards reviews={reviews} /> : <ReviewsFallback />}
+    <div className="max-w-6xl mx-auto" data-testid="google-reviews">
+      <div className="text-center mb-8"><h2 className="text-3xl font-bold mb-3">Google Reviews</h2><p className="text-lg"><span aria-hidden="true" className="text-primary">★★★★★</span> {data.rating.toFixed(1)} out of 5 · {data.total_review_count.toLocaleString("en-US")} reviews</p><p className="mt-2 text-sm text-muted-foreground">Most recent reviews · Google Business Profile</p></div>
+      <FeaturedReviewCards reviews={reviews} />
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
         <Button asChild variant="outline" className="font-semibold">
           <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
