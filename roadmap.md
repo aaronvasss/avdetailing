@@ -1,3 +1,9 @@
+# SEO batch 1 (November 7, source/preview only)
+- [ ] Reconcile FAQ pricing and payments; check booking hours before publishing business hours.
+- [ ] Add verified/empty-hidden Google rating badge using existing safe settings/data, or report blocked configuration.
+- [ ] Shorten and synchronize metadata; correct unknown-route head; inspect photo provenance and remove wrong preconnect.
+- [ ] Run focused tests and blocked-external desktop/mobile checks; report files, price strings and limitations.
+
 # Compact chat launcher (source/preview only)
 - [x] Observed vendor open shadow root; hide only prompt, size closed launcher 52px with safe-area clearance. Real read-only 375/390/desktop keyboard open-close checks and eight mocked lifecycle/route tests passed; automatic preview build OK. No messages or publication; owner must publish to apply live.
 
