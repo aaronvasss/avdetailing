@@ -1,3 +1,9 @@
+# SEO batch 4A (November 7)
+- [ ] Implement policy-compliant Business Profile reviews and shared badges, or leave configuration blocked with precise owner steps.
+- [ ] Add shared-source ceramic cost guide, FAQ/schema, navigation, sitemap and initial HTML.
+- [ ] Expand boat ceramic/mobile RV/aircraft guidance and 15 sub-service what-to-expect/FAQ sections from confirmed facts.
+- [ ] Run focused tests, mocked desktop/mobile journeys and report files/skips; no booking/payment/GA changes or publication.
+
 # SEO batch 3 (November 7)
 - [x] Public hours 6AM–8PM daily shared across footer/contact/schema/initial HTML, booking unchanged; focused tests and preview checks completed.
 - [ ] Automatic reviews blocked pending owner approval of Business Profile alternative: Places forbids persistent rating/count/review cache and only returns up to five relevance-selected reviews. Both requested secrets already set; no function/migration deployed or Google API requests made.
