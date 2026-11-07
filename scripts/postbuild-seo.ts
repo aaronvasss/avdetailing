@@ -12,7 +12,7 @@
  * the meta tags are rewritten in place; otherwise the file is
  * created from dist/index.html as the shell.
  */
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { localBusinessSchema } from "../src/components/seo/schema";
 import { SERVICE_LANDING_PAGES } from "../src/data/serviceLandingPages";
@@ -28,6 +28,9 @@ import { AVIATION_COVERAGE_TEXT, AIRCRAFT_QUOTE_HREF } from "../src/lib/aviation
 import { STATIC_ROUTE_SEO } from "../src/lib/static-route-seo";
 import { injectHeroPreload } from "../src/lib/hero-preload";
 import { SERVICES_DIRECTORY_SEO, servicesDirectoryHtml } from "../src/lib/services-directory-seo";
+import { corePageFaqs, CORE_FAQ_PATHS, pageFaqHtml } from "../src/lib/page-faqs";
+import { pageExtrasHtml, galleryInitialHtml, replacePageFaqSchema } from "../src/lib/page-extras-html";
+import { NEW_LOCATION_AREAS } from "../src/data/locationPages";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -44,6 +47,8 @@ interface RouteMeta {
   description: string;
   body?: string;
 }
+
+const EMITTED_ASSETS = existsSync(join(DIST, "assets")) ? readdirSync(join(DIST, "assets")) : [];
 
 function stripTokens(s: string): string {
   return s.replace(/\{\{l1\}\}/g, "").replace(/\{\{l2\}\}/g, "").replace(/\s+/g, " ").trim();
@@ -64,6 +69,7 @@ function bodyForLocation(p: (typeof LOCATION_PAGES)[number]): string {
     `<h2>Detailing Services in ${esc(p.city)}</h2><ul>${services}</ul>`,
     `<h2>Why Choose AV Detailing</h2><ul>${why}</ul>`,
     `<h2>Neighborhoods We Serve</h2><p>${esc(p.neighborhoods)}</p>`,
+    pageFaqHtml(p.faqs ?? []),
     `<p>Call (225) 521-6264 to book mobile detailing in ${esc(p.city)}, Baton Rouge, LA.</p>`,
   ].join("");
 }
@@ -194,7 +200,9 @@ function bodyForLegal(m: { title: string; description: string }): string {
 }
 
 for (const r of STATIC_ROUTES) {
+  if (r.path === "/gallery") r.body = galleryInitialHtml(EMITTED_ASSETS);
   if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
+  if (r.path === "/" || r.path === "/service-areas") r.body += `<h2>Detailing by City</h2><ul>${NEW_LOCATION_AREAS.map(area => `<li><a href="/${area.slug}">Car Detailing in ${esc(area.city)}</a> — ${esc(area.geography)}</li>`).join("")}</ul>`;
   if (r.path === "/") {
     r.body += `<p>For private aircraft, explore <a href="/aircraft-detailing-baton-rouge">aircraft and private jet detailing in Baton Rouge</a>: interior deep cleaning, shampooing, polishing and ceramic coating, with scope and access coordinated per job.</p>`;
   }
@@ -219,6 +227,10 @@ const ALL_ROUTES: RouteMeta[] = [
   ...SERVICE_ROUTES,
   ...LOCATION_ROUTES,
 ];
+
+for (const route of ALL_ROUTES) {
+  route.body = (route.body ?? "") + pageExtrasHtml(route.path, corePageFaqs(route.path), EMITTED_ASSETS);
+}
 
 const SERVICE_SCHEMA_PATHS = new Set<string>([
   CAR_HUB_PATH, RV_HUB_PATH, BOAT_HUB_PATH, PAINT_CORRECTION_SEO.path, "/ceramic-coating-baton-rouge",
@@ -390,13 +402,14 @@ function rewrite(html: string, m: RouteMeta): string {
   // Service pages: an empty-shell fallback has no page schema. Add the same
   // minimal Service relation the rendered page declares (no offers/ratings).
   if (SERVICE_SCHEMA_PATHS.has(m.path) && !/"@type":\s*"Service"/.test(out)) {
+    const location = LOCATION_PAGES.find(p => `/${p.slug}` === m.path);
     const service = {
       "@context": "https://schema.org",
       "@type": "Service",
       name: m.title.replace(/\s*[|—-]\s*AV Detailing$/, ""),
       description: m.description,
       provider: { "@id": `${SITE}/#business` },
-      areaServed: { "@type": "City", name: "Baton Rouge" },
+      areaServed: { "@type": "Place", name: location?.city ?? "Baton Rouge" },
       url,
     };
     out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(service).replace(/</g, "\\u003c")}</script></head>`);
@@ -406,6 +419,15 @@ function rewrite(html: string, m: RouteMeta): string {
       /<\/head>/i,
       `  <script type="application/ld+json">${JSON.stringify(localBusinessSchema()).replace(/</g, "\\u003c")}</script>\n  </head>`,
     );
+  }
+  const location = LOCATION_PAGES.find(p => `/${p.slug}` === m.path);
+  if (location && !/"@type"\s*:\s*"BreadcrumbList"/.test(out)) {
+    const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+      { "@type": "ListItem", position: 2, name: "Service Areas", item: `${SITE}/service-areas` },
+      { "@type": "ListItem", position: 3, name: location.titleH1, item: url },
+    ] };
+    out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(breadcrumb)}</script></head>`);
   }
 
   // Keep the prerendered markup when it already contains real page content;
@@ -421,6 +443,26 @@ function rewrite(html: string, m: RouteMeta): string {
       /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
       `<div id="root"><div data-seo-content>${m.body}</div></div>`,
     );
+  }
+
+  if (location || CORE_FAQ_PATHS.some(path => path === m.path)) {
+    let faqs = location?.faqs ?? corePageFaqs(m.path);
+    // A successful capture already has authoritative rendered prices. Keep its
+    // shared-source FAQ answers, rather than replacing them with fallback prices.
+    if (hasRealContent && /data-page-faqs/.test(out) && !m.path.startsWith("/aircraft-")) {
+      for (const match of out.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+        try {
+          const parsed = JSON.parse(match[1]);
+          const nodes = Array.isArray(parsed) ? parsed : [parsed];
+          const faq = nodes.find(node => node?.["@type"] === "FAQPage");
+          if (faq?.mainEntity?.length === faqs.length) {
+            faqs = faq.mainEntity.map((q: { name: string; acceptedAnswer: { text: string } }) => ({ question: q.name, answer: q.acceptedAnswer.text }));
+            break;
+          }
+        } catch { /* use the shared static fallback */ }
+      }
+    }
+    out = replacePageFaqSchema(out, faqs);
   }
 
   return out;
