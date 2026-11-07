@@ -37,6 +37,7 @@ describe("review handler authorization and lease behavior", () => {
     const f = fixture();
     const fetchMock = vi.fn().mockResolvedValue(new Response("Provider unavailable", { status: 503 }));
     vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("AbortSignal", { timeout: () => undefined });
     try {
       const result = await f.handler(new Request("https://example.test", { method: "POST", body: '{"force":true}', headers: { Authorization: "Bearer fixture" } }));
       expect(result.status).toBe(503);
