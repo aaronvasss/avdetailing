@@ -57,9 +57,21 @@ interface AppointmentsTabProps {
   onAdminBook?: () => void;
   defaultView?: "list" | "calendar";
   afterNext?: ReactNode;
+  /** Customer portal only: "home" shows the next visit summary, "list" the full list. */
+  mode?: "home" | "list";
+  initialListTab?: "upcoming" | "past";
+  onSeeAll?: () => void;
+  homeExtras?: (lastBookingId?: string) => ReactNode;
 }
 
-export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list", afterNext }: AppointmentsTabProps) {
+const QUICK_BOOK = [
+  { label: "Car detail", to: "/car-detailing-baton-rouge" },
+  { label: "Ceramic coating", to: "/ceramic-coating-baton-rouge" },
+  { label: "Boat", to: "/boat-detailing-baton-rouge" },
+  { label: "RV", to: "/rv-detailing-baton-rouge" },
+];
+
+export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "list", afterNext, mode = "list", initialListTab, onSeeAll, homeExtras }: AppointmentsTabProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialLoaded, setInitialLoaded] = useState(false);
@@ -73,7 +85,7 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
   const [filterDateRange, setFilterDateRange] = useState("all");
   const [filterVehicle, setFilterVehicle] = useState("all");
   const [filterService, setFilterService] = useState("all");
-  const [listTab, setListTab] = useState("upcoming");
+  const [listTab, setListTab] = useState<string>(initialListTab ?? "upcoming");
   const listHeading = useRef<HTMLDivElement>(null);
   const showHistory = () => {
     setActiveView("list"); setListTab("past");
@@ -249,6 +261,167 @@ export function AppointmentsTab({ userId, isAdmin, onAdminBook, defaultView = "l
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  const dialogs = (
+    <>
+      <BookingDetailsDialog booking={selectedBooking} open={detailsOpen} onOpenChange={setDetailsOpen} onReschedule={handleReschedule} onCancel={handleCancel} isAdmin={isAdmin} onStatusChange={handleSuccess} />
+      <RescheduleDialog booking={selectedBooking} open={rescheduleOpen} onOpenChange={setRescheduleOpen} onSuccess={handleSuccess} />
+      <CancelBookingDialog booking={selectedBooking} open={cancelOpen} onOpenChange={setCancelOpen} onSuccess={handleSuccess} />
+    </>
+  );
+
+  if (!isAdmin && mode === "home") {
+    const recent = pastBookings.filter(b => b.status === "completed").slice(-3).reverse();
+    const lastBooking = pastBookings[pastBookings.length - 1] ?? nextAppointment;
+    return (
+      <div className="space-y-6">
+        {nextAppointment ? (
+          <CustomerAppointmentSummary booking={nextAppointment} onDetails={handleViewDetails} onReschedule={handleReschedule} onCancel={handleCancel} />
+        ) : (
+          <section aria-labelledby="no-upcoming-heading" className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 id="no-upcoming-heading" className="text-lg font-bold">No upcoming detail</h2>
+                <p className="text-sm text-muted-foreground">Pick a service to get started.</p>
+              </div>
+              <Button asChild className="h-11 shrink-0"><Link to="/book"><Plus className="mr-1.5 h-4 w-4" />Book a detail</Link></Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {QUICK_BOOK.map(t => (
+                <Link key={t.to} to={t.to} className="flex min-h-[48px] items-center justify-center rounded-xl border border-border/60 bg-background/40 px-3 text-center text-sm font-medium hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{t.label}</Link>
+              ))}
+            </div>
+          </section>
+        )}
+        {homeExtras?.(lastBooking?.id)}
+        <section aria-labelledby="recent-visits-heading">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <h2 id="recent-visits-heading" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent visits</h2>
+            {pastBookings.length > 0 && onSeeAll && <button type="button" onClick={onSeeAll} className="min-h-[44px] px-2 text-sm font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">See all</button>}
+          </div>
+          {recent.length === 0 ? (
+            <p className="rounded-2xl border border-border/60 bg-card p-4 text-sm text-muted-foreground">Completed visits and receipts will show here.</p>
+          ) : (
+            <ul className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/60 bg-card">
+              {recent.map(b => (
+                <li key={b.id}>
+                  <button type="button" onClick={() => handleViewDetails(b)} className="flex min-h-[60px] w-full items-center gap-3 px-4 py-2 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{b.services?.name || "Detailing Service"}</span>
+                      <span className="block text-sm text-muted-foreground">{format(parseDateString(b.scheduled_date), "MMM d, yyyy")}{b.total_price != null ? ` · $${Number(b.total_price).toFixed(2)}` : ""}</span>
+                    </span>
+                    <span className="text-sm font-medium text-primary">Receipt</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        {nextAppointment && afterNext && (
+          <details className="group rounded-2xl border border-border/60 bg-card">
+            <summary className="flex min-h-[52px] cursor-pointer list-none items-center justify-between px-4 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-2xl">
+              Before your appointment
+              <span className="text-sm text-muted-foreground group-open:hidden">Show</span>
+              <span className="hidden text-sm text-muted-foreground group-open:inline">Hide</span>
+            </summary>
+            <div className="px-4 pb-4">{afterNext}</div>
+          </details>
+        )}
+        {dialogs}
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-bold">Appointments</h1>
+          <Button
+            variant={activeView === "calendar" ? "secondary" : "outline"}
+            size="icon"
+            className="h-11 w-11"
+            aria-label={activeView === "calendar" ? "Show list view" : "Show calendar view"}
+            aria-pressed={activeView === "calendar"}
+            onClick={() => setActiveView(v => (v === "calendar" ? "list" : "calendar"))}
+          >
+            <CalendarDays className="h-5 w-5" />
+          </Button>
+        </div>
+        {activeView === "calendar" ? (
+          <AppointmentsCalendarView bookings={bookings} onSelectBooking={handleViewDetails} />
+        ) : (
+          <Tabs value={listTab} onValueChange={setListTab} className="space-y-4">
+            <TabsList className="grid h-11 w-full grid-cols-2 rounded-xl bg-muted/50 p-1">
+              <TabsTrigger value="upcoming" className="h-9 rounded-lg">Upcoming ({upcomingBookings.length})</TabsTrigger>
+              <TabsTrigger value="past" className="h-9 rounded-lg">Past ({pastBookings.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="upcoming" className="mt-0 space-y-3">
+              {upcomingBookings.length === 0 ? (
+                <div className="rounded-2xl border border-border/60 bg-card p-5 text-center space-y-3">
+                  <p className="font-semibold">No upcoming appointments</p>
+                  <Button asChild className="h-11"><Link to="/book"><Plus className="mr-1.5 h-4 w-4" />Book a detail</Link></Button>
+                </div>
+              ) : upcomingBookings.map(booking => (
+                <AppointmentCard key={booking.id} booking={booking} onViewDetails={handleViewDetails} onReschedule={handleReschedule} onCancel={handleCancel} />
+              ))}
+            </TabsContent>
+            <TabsContent value="past" className="mt-0 space-y-3">
+              {pastBookings.length > 1 && (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+                    <SelectTrigger aria-label="Filter by date" className="h-11"><SelectValue placeholder="Date" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any date</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="90">Last 90 days</SelectItem>
+                      <SelectItem value="180">Last 6 months</SelectItem>
+                      <SelectItem value="365">Last year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterVehicle} onValueChange={setFilterVehicle}>
+                    <SelectTrigger aria-label="Filter by vehicle" className="h-11"><SelectValue placeholder="Vehicle" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any vehicle</SelectItem>
+                      {vehicleOptions.map(label => <SelectItem key={label} value={label}>{label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterService} onValueChange={setFilterService}>
+                    <SelectTrigger aria-label="Filter by service" className="h-11"><SelectValue placeholder="Service" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any service</SelectItem>
+                      {serviceOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {filtersActive && (
+                <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                  <span>Showing {filteredPastBookings.length} of {pastBookings.length}</span>
+                  <Button variant="ghost" size="sm" className="h-10" onClick={clearFilters}>Clear filters</Button>
+                </div>
+              )}
+              {pastBookings.length === 0 ? (
+                <div className="rounded-2xl border border-border/60 bg-card p-5 text-center space-y-3">
+                  <p className="font-semibold">No past visits yet</p>
+                  <p className="text-sm text-muted-foreground">Receipts and service photos appear here after each visit.</p>
+                  <Button asChild variant="outline" className="h-11"><Link to="/book">Book your first detail</Link></Button>
+                </div>
+              ) : filteredPastBookings.length === 0 ? (
+                <div className="rounded-2xl border border-border/60 bg-card p-5 text-center space-y-3">
+                  <p className="text-muted-foreground">No past visits match these filters.</p>
+                  <Button variant="outline" className="h-11" onClick={clearFilters}>Clear filters</Button>
+                </div>
+              ) : [...filteredPastBookings].reverse().map(booking => (
+                <AppointmentCard key={booking.id} booking={booking} onViewDetails={handleViewDetails} onReschedule={handleReschedule} onCancel={handleCancel} compact />
+              ))}
+            </TabsContent>
+          </Tabs>
+        )}
+        {dialogs}
       </div>
     );
   }

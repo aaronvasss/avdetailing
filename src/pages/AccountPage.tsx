@@ -1,22 +1,14 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  User,
-  Car,
-  MapPin,
-  CalendarDays,
-  CreditCard,
-  LogOut,
-  Plus,
-  Settings,
-  Gift,
-  Wallet,
-} from "lucide-react";
+import { Car, CreditCard, LifeBuoy, RotateCcw } from "lucide-react";
+import { PortalShell, type PortalSection } from "@/components/portal/PortalShell";
+import { PortalAccount, PortalHelp, PortalSubpage } from "@/components/portal/PortalAccount";
+import { PortalMembershipSummary } from "@/components/portal/PortalMembershipSummary";
+import { centralGreeting, displayFirstName, initialsOf } from "@/components/portal/portal-format";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { VehiclesTab } from "@/components/account/VehiclesTab";
@@ -37,6 +29,9 @@ export default function AccountPage() {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [profilePhone, setProfilePhone] = useState<string | null>(null);
+  const [section, setSection] = useState<PortalSection>(initialSection);
+  const [receipts, setReceipts] = useState(false);
 
 
   useEffect(() => {
@@ -67,7 +62,7 @@ export default function AccountPage() {
       try {
         const request = supabase
           .from("profiles")
-          .select("full_name")
+          .select("full_name, phone")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -85,6 +80,7 @@ export default function AccountPage() {
           setProfileError(error.message || "Could not load your account.");
         } else {
           setProfileName(profile?.full_name || null);
+          setProfilePhone(profile?.phone || null);
         }
       } catch (err) {
         if (!cancelled) {
@@ -112,14 +108,15 @@ export default function AccountPage() {
 
   if (authLoading || profileLoading) {
     return (
-      <Layout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-muted-foreground">Loading your account...</p>
-          </div>
+      <div className="min-h-screen bg-background" role="status" aria-label="Loading your account">
+        <div className="h-14 border-b border-border/60" />
+        <div className="mx-auto max-w-2xl space-y-4 px-4 pt-6">
+          {["h-8 w-2/3", "h-48", "h-20", "h-20", "h-32"].map((c, i) => (
+            <div key={i} className={`${c} rounded-2xl bg-muted/40 animate-pulse motion-reduce:animate-none`} />
+          ))}
+          <span className="sr-only">Loading your account…</span>
         </div>
-      </Layout>
+      </div>
     );
   }
 
@@ -148,123 +145,105 @@ export default function AccountPage() {
     return <AdminDashboard user={user} profileName={profileName} />;
   }
 
-  // Regular customer view
-  const firstName = profileName?.split(" ")[0] || user?.email?.split("@")[0] || "there";
+  // Regular customer view (portal shell; same data components as before)
+  const firstName = displayFirstName(profileName, user?.email);
+  const fullName = (profileName?.trim() || firstName).replace(/(^|\s)(\p{Ll})/gu, (_, sp, ch) => sp + ch.toUpperCase());
+  const initials = initialsOf(profileName, user?.email);
+  const go = (next: PortalSection, opts?: { receipts?: boolean }) => {
+    setReceipts(!!opts?.receipts);
+    setSection(next);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", next);
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    window.scrollTo({ top: 0 });
+  };
+  const back = () => go("account");
+  const uid = user?.id as string;
+
+  let screen: ReactNode;
+  switch (section) {
+    case "appointments":
+      screen = <AppointmentsTab key={receipts ? "past" : "upcoming"} userId={uid} mode="list" initialListTab={receipts ? "past" : "upcoming"} />;
+      break;
+    case "vehicles":
+      screen = <VehiclesTab userId={uid} />;
+      break;
+    case "account":
+      screen = <PortalAccount name={fullName} email={user?.email ?? ""} phone={profilePhone} initials={initials} onNavigate={go} onSignOut={handleSignOut} />;
+      break;
+    case "payments":
+      screen = <PortalSubpage title="Payments" onBack={back}><PaymentsTab userId={uid} /></PortalSubpage>;
+      break;
+    case "memberships":
+      screen = <PortalSubpage title="Memberships" onBack={back}><MembershipsTab userId={uid} /></PortalSubpage>;
+      break;
+    case "addresses":
+      screen = <PortalSubpage title="Addresses" onBack={back}><AddressesTab userId={uid} /></PortalSubpage>;
+      break;
+    case "notifications":
+      screen = <PortalSubpage title="Notifications & profile" onBack={back}><ProfileTab userId={uid} /></PortalSubpage>;
+      break;
+    case "referrals":
+      screen = <PortalSubpage title="Referrals" onBack={back}><ReferralTab userId={uid} /></PortalSubpage>;
+      break;
+    case "help":
+      screen = <PortalSubpage title="Help" onBack={back}><PortalHelp /></PortalSubpage>;
+      break;
+    default:
+      screen = (
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold">{centralGreeting()}, {firstName}</h1>
+          <AppointmentsTab
+            userId={uid}
+            mode="home"
+            afterNext={<PrepChecklist />}
+            onSeeAll={() => go("appointments", { receipts: true })}
+            homeExtras={(lastId) => (
+              <div className="space-y-4">
+                <section aria-label="Quick actions" className="grid grid-cols-2 gap-3">
+                  <QuickAction icon={RotateCcw} label="Book again" to={lastId ? `/book?repeat=${lastId}` : "/book"} />
+                  <QuickAction icon={Car} label="My vehicles" onClick={() => go("vehicles")} />
+                  <QuickAction icon={CreditCard} label="Payments" onClick={() => go("payments")} />
+                  <QuickAction icon={LifeBuoy} label="Get help" onClick={() => go("help")} />
+                </section>
+                <PortalMembershipSummary userId={uid} onOpen={() => go("memberships")} />
+              </div>
+            )}
+          />
+          <AccountActivity userId={uid} />
+        </div>
+      );
+  }
 
   return (
-    <Layout>
+    <>
       <SEOHead title="My Account" description="Private page." path="/account" noIndex />
-      {isAdmin&&<div className="container-custom pt-4"><Button variant="outline" onClick={()=>navigate('/account')}>Back to Admin</Button></div>}
-      <div className="py-5 sm:py-8">
-        <div className="container-custom max-w-6xl">
-          {/* Header */}
-          <div className="mb-4 sm:mb-6">
-            <div className="flex justify-between items-center gap-3">
-              <div>
-                <p className="text-sm font-medium text-primary mb-1">Welcome back</p>
-                <h1 className="text-2xl sm:text-3xl font-bold">{firstName}</h1>
-              </div>
-              <div className="flex gap-3">
-                <Button asChild size="sm">
-                  <a href="/book">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Book
-                  </a>
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleSignOut} aria-label="Sign out" title="Sign out">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "appointments"} className="space-y-6">
-            <div className="overflow-x-auto -mx-4 px-4 pb-2">
-              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 bg-card border border-border/50 p-1 h-auto">
-                <TabsTrigger
-                  value="appointments"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <CalendarDays className="h-4 w-4" />
-                  <span>Appointments</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="memberships"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  <span>Memberships</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="vehicles"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <Car className="h-4 w-4" />
-                  <span>Vehicles</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="addresses"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <MapPin className="h-4 w-4" />
-                  <span>Addresses</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="referrals"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <Gift className="h-4 w-4" />
-                  <span>Referrals</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="payments"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <Wallet className="h-4 w-4" />
-                  <span>Payments</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="settings"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="appointments" className="mt-6 space-y-6">
-              <AppointmentsTab userId={user?.id} afterNext={<PrepChecklist />} />
-              <AccountActivity userId={user?.id} />
-            </TabsContent>
-
-            <TabsContent value="memberships" className="mt-6">
-              <MembershipsTab userId={user?.id} />
-            </TabsContent>
-
-            <TabsContent value="vehicles" className="mt-6">
-              <VehiclesTab userId={user?.id} />
-            </TabsContent>
-
-            <TabsContent value="addresses" className="mt-6">
-              <AddressesTab userId={user?.id} />
-            </TabsContent>
-
-            <TabsContent value="referrals" className="mt-6">
-              <ReferralTab userId={user?.id} />
-            </TabsContent>
-
-            <TabsContent value="payments" className="mt-6">
-              <PaymentsTab userId={user?.id} />
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-6">
-              <ProfileTab userId={user?.id} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </Layout>
+      <PortalShell
+        section={section}
+        onNavigate={go}
+        name={fullName}
+        email={user?.email ?? ""}
+        initials={initials}
+        isAdmin={isAdmin}
+        onBackToAdmin={() => navigate("/account")}
+        onSignOut={handleSignOut}
+      >
+        {screen}
+      </PortalShell>
+    </>
   );
+}
+
+function QuickAction({ icon: Icon, label, to, onClick }: { icon: typeof Car; label: string; to?: string; onClick?: () => void }) {
+  const cls = "flex min-h-[72px] flex-col items-start justify-between gap-2 rounded-2xl border border-border/60 bg-card p-3.5 text-left font-medium hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const body = <><Icon className="h-5 w-5 text-primary" aria-hidden="true" />{label}</>;
+  return to ? <Link to={to} className={cls}>{body}</Link> : <button type="button" onClick={onClick} className={cls}>{body}</button>;
+}
+
+const LEGACY_TABS: Record<string, PortalSection> = { settings: "notifications" };
+function initialSection(): PortalSection {
+  const tab = new URLSearchParams(window.location.search).get("tab") || "home";
+  const mapped = (LEGACY_TABS[tab] ?? tab) as PortalSection;
+  const valid: PortalSection[] = ["home", "appointments", "vehicles", "account", "payments", "memberships", "addresses", "notifications", "referrals", "help"];
+  return valid.includes(mapped) ? mapped : "home";
 }
