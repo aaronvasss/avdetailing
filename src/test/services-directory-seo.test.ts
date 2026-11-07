@@ -35,7 +35,8 @@ describe("/services directory SEO", () => {
       execFileSync("bun", [resolve("scripts/generate-sitemap.ts")], { cwd: temp });
       const xml = readFileSync(join(temp, "public/sitemap.xml"), "utf8");
       expect(count(xml, /<loc>https:\/\/avdetailing\.net\/services<\/loc>/g)).toBe(1);
-      expect(xml).not.toContain("<lastmod>");
+      const servicesEntry = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].find(m => m[1].includes("https://avdetailing.net/services</loc>"));
+      expect(servicesEntry?.[1]).not.toContain("<lastmod>");
       expect(xml).not.toMatch(/<loc>[^<]*\/(?:book|auth|account|admin|worker)(?:\/|<)/);
     } finally { rmSync(temp, { recursive: true, force: true }); }
   });

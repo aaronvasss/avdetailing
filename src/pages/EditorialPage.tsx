@@ -32,7 +32,7 @@ export default function EditorialPage() {
         <nav aria-label={spanish ? "Ruta de navegación" : "Breadcrumb"} className="mb-6 text-sm text-muted-foreground">
           <Link to={spanish ? "/es" : "/"}>{spanish ? "Inicio" : "Home"}</Link>
           {guide && <> / <Link to="/guides">Guides</Link></>}
-          {page && <> / <span>{guide ? guide.h1 : "AV Detailing"}</span>}
+          {page && <> / <span>{guide ? guide.h1 : "AV Detailing"}</span></>}
         </nav>
         <h1 className="text-4xl md:text-5xl font-bold leading-tight">{page?.h1 ?? "Car & boat care guides"}</h1>
         {guide && <p className="mt-5 text-sm text-muted-foreground">By AV Detailing · Published <time dateTime={GUIDE_PUBLISH_DATE}>November 7, 2026</time></p>}
