@@ -10,7 +10,8 @@ export function FeaturedReviewCard({ review }: { review: FeaturedGoogleReview })
     month: "short", day: "numeric", year: "numeric", timeZone: "UTC",
   });
   const days = Math.max(0, Math.floor((Date.now() - Date.parse(`${review.review_date}T12:00:00Z`)) / 86400000));
-  const relativeDate = days === 0 ? "Today" : days === 1 ? "1 day ago" : days < 30 ? `${days} days ago` : days < 365 ? `${Math.floor(days / 30)} months ago` : `${Math.floor(days / 365)} years ago`;
+  const months = Math.floor(days / 30), years = Math.floor(days / 365);
+  const relativeDate = days === 0 ? "Today" : days === 1 ? "1 day ago" : days < 30 ? `${days} days ago` : days < 365 ? `${months} ${months === 1 ? "month" : "months"} ago` : `${years} ${years === 1 ? "year" : "years"} ago`;
   return (
     <article className="flex h-full min-h-[340px] flex-col rounded-lg border border-border bg-background p-6" aria-label={`Google review by ${review.reviewer_name}`}>
       <div className="flex items-start gap-3">

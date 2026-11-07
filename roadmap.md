@@ -2,7 +2,7 @@
 - [x] Aaron’s Business Profile linked; exact AV listing CID verified; google-reviews deployed and live cache reads back 5.0/142/five newest by createTime. Atomic daily refresh attempt, public unexpired reads/service-only writes, daily expired snapshot deletion. No private replies/media/account fields stored; original text/ratings unchanged, no review schema.
 - [x] Shared ceramic cost guide added with exact sedan/coupe 850/1300/1700 and SUV/truck 950/1400/1800, legacy 5-year key retained as 6-Year; FAQ/schema/navigation/sitemap/initial HTML match.
 - [x] Shared guidance expands boat ceramic/mobile RV/aircraft; all 15 requested subservices have grounded what-to-expect and four FAQs. Approved photos retained, no inferred treatments, fixed durations or new product/warranty claims.
-- [x] Initial HTML removes captured live review content; desktop/375 DPR2/390 DPR3 checks cover 19 FAQ pages, real cache section/badges/Read More and cost-guide→booking navigation, empty-feed mocks and no runtime errors. Full tests pending final rerun after carousel test mock correction; preview build OK. No manual production build, booking/payment/GA changes or publication.
+- [x] Initial HTML removes captured live review content; desktop/375 DPR2/390 DPR3 checks cover 19 FAQ pages, real cache section/badges/Read More and cost-guide→booking navigation, empty-feed mocks and no runtime errors. Full suite 648 tests/60 files passed; preview build OK. No manual production build, booking/payment/GA changes or publication.
 
 # SEO batch 3 (November 7)
 - [x] Public hours 6AM–8PM daily shared across footer/contact/schema/initial HTML, booking unchanged; focused tests and preview checks completed.

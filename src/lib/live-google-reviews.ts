@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GOOGLE_REVIEWS_URL } from "./google-business";
 import { publicReview, validTotals, type GoogleReview } from "../../supabase/functions/google-reviews/model";
@@ -13,9 +14,17 @@ export function parseLiveGoogleReviews(value: unknown, now = Date.now()): LiveGo
 }
 export const LIVE_GOOGLE_REVIEWS_KEY = ["live-google-reviews"];
 export function useLiveGoogleReviews() {
-  return useQuery({ queryKey: LIVE_GOOGLE_REVIEWS_KEY, staleTime: 5 * 60000, refetchInterval: 60000, retry: false, queryFn: async () => {
+  const query = useQuery({ queryKey: LIVE_GOOGLE_REVIEWS_KEY, staleTime: 5 * 60000, retry: false, queryFn: async () => {
     const { data, error } = await supabase.functions.invoke("google-reviews", { body: {} });
     if (error) return null;
     return parseLiveGoogleReviews(data?.cache);
   } });
+  const expiresAt = query.data?.expires_at;
+  const refetch = query.refetch;
+  useEffect(() => {
+    if (!expiresAt) return;
+    const timer = window.setTimeout(() => { void refetch(); }, Math.max(0, Date.parse(expiresAt) - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [expiresAt, refetch]);
+  return query;
 }
