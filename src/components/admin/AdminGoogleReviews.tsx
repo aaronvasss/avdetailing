@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GOOGLE_REVIEWS_URL } from "@/lib/google-business";
 import { featuredReviewSchema, loadFeaturedReviews, saveFeaturedReviews, type FeaturedGoogleReview } from "@/lib/featured-google-reviews";
+import { AdminReviewRefresh } from "./AdminReviewRefresh";
 
 const blank: FeaturedGoogleReview = { reviewer_name: "", rating: 5, review_date: "", text: "", source_url: GOOGLE_REVIEWS_URL };
 
@@ -48,6 +49,7 @@ export function AdminGoogleReviews() {
   };
   return (
     <section aria-label="Featured Google reviews" className="space-y-4 border-b border-border pb-8">
+      <AdminReviewRefresh />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-bold">Featured Google Reviews</h2>
         <Button onClick={save} disabled={saving || loading || failed || !dirty || reviews.length !== 3}><Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : "Save Reviews"}</Button>
