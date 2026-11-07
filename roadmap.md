@@ -1,3 +1,8 @@
+# SEO batch 3 (November 7)
+- [x] Public hours 6AM–8PM daily shared across footer/contact/schema/initial HTML, booking unchanged; focused tests and preview checks completed.
+- [ ] Automatic reviews blocked pending owner approval of Business Profile alternative: Places forbids persistent rating/count/review cache and only returns up to five relevance-selected reviews. Both requested secrets already set; no function/migration deployed or Google API requests made.
+- [x] Separate five approved job photos already processed and verified.
+
 # Approved job photos (November 7, source/preview only)
 - [x] Preserve blurring in five uploads; create 30 resized-only 400/800/1200 AVIF/WebP CDN assets under src/assets/approved-jobs pointers. All 30 CDN URLs independently return HTTP200 with exact bytes/content types.
 - [x] Replace Boat/Aircraft/RV homepage card photos and add shared photo sections to 15 requested pages plus five individual gallery entries and ImageGallery schema/initial HTML. Do not label these as before/after pairs or infer specific treatments.

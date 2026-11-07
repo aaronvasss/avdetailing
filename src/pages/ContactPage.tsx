@@ -21,6 +21,7 @@ import { checkRateLimit, clearRateLimit } from "@/lib/security";
 import { supabase } from "@/integrations/supabase/client";
 import { useLeadMeasurement } from "@/components/analytics/AnalyticsConsent";
 import { acceptedQuoteEvent, inquiryService } from "@/lib/analytics-events";
+import { PUBLIC_BUSINESS_HOURS } from "@/lib/public-business-facts";
 
 const services = [
   "Car Detailing",
@@ -211,7 +212,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-semibold mb-1">Hours</h3>
                     <p className="text-muted-foreground">
-                      Every day, 6:00 AM to 8:00 PM
+                      {PUBLIC_BUSINESS_HOURS}
                     </p>
                   </div>
                 </div>
