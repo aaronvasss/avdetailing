@@ -46,7 +46,7 @@ serve(async (req) => {
     );
 
     const body: DepositCheckoutRequest = await req.json();
-    logStep("Request parsed", { email: body.email, service: body.service_type });
+    logStep("Request parsed", { service: body.service_type });
 
     // Validate required fields
     if (!body.first_name || !body.last_name || !body.email || !body.vehicle_details || !body.preferred_date || !body.service_type) {

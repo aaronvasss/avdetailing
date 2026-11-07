@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { syncPortalCharge } from '../_shared/portal-charge-sync.ts';
+import { membershipPriceMatches } from '../_shared/membership-identity.ts';
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -356,8 +357,14 @@ serve(async (req) => {
 
           logStep("Processing subscription", { signupId, membershipPlanId, subscriptionId, customerId, customerEmail });
 
-          // Get subscription details
+          // Validate the purchased plan before creating accounts or granting membership.
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const { data: purchasedPlan, error: purchasedPlanError } = await supabase
+            .from("membership_plans").select("id, slug")
+            .eq("id", membershipPlanId).maybeSingle();
+          if (purchasedPlanError || !purchasedPlan || !membershipPriceMatches(
+            purchasedPlan.slug, subscription.items.data.map(item => item.price.id)
+          )) throw new Error("Membership purchase does not match plan");
 
           let userId = session.metadata?.user_id || null;
 
