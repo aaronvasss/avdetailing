@@ -37,7 +37,7 @@ describe("boat section SEO", () => {
       expect(hub).toContain("Boat Premium Detail</strong> from $649");
       for (const slug of BOAT_SLUGS) expect(hub).toContain(`href="/${slug}"`);
       const coat = read("boat-ceramic-coating-baton-rouge");
-      expect(coat).toContain("<title>Boat Ceramic Coating in Baton Rouge | Quotes &amp; Assessment | AV Detailing</title>");
+      expect(coat).toContain("<title>Boat Ceramic Coating Baton Rouge | AV Detailing</title>");
       expect(coat).toContain('href="/boat-detailing-baton-rouge"');
       expect(coat).toContain('href="/gelcoat-restoration-baton-rouge"');
       expect(coat).not.toMatch(/noindex/i);
