@@ -13,6 +13,7 @@ import { DangerZoneSection } from "./DangerZoneSection";
 import { BusinessHoursSettings } from "./BusinessHoursSettings";
 import { BlockedDatesManager } from "./BlockedDatesManager";
 import { AdminGoogleReviews } from "./AdminGoogleReviews";
+import { AdminGoogleRatingSettings } from "./AdminGoogleRatingSettings";
 
 interface BusinessSetting {
   key: string;
@@ -158,7 +159,7 @@ export function AdminSettingsTab() {
   const phoneSettings = settings.filter((s) => s.key.includes("phone"));
   const emailSettings = settings.filter((s) => s.key.includes("email"));
   const otherSettings = settings.filter(
-    (s) => !s.key.includes("phone") && !s.key.includes("email")
+    (s) => !s.key.includes("phone") && !s.key.includes("email") && s.key !== "google_review_summary"
   );
 
   return (
@@ -177,6 +178,7 @@ export function AdminSettingsTab() {
       <BlockedDatesManager />
 
       <AdminGoogleReviews />
+      <AdminGoogleRatingSettings />
 
       {/* Phone Numbers */}
       <Card>

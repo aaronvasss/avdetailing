@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Clock, Award } from "lucide-react";
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import heroAvif640 from "@/assets/optimized/hero-bg-640.avif";
 import heroAvif1024 from "@/assets/optimized/hero-bg-1024.avif";
 import heroAvif1600 from "@/assets/optimized/hero-bg-1600.avif";
@@ -95,6 +96,7 @@ export function HeroSection() {
           </div>
 
           {/* Trust Badges */}
+          <GoogleRatingBadge />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-3 lg:gap-6 lg:animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Shield className="h-5 w-5 text-primary" />
