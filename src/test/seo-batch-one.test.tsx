@@ -43,7 +43,7 @@ describe("pricing and payment facts", () => {
   });
   it("schema lists the exact accepted methods without aggregateRating", () => {
     const s = localBusinessSchema();
-    expect(s.paymentAccepted).toBe("Cash, Credit Card, Debit Card, Cash App, Venmo");
+    expect(s.paymentAccepted).toBe("Credit Card, Debit Card");
     expect(s).not.toHaveProperty("aggregateRating");
   });
 });
