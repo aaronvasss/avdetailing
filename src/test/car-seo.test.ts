@@ -39,7 +39,7 @@ describe("car section SEO", () => {
     try {
       mkdirSync(join(temp, "dist"));
       copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
-      execFileSync("npx", ["tsx", resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
+      execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
       const read = (p: string) => readFileSync(join(temp, `dist/${p}/index.html`), "utf8");
       const hub = read("car-detailing-baton-rouge");
       expect(hub).toContain("Car Detailing in Baton Rouge, LA</h1>");

@@ -31,13 +31,13 @@ describe("boat section SEO", () => {
     try {
       mkdirSync(join(temp, "dist"));
       copyFileSync(resolve("index.html"), join(temp, "dist/index.html"));
-      execFileSync("npx", ["tsx", resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
+      execFileSync(resolve("node_modules/.bin/tsx"), [resolve("scripts/postbuild-seo.ts")], { cwd: temp, stdio: "pipe" });
       const read = (p: string) => readFileSync(join(temp, `dist/${p}/index.html`), "utf8");
       const hub = read("boat-detailing-baton-rouge");
       expect(hub).toContain("Boat Premium Detail</strong> from $649");
       for (const slug of BOAT_SLUGS) expect(hub).toContain(`href="/${slug}"`);
       const coat = read("boat-ceramic-coating-baton-rouge");
-      expect(coat).toContain("<title>Boat Ceramic Coating in Baton Rouge | Quotes &amp; Assessment | AV Detailing</title>");
+      expect(coat).toContain("<title>Boat Ceramic Coating Baton Rouge | AV Detailing</title>");
       expect(coat).toContain('href="/boat-detailing-baton-rouge"');
       expect(coat).toContain('href="/gelcoat-restoration-baton-rouge"');
       expect(coat).not.toMatch(/noindex/i);

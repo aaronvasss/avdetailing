@@ -141,7 +141,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "exterior-detailing-baton-rouge",
     title: "Exterior Car Detailing in Baton Rouge: Wash & Package Choices",
-    seoTitle: "Exterior Car Detailing in Baton Rouge | Exterior Only & Packages | AV Detailing",
+    seoTitle: "Exterior Car Detailing Baton Rouge | AV Detailing",
     carPage: true,
     metaDescription:
       "Mobile exterior car detailing in Baton Rouge: compare the Exterior Only wash with full packages and optional clay bar, headlight and engine bay add-ons.",
@@ -168,7 +168,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "headlight-restoration-baton-rouge",
     title: "Headlight Restoration in Baton Rouge: Add It to Your Detail",
-    seoTitle: "Headlight Restoration in Baton Rouge | Car Detailing Add-On | AV Detailing",
+    seoTitle: "Headlight Restoration Baton Rouge | AV Detailing",
     carPage: true,
     metaDescription:
       "Headlight restoration in Baton Rouge for cloudy or yellowed lenses, added to a mobile car detailing booking. See how we assess lens condition first.",
@@ -195,10 +195,10 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "odor-removal-baton-rouge",
     title: "Car Odor Removal in Baton Rouge: Odor Elimination Add-On",
-    seoTitle: "Car Odor Removal in Baton Rouge | Odor Elimination Add-On | AV Detailing",
+    seoTitle: "Car Odor Removal Baton Rouge | AV Detailing",
     carPage: true,
     metaDescription:
-      "Car odor removal in Baton Rouge: choose a car detailing package, then add Odor Elimination at the booking add-ons step. Note the smell and its source for our team.",
+      "Car odor removal in Baton Rouge: choose a car package, then add Odor Elimination when booking. Tell our team about the smell and its source.",
     intro:
       "Smoke, pet, mildew and spill odors come from different sources, so the right approach depends on what caused the smell and how far it has soaked into seats and carpet. When you book a car detailing package, you can add Odor Elimination at the add-ons step; its price is shown there. Odor Elimination is a separate add-on, not part of any package. In your booking notes, tell us what you notice, where it seems to come from and how long it has been there. Seat and carpet shampooing is part of the Gold package if stains are involved. How much a smell improves depends on its source; we will be honest about what to expect.",
     link1: { text: "", url: "" },
@@ -222,10 +222,10 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "pet-hair-removal-baton-rouge",
     title: "Pet Hair Removal in Baton Rouge: Interior Cleaning for Pet Owners",
-    seoTitle: "Pet Hair Removal for Cars in Baton Rouge | Interior Detailing | AV Detailing",
+    seoTitle: "Pet Hair Removal Baton Rouge | AV Detailing",
     carPage: true,
     metaDescription:
-      "Pet hair removal for cars in Baton Rouge: choose a car detailing package, then add Pet Hair Removal at the booking add-ons step and tell us where the hair collects.",
+      "Pet hair removal for cars in Baton Rouge: choose a car package and add Pet Hair Removal when booking. Tell us where the hair collects.",
     intro:
       "Embedded pet hair in carpet, seats and cargo areas takes extra time to remove, and the amount varies a lot from car to car. When you book a car detailing package, you can add Pet Hair Removal at the add-ons step; its price is shown there. It is a separate add-on, not part of any package. Silver includes a deep vacuum of seats, carpets, mats and trunk, and Gold adds shampooing. In your booking notes, tell us what kind of pet rides with you, where the hair collects and how heavy it is, so the visit has the time it needs at your home or office in Baton Rouge.",
     link1: { text: "", url: "" },
@@ -249,7 +249,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "engine-bay-cleaning-baton-rouge",
     title: "Engine Bay Cleaning in Baton Rouge: Add It to Your Detail",
-    seoTitle: "Engine Bay Cleaning in Baton Rouge | Car Detailing Add-On | AV Detailing",
+    seoTitle: "Engine Bay Cleaning Baton Rouge | AV Detailing",
     carPage: true,
     metaDescription:
       "Engine bay cleaning in Baton Rouge as an add-on to a mobile car detail. Tell us your vehicle and the bay's condition so we can check it before cleaning.",
@@ -278,10 +278,10 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "mobile-rv-detailing-baton-rouge",
     title: "Mobile RV Detailing in Baton Rouge: On-Site Exterior Service",
-    seoTitle: "Mobile RV Detailing in Baton Rouge | On-Site Exterior | AV Detailing",
+    seoTitle: "Mobile RV Detailing Baton Rouge | AV Detailing",
     rvPage: true,
     metaDescription:
-      "How on-site exterior RV detailing works in Baton Rouge: service at your home, storage lot or campground, and what to send us about your RV, location and site rules.",
+      "On-site exterior RV detailing in Baton Rouge at your home, storage lot or campground. Send your RV details, location and site rules.",
     intro:
       "AV Detailing comes to your RV instead of asking you to move it. We service motorhomes, fifth wheels and travel trailers where they are parked — at home, a storage lot or a campground in the Baton Rouge area — when the location allows exterior washing. Our RV service is exterior-only. Before we schedule, we confirm your RV, its condition, the exterior work you want and any site rules, so the visit is planned around your location.",
     link1: { text: "", url: "" },
@@ -306,10 +306,10 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "rv-oxidation-removal-baton-rouge",
     title: "RV Oxidation Removal in Baton Rouge, LA",
-    seoTitle: "RV Oxidation Removal in Baton Rouge | Exterior RV | AV Detailing",
+    seoTitle: "RV Oxidation Removal Baton Rouge | AV Detailing",
     rvPage: true,
     metaDescription:
-      "RV oxidation removal in Baton Rouge for chalky or faded fiberglass. We assess a test area first and confirm scope and pricing for your RV before work begins.",
+      "RV oxidation removal in Baton Rouge for chalky or faded fiberglass. We assess a test area first and confirm scope and pricing before work.",
     intro:
       "Chalky, dull or faded fiberglass is a common sign of oxidation on an RV exterior. AV Detailing removes oxidation with compounding and polishing, starting with a test area so we can judge how your surface responds before committing to the full job. Results depend on the surface's condition, so we explain what is realistic for your RV and confirm the scope and price before work begins. Ceramic coating can be added afterward for surface protection.",
     link1: { text: "", url: "" },
@@ -349,10 +349,10 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "rv-ceramic-coating-baton-rouge",
     title: "RV Ceramic Coating in Baton Rouge, LA",
-    seoTitle: "RV Ceramic Coating in Baton Rouge | Exterior RV | AV Detailing",
+    seoTitle: "RV Ceramic Coating Baton Rouge | AV Detailing",
     rvPage: true,
     metaDescription:
-      "RV ceramic coating in Baton Rouge, applied after washing and any needed oxidation removal. Send your RV details and condition so we can confirm scope and pricing.",
+      "RV ceramic coating in Baton Rouge follows washing and any needed oxidation removal. Send your RV details and condition to confirm scope and pricing.",
     intro:
       "Ceramic coating adds a protective layer to your RV's exterior surfaces and can make routine washing easier. Because a coating seals in whatever is underneath, we wash the RV and address oxidation first where needed. AV Detailing reviews your RV's size and condition, explains the preparation it needs and confirms the scope and price with you before work begins.",
     link1: { text: "", url: "" },
@@ -377,7 +377,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "rv-roof-cleaning-baton-rouge",
     title: "RV Roof Cleaning in Baton Rouge, LA",
-    seoTitle: "RV Roof Cleaning in Baton Rouge | Mobile Service | AV Detailing",
+    seoTitle: "RV Roof Cleaning Baton Rouge | AV Detailing",
     rvPage: true,
     metaDescription:
       "Mobile RV roof cleaning in Baton Rouge. Tell us your RV, roof material and condition, and where it's parked; we assess access and confirm the quote first.",
@@ -405,11 +405,11 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "mobile-boat-detailing-baton-rouge",
     title: "Mobile Boat Detailing in Baton Rouge: How Visits Work",
-    seoTitle: "Mobile Boat Detailing in Baton Rouge | How Visits Work | AV Detailing",
+    seoTitle: "Mobile Boat Detailing Baton Rouge | AV Detailing",
     boatPage: true,
     showBoatPackages: true,
     metaDescription:
-      "How mobile boat detailing works in Baton Rouge: we come to where your boat is kept. Learn what to send first — boat details, location, access and site rules.",
+      "Mobile boat detailing in Baton Rouge where your boat is kept. Send boat details, location, access information and site rules before a visit.",
     intro:
       "AV Detailing is a mobile service, so we detail your boat where it is kept in Baton Rouge, Gonzales, Prairieville, Walker, Denham Springs, Central and nearby areas, when the location allows detailing work. Appointments run between 6 AM and 8 PM with a 30-minute arrival window. Before we schedule, we confirm your boat, where it is kept, how it can be reached and any marina or storage rules.",
     link1: { text: "", url: "" },
@@ -433,7 +433,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "boat-ceramic-coating-baton-rouge",
     title: "Boat Ceramic Coating in Baton Rouge, LA",
-    seoTitle: "Boat Ceramic Coating in Baton Rouge | Quotes & Assessment | AV Detailing",
+    seoTitle: "Boat Ceramic Coating Baton Rouge | AV Detailing",
     boatPage: true,
     showBoatPackages: true,
     metaDescription:
@@ -461,11 +461,11 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "gelcoat-restoration-baton-rouge",
     title: "Gelcoat Restoration in Baton Rouge: Oxidation Assessment",
-    seoTitle: "Gelcoat Restoration & Oxidation Removal in Baton Rouge | AV Detailing",
+    seoTitle: "Gelcoat Restoration Baton Rouge | AV Detailing",
     boatPage: true,
     showBoatPackages: true,
     metaDescription:
-      "Gelcoat restoration in Baton Rouge for chalky, faded or oxidized boats. We assess the finish and test an area before recommending Full Detail, Premium Detail or a quote.",
+      "Gelcoat restoration in Baton Rouge for chalky or faded boats. We assess the finish and test an area before recommending a package or quote.",
     intro:
       "Chalky, faded or dull gelcoat is usually a sign of oxidation. How much gloss can come back depends on how far the oxidation has gone and the condition of the gelcoat, so we start by assessing the finish and testing an area. Our Boat Full Detail includes oxidation removal, and the Boat Premium Detail adds a compound polish and ceramic sealant; heavier restoration is quoted after review.",
     link1: { text: "", url: "" },
@@ -489,10 +489,10 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "hull-cleaning-baton-rouge",
     title: "Boat Hull Cleaning in Baton Rouge: Request an Assessment",
-    seoTitle: "Boat Hull Cleaning in Baton Rouge | Assessment & Quotes | AV Detailing",
+    seoTitle: "Boat Hull Cleaning Baton Rouge | AV Detailing",
     boatPage: true,
     metaDescription:
-      "Boat hull cleaning in Baton Rouge for waterline and hull staining. Hull cleaning is done with the boat out of the water on a trailer or lift. Tell us where it is so we can confirm the scope.",
+      "Boat hull cleaning in Baton Rouge for waterline and hull stains. Trailer or lift only, out of the water. Send the location to confirm scope.",
     intro:
       "Waterline stains, scum and hard-water deposits build up on boats used on local rivers and lakes. We clean hulls only while the boat is out of the water on a trailer or a lift; we do not offer in-water cleaning. In your inquiry, tell us whether the boat is on a trailer or lift, where it is located, how we can reach the hull, the hull material and what you are seeing, and we will review the request before quoting.",
     link1: { text: "", url: "" },
@@ -516,11 +516,11 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "pontoon-cleaning-baton-rouge",
     title: "Pontoon Boat Cleaning & Care in Baton Rouge",
-    seoTitle: "Pontoon Boat Cleaning in Baton Rouge | Decks, Vinyl & Logs | AV Detailing",
+    seoTitle: "Pontoon Boat Cleaning Baton Rouge | AV Detailing",
     boatPage: true,
     showBoatPackages: true,
     metaDescription:
-      "Pontoon boat cleaning in Baton Rouge: decks, vinyl seating and aluminum logs. See which boat package fits and what to send for log cleaning or a quoted scope.",
+      "Pontoon boat cleaning in Baton Rouge: decks, vinyl seating and aluminum logs. Compare boat packages or send details for a quoted scope.",
     intro:
       "Pontoons have different surfaces than a fiberglass hull: decks, vinyl seating, rails and aluminum logs. Boat Wash & Wax covers an exterior wash, wax and vinyl cleaning; Boat Full Detail covers a complete interior and exterior detail with oxidation removal. Aluminum log cleaning and heavier staining are reviewed and quoted after we see the condition.",
     link1: { text: "", url: "" },
@@ -544,7 +544,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
     slug: "aircraft-cleaning-baton-rouge",
     title: "Aircraft Cleaning Assessment & Quotes in Baton Rouge",
     seoTitle: "Aircraft Cleaning Assessment Baton Rouge | AV Detailing",
-    metaDescription: "Request an aircraft cleaning assessment in Baton Rouge. Discuss condition, interior cleaning, shampooing, polishing or ceramic coating before agreeing scope.",
+    metaDescription: "Request an aircraft cleaning assessment in Baton Rouge. Discuss condition, cabin cleaning, shampooing, polishing or coating before agreeing scope.",
     intro: "An aircraft cleaning inquiry starts with your aircraft's condition and the work you want assessed. AV Detailing reviews private-aircraft requests, including private jets, to agree a specific scope rather than assume a package. Our aircraft services are deep interior cleaning, shampooing, polishing and ceramic coating. Tell us your aircraft type, its current condition, the areas that concern you and where it is parked, and we will recommend which of these services fits and prepare a quote.",
     link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
     link2: { text: "Aircraft polishing and ceramic coating", url: "/aircraft-paint-protection-baton-rouge" },
@@ -572,7 +572,7 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "aircraft-interior-detailing-baton-rouge",
     title: "Private-Aircraft Cabin Deep Cleaning & Shampooing",
-    seoTitle: "Aircraft Cabin Deep Cleaning & Shampooing Baton Rouge | AV Detailing",
+    seoTitle: "Aircraft Interior Cleaning Baton Rouge | AV Detailing",
     metaDescription: "Private-aircraft cabin deep cleaning and shampooing in Baton Rouge. Share interior condition, requested areas and location to agree your quote and access.",
     intro: "AV Detailing provides deep interior cleaning and shampooing for private aircraft, including private jets. This page focuses on the cabin rather than exterior cleaning or polishing. Tell us which interior areas need attention, their current condition and the work you want. We review those details with your aircraft make/model before agreeing the inclusions and exclusions; there is no assumed all-cabin package or automatic list of treated surfaces.",
     link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
@@ -601,8 +601,8 @@ export const SERVICE_LANDING_PAGES: ServiceLandingConfig[] = [
   {
     slug: "aircraft-paint-protection-baton-rouge",
     title: "Aircraft Polishing & Ceramic Coating in Baton Rouge",
-    seoTitle: "Aircraft Polishing & Ceramic Coating Baton Rouge | AV Detailing",
-    metaDescription: "Aircraft polishing and ceramic coating in Baton Rouge, not repainting. Discuss aircraft condition, requested areas, preparation and access for a tailored quote.",
+    seoTitle: "Aircraft Polishing & Coating Baton Rouge | AV Detailing",
+    metaDescription: "Aircraft polishing and ceramic coating in Baton Rouge, not repainting. Share condition, requested areas, preparation and access for a quote.",
     intro: "AV Detailing offers polishing and ceramic coating for private aircraft, including private jets. Polishing and coating are distinct detailing services: tell us whether you want one or both and which areas you want assessed. This is not an aircraft repainting or paint-repair service offer. We review the aircraft condition and requested work before agreeing the scope; preparation, products and included surfaces are confirmed for the particular job, not assumed from a coating package.",
     link1: { text: "Aircraft detailing overview", url: "/aircraft-detailing-baton-rouge" },
     link2: { text: "Aircraft cleaning assessment and quote guidance", url: "/aircraft-cleaning-baton-rouge" },

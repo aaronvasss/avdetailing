@@ -1,3 +1,4 @@
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { usePricing } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -101,7 +102,8 @@ export default function CeramicCoatingBatonRougePage() {
             <Link to="/car-detailing-baton-rouge" className="text-primary underline hover:text-primary/80">car detailing packages</Link>.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
+          <GoogleRatingBadge />
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Button asChild size="lg" className="text-base">
               <Link to="/book">Book Online</Link>
             </Button>

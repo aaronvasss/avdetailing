@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { useEffect } from "react";
 import { UTILITY_ROUTE_SEO } from "@/lib/utility-route-seo";
+import { STATIC_ROUTE_SEO } from "@/lib/static-route-seo";
 
 export const INDEX_ROBOTS = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
 const DEFAULT_OG_IMAGE = "https://avdetailing.net/og-image.jpg";
@@ -14,6 +15,7 @@ interface SEOHeadProps {
   noIndex?: boolean;
   /** With noIndex, let crawlers follow links (legacy unavailable-service pages). */
   follow?: boolean;
+  omitCanonical?: boolean;
 }
 
 export function SEOHead({
@@ -23,10 +25,12 @@ export function SEOHead({
   image = DEFAULT_OG_IMAGE,
   noIndex = false,
   follow = false,
+  omitCanonical = false,
 }: SEOHeadProps) {
   const utility = UTILITY_ROUTE_SEO.find((route) => route.path === path);
-  title = utility?.title ?? title;
-  description = utility?.description ?? description;
+  const shared = STATIC_ROUTE_SEO.find((route) => route.path === path);
+  title = utility?.title ?? shared?.title ?? title;
+  description = utility?.description ?? shared?.description ?? description;
   noIndex = Boolean(utility) || noIndex;
   const pageUrl = `https://avdetailing.net${path === "/" ? "/" : path}`;
   useEffect(() => {
@@ -47,6 +51,10 @@ export function SEOHead({
       document.head.appendChild(tag);
       return tag;
     };
+    if (omitCanonical) {
+      document.querySelectorAll('link[rel="canonical"], meta[property="og:url"]').forEach((tag) => tag.remove());
+      return;
+    }
     ensureOne('link[rel="canonical"]', () => Object.assign(document.createElement("link"), { rel: "canonical" }))
       .setAttribute("href", pageUrl);
     ensureOne('meta[property="og:url"]', () => {
@@ -54,7 +62,7 @@ export function SEOHead({
       m.setAttribute("property", "og:url");
       return m;
     }).setAttribute("content", pageUrl);
-  }, [pageUrl]);
+  }, [pageUrl, omitCanonical]);
   const fullTitle = path === "/"
     ? title
     : title.includes("AV Detailing")

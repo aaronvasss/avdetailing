@@ -12,7 +12,7 @@ export const BOAT_AREAS = "Baton Rouge, Gonzales, Prairieville, Walker, Denham S
 
 export const BOAT_HUB_SEO = {
   path: BOAT_HUB_PATH,
-  title: "Boat Detailing in Baton Rouge, LA: Packages & Services | AV Detailing",
+  title: "Boat Detailing Baton Rouge | Packages | AV Detailing",
   description:
     "Mobile boat detailing in Baton Rouge: compare Boat Wash & Wax, Full Detail and Premium Detail, plus ceramic coating, gelcoat, hull and pontoon care quotes.",
   h1: "Boat Detailing in Baton Rouge, LA",

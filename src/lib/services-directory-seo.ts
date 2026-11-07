@@ -5,7 +5,7 @@ export const SERVICES_DIRECTORY_SEO = {
   path: "/services",
   title: "Mobile Detailing Services in Baton Rouge | AV Detailing",
   description:
-    "Browse AV Detailing's Baton Rouge services: car detailing, ceramic coating, paint correction, exterior RV detailing, boat detailing and private-aircraft detailing.",
+    "Explore AV Detailing services in Baton Rouge: car detailing, ceramic coating, paint correction, exterior RV, boat and private-aircraft detailing.",
   h1: "Mobile Detailing Services in Baton Rouge",
 };
 

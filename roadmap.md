@@ -1,3 +1,10 @@
+# SEO batch 1 (November 7, source/preview only)
+- [x] FAQ Basic starting price now shares car display $140; payment copy/schema includes online or service-time choice and confirmed methods, retaining existing public Zelle.
+- [ ] Hours blocked: live settings 06:00–20:00, latest start 18:00; owner requested stop on mismatch, so footer/contact/schema and scheduling remain untouched.
+- [ ] Google badge prepared with validated atomic business_settings pair and existing admin inputs; no live Places source. Public whitelist excludes new key and migrations are forbidden, so public activation waits for separately authorized permission change and verified owner values.
+- [x] Shorten and synchronize metadata; noindex missing-route client page has no canonical and recovery links. Hosting documents SPA fallback, not custom HTTP404 handling; status remains hosting-limited. Existing optimized boat/aircraft photos are localized stock, not confirmed AV jobs; left unchanged. Wrong backend-host preconnect removed.
+- [x] 159 focused tests plus 3 mocked admin tests; desktop/375 DPR2/390 DPR3 checks verify FAQ, hidden/mock badges, seven service/home placements, no overflow and NotFound navigation. Automatic preview build OK; no manual production build, publish, backend writes or real customer actions.
+
 # Compact chat launcher (source/preview only)
 - [x] Observed vendor open shadow root; hide only prompt, size closed launcher 52px with safe-area clearance. Real read-only 375/390/desktop keyboard open-close checks and eight mocked lifecycle/route tests passed; automatic preview build OK. No messages or publication; owner must publish to apply live.
 

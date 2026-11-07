@@ -1,0 +1,13 @@
+/** Shared by SEOHead and postbuild; these public pages have one head owner. */
+export const STATIC_ROUTE_SEO = [
+  { path: "/", title: "Car Detailing in Baton Rouge — AV Detailing", description: "Mobile car detailing in Baton Rouge. System X ceramic coating, paint correction, RV, boat & aircraft detailing. We come to you — (225) 521-6264." },
+  { path: "/about", title: "About AV Detailing | Baton Rouge Mobile Detailing", description: "Meet the family behind AV Detailing — a fully-insured mobile detailing crew serving Baton Rouge and the surrounding parishes." },
+  { path: "/memberships", title: "Detailing Memberships Baton Rouge | AV Detailing", description: "Monthly, bi-weekly and weekly mobile detailing memberships in Baton Rouge. Compare recurring maintenance plans for your car, truck or SUV." },
+  { path: "/gallery", title: "Before & After Gallery | AV Detailing", description: "Before-and-after photos from AV Detailing jobs in Baton Rouge. Browse car, boat and RV detailing photos." },
+  { path: "/reviews", title: "Google Reviews Baton Rouge | AV Detailing", description: "Read featured Google reviews from AV Detailing customers in Baton Rouge — mobile car, RV, boat and aircraft detailing that comes to you." },
+  { path: "/contact", title: "Contact AV Detailing | Baton Rouge", description: "Call (225) 521-6264 or message AV Detailing about mobile car, RV, boat or aircraft detailing in Baton Rouge and nearby communities." },
+  { path: "/service-areas", title: "Mobile Detailing Service Areas | AV Detailing", description: "Mobile detailing around Baton Rouge, Prairieville, Gonzales, Walker, Denham Springs, Zachary and Central. Explore our service areas." },
+  { path: "/privacy-policy", title: "Privacy Policy | AV Detailing", description: "How AV Detailing collects, uses and protects customer information, including phone numbers and SMS opt-in details for booking confirmations and reminders." },
+  { path: "/terms-and-conditions", title: "Terms & Conditions | AV Detailing", description: "AV Detailing booking terms, SMS consent disclosure, cancellation policy, deposits, refunds and service guarantees for mobile detailing in Baton Rouge, LA." },
+  { path: "/get-started", title: "Detailing Quote Baton Rouge | AV Detailing", description: "Request a mobile detailing quote in Baton Rouge. Tell us about your car, boat, RV or aircraft, or call (225) 521-6264." },
+] as const;

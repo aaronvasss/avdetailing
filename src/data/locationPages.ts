@@ -66,7 +66,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing on Highland Road, Baton Rouge, LA",
     titleTag: "Car Detailing on Highland Road, Baton Rouge",
     metaDescription:
-      "Mobile car detailing along Highland Road, Baton Rouge \u2014 Bocage, Goodwood, Kenilworth, Perkins Road and the LSU area. Compare packages, add-ons and book online.",
+      "Mobile car detailing along Highland Road, Baton Rouge — Bocage, Goodwood, Kenilworth and the LSU area. Compare packages and add-ons, then book online.",
     intro:
       "AV Detailing brings mobile car detailing to homes and offices along the Highland Road corridor in Baton Rouge, from the LSU area and Perkins Road out to Bocage, Goodwood and Kenilworth. Choose a Basic, Silver or Gold package, add options such as clay bar treatment or headlight restoration, and we come to your driveway at the time you book. If your paint needs more than a wash, we assess it first and recommend paint correction or ceramic coating options.",
     services: COMMON_SERVICES,
@@ -88,7 +88,7 @@ export const LOCATION_PAGES: LocationPageConfig[] = [
     titleH1: "Car Detailing in Shenandoah, Baton Rouge, LA",
     titleTag: "Car Detailing in Shenandoah Baton Rouge, LA",
     metaDescription:
-      "Mobile car detailing in Shenandoah, Baton Rouge \u2014 Shenandoah Estates, Siegen Lane, Nicholson Dr and the Mall of Louisiana area. Compare packages and book online.",
+      "Mobile car detailing in Shenandoah, Baton Rouge — Shenandoah Estates, Siegen Lane and the Mall of Louisiana area. Compare packages and book online.",
     intro:
       "AV Detailing brings mobile car detailing to homes and offices in the Shenandoah area of Baton Rouge, including Shenandoah Estates, the Siegen Lane corridor, Nicholson Drive and the streets around the Mall of Louisiana. Pick a Basic, Silver or Gold package for your car, SUV or truck, add extras at the booking add-ons step, and we come to your driveway. Paint correction and ceramic coating start with an assessment of your paint.",
     services: COMMON_SERVICES,

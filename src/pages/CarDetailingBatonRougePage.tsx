@@ -1,3 +1,4 @@
+import { GoogleRatingBadge } from "@/components/reviews/GoogleRatingBadge";
 import { usePricing, formatPrice, CAR_PAGE_DISPLAY_FROM } from "@/lib/pricing";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
@@ -151,6 +152,7 @@ export default function CarDetailingBatonRougePage() {
                 <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Tire shine</span></li>
                 <li className="flex gap-2"><span className="text-white/70 mt-0.5">•</span><span>Exterior windows cleaned</span></li>
               </ul>
+              <GoogleRatingBadge />
               <Button asChild variant="outline" className="w-full bg-white text-black hover:bg-white/90 border-white">
                 <Link to="/book?service=car&package=basic">Book Now</Link>
               </Button>
