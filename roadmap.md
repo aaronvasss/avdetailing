@@ -1,3 +1,8 @@
+# Hourly Google reviews
+- [ ] Hourly refresh, single leased/token-checked refresh and stale snapshot retention; preserve daily cleanup.
+- [ ] Server-verified admin refresh and last-success time; shared frontend expiration refetch.
+- [ ] Review tests, admin/public preview validation, deployment of review feature only; explain Pub/Sub without implementing.
+
 # SEO batch 5 (November 7)
 - [x] Reused verified existing four location entries, links/schema/NotFound; no duplicates or changes to 4A/4B content.
 - [x] Removed superseded static review-count lines, extended llms with cost/guides/Spanish; qualified additional-fee wording to existing displayed-total behavior.

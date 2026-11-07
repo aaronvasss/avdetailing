@@ -1,4 +1,7 @@
-export const REVIEW_CACHE_HOURS = 24;
+export const REVIEW_CACHE_HOURS = 1;
+export const REVIEW_REFRESH_MS = REVIEW_CACHE_HOURS * 3600000;
+export const REVIEW_RETENTION_MS = 86400000;
+export function reviewRefreshDue(fetchedAt: string, now = Date.now()) { return now >= Date.parse(fetchedAt) + REVIEW_REFRESH_MS; }
 export const MAX_REVIEW_PAGES = 20;
 export const GOOGLE_REVIEW_PROFILE = "https://www.google.com/maps?cid=7061043489708478604";
 const stars: Record<string, number> = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
