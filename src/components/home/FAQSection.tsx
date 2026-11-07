@@ -1,4 +1,5 @@
-import { usePricing, formatPrice, ceramicFrom, type Pricing } from "@/lib/pricing";
+import { usePricing, formatPrice, ceramicFrom, CAR_PAGE_DISPLAY_FROM, type Pricing } from "@/lib/pricing";
+import { PUBLIC_PAYMENT_ANSWER } from "@/lib/public-business-facts";
 import {
   Accordion,
   AccordionContent,
@@ -7,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { JsonLd, faqSchema } from "@/components/seo/JsonLd";
 
-const buildFaqs = (pricing: Pricing) => [
+export const buildFaqs = (pricing: Pricing) => [
   {
     question: "How does mobile detailing work?",
     answer: "We bring everything needed to detail your vehicle directly to your location - home, office, or anywhere in the Baton Rouge area. Our fully-equipped mobile unit includes water, power, and all professional-grade products and equipment. You don't need to provide anything except access to your vehicle.",
@@ -34,7 +35,7 @@ const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards, debit cards, and digital payments including Apple Pay and Google Pay. Payment is processed securely online when you book. For membership plans, we set up automatic recurring billing.",
+    answer: PUBLIC_PAYMENT_ANSWER,
   },
   {
     question: "What if it rains on my appointment day?",
@@ -42,7 +43,7 @@ const buildFaqs = (pricing: Pricing) => [
   },
   {
     question: "How much does mobile detailing cost in Baton Rouge?",
-    answer: `Pricing depends on vehicle size and the package you choose. Exterior-only washes start at ${pricing.label(pricing.packageFrom("car", "Exterior Only"))}, full interior + exterior details start at ${pricing.label(pricing.packageFrom("car", "Basic Package"))}, ceramic coatings start at ${formatPrice(ceramicFrom("3-year"))}, and paint correction starts at ${pricing.label(pricing.startingAt("paint"))}. Boats, RVs, and aircraft are quoted individually. You'll always see a transparent, all-in price before you book — no hidden fees.`,
+    answer: `Pricing depends on vehicle size and the package you choose. Exterior-only washes start at ${pricing.label(pricing.packageFrom("car", "Exterior Only"))}, full interior + exterior details start at ${formatPrice(CAR_PAGE_DISPLAY_FROM.basic)}, ceramic coatings start at ${formatPrice(ceramicFrom("3-year"))}, and paint correction starts at ${pricing.label(pricing.startingAt("paint"))}. See the boat and RV pages for package starting prices; aircraft work is quoted individually. Your total is shown during booking.`,
   },
   {
     question: "Do you offer ceramic coating in Baton Rouge?",

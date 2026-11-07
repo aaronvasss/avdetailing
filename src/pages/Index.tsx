@@ -15,6 +15,7 @@ import { lazy, Suspense } from "react";
 import { DeferUntilVisible } from "@/components/common/DeferUntilVisible";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { JsonLd, localBusinessSchema } from "@/components/seo/JsonLd";
+import { STATIC_ROUTE_SEO } from "@/lib/static-route-seo";
 
 // The inquiry form talks to the backend; load it only when the visitor
 // actually scrolls to it so the homepage's first load stays light.
@@ -26,8 +27,8 @@ const Index = () => {
   return (
     <Layout>
       <SEOHead
-        title="Car Detailing Baton Rouge | AV Detailing Mobile"
-        description="Professional mobile car detailing in Baton Rouge — we come to your home or office, 7 days a week. Ceramic coating, paint correction, interior detailing. (225) 521-6264."
+        title={STATIC_ROUTE_SEO[0].title}
+        description={STATIC_ROUTE_SEO[0].description}
 
         path="/"
       />
