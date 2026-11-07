@@ -47,6 +47,7 @@ describe("owner local SEO expansion", () => {
     const faqs = buildFaqs(buildPricing(FALLBACK_PACKAGES, FALLBACK_PLANS));
     const payment = faqs.find(f => f.question === "What payment methods do you accept?");
     expect(payment?.answer).toBe(PUBLIC_PAYMENT_ANSWER); expect(payment?.answer).toContain("Membership plans use recurring billing");
+    expect(payment?.answer).toContain("No additional processing fees are added on top of the total shown during booking.");
     expect(faqSchema(faqs).mainEntity.find(q => q.name === payment?.question)?.acceptedAnswer.text).toBe(payment?.answer);
     for (const area of OWNER_SERVICE_AREAS) expect(faqs.find(f => f.question === "What areas do you service?")?.answer).toContain(area);
     for (const service of NOT_OFFERED) expect(faqs.find(f => f.question === "What services do you not offer?")?.answer).toContain(service);
@@ -57,6 +58,8 @@ describe("owner local SEO expansion", () => {
     expect(txt).not.toContain("/rv-interior-detailing-baton-rouge"); expect(txt).toContain("RV services are exterior-only");
     for (const area of OWNER_SERVICE_AREAS) expect(txt).toContain(area);
     for (const p of NEW_LOCATION_AREAS) expect(sitemap).toContain(`<loc>https://avdetailing.net/${p.slug}</loc>`);
+    for (const path of ["/ceramic-coating-cost-baton-rouge", "/guides", "/guides/ceramic-coating-vs-wax", "/guides/remove-lovebugs-car-paint", "/guides/boat-oxidation-gelcoat-care", "/guides/how-often-detail-car", "/es", "/es/detallado-de-autos-baton-rouge"]) expect(txt).toContain(`](${path})`);
+    expect(txt).not.toMatch(/110\+|\$\d|\d+\s*(?:five-star|Google reviews)/);
   });
   it("initial HTML shares nearby links, identity, FAQ facts and safe optional 404", () => {
     const temp = mkdtempSync(join(tmpdir(),"local-expansion-"));
