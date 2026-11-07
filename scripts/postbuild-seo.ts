@@ -40,9 +40,8 @@ import { languageAlternates } from "../src/lib/language-pages";
 import { EDITORIAL_ROUTES, editorialHtml } from "../src/lib/editorial-html";
 import { JSDOM } from "jsdom";
 import { schemaHasType } from "../src/lib/schema-node";
-import { nearbyAreaLinks, HOME_LOCAL_FAQS, OWNER_REVIEW_TRUST, OWNER_SERVICE_AREAS } from "../src/lib/local-expansion";
+import { nearbyAreaLinks, HOME_LOCAL_FAQS, OWNER_SERVICE_AREAS } from "../src/lib/local-expansion";
 import { PUBLIC_PAYMENT_ANSWER } from "../src/lib/public-business-facts";
-import { GOOGLE_REVIEWS_URL } from "../src/lib/google-business";
 import { notFoundHtml } from "../src/lib/not-found-seo";
 const routeFaqs = (path: string) => path === CERAMIC_COST.path ? CERAMIC_COST_FAQS : corePageFaqs(path).length ? corePageFaqs(path) : SERVICE_EXPECTATIONS[path]?.faqs ?? [];
 
@@ -220,7 +219,7 @@ for (const r of STATIC_ROUTES) {
   if (!r.body) r.body = LEGAL_PATHS.has(r.path) ? bodyForLegal(r) : bodyForStatic(r);
   if (r.path === "/" || r.path === "/service-areas") r.body += `<h2>Detailing by City</h2><ul>${NEW_LOCATION_AREAS.map(area => `<li><a href="/${area.slug}">Car Detailing in ${esc(area.city)}</a> — ${esc(area.geography)}</li>`).join("")}</ul>`;
   if (r.path === "/") {
-    r.body += `<p><a href="${GOOGLE_REVIEWS_URL}">${esc(OWNER_REVIEW_TRUST)}</a></p><h2>Frequently Asked Questions</h2>${pageFaqHtml([...HOME_LOCAL_FAQS, { question: "What payment methods do you accept?", answer: PUBLIC_PAYMENT_ANSWER }])}`;
+    r.body += `<h2>Frequently Asked Questions</h2>${pageFaqHtml([...HOME_LOCAL_FAQS, { question: "What payment methods do you accept?", answer: PUBLIC_PAYMENT_ANSWER }])}`;
     r.body += `<p>For private aircraft, explore <a href="/aircraft-detailing-baton-rouge">aircraft and private jet detailing in Baton Rouge</a>: interior deep cleaning, shampooing, polishing and ceramic coating, with scope and access coordinated per job.</p>`;
   }
 }

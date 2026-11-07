@@ -1,7 +1,6 @@
 /** Owner-confirmed wording only; never used for booking eligibility or charges. */
 export const OWNER_SERVICE_AREAS = ["Baton Rouge", "Prairieville", "Gonzales", "Denham Springs", "Walker", "Central", "Zachary", "Baker", "Brusly", "Port Allen", "Perkins Road area", "Highland Road area", "Southdowns", "LSU Lakes area", "Bocage", "Country Club of Louisiana", "Mira Vista"] as const;
 export const OWNER_AREA_ANSWER = `We come to your home or office in ${OWNER_SERVICE_AREAS.join(", ")}. Book online, call or text (225) 521-6264 to arrange service at your address.`;
-export const OWNER_REVIEW_TRUST = "110+ five-star Google reviews";
 export const NOT_OFFERED = ["mechanical repair", "windshield repair/replacement", "body work", "paint repair", "dent repair", "oil changes", "tire services"] as const;
 export const NOT_OFFERED_ANSWER = `We do not offer ${NOT_OFFERED.join(", ")}. We are a professional detailing company only.`;
 export const HOME_LOCAL_FAQS = [{ question: "What areas do you service?", answer: OWNER_AREA_ANSWER }, { question: "What services do you not offer?", answer: NOT_OFFERED_ANSWER }];
