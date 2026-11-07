@@ -86,7 +86,7 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   stripe: "Online (Stripe)",
   card: "Online (Stripe)",
   cash: "Cash",
-  in_person: "Pay In Person",
+  in_person: "Pay later by card in your AV Detailing account",
   zelle: "Zelle",
   venmo: "Venmo",
 };
