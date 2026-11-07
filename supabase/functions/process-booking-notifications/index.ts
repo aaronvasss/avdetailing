@@ -324,7 +324,7 @@ ${paymentBanner}
     <div style="background-color:#0a0a0a;border-radius:12px;padding:20px;margin-top:16px;text-align:center;">
       <p style="color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 12px;">We Accept</p>
       <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
-        <span style="color:#fff;font-size:13px;padding:8px 12px;background-color:#171717;border-radius:6px;">💳 Card</span>
+        <span style="color:#fff;font-size:13px;padding:8px 12px;background-color:#171717;border-radius:6px;">💳 Credit &amp; debit cards only</span>
       </div>
     </div>
   </div>
