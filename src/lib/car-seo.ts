@@ -10,9 +10,9 @@ export const CAR_AREAS = "Baton Rouge, Prairieville, Gonzales, Denham Springs, W
 
 export const CAR_HUB_SEO = {
   path: CAR_HUB_PATH,
-  title: "Car Detailing in Baton Rouge, LA: Packages & Prices | AV Detailing",
+  title: "Car Detailing Baton Rouge | Packages & Prices | AV Detailing",
   description:
-    "Compare AV Detailing's Basic, Silver and Gold car detailing packages in Baton Rouge. See what each includes and starting prices, then book mobile service at your location.",
+    "Compare Basic, Silver and Gold car detailing packages in Baton Rouge. See inclusions and starting prices, then book mobile service at your location.",
   h1: "Car Detailing in Baton Rouge, LA",
   intro:
     "Compare our Basic, Silver and Gold car detailing packages, see what each one includes and pick the right level for your vehicle. We come to your home or office in " + CAR_AREAS + ".",
@@ -21,24 +21,24 @@ export const CAR_HUB_SEO = {
 export const MOBILE_CAR_SEO = {
   slug: "mobile-car-detailing-baton-rouge",
   title: "Mobile Car Detailing in Baton Rouge: How Our Visits Work",
-  seoTitle: "Mobile Car Detailing in Baton Rouge | How Visits Work | AV Detailing",
+  seoTitle: "Mobile Car Detailing Baton Rouge | AV Detailing",
   description:
-    "How AV Detailing's mobile car detailing works in Baton Rouge: booking, the 30-minute arrival window, appointment hours and what to have ready at your home or office.",
+    "Mobile car detailing in Baton Rouge: booking, the 30-minute arrival window, appointment hours and what to prepare at your home or office.",
 };
 
 export const INTERIOR_CAR_SEO = {
   slug: "interior-detailing-baton-rouge",
   title: "Interior Car Detailing & Seat Shampoo in Baton Rouge",
-  seoTitle: "Interior Car Detailing & Seat Shampoo in Baton Rouge | AV Detailing",
+  seoTitle: "Interior Car Detailing Baton Rouge | AV Detailing",
   description:
-    "Interior car detailing in Baton Rouge: see which package covers vacuuming, wipe-downs, seat and upholstery shampoo and carpet deep cleaning. Seat shampoo is in Gold.",
+    "Interior car detailing in Baton Rouge: compare vacuuming, wipe-downs, seat shampoo and carpet cleaning. Seat and upholstery shampoo is in Gold.",
 };
 
 export const PAINT_CORRECTION_SEO = {
   path: "/paint-correction-baton-rouge",
   title: "Paint Correction in Baton Rouge, LA | AV Detailing",
   description:
-    "Paint correction in Baton Rouge: we assess your paint, then recommend a 1-step, 2-step or 3-step option. Results depend on paint condition and clear coat. Mobile service.",
+    "Paint correction in Baton Rouge: we assess paint and clear coat, then recommend a 1-, 2- or 3-step option. Results depend on condition. Mobile service.",
   h1: "Paint Correction in Baton Rouge, LA",
   intro:
     "Swirls, water spots, haze and light scratches can often be reduced or removed with machine polishing. We start by assessing your paint, test a small area, and recommend a 1-step, 2-step or 3-step option. How much improvement is possible depends on the depth of each defect and how much clear coat is available, so some marks may remain. Correction is also the usual preparation before ceramic coating.",

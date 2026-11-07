@@ -12,9 +12,9 @@ export const CERAMIC_PATH = "/ceramic-coating-baton-rouge";
 export const CERAMIC_SEO = {
   path: CERAMIC_PATH,
   h1: "Ceramic Coating in Baton Rouge, LA",
-  title: "System X Ceramic Coating in Baton Rouge | 3, 6 & 10-Year Tiers | AV Detailing",
+  title: "Ceramic Coating Baton Rouge | 3, 6 & 10-Yr | AV Detailing",
   description:
-    "Compare System X ceramic coating tiers for cars, SUVs and trucks in Baton Rouge: 3-year, 6-year and 10-year starting prices, paint assessment first, mobile service.",
+    "Compare 3-, 6- and 10-year System X ceramic coating options and prices for Baton Rouge cars, SUVs and trucks. Paint assessment first; mobile service.",
   intro:
     "AV Detailing applies System X ceramic coatings at your home or office in Baton Rouge in three tiers: 3-year, 6-year and 10-year. A coating adds a protective layer over clear coat that makes routine washing easier. Because it seals in whatever is underneath, we look at your paint first; swirls or scratches you want reduced are handled with paint correction, which is quoted separately.",
 };
