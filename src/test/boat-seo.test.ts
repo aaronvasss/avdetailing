@@ -43,7 +43,7 @@ describe("boat section SEO", () => {
       expect(coat).toContain('href="/boat-detailing-baton-rouge"');
       expect(coat).toContain('href="/gelcoat-restoration-baton-rouge"');
       expect(coat).not.toMatch(/noindex/i);
-      expect(coat.match(/"@type":"LocalBusiness"/g)?.length).toBe(1);
+      expect(coat.match(/"@type":\["AutoWash","LocalBusiness"\]/g)?.length).toBe(1);
       const hull = read("hull-cleaning-baton-rouge");
       // Owner-confirmed: hull cleaning on a trailer or lift only, never in-water.
       expect(hull).toMatch(/trailer or (a )?lift/);
