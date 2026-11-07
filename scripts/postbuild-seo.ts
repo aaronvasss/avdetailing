@@ -33,6 +33,9 @@ import { pageExtrasHtml, galleryInitialHtml, replacePageFaqSchema } from "../src
 import { NEW_LOCATION_AREAS } from "../src/data/locationPages";
 import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "../src/lib/approved-job-photos";
 import { PUBLIC_BUSINESS_HOURS, PUBLIC_OPENING_HOURS_SPECIFICATION } from "../src/lib/public-business-facts";
+import { CERAMIC_COST, CERAMIC_COST_FAQS, ceramicCostHtml } from "../src/lib/ceramic-cost";
+import { SERVICE_EXPECTATIONS } from "../src/lib/service-expectations";
+const routeFaqs = (path: string) => path === CERAMIC_COST.path ? CERAMIC_COST_FAQS : corePageFaqs(path).length ? corePageFaqs(path) : SERVICE_EXPECTATIONS[path]?.faqs ?? [];
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -142,6 +145,7 @@ function bodyForStatic(m: { title: string; description: string }): string {
 }
 
 const STATIC_ROUTES: RouteMeta[] = [
+  { ...CERAMIC_COST, body: ceramicCostHtml() },
   ...STATIC_ROUTE_SEO,
   {
     path: "/services",
@@ -231,7 +235,7 @@ const ALL_ROUTES: RouteMeta[] = [
 ];
 
 for (const route of ALL_ROUTES) {
-  route.body = (route.body ?? "") + pageExtrasHtml(route.path, corePageFaqs(route.path), EMITTED_ASSETS);
+  route.body = (route.body ?? "") + pageExtrasHtml(route.path, route.path === CERAMIC_COST.path ? [] : routeFaqs(route.path), EMITTED_ASSETS);
 }
 
 const SERVICE_SCHEMA_PATHS = new Set<string>([
@@ -469,8 +473,8 @@ function rewrite(html: string, m: RouteMeta): string {
     out = out.replace(/<\/footer>/i, `<p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p></footer>`);
   }
 
-  if (location || CORE_FAQ_PATHS.some(path => path === m.path)) {
-    let faqs = location?.faqs ?? corePageFaqs(m.path);
+  if (location || routeFaqs(m.path).length > 0) {
+    let faqs = location?.faqs ?? routeFaqs(m.path);
     // A successful capture already has authoritative rendered prices. Keep its
     // shared-source FAQ answers, rather than replacing them with fallback prices.
     if (hasRealContent && /data-page-faqs/.test(out) && !m.path.startsWith("/aircraft-")) {
