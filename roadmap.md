@@ -1,3 +1,8 @@
+# SEO batch 3 (November 7)
+- [ ] Public hours 6AM–8PM daily in footer/contact/schema/initial HTML, booking unchanged.
+- [ ] Determine Google policy and supported connector approach for automatic rating/count/reviews; feature-only migration/function approved, existing secrets set.
+- [x] Separate five approved job photos already processed and verified.
+
 # Approved job photos (November 7, source/preview only)
 - [x] Preserve blurring in five uploads; create 30 resized-only 400/800/1200 AVIF/WebP CDN assets under src/assets/approved-jobs pointers. All 30 CDN URLs independently return HTTP200 with exact bytes/content types.
 - [x] Replace Boat/Aircraft/RV homepage card photos and add shared photo sections to 15 requested pages plus five individual gallery entries and ImageGallery schema/initial HTML. Do not label these as before/after pairs or infer specific treatments.

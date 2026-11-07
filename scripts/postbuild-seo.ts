@@ -32,6 +32,7 @@ import { corePageFaqs, CORE_FAQ_PATHS, pageFaqHtml } from "../src/lib/page-faqs"
 import { pageExtrasHtml, galleryInitialHtml, replacePageFaqSchema } from "../src/lib/page-extras-html";
 import { NEW_LOCATION_AREAS } from "../src/data/locationPages";
 import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "../src/lib/approved-job-photos";
+import { PUBLIC_BUSINESS_HOURS, PUBLIC_OPENING_HOURS_SPECIFICATION } from "../src/lib/public-business-facts";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -397,6 +398,15 @@ function rewrite(html: string, m: RouteMeta): string {
   );
 
   // Structured data must exist in the initial HTML for crawlers that don't run
+  out = out.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi, (full, json: string) => {
+    try {
+      const parsed = JSON.parse(json);
+      const nodes = Array.isArray(parsed) ? parsed : [parsed];
+      for (const node of nodes) if (node?.["@type"] === "LocalBusiness") node.openingHoursSpecification = PUBLIC_OPENING_HOURS_SPECIFICATION;
+      return full.replace(json, JSON.stringify(parsed).replace(/</g, "\\u003c"));
+    } catch { return full; }
+  });
+  // Structured data must exist in the initial HTML for crawlers that don't run
   // JS. Helmet-rendered JSON-LD isn't reliably captured by the prerenderer, so
   // inject the public LocalBusiness schema here when it's missing.
   out = dedupeLocalBusiness(out);
@@ -452,7 +462,7 @@ function rewrite(html: string, m: RouteMeta): string {
   if (m.body && !hasRealContent) {
     out = out.replace(
       /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
-      `<div id="root"><div data-seo-content>${m.body}</div></div>`,
+      `<div id="root"><div data-seo-content>${m.body}<footer><p>Hours: ${esc(PUBLIC_BUSINESS_HOURS)}</p></footer></div></div>`,
     );
   }
 

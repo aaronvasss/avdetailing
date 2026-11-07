@@ -3,6 +3,7 @@ import { Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react"
 import { useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { AnalyticsSettingsControl } from "@/components/analytics/AnalyticsConsent";
 import { NEW_LOCATION_AREAS } from "@/data/locationPages";
+import { PUBLIC_BUSINESS_HOURS } from "@/lib/public-business-facts";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -177,6 +178,7 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-6">Contact</h3>
             <ul className="space-y-4">
+              <li className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Hours</span><br />{PUBLIC_BUSINESS_HOURS}</li>
               <li>
                 <a
                   href="tel:2255216264"

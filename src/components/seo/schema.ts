@@ -1,7 +1,7 @@
 // Plain-TS SEO schema constants and the public LocalBusiness schema.
 // Kept free of React imports so build scripts (postbuild-seo) can use them.
 import { GOOGLE_REVIEWS_URL } from "../../lib/google-business";
-import { PUBLIC_PAYMENT_METHODS } from "../../lib/public-business-facts";
+import { PUBLIC_PAYMENT_METHODS, PUBLIC_OPENING_HOURS_SPECIFICATION } from "../../lib/public-business-facts";
 
 export const SITE_URL = "https://avdetailing.net";
 
@@ -70,6 +70,7 @@ export function localBusinessSchema() {
     priceRange: "Service and vehicle dependent; aircraft by quote",
     currenciesAccepted: "USD",
     paymentAccepted: PUBLIC_PAYMENT_METHODS.join(", "),
+    openingHoursSpecification: PUBLIC_OPENING_HOURS_SPECIFICATION,
     sameAs: [
       "https://www.facebook.com/avdetailingg",
       "https://www.instagram.com/avdetailinngg/",
