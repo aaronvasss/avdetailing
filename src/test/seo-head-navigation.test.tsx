@@ -3,7 +3,7 @@ import { render, waitFor } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { SEOHead } from "@/components/seo/SEOHead";
 
-type Page = { path: string; title: string; noIndex?: boolean; follow?: boolean };
+type Page = { path: string; title: string; noIndex?: boolean; follow?: boolean; omitCanonical?: boolean };
 const head = () => ({
   titles: [...document.querySelectorAll("title")].map((t) => t.textContent),
   desc: [...document.querySelectorAll('meta[name="description"]')].map((m) => m.getAttribute("content")),
@@ -13,7 +13,7 @@ const head = () => ({
 });
 const view = (p: Page) => (
   <HelmetProvider>
-    <SEOHead title={p.title} description={`About ${p.title}`} path={p.path} noIndex={p.noIndex} follow={p.follow} />
+    <SEOHead title={p.title} description={`About ${p.title}`} path={p.path} noIndex={p.noIndex} follow={p.follow} omitCanonical={p.omitCanonical} />
   </HelmetProvider>
 );
 
@@ -23,6 +23,16 @@ beforeEach(() => {
 });
 
 describe("SEOHead owns metadata across client navigation", () => {
+  it("removes canonical on missing pages and restores it on public navigation", async () => {
+    const { rerender } = render(view({ path: "/made-up", title: "Page Not Found", noIndex: true, omitCanonical: true }));
+    await waitFor(() => {
+      expect(head().canonical).toEqual([]);
+      expect(head().ogUrl).toEqual([]);
+      expect(head().robots).toEqual(["noindex, nofollow"]);
+    });
+    rerender(view({ path: "/services", title: "Services" }));
+    await waitFor(() => expect(head().canonical).toEqual(["https://avdetailing.net/services"]));
+  });
   it("leaves exactly one matching set of tags and never a stale noindex", async () => {
     const steps: (Page & { robots: string })[] = [
       { path: "/rv-interior-detailing-baton-rouge", title: "RV Interior", noIndex: true, follow: true, robots: "noindex, follow" },
