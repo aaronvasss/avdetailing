@@ -31,6 +31,7 @@ import { SERVICES_DIRECTORY_SEO, servicesDirectoryHtml } from "../src/lib/servic
 import { corePageFaqs, CORE_FAQ_PATHS, pageFaqHtml } from "../src/lib/page-faqs";
 import { pageExtrasHtml, galleryInitialHtml, replacePageFaqSchema } from "../src/lib/page-extras-html";
 import { NEW_LOCATION_AREAS } from "../src/data/locationPages";
+import { APPROVED_JOB_PHOTOS, approvedPhotoCaption } from "../src/lib/approved-job-photos";
 
 const DIST = join(process.cwd(), "dist");
 const SITE = "https://avdetailing.net";
@@ -473,6 +474,26 @@ function rewrite(html: string, m: RouteMeta): string {
       }
     }
     out = replacePageFaqSchema(out, faqs);
+  }
+
+  if (m.path === "/gallery") {
+    const newImages = APPROVED_JOB_PHOTOS.map(p => ({ "@type": "ImageObject", contentUrl: p.photo.src, caption: approvedPhotoCaption(p) }));
+    let foundGallery = false;
+    out = out.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi, (full, json: string) => {
+      try {
+        const parsed = JSON.parse(json);
+        const nodes = Array.isArray(parsed) ? parsed : [parsed];
+        const gallery = nodes.find(node => node?.["@type"] === "ImageGallery");
+        if (!gallery) return full;
+        foundGallery = true;
+        gallery.image = [...(Array.isArray(gallery.image) ? gallery.image : []).filter((image: { contentUrl?: string }) => !newImages.some(p => p.contentUrl === image.contentUrl)), ...newImages];
+        return full.replace(json, JSON.stringify(parsed).replace(/</g, "\\u003c"));
+      } catch { return full; }
+    });
+    if (!foundGallery) {
+      const gallery = { "@context": "https://schema.org", "@type": "ImageGallery", name: "AV Detailing Before & After Gallery", url: `${SITE}/gallery`, image: newImages };
+      out = out.replace(/<\/head>/i, `<script type="application/ld+json">${JSON.stringify(gallery)}</script></head>`);
+    }
   }
 
   return out;
