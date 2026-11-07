@@ -13,7 +13,7 @@ export function parseLiveGoogleReviews(value: unknown, now = Date.now()): LiveGo
 }
 export const LIVE_GOOGLE_REVIEWS_KEY = ["live-google-reviews"];
 export function useLiveGoogleReviews() {
-  return useQuery({ queryKey: LIVE_GOOGLE_REVIEWS_KEY, staleTime: 5 * 60000, retry: false, queryFn: async () => {
+  return useQuery({ queryKey: LIVE_GOOGLE_REVIEWS_KEY, staleTime: 5 * 60000, refetchInterval: 60000, retry: false, queryFn: async () => {
     const { data, error } = await supabase.functions.invoke("google-reviews", { body: {} });
     if (error) return null;
     return parseLiveGoogleReviews(data?.cache);

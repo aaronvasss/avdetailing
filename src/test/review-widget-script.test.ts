@@ -20,6 +20,6 @@ describe("global review widget script removal", () => {
     const src = readFileSync("src/components/reviews/GoogleReviews.tsx", "utf8");
     expect(src).toMatch(/GOOGLE_REVIEWS_URL/);
     expect(src).toMatch(/GOOGLE_WRITE_REVIEW_URL/);
-    expect(src).toMatch(/loadFeaturedReviews/);
+    expect(src).toMatch(/useLiveGoogleReviews/);
   });
 });
